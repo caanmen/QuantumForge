@@ -6,7 +6,84 @@
       "description": "Un sensor experimental que mide las fluctuaciones del vacío cuántico.",
       "baseCost": 10.0,
       "costMult": 1.15,
-      "baseLEps": 1.0
+      "baseLEps": 1.0,
+
+      "tier": 1,
+      "bonusType": "None",
+      "bonusPerLevel": 0.0,
+
+      "unlockMinLE": 0.0,
+      "unlockMinTotalLEps": 0.0,
+      "unlockRequireId": "",
+      "unlockRequireLevel": 0
+    },
+    {
+      "id": "casimir_panel",
+      "displayName": "Panel de Casimir",
+      "description": "Placas que exprimen el vacío para generar más LE.",
+      "baseCost": 50.0,
+      "costMult": 1.17,
+      "baseLEps": 4.0,
+
+      "tier": 1,
+      "bonusType": "None",
+      "bonusPerLevel": 0.0,
+
+      "unlockMinLE": 50.0,             
+      "unlockMinTotalLEps": 0.5,
+      "unlockRequireId": "",
+      "unlockRequireLevel": 0
+    },
+    {
+      "id": "fluctuation_antenna",
+      "displayName": "Antena de Fluctuaciones",
+      "description": "Capta fluctuaciones de mayor energía en el vacío.",
+      "baseCost": 200.0,
+      "costMult": 1.20,
+      "baseLEps": 10.0,
+
+      "tier": 1,
+      "bonusType": "MultiplierLE",
+      "bonusPerLevel": 0.02,
+
+      "unlockMinLE": 200.0,            
+      "unlockMinTotalLEps": 5.0,
+      "unlockRequireId": "vacuum_observer",
+      "unlockRequireLevel": 5
+    },
+    {
+      "id": "decoherence_lab",
+      "displayName": "Laboratorio de Decoherencia",
+      "description": "Estudia la pérdida de coherencia cuántica y cómo compensarla.",
+      "baseCost": 1500.0,
+      "costMult": 1.22,
+      "baseLEps": 0.0,
+
+      "tier": 2,
+      "bonusType": "MultiplierLE",
+      "bonusPerLevel": 0.05,
+
+      "unlockMinLE": 1500.0,            
+      "unlockMinTotalLEps": 20.0,
+      "unlockRequireId": "fluctuation_antenna",
+      "unlockRequireLevel": 5
+    },
+    {
+      "id": "vacuum_amplifier",
+      "displayName": "Amplificador de Vacío",
+      "description": "Aumenta la intensidad de las fluctuaciones aprovechables del vacío.",
+      "baseCost": 5000.0,
+      "costMult": 1.25,
+      "baseLEps": 40.0,
+
+      "tier": 2,
+      "bonusType": "FlatLE",
+      "bonusPerLevel": 5.0,
+
+      "unlockMinLE": 5000.0,           
+      "unlockMinTotalLEps": 40.0,
+      "unlockRequireId": "decoherence_lab",
+      "unlockRequireLevel": 3
     }
   ]
 }
