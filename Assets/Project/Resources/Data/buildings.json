@@ -1,0 +1,12 @@
+{
+  "buildings": [
+    {
+      "id": "vacuum_observer",
+      "displayName": "Observador de Vacío",
+      "description": "Un sensor experimental que mide las fluctuaciones del vacío cuántico.",
+      "baseCost": 10.0,
+      "costMult": 1.15,
+      "baseLEps": 1.0
+    }
+  ]
+}
