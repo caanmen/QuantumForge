@@ -1473,7 +1473,7 @@ MonoBehaviour:
   VP: 0
   BEC: 0
   baseLEps: 0.5
-  useDecoherence: 1
+  useDecoherence: 0
   decoStartLE: 1000
   decoStrength: 0.0005
   decoMinFactor: 0.2
