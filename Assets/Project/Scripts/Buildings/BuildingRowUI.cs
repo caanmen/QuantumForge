@@ -17,6 +17,10 @@ public class BuildingRowUI : MonoBehaviour
     public TextMeshProUGUI costText;
     public Button buyButton;
 
+    [Header("Estado visual")]
+    [Tooltip("CanvasGroup de la fila, para manejar opacidad e interacción cuando está bloqueada.")]
+    public CanvasGroup rowCanvasGroup;
+
     // Estado del edificio que esta fila representa
     private BuildingState state;
 
@@ -47,7 +51,8 @@ public class BuildingRowUI : MonoBehaviour
     /// </summary>
     public void Refresh()
     {
-        if (state == null || state.def == null) return;
+        if (state == null || state.def == null || gameState == null)
+            return;
 
         // Nombre siempre visible
         if (nameText != null)
@@ -57,28 +62,55 @@ public class BuildingRowUI : MonoBehaviour
         bool unlocked = BuildingUnlock.IsUnlocked(state.def);
 
         if (!unlocked)
+    {
+        // ---------- MODO BLOQUEADO ----------
+
+        // Visual: fila apagada y sin interacción
+        if (rowCanvasGroup != null)
         {
-            // ---------- MODO BLOQUEADO ----------
-            if (levelText != null)
-                levelText.text = "Bloqueado";
-
-            if (costText != null)
-            {
-                // Línea 1: coste inicial (para que el jugador sepa cuánto costará comprarlo)
-                string lineCost = $"Coste inicial: {state.def.baseCost:0} LE";
-
-                // Línea 2: requisitos comprimidos
-                string req = BuildRequirementsText(state.def);
-
-                costText.text = lineCost + "\n" + req;
-            }
+            rowCanvasGroup.alpha = 0.4f;
+            rowCanvasGroup.interactable = false;
+            rowCanvasGroup.blocksRaycasts = false;
         }
+
+        // Botón desactivado
+        if (buyButton != null)
+            buyButton.interactable = false;
+
+        // Texto de nivel
+        if (levelText != null)
+            levelText.text = "Bloqueado";
+
+        // SOLO mostramos requisitos (LE y edificio), sin coste inicial
+        if (costText != null)
+        {
+            string req = BuildRequirementsText(state.def);
+            costText.text = req;
+        }
+    }
+
         else
         {
             // ---------- MODO DESBLOQUEADO ----------
+
+            // Visual: fila normal
+            if (rowCanvasGroup != null)
+            {
+                rowCanvasGroup.alpha = 1f;
+                rowCanvasGroup.interactable = true;
+                rowCanvasGroup.blocksRaycasts = true;
+            }
+
+            // Botón solo activo si puede pagar
+            bool canAfford = state.CanAfford(gameState.LE);
+            if (buyButton != null)
+                buyButton.interactable = canAfford;
+
+            // Texto de nivel
             if (levelText != null)
                 levelText.text = $"Nivel: {state.level}";
 
+            // Coste actual
             if (costText != null)
                 costText.text = $"Coste: {state.currentCost:0} LE";
         }
@@ -86,33 +118,33 @@ public class BuildingRowUI : MonoBehaviour
 
     /// <summary>
     /// Construye un texto corto de requisitos para que quepa mejor en la UI.
-    /// Ejemplo: "Req: LE 5000, LE/s 40, Lab 3"
+    /// Ejemplo: "Req: LE ≥ 5000 · LE/s ≥ 40 · Lab ≥ 3"
     /// </summary>
     private string BuildRequirementsText(BuildingDef def)
     {
         List<string> parts = new List<string>();
 
+        // LE mínima actual
         if (def.unlockMinLE > 0.0)
         {
-            parts.Add($"LE {def.unlockMinLE:0}");
+            parts.Add($"LE ≥ {def.unlockMinLE:0}");
         }
 
-        if (def.unlockMinTotalLEps > 0.0)
-        {
-            parts.Add($"LE/s {def.unlockMinTotalLEps:0}");
-        }
-
+        // SOLO mostramos edificio requerido y nivel (no mostramos LE/s)
         if (!string.IsNullOrEmpty(def.unlockRequireId) && def.unlockRequireLevel > 0)
         {
             string shortName = GetShortReqName(def.unlockRequireId);
-            parts.Add($"{shortName} {def.unlockRequireLevel}");
+            parts.Add($"{shortName} ≥ {def.unlockRequireLevel}");
         }
 
         if (parts.Count == 0)
             return "Req: progreso";
 
-        return "Req: " + string.Join(", ", parts);
+        // Usamos " · " en vez de coma para que quepa mejor
+        return "Req: " + string.Join(" · ", parts);
     }
+
+
 
     /// <summary>
     /// Devuelve un nombre corto para el edificio requerido,
@@ -132,19 +164,9 @@ public class BuildingRowUI : MonoBehaviour
 
     private void Update()
     {
-        if (buyButton == null || state == null || gameState == null) return;
-
-        bool unlocked = BuildingUnlock.IsUnlocked(state.def);
-
-        if (!unlocked)
-        {
-            // Mientras esté bloqueado, el botón no se puede usar
-            buyButton.interactable = false;
-            return;
-        }
-
-        // Si está desbloqueado, el botón se habilita solo si puede pagar
-        buyButton.interactable = state.CanAfford(gameState.LE);
+        // Refrescamos cada frame para que, en cuanto se cumplan los requisitos,
+        // la fila pase de "Bloqueado" a normal automáticamente.
+        Refresh();
     }
 
     private void OnBuyClicked()

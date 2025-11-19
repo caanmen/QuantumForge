@@ -679,6 +679,7 @@ GameObject:
   - component: {fileID: 5155430138813643853}
   - component: {fileID: 135015152544137746}
   - component: {fileID: 5116402872188970996}
+  - component: {fileID: 528065416872775110}
   m_Layer: 5
   m_Name: BuildingRow
   m_TagString: Untagged
@@ -803,3 +804,16 @@ MonoBehaviour:
   levelText: {fileID: 338818350557838658}
   costText: {fileID: 3969520274490021379}
   buyButton: {fileID: 8614028342258055436}
+  rowCanvasGroup: {fileID: 528065416872775110}
+--- !u!225 &528065416872775110
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5382672463040434134}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
