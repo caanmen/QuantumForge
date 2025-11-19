@@ -7,6 +7,10 @@ public class SaveData
 {
     public double LE;
     public double VP;
+
+     // Mid-game: recurso EM
+    public double EM;
+    public double emMult;
     public double baseLEps;
     public long lastUnix; // para progreso offline en Fase 3
 }
@@ -39,6 +43,8 @@ public class SaveService : MonoBehaviour
         {
             LE = GameState.I.LE,
             VP = GameState.I.VP,
+            EM = GameState.I.EM,
+            emMult = GameState.I.emMult,
             baseLEps = GameState.I.baseLEps,
             lastUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
         };
@@ -51,17 +57,20 @@ public class SaveService : MonoBehaviour
     }
 
     public void Load()
-    {
-        if (!File.Exists(SavePath) || GameState.I == null) return;
-        var json = File.ReadAllText(SavePath);
-        var data = JsonUtility.FromJson<SaveData>(json);
-        GameState.I.LE = data.LE;
-        GameState.I.VP = data.VP;
-        GameState.I.baseLEps = data.baseLEps;
+{
+    if (!File.Exists(SavePath) || GameState.I == null) return;
+    var json = File.ReadAllText(SavePath);
+    var data = JsonUtility.FromJson<SaveData>(json);
+    GameState.I.LE = data.LE;
+    GameState.I.VP = data.VP;
+    GameState.I.EM = data.EM;
+    GameState.I.emMult = data.emMult;
+    GameState.I.baseLEps = data.baseLEps;
 #if UNITY_EDITOR
-        Debug.Log("[SaveService] Loaded.");
+    Debug.Log("[SaveService] Loaded.");
 #endif
-    }
+}
+
 
     [ContextMenu("Reset Save")]
     public void ResetSave()

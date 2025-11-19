@@ -13,8 +13,16 @@ public class GameState : MonoBehaviour
     [Tooltip("Recurso para el futuro sistema de BEC (aún sin implementar).")]
     public double BEC = 0.0;  // condensado de Bose-Einstein (futuro)
 
+    [Header("Recurso EM (mid-game)")]
+    [Tooltip("Campo electromagnético acumulado. Se usará como multiplicador global de LE/s.")]
+    public double EM = 0.0;
+
+    [Tooltip("Multiplicador adicional global de LE/s generado por el sistema EM.")]
+    public double emMult = 0.0;
+
     [Header("Producción base (sin edificios)")]
     public double baseLEps = 0.5;   // producción base sin edificios
+
 
     // Lista de edificios que producen LE (se llena desde la UI / BuildingList)
     private List<BuildingState> buildingStates = new List<BuildingState>();
@@ -63,13 +71,26 @@ public class GameState : MonoBehaviour
     }
 
     /// <summary>
-    /// Avanza el juego dt segundos (lógica principal de producción).
-    /// </summary>
-    public void Tick(double dt)
+/// Avanza el juego dt segundos (lógica principal de producción).
+/// </summary>
+public void Tick(double dt)
+{
+    // 1) Producir EM a partir de los edificios EM
+    double emPs = CalculateEMps();
+    if (emPs > 0.0)
     {
-        double totalLEps = CalculateTotalLEps();
-        LE += totalLEps * dt;
+        EM += emPs * dt;
     }
+
+    // 2) Actualizar el multiplicador EM según el EM acumulado
+    emMult = CalculateEMMultiplier();
+
+    // 3) Producir LE usando el multiplicador de EM
+    double totalLEps = CalculateTotalLEps();
+    LE += totalLEps * dt;
+}
+
+
 
     /// <summary>
     /// Calcula la producción total de LE/s:
@@ -109,6 +130,9 @@ public class GameState : MonoBehaviour
             }
         }
 
+        // Multiplicador adicional por EM (1 + emMult)
+        double emFactor = 1.0 + emMult;
+
         double rawTotal = (baseProd + fromBuildings) * multiplier + flatBonus;
 
         // Por ahora NO aplicamos decoherencia
@@ -118,6 +142,55 @@ public class GameState : MonoBehaviour
 
         return rawTotal;
     }
+    /// <summary>
+    /// Calcula cuánta EM/s generan los edificios relacionados con EM.
+    /// </summary>
+    
+    private double CalculateEMps()
+    {
+    double emPs = 0.0;
+
+    foreach (var b in buildingStates)
+    {
+        if (b == null || b.def == null) continue;
+        if (b.level <= 0) continue;
+
+        switch (b.def.id)
+        {
+            case "em_field_emitter":
+                // Emisor EM: genera poca EM por nivel
+                emPs += 0.5 * b.level;
+                break;
+
+            case "em_field_array":
+                // Matriz EM: genera algo más
+                emPs += 1.0 * b.level;
+                break;
+
+            case "micro_collider":
+                // μColisionador: principal fuente de EM
+                emPs += 2.0 * b.level;
+                break;
+        }
+    }
+
+    return emPs;
+}
+
+/// <summary>
+/// Convierte el EM acumulado en un multiplicador suave de producción de LE.
+/// </summary>
+private double CalculateEMMultiplier()
+{
+    if (EM <= 0.0) return 0.0;
+
+    // Cada 100 EM aporta ~5% extra, con rendimientos decrecientes (sqrt)
+    double k = 0.05; // 5% base
+    double normalized = EM / 100.0;
+
+    return k * System.Math.Sqrt(normalized);
+}
+
 
     /// <summary>
     /// Placeholder: por ahora no se usa.
