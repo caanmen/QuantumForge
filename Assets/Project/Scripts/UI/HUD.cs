@@ -8,6 +8,8 @@ public class HUD : MonoBehaviour
     public TextMeshProUGUI vpText;   // VP
     public TextMeshProUGUI emText;   // EM
     public TextMeshProUGUI becText;  // BEC (placeholder recurso futuro)
+    public TextMeshProUGUI ipText;   // IP   <-- NUEVO
+
 
     private void Update()
     {
@@ -37,6 +39,11 @@ public class HUD : MonoBehaviour
         if (becText != null)
         {
             becText.text = $"BEC: {gs.BEC:0}";
+        }
+
+        if (ipText != null)
+        {
+            ipText.text = $"IP: {gs.IP:0}";
         }
     }
 }

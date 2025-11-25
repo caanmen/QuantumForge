@@ -20,6 +20,13 @@ public class GameState : MonoBehaviour
     [Tooltip("Multiplicador adicional global de LE/s generado por el sistema EM.")]
     public double emMult = 0.0;
 
+    [Header("Investigación (Research)")]
+    [Tooltip("Puntos de investigación (IP) usados para comprar mejoras de laboratorio.")]
+    public double IP = 0.0;
+
+    [Tooltip("Multiplicador global de LE/s proveniente de investigaciones.")]
+    public double researchGlobalLEMult = 1.0;   // se recalcula desde ResearchManager
+
     [Header("Producción base (sin edificios)")]
     public double baseLEps = 0.5;   // producción base sin edificios
 
@@ -82,13 +89,22 @@ public void Tick(double dt)
         EM += emPs * dt;
     }
 
+    // 1b) Generar IP en función de EM/s (muy suave)
+    // Por ahora: 10% de EM/s se convierte en IP/s
+    if (emPs > 0.0)
+    {
+        double ipPs = emPs * 0.1;
+        IP += ipPs * dt;
+    }
+
     // 2) Actualizar el multiplicador EM según el EM acumulado
     emMult = CalculateEMMultiplier();
 
-    // 3) Producir LE usando el multiplicador de EM
+    // 3) Producir LE usando multiplicadores de EM + Research
     double totalLEps = CalculateTotalLEps();
     LE += totalLEps * dt;
 }
+
 
 
 
@@ -100,54 +116,54 @@ public void Tick(double dt)
     /// (Por ahora SIN decoherencia).
     /// </summary>
     private double CalculateTotalLEps()
+{
+    double baseProd = baseLEps;
+    double fromBuildings = 0.0;
+    double multiplier = 1.0;
+    double flatBonus = 0.0;
+
+    foreach (var b in buildingStates)
     {
-        double baseProd = baseLEps;
-        double fromBuildings = 0.0;
-        double multiplier = 1.0;
-        double flatBonus = 0.0;
+        if (b == null || b.def == null) continue;
 
-        foreach (var b in buildingStates)
+        double buildingProd = b.GetLEps();
+        fromBuildings += buildingProd;
+
+        if (b.level <= 0) continue;
+
+        switch (b.def.bonusType)
         {
-            if (b == null || b.def == null) continue;
+            case BuildingBonusType.None:
+                break;
 
-            double buildingProd = b.GetLEps();
-            fromBuildings += buildingProd;
+            case BuildingBonusType.MultiplierLE:
+                multiplier += b.def.bonusPerLevel * b.level;
+                break;
 
-            if (b.level <= 0) continue;
-
-            switch (b.def.bonusType)
-            {
-                case BuildingBonusType.None:
-                    break;
-
-                case BuildingBonusType.MultiplierLE:
-                    multiplier += b.def.bonusPerLevel * b.level;
-                    break;
-
-                case BuildingBonusType.FlatLE:
-                    flatBonus += b.def.bonusPerLevel * b.level;
-                    break;
-            }
+            case BuildingBonusType.FlatLE:
+                flatBonus += b.def.bonusPerLevel * b.level;
+                break;
         }
-
-        // Multiplicador adicional por EM (1 + emMult)
-        double emFactor = 1.0 + emMult;
-
-        double rawTotal = (baseProd + fromBuildings) * multiplier + flatBonus;
-
-        // Por ahora NO aplicamos decoherencia
-        // Si en el futuro queremos reactivarla, se hace aquí.
-        // if (useDecoherence)
-        //     rawTotal = ApplyDecoherence(rawTotal);
-
-        return rawTotal;
     }
+
+    // Multiplicador adicional por EM (1 + emMult)
+    double emFactor = 1.0 + emMult;
+
+    // Multiplicador adicional por investigaciones
+    double researchFactor = researchGlobalLEMult; // normalmente >= 1
+
+    double rawTotal = (baseProd + fromBuildings) * multiplier * emFactor * researchFactor + flatBonus;
+
+    // Aquí podrías aplicar decoherencia si quieres, pero lo dejamos aparte
+    return rawTotal;
+}
+
     /// <summary>
     /// Calcula cuánta EM/s generan los edificios relacionados con EM.
     /// </summary>
     
     private double CalculateEMps()
-    {
+{
     double emPs = 0.0;
 
     foreach (var b in buildingStates)
@@ -158,24 +174,28 @@ public void Tick(double dt)
         switch (b.def.id)
         {
             case "em_field_emitter":
-                // Emisor EM: genera poca EM por nivel
                 emPs += 0.5 * b.level;
                 break;
 
             case "em_field_array":
-                // Matriz EM: genera algo más
                 emPs += 1.0 * b.level;
                 break;
 
             case "micro_collider":
-                // μColisionador: principal fuente de EM
                 emPs += 2.0 * b.level;
                 break;
         }
     }
 
+    // Aplicar multiplicador de investigaciones (Cosecha EM I/II)
+    if (ResearchManager.I != null)
+    {
+        emPs *= ResearchManager.I.GetEMGenerationFactor();
+    }
+
     return emPs;
 }
+
 
 /// <summary>
 /// Convierte el EM acumulado en un multiplicador suave de producción de LE.
