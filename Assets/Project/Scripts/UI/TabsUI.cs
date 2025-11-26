@@ -1,45 +1,57 @@
 using UnityEngine;
+using UnityEngine.UI;
 
-/// <summary>
-/// Control sencillo de pestañas:
-/// - Pestaña de Generación (edificios LE)
-/// - Pestaña de Laboratorio (cosas futuras: BEC, ZPE, upgrades, etc.)
-/// </summary>
 public class TabsUI : MonoBehaviour
 {
-    [Header("Paneles de pestañas")]
-    public GameObject generationPanel; // panel donde están tus edificios actuales
-    public GameObject labPanel;        // panel para laboratorio / futuros sistemas
+    [Header("Botones de pestañas")]
+    public Button btnGeneracion;
+    public Button btnLab;
+    public Button btnLogros;
+
+    [Header("Paneles")]
+    public GameObject panelGeneracion;
+    public GameObject panelLab;
+    public GameObject panelLogros;
 
     private void Awake()
     {
-        // Al iniciar, mostramos la pestaña de generación por defecto
-        ShowGenerationTab();
+        if (btnGeneracion != null)
+            btnGeneracion.onClick.AddListener(ShowGeneracion);
+
+        if (btnLab != null)
+            btnLab.onClick.AddListener(ShowLab);
+
+        if (btnLogros != null)
+            btnLogros.onClick.AddListener(ShowLogros);
     }
 
-    /// <summary>
-    /// Muestra la pestaña de generación y oculta la de laboratorio.
-    /// La puedes conectar a un botón "Generación".
-    /// </summary>
-    public void ShowGenerationTab()
+    private void Start()
     {
-        if (generationPanel != null)
-            generationPanel.SetActive(true);
-
-        if (labPanel != null)
-            labPanel.SetActive(false);
+        ShowGeneracion();   // pestaña por defecto
     }
 
-    /// <summary>
-    /// Muestra la pestaña de laboratorio y oculta la de generación.
-    /// La puedes conectar a un botón "Laboratorio".
-    /// </summary>
-    public void ShowLabTab()
+    private void ShowGeneracion()
     {
-        if (generationPanel != null)
-            generationPanel.SetActive(false);
+        Debug.Log("[Tabs] Mostrar GENERACIÓN");
+        SetPanels(true, false, false);
+    }
 
-        if (labPanel != null)
-            labPanel.SetActive(true);
+    private void ShowLab()
+    {
+        Debug.Log("[Tabs] Mostrar LABORATORIO");
+        SetPanels(false, true, false);
+    }
+
+    private void ShowLogros()
+    {
+        Debug.Log("[Tabs] Mostrar LOGROS");
+        SetPanels(false, false, true);
+    }
+
+    private void SetPanels(bool gen, bool lab, bool logros)
+    {
+        if (panelGeneracion != null) panelGeneracion.SetActive(gen);
+        if (panelLab != null)        panelLab.SetActive(lab);
+        if (panelLogros != null)     panelLogros.SetActive(logros);
     }
 }

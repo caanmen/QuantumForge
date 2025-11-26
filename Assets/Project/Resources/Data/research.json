@@ -35,6 +35,24 @@
       "prereqId": "em_harvesting_1",
       "effectType": "EMGenerationMult",
       "effectValue": 0.25
+    },
+        {
+      "id": "em_stability_3",
+      "name": "Estabilización EM III",
+      "description": "Lleva al límite la estabilidad de los campos EM, añadiendo un 15% extra a la producción global de LE.",
+      "costIP": 400.0,
+      "prereqId": "em_stability_2",
+      "effectType": "GlobalLEMult",
+      "effectValue": 0.15
+    },
+    {
+      "id": "em_harvesting_3",
+      "name": "Cosecha EM III",
+      "description": "La red de colectores EM se optimiza al máximo, aumentando en un 40% adicional la generación de EM.",
+      "costIP": 600.0,
+      "prereqId": "em_harvesting_2",
+      "effectType": "EMGenerationMult",
+      "effectValue": 0.40
     }
   ]
 }

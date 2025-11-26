@@ -63,6 +63,15 @@ public class GameState : MonoBehaviour
         Time.timeScale = 1f;
     }
 
+    private void Start()
+    {
+        // Cuando el GameState ya está creado, pedimos cargar el save
+        if (SaveService.I != null)
+        {
+            SaveService.I.Load();
+        }
+    }
+
     private void Update()
     {
         double dt = Time.unscaledDeltaTime;
@@ -146,17 +155,29 @@ public void Tick(double dt)
         }
     }
 
-    // Multiplicador adicional por EM (1 + emMult)
+    // EM
     double emFactor = 1.0 + emMult;
 
-    // Multiplicador adicional por investigaciones
-    double researchFactor = researchGlobalLEMult; // normalmente >= 1
+    // Research (lo que ya tienes)
+    double researchFactor = researchGlobalLEMult;
 
-    double rawTotal = (baseProd + fromBuildings) * multiplier * emFactor * researchFactor + flatBonus;
+    // 🔥 Achievements
+    double achFactor = 1.0;
+    if (AchievementManager.I != null)
+    {
+        achFactor = AchievementManager.I.GetGlobalLEFactor();
+    }
 
-    // Aquí podrías aplicar decoherencia si quieres, pero lo dejamos aparte
+    double rawTotal = (baseProd + fromBuildings)
+                      * multiplier
+                      * emFactor
+                      * researchFactor
+                      * achFactor
+                      + flatBonus;
+
     return rawTotal;
 }
+
 
     /// <summary>
     /// Calcula cuánta EM/s generan los edificios relacionados con EM.

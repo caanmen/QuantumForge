@@ -19,85 +19,133 @@ public class SaveData
     // Lista de investigaciones compradas (ids)
     public List<string> purchasedResearchIds;
 
+    // Lista de logros desbloqueados (ids)
+    public List<string> unlockedAchievementIds;
+
     public double baseLEps;
     public long lastUnix;
 }
 
-
 public class SaveService : MonoBehaviour
 {
     public static List<string> LastLoadedResearchIds;
+    public static List<string> LastLoadedAchievementIds;
+
     public static SaveService I { get; private set; }
+
     private string SavePath => Path.Combine(Application.persistentDataPath, "save.json");
 
     [Tooltip("Autosave cada N segundos.")]
     public int autosaveSeconds = 30;
 
-    void Awake()
+    private void Awake()
     {
-        if (I != null && I != this) { Destroy(gameObject); return; }
+        // Versión simple: este objeto de la escena es SIEMPRE la instancia
         I = this;
-        DontDestroyOnLoad(gameObject);
+
+#if UNITY_EDITOR
+        Debug.Log("[SaveService] Awake()");
+#endif
     }
 
-    void Start()
+    private void Start()
     {
-        Load();
+#if UNITY_EDITOR
+        Debug.Log("[SaveService] Start()");
+#endif
+        // OJO: el Load lo hará GameState.Start(), cuando GameState.I ya exista
         InvokeRepeating(nameof(Save), autosaveSeconds, autosaveSeconds);
+    }
+
+    private void OnApplicationQuit()
+    {
+#if UNITY_EDITOR
+        Debug.Log("[SaveService] OnApplicationQuit -> Save()");
+#endif
+        Save();
+    }
+
+    private void OnApplicationPause(bool pause)
+    {
+        if (pause)
+        {
+#if UNITY_EDITOR
+            Debug.Log("[SaveService] OnApplicationPause(true) -> Save()");
+#endif
+            Save();
+        }
     }
 
     public void Save()
     {
-        if (GameState.I == null) return;
+        if (GameState.I == null)
+        {
+#if UNITY_EDITOR
+            Debug.LogWarning("[SaveService] Save() cancelado: GameState.I es null.");
+#endif
+            return;
+        }
+
         var data = new SaveData
-{
-    LE = GameState.I.LE,
-    VP = GameState.I.VP,
-    EM = GameState.I.EM,
-    emMult = GameState.I.emMult,
-    IP = GameState.I.IP,
+        {
+            LE = GameState.I.LE,
+            VP = GameState.I.VP,
+            EM = GameState.I.EM,
+            emMult = GameState.I.emMult,
+            IP = GameState.I.IP,
 
-    // si hay ResearchManager, tomamos lo que tenga; si no, dejamos lo último cargado
-    purchasedResearchIds = (ResearchManager.I != null)
-        ? ResearchManager.I.GetPurchasedIds()
-        : LastLoadedResearchIds,
+            purchasedResearchIds = (ResearchManager.I != null)
+                ? ResearchManager.I.GetPurchasedIds()
+                : LastLoadedResearchIds,
 
-    baseLEps = GameState.I.baseLEps,
-    lastUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-};
+            unlockedAchievementIds = (AchievementManager.I != null)
+                ? AchievementManager.I.GetUnlockedIds()
+                : LastLoadedAchievementIds,
+
+            baseLEps = GameState.I.baseLEps,
+            lastUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+        };
 
         var json = JsonUtility.ToJson(data, prettyPrint: true);
         File.WriteAllText(SavePath, json);
+
 #if UNITY_EDITOR
         Debug.Log($"[SaveService] Saved: {SavePath}");
 #endif
     }
 
     public void Load()
-{
-    if (!File.Exists(SavePath) || GameState.I == null) return;
+    {
+#if UNITY_EDITOR
+        Debug.Log($"[SaveService] Load() llamado. Existe archivo? {File.Exists(SavePath)} ({SavePath})");
+#endif
 
-    var json = File.ReadAllText(SavePath);
-    var data = JsonUtility.FromJson<SaveData>(json);
+        if (!File.Exists(SavePath) || GameState.I == null) return;
 
-    GameState.I.LE = data.LE;
-    GameState.I.VP = data.VP;
-    GameState.I.EM = data.EM;
-    GameState.I.emMult = data.emMult;
-    GameState.I.IP = data.IP;
-    GameState.I.baseLEps = data.baseLEps;
+        var json = File.ReadAllText(SavePath);
+        var data = JsonUtility.FromJson<SaveData>(json);
 
-    // Guardamos la lista para que ResearchManager la use en su Awake
-    LastLoadedResearchIds = data.purchasedResearchIds ?? new List<string>();
+        GameState.I.LE = data.LE;
+        GameState.I.VP = data.VP;
+        GameState.I.EM = data.EM;
+        GameState.I.emMult = data.emMult;
+        GameState.I.IP = data.IP;
+        GameState.I.baseLEps = data.baseLEps;
+
+        LastLoadedResearchIds = data.purchasedResearchIds ?? new List<string>();
+        LastLoadedAchievementIds = data.unlockedAchievementIds ?? new List<string>();
+
+        if (AchievementManager.I != null)
+        {
+            AchievementManager.I.ApplyLoadedAchievements(LastLoadedAchievementIds);
+        }
 
 #if UNITY_EDITOR
-    Debug.Log("[SaveService] Loaded.");
+        Debug.Log("[SaveService] Loaded.");
 #endif
-}
+    }
 
-
-
-    [ContextMenu("Reset Save")]
+    [ContextMenu("Reset Save (simple)")]
     public void ResetSave()
     {
         if (File.Exists(SavePath)) File.Delete(SavePath);
@@ -105,4 +153,46 @@ public class SaveService : MonoBehaviour
         Debug.Log("[SaveService] Save deleted.");
 #endif
     }
+
+#if UNITY_EDITOR
+    [ContextMenu("DEBUG: Reset Save (completo)")]
+    private void DebugResetSave()
+    {
+        try
+        {
+            if (File.Exists(SavePath))
+            {
+                File.Delete(SavePath);
+                Debug.Log($"[SaveService] DEBUG: Save borrado en {SavePath}");
+            }
+            else
+            {
+                Debug.Log("[SaveService] DEBUG: No había archivo de save para borrar.");
+            }
+
+            LastLoadedResearchIds = null;
+            LastLoadedAchievementIds = null;
+
+            if (GameState.I != null)
+            {
+                GameState.I.LE = 0;
+                GameState.I.VP = 0;
+                GameState.I.EM = 0;
+                GameState.I.emMult = 0;
+                GameState.I.IP = 0;
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("[SaveService] DEBUG: Error al borrar el save: " + ex.Message);
+        }
+    }
+
+    [ContextMenu("DEBUG: Save Now")]
+    private void DebugSaveNow()
+    {
+        Save();
+        Debug.Log("[SaveService] DEBUG: Save Now ejecutado.");
+    }
+#endif
 }
