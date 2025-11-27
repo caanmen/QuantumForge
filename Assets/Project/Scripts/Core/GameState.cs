@@ -9,6 +9,12 @@ public class GameState : MonoBehaviour
     public double LE = 0.0;   // Luz de Energía (recurso principal)
     public double VP = 0.0;   // Vacuum Points (recurso raro, aún sin lógica)
 
+    // F6.1: Moneda de prestigio (Entrelazamiento Cuántico)
+    public double ENT = 0.0;
+
+    // F6.1: Máximo de LE alcanzado en el run actual
+    public double maxLEAlcanzado = 0.0;
+
     [Header("Recursos avanzados (placeholder)")]
     [Tooltip("Recurso para el futuro sistema de BEC (aún sin implementar).")]
     public double BEC = 0.0;  // condensado de Bose-Einstein (futuro)
@@ -26,6 +32,7 @@ public class GameState : MonoBehaviour
 
     [Tooltip("Multiplicador global de LE/s proveniente de investigaciones.")]
     public double researchGlobalLEMult = 1.0;   // se recalcula desde ResearchManager
+
 
     [Header("Producción base (sin edificios)")]
     public double baseLEps = 0.5;   // producción base sin edificios
@@ -87,34 +94,42 @@ public class GameState : MonoBehaviour
     }
 
     /// <summary>
-/// Avanza el juego dt segundos (lógica principal de producción).
-/// </summary>
-public void Tick(double dt)
-{
-    // 1) Producir EM a partir de los edificios EM
+    /// Avanza el juego dt segundos (lógica principal de producción).
+    /// </summary>
+    public void Tick(double dt)
+    {
+    // 1) Producir EM...
     double emPs = CalculateEMps();
     if (emPs > 0.0)
     {
         EM += emPs * dt;
-    }
 
-    // 1b) Generar IP en función de EM/s (muy suave)
-    // Por ahora: 10% de EM/s se convierte en IP/s
-    if (emPs > 0.0)
-    {
+        // 1b) Generar IP (una sola vez)
         double ipPs = emPs * 0.1;
         IP += ipPs * dt;
     }
 
-    // 2) Actualizar el multiplicador EM según el EM acumulado
+    // 2) Actualizar el multiplicador EM
     emMult = CalculateEMMultiplier();
 
     // 3) Producir LE usando multiplicadores de EM + Research
     double totalLEps = CalculateTotalLEps();
     LE += totalLEps * dt;
-}
+
+    // F6.1: registrar el máximo LE alcanzado
+    ActualizarMaxLE();
+    }
 
 
+
+    // F6.1: Actualiza el máximo LE alcanzado en este run
+    public void ActualizarMaxLE()
+    {
+        if (LE > maxLEAlcanzado)
+        {
+            maxLEAlcanzado = LE;
+        }
+    }
 
 
     /// <summary>

@@ -13,6 +13,12 @@ public class SaveData
     public double EM;
     public double emMult;
 
+    // F6.1: Moneda de prestigio
+    public double ENT;
+
+    // F6.1: Máximo LE alcanzado en el run
+    public double maxLEAlcanzado;
+
     // Investigación
     public double IP;
 
@@ -80,31 +86,35 @@ public class SaveService : MonoBehaviour
     {
         if (GameState.I == null)
         {
-#if UNITY_EDITOR
+        #if UNITY_EDITOR
             Debug.LogWarning("[SaveService] Save() cancelado: GameState.I es null.");
-#endif
+        #endif
             return;
         }
 
         var data = new SaveData
         {
-            LE = GameState.I.LE,
-            VP = GameState.I.VP,
-            EM = GameState.I.EM,
-            emMult = GameState.I.emMult,
-            IP = GameState.I.IP,
+        LE = GameState.I.LE,
+        VP = GameState.I.VP,
+        EM = GameState.I.EM,
+        emMult = GameState.I.emMult,
+        IP = GameState.I.IP,
+        baseLEps = GameState.I.baseLEps,
 
-            purchasedResearchIds = (ResearchManager.I != null)
-                ? ResearchManager.I.GetPurchasedIds()
-                : LastLoadedResearchIds,
+        // F6.1: prestigio
+        ENT = GameState.I.ENT,
+        maxLEAlcanzado = GameState.I.maxLEAlcanzado,
 
-            unlockedAchievementIds = (AchievementManager.I != null)
-                ? AchievementManager.I.GetUnlockedIds()
-                : LastLoadedAchievementIds,
+        purchasedResearchIds = (ResearchManager.I != null)
+            ? ResearchManager.I.GetPurchasedIds()
+            : LastLoadedResearchIds,
+        unlockedAchievementIds = (AchievementManager.I != null)
+            ? AchievementManager.I.GetUnlockedIds()
+            : LastLoadedAchievementIds,
+        lastUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+    };
 
-            baseLEps = GameState.I.baseLEps,
-            lastUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-        };
+
 
         var json = JsonUtility.ToJson(data, prettyPrint: true);
         File.WriteAllText(SavePath, json);
@@ -132,8 +142,17 @@ public class SaveService : MonoBehaviour
         GameState.I.IP = data.IP;
         GameState.I.baseLEps = data.baseLEps;
 
+        // F6.1: prestigio
+        GameState.I.ENT = data.ENT;
+        GameState.I.maxLEAlcanzado = data.maxLEAlcanzado;
+
+        // Nos aseguramos de que el máximo quede coherente
+        GameState.I.ActualizarMaxLE();
+
         LastLoadedResearchIds = data.purchasedResearchIds ?? new List<string>();
         LastLoadedAchievementIds = data.unlockedAchievementIds ?? new List<string>();
+
+
 
         if (AchievementManager.I != null)
         {
