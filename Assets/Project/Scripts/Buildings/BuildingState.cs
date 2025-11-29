@@ -59,4 +59,13 @@ public class BuildingState
         level++;
         currentCost *= def.costMult;
     }
+
+        // F6.3: Reset básico para prestigio.
+    // Por ahora solo ponemos el nivel en 0; los costes se recalculan
+    // donde toque (normalmente en la UI de la fila del edificio).
+    public void ResetForPrestige()
+    {
+        level = 0;
+    }
+
 }

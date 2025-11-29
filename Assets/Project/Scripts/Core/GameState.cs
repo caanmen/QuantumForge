@@ -15,6 +15,24 @@ public class GameState : MonoBehaviour
     // F6.1: Máximo de LE alcanzado en el run actual
     public double maxLEAlcanzado = 0.0;
 
+    // F6.2: constante para la fórmula de prestigio (log10(maxLE) - K)
+    [Tooltip("Constante K para el cálculo de ENT (log10(maxLE) - K). Empieza en 6.0.")]
+    public double prestigeK = 6.0;
+
+     // F6.4: Upgrades de prestigio
+    [Header("Prestigio - upgrades")]
+    [Tooltip("Upgrade de prestigio: multiplicador global de LE/s.")]
+    public bool prestigeLeMult1Unlocked = false;
+
+    [Tooltip("Upgrade de prestigio: auto-compra del primer edificio.")]
+    public bool prestigeAutoBuyFirstUnlocked = false;
+
+    // Bonus del upgrade de multiplicador (por ejemplo +25% LE/s)
+    public double prestigeLeMult1Bonus = 0.25;
+
+    // Temporizador interno para la auto-compra
+    private double prestigeAutoBuyTimer = 0.0;
+
     [Header("Recursos avanzados (placeholder)")]
     [Tooltip("Recurso para el futuro sistema de BEC (aún sin implementar).")]
     public double BEC = 0.0;  // condensado de Bose-Einstein (futuro)
@@ -87,9 +105,10 @@ public class GameState : MonoBehaviour
         _dbg += Time.unscaledDeltaTime;
         if (_dbg >= 1f)
         {
-            double totalLEps = GetTotalLEps();
-            Debug.Log($"[GameState] LE = {LE:0.000} | LE/s total = {totalLEps:0.00}");
-            _dbg = 0f;
+        double totalLEps = GetTotalLEps();
+        double entPreview = GetENTGanariasAlPrestigiar();
+        Debug.Log($"[GameState] LE = {LE:0.000} | LE/s = {totalLEps:0.00} | ENT si prestigias: {entPreview}");
+        _dbg = 0f;
         }
     }
 
@@ -116,6 +135,9 @@ public class GameState : MonoBehaviour
     double totalLEps = CalculateTotalLEps();
     LE += totalLEps * dt;
 
+    // 4) Automatizaciones de prestigio
+    RunPrestigeAutomations(dt);
+
     // F6.1: registrar el máximo LE alcanzado
     ActualizarMaxLE();
     }
@@ -131,6 +153,44 @@ public class GameState : MonoBehaviour
         }
     }
 
+    // F6.2: ENT total teórica según el máximo LE alcanzado en este run.
+    public double GetENTTeorica()
+    {
+        if (maxLEAlcanzado <= 0.0)
+            return 0.0;
+
+        // log10 del máximo LE
+        double log = System.Math.Log10(maxLEAlcanzado);
+
+        // ENT = floor(log10(maxLE) - K)
+        double raw = System.Math.Floor(log - prestigeK);
+
+        if (raw < 0.0)
+            raw = 0.0;
+
+        return raw;
+    }
+
+    // F6.2: ENT que ganarías si haces prestigio AHORA.
+    // Por ahora es igual a la ENT teórica. Más adelante, si quieres evitar farmeo
+    // repetido, podemos restar aquí las ENT ya ganadas en otros runs.
+    public double GetENTGanariasAlPrestigiar()
+    {
+        return GetENTTeorica();
+    }
+
+        // F6.4: multiplicador global de LE/s proveniente de upgrades de prestigio
+    public double GetPrestigeLEMultiplier()
+    {
+        double mult = 1.0;
+
+        if (prestigeLeMult1Unlocked)
+        {
+            mult *= (1.0 + prestigeLeMult1Bonus); // +25% LE/s si está desbloqueado
+        }
+
+        return mult;
+    }
 
     /// <summary>
     /// Calcula la producción total de LE/s:
@@ -182,6 +242,9 @@ public class GameState : MonoBehaviour
     {
         achFactor = AchievementManager.I.GetGlobalLEFactor();
     }
+    
+    // 🔥 F6.4: factor de prestigio
+    double prestigeFactor = GetPrestigeLEMultiplier();
 
     double rawTotal = (baseProd + fromBuildings)
                       * multiplier
@@ -294,4 +357,103 @@ private double CalculateEMMultiplier()
 
         return 0;
     }
+
+        // F6.3: ¿puedo prestigiar ahora?
+    public bool CanPrestige()
+    {
+        // Por ahora, pedimos al menos 1 ENT para que valga la pena
+        double ent = GetENTGanariasAlPrestigiar();
+        return ent >= 1.0;
+    }
+
+    // F6.3: aplica el prestigio (si es posible).
+    // Devuelve cuánta ENT se ganó.
+    public double DoPrestigeReset()
+    {
+        double entGanar = GetENTGanariasAlPrestigiar();
+        if (entGanar <= 0.0)
+        {
+            Debug.Log("[GameState] No hay suficiente progreso para prestigiar (ENT ganada = 0).");
+            return 0.0;
+        }
+
+        // 1) Añadir ENT
+        ENT += entGanar;
+        Debug.Log($"[GameState] Prestigio realizado. ENT ganada: {entGanar}, ENT total: {ENT}");
+
+        // 2) Resetear el run (recursos y edificios)
+        ResetRunForPrestige();
+
+        // 3) Guardar estado después del prestigio
+        if (SaveService.I != null)
+        {
+            SaveService.I.Save();
+        }
+
+        return entGanar;
+    }
+
+    // F6.3: lógica de reset del run (sin tocar ENT ni upgrades de prestigio)
+    private void ResetRunForPrestige()
+    {
+        // Reset recursos básicos
+        LE = 0.0;
+        VP = 0.0;
+
+        // Reset recursos avanzados
+        BEC = 0.0;
+        EM = 0.0;
+        emMult = 0.0;
+        IP = 0.0;
+
+        // Multiplicadores de investigación (LOS DEJAMOS como están por ahora
+        // porque más adelante podríamos decidir si el prestigio los borra o no).
+        // researchGlobalLEMult se recalcula desde ResearchManager, así que no lo tocamos.
+
+        // Reset decoherencia (por si la activamos en el futuro)
+        useDecoherence = false;
+        maxLEAlcanzado = 0.0;
+
+        // Reset de edificios: por ahora dejamos los niveles en 0.
+        foreach (var b in buildingStates)
+        {
+            if (b == null) continue;
+            b.ResetForPrestige();
+        }
+    }
+
+        // F6.5: corre las automatizaciones asociadas a upgrades de prestigio
+    private void RunPrestigeAutomations(double dt)
+    {
+        if (!prestigeAutoBuyFirstUnlocked) return;
+
+        prestigeAutoBuyTimer += dt;
+        if (prestigeAutoBuyTimer < 0.5) return;   // cada 0.5 s aprox.
+        prestigeAutoBuyTimer = 0.0;
+
+        TryAutoBuyFirstBuilding();
+    }
+
+    // F6.5: intenta comprar automáticamente el primer edificio
+    private void TryAutoBuyFirstBuilding()
+    {
+        if (buildingStates == null || buildingStates.Count == 0) return;
+
+        var first = buildingStates[0];
+        if (first == null || first.def == null) return;
+
+        // Solo si está desbloqueado
+        if (!BuildingUnlock.IsUnlocked(first.def))
+            return;
+
+        // Solo si podemos pagar
+        if (!first.CanAfford(LE))
+            return;
+
+        // Pagar y comprar
+        LE -= first.currentCost;
+        first.OnPurchased();
+    }
+
+
 }

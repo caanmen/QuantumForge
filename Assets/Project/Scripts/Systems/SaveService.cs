@@ -30,6 +30,10 @@ public class SaveData
 
     public double baseLEps;
     public long lastUnix;
+
+    // F6.4: Upgrades de prestigio
+    public bool prestigeLeMult1Unlocked;
+    public bool prestigeAutoBuyFirstUnlocked;
 }
 
 public class SaveService : MonoBehaviour
@@ -105,6 +109,10 @@ public class SaveService : MonoBehaviour
         ENT = GameState.I.ENT,
         maxLEAlcanzado = GameState.I.maxLEAlcanzado,
 
+        // F6.4: upgrades de prestigio
+            prestigeLeMult1Unlocked = GameState.I.prestigeLeMult1Unlocked,
+            prestigeAutoBuyFirstUnlocked = GameState.I.prestigeAutoBuyFirstUnlocked,
+
         purchasedResearchIds = (ResearchManager.I != null)
             ? ResearchManager.I.GetPurchasedIds()
             : LastLoadedResearchIds,
@@ -145,6 +153,10 @@ public class SaveService : MonoBehaviour
         // F6.1: prestigio
         GameState.I.ENT = data.ENT;
         GameState.I.maxLEAlcanzado = data.maxLEAlcanzado;
+
+        // F6.4: upgrades de prestigio
+        GameState.I.prestigeLeMult1Unlocked = data.prestigeLeMult1Unlocked;
+        GameState.I.prestigeAutoBuyFirstUnlocked = data.prestigeAutoBuyFirstUnlocked;
 
         // Nos aseguramos de que el máximo quede coherente
         GameState.I.ActualizarMaxLE();
