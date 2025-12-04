@@ -19,6 +19,18 @@ public class SaveData
     // F6.1: Máximo LE alcanzado en el run
     public double maxLEAlcanzado;
 
+    // F7: Recursos late-game
+    public double ADP;
+    public double WHF;
+
+    // F7: Prestigio 2 (Lambda)
+    public double Lambda;
+
+    // F7: Estadísticas acumuladas para meta-prestigio
+    public double totalENTAcumulada;
+    public double totalADPGenerada;
+    public double totalWHFGenerada;
+
     // Investigación
     public double IP;
 
@@ -109,6 +121,16 @@ public class SaveService : MonoBehaviour
         ENT = GameState.I.ENT,
         maxLEAlcanzado = GameState.I.maxLEAlcanzado,
 
+        // F7: recursos late-game
+        ADP = GameState.I.ADP,
+        WHF = GameState.I.WHF,
+
+        // F7: prestigio 2 (Lambda) + estadísticas
+        Lambda = GameState.I.Lambda,
+        totalENTAcumulada = GameState.I.totalENTAcumulada,
+        totalADPGenerada = GameState.I.totalADPGenerada,
+        totalWHFGenerada = GameState.I.totalWHFGenerada,
+
         // F6.4: upgrades de prestigio
             prestigeLeMult1Unlocked = GameState.I.prestigeLeMult1Unlocked,
             prestigeAutoBuyFirstUnlocked = GameState.I.prestigeAutoBuyFirstUnlocked,
@@ -153,6 +175,14 @@ public class SaveService : MonoBehaviour
         // F6.1: prestigio
         GameState.I.ENT = data.ENT;
         GameState.I.maxLEAlcanzado = data.maxLEAlcanzado;
+
+        // F7: recursos late-game y Lambda
+        GameState.I.ADP = data.ADP;
+        GameState.I.WHF = data.WHF;
+        GameState.I.Lambda = data.Lambda;
+        GameState.I.totalENTAcumulada = data.totalENTAcumulada;
+        GameState.I.totalADPGenerada = data.totalADPGenerada;
+        GameState.I.totalWHFGenerada = data.totalWHFGenerada;
 
         // F6.4: upgrades de prestigio
         GameState.I.prestigeLeMult1Unlocked = data.prestigeLeMult1Unlocked;

@@ -37,6 +37,29 @@ public class GameState : MonoBehaviour
     [Tooltip("Recurso para el futuro sistema de BEC (aún sin implementar).")]
     public double BEC = 0.0;  // condensado de Bose-Einstein (futuro)
 
+    // F7: Recursos late-game (por run)
+    [Header("Recursos late-game (F7)")]
+    [Tooltip("Recurso late-game generado en runs avanzadas. Se resetea con cualquier prestigio.")]
+    public double ADP = 0.0;
+
+    [Tooltip("Fragmentos de agujero de gusano (WHF). Recurso muy raro por run, se resetea con cualquier prestigio.")]
+    public double WHF = 0.0;
+
+    // F7: Prestigio 2 (Lambda)
+    [Header("Prestigio 2 (Lambda)")]
+    [Tooltip("Moneda de meta-prestigio (Prestigio 2). No se pierde al resetear runs ni en Prestigio 1.")]
+    public double Lambda = 0.0;
+
+    // F7: Estadísticas acumuladas para meta-prestigio
+    [Tooltip("Total de ENT acumulada a lo largo de todas las runs (sirve para fórmulas futuras de Lambda).")]
+    public double totalENTAcumulada = 0.0;
+
+    [Tooltip("Total de ADP generada a lo largo de todas las runs (placeholder F7).")]
+    public double totalADPGenerada = 0.0;
+
+    [Tooltip("Total de fragmentos de Wormhole generados a lo largo de todas las runs (placeholder F7).")]
+    public double totalWHFGenerada = 0.0;
+
     [Header("Recurso EM (mid-game)")]
     [Tooltip("Campo electromagnético acumulado. Se usará como multiplicador global de LE/s.")]
     public double EM = 0.0;
@@ -134,6 +157,23 @@ public class GameState : MonoBehaviour
     // 3) Producir LE usando multiplicadores de EM + Research
     double totalLEps = CalculateTotalLEps();
     LE += totalLEps * dt;
+
+    // 🔹 F7.3: Producir ADP
+        double adpPs = CalculateADPps();
+        if (adpPs > 0.0)
+
+        {
+        ADP += adpPs * dt;
+        totalADPGenerada += adpPs * dt;
+        }
+
+    // 🔹 F7.4: WHF (Wormhole Fragments)
+    double whfPs = CalculateWHFps();
+    if (whfPs > 0.0)
+    {
+        WHF += whfPs * dt;
+        totalWHFGenerada += whfPs * dt;
+    }
 
     // 4) Automatizaciones de prestigio
     RunPrestigeAutomations(dt);
@@ -293,7 +333,93 @@ public class GameState : MonoBehaviour
     }
 
     return emPs;
-}
+    }
+
+    /// <summary>
+    /// F7.4: Calcula cuántos fragmentos de Wormhole (WHF) se generan por segundo.
+    /// Depende de la cantidad de 'wormhole_generator' y de la ADP actual.
+    /// </summary>
+    private double CalculateWHFps()
+    {
+        double whfPs = 0.0;
+
+        int wormholeGenerators = 0;
+
+        foreach (var b in buildingStates)   // 👉 usa la misma colección que en CalculateTotalLEps
+        {
+            if (b == null || b.def == null) continue;
+            if (b.level <= 0) continue;
+
+            switch (b.def.id)
+            {
+                case "wormhole_generator":
+                    wormholeGenerators += b.level;  // o b.count si tu clase usa otro nombre
+                    break;
+            }
+        }
+
+        // Sin generadores o sin ADP práctica, no generamos nada
+        if (wormholeGenerators <= 0 || ADP <= 0.0)
+            return 0.0;
+
+        // WHF base por generador: extremadamente bajo
+        double basePerGenerator = 0.00001; // 1e-5 WHF/s por generador
+
+        // Factor por ADP (a más ADP, más WHF)
+        // Log10 suaviza para que no se dispare demasiado.
+        double adpFactor = System.Math.Log10(1.0 + ADP);
+        if (adpFactor <= 0.0) return 0.0;
+
+        whfPs = wormholeGenerators * basePerGenerator * adpFactor;
+
+        return whfPs;
+    }
+
+
+    /// <summary>
+    /// F7.3: Calcula cuánta ADP/s se genera a partir de los edificios
+    /// 'adp_reactor' y 'sc_matrix', usando EM como factor suave.
+    /// </summary>
+    private double CalculateADPps()
+    {
+        double adpPs = 0.0;
+
+        int adpReactors = 0;
+        int scMatrices = 0;
+
+        foreach (var b in buildingStates)
+        {
+            if (b == null || b.def == null) continue;
+            if (b.level <= 0) continue;
+
+            switch (b.def.id)
+            {
+                case "adp_reactor":
+                    adpReactors += b.level;
+                    break;
+
+                case "sc_matrix":
+                    scMatrices += b.level;
+                    break;
+            }
+        }
+
+        if (adpReactors <= 0)
+            return 0.0;
+
+        // ADP base por reactor (lo ajustamos luego en balance)
+        double basePerReactor = 0.001; // ADP/s por reactor
+
+        // Bonus por Matriz SC (ej: +10% ADP por cada una)
+        double scBonusMult = 1.0 + 0.10 * scMatrices;
+
+        // EM como factor suave
+        double emFactor = 1.0 + System.Math.Log10(1.0 + EM);
+
+        adpPs = adpReactors * basePerReactor * scBonusMult * emFactor;
+
+        return adpPs;
+    }
 
 
 /// <summary>
@@ -358,6 +484,8 @@ private double CalculateEMMultiplier()
         return 0;
     }
 
+    
+
         // F6.3: ¿puedo prestigiar ahora?
     public bool CanPrestige()
     {
@@ -365,6 +493,55 @@ private double CalculateEMMultiplier()
         double ent = GetENTGanariasAlPrestigiar();
         return ent >= 1.0;
     }
+
+    /// <summary>
+    /// F7.5: Calcula cuánta Lambda (Λ) ganarías si hicieras Prestigio 2 ahora.
+    /// Usa maxLEAlcanzado, totalENTAcumulada, totalADPGenerada y totalWHFGenerada.
+    /// La fórmula es intencionalmente sub-exponencial para que no se dispare.
+    /// </summary>
+    private double CalculateLambdaGain()
+    {
+        // Si no has avanzado casi nada, no hay Lambda.
+        if (maxLEAlcanzado <= 0.0 || totalENTAcumulada <= 0.0)
+            return 0.0;
+
+        // Base por LE máximo (ej: 1e6 -> 6, 1e9 -> 9...)
+        double baseFromLE = System.Math.Log10(1.0 + maxLEAlcanzado);
+
+        // Factor por ENT acumulada (ej: 100 ENT -> ~6.3 con exp 0.4)
+        double entFactor = System.Math.Pow(totalENTAcumulada, 0.4);
+
+        // Factor por ADP total generada (muy suave)
+        double adpFactor = System.Math.Pow(1.0 + totalADPGenerada, 0.2);
+
+        // Factor por WHF total generada (algo más fuerte pero controlado)
+        double whfFactor = 1.0 + 0.5 * System.Math.Sqrt(totalWHFGenerada);
+
+        // Escalado global para que los valores sean razonables
+        double raw = baseFromLE * entFactor * adpFactor * whfFactor * 0.01;
+
+        if (raw < 1.0)
+            return 0.0;
+
+        return System.Math.Floor(raw);
+    }
+
+    /// <summary>
+    /// Valor visible para UI / preview de Lambda a ganar.
+    /// </summary>
+    public double GetLambdaPreview()
+    {
+        return CalculateLambdaGain();
+    }
+
+    /// <summary>
+    /// Indica si hay suficiente progreso para hacer Prestigio 2 (Λ > 0).
+    /// </summary>
+    public bool CanMetaPrestige()
+    {
+        return GetLambdaPreview() >= 1.0;
+    }
+
 
     // F6.3: aplica el prestigio (si es posible).
     // Devuelve cuánta ENT se ganó.
@@ -379,6 +556,7 @@ private double CalculateEMMultiplier()
 
         // 1) Añadir ENT
         ENT += entGanar;
+        totalENTAcumulada += entGanar;
         Debug.Log($"[GameState] Prestigio realizado. ENT ganada: {entGanar}, ENT total: {ENT}");
 
         // 2) Resetear el run (recursos y edificios)
@@ -392,6 +570,62 @@ private double CalculateEMMultiplier()
 
         return entGanar;
     }
+
+    /// <summary>
+    /// F7.5: Ejecuta el Prestigio 2 (Meta-Prestigio).
+    /// - Suma Lambda (Λ) usando CalculateLambdaGain().
+    /// - Resetea ENT y sus upgrades.
+    /// - Hace un reset profundo del run (usando ResetRunForPrestige).
+    /// Devuelve la cantidad de Lambda ganada.
+    /// </summary>
+    public double DoMetaPrestigeReset()
+    {
+        double lambdaGanar = GetLambdaPreview();
+        if (lambdaGanar <= 0.0)
+        {
+            Debug.Log("[GameState] No hay suficiente progreso para Meta-Prestigio (Λ ganada = 0).");
+            return 0.0;
+        }
+
+        // 1) Añadir Lambda
+        Lambda += lambdaGanar;
+        Debug.Log($"[GameState] Meta-Prestigio realizado. Λ ganada: {lambdaGanar}, Λ total: {Lambda}");
+
+        // 2) Resetear moneda de prestigio 1 y sus upgrades
+        ENT = 0.0;
+        prestigeLeMult1Unlocked = false;
+        prestigeAutoBuyFirstUnlocked = false;
+
+        // 3) Resetear todo el run (esto ya borra LE, EM, IP, ADP, WHF, edificios, etc.)
+        ResetRunForPrestige();
+
+        // 4) Opcional: reiniciar el máximo LE alcanzado (nuevo ciclo completamente)
+        maxLEAlcanzado = 0.0;
+
+        // 5) Guardar estado después del meta-prestigio
+        if (SaveService.I != null)
+        {
+            SaveService.I.Save();
+        }
+
+        return lambdaGanar;
+    }
+
+    /// <summary>
+    /// F7.5: Indica si el sistema de Meta-Prestigio debería estar visible en la UI.
+    /// Lo consideramos desbloqueado cuando:
+    /// - Has acumulado al menos 50 ENT en total, o
+    /// - Ya tienes algo de Lambda.
+    /// </summary>
+    public bool IsMetaPrestigeUnlocked
+    {
+        get
+        {
+            return totalENTAcumulada >= 50.0 || Lambda > 0.0;
+        }
+    }
+
+
 
     // F6.3: lógica de reset del run (sin tocar ENT ni upgrades de prestigio)
     private void ResetRunForPrestige()

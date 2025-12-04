@@ -7,11 +7,15 @@ public class TabsUI : MonoBehaviour
     public Button btnGeneracion;
     public Button btnLab;
     public Button btnLogros;
+    public Button btnPrestigio;   // 🔹 nuevo
+    public Button btnLambda;      // 🔹 nuevo
 
     [Header("Paneles")]
     public GameObject panelGeneracion;
     public GameObject panelLab;
     public GameObject panelLogros;
+    public GameObject prestigePanel;      // 🔹 nuevo
+    public GameObject metaPrestigePanel;  // 🔹 nuevo (Λ)
 
     private void Awake()
     {
@@ -23,6 +27,12 @@ public class TabsUI : MonoBehaviour
 
         if (btnLogros != null)
             btnLogros.onClick.AddListener(ShowLogros);
+
+        if (btnPrestigio != null)
+            btnPrestigio.onClick.AddListener(ShowPrestigio);
+
+        if (btnLambda != null)
+            btnLambda.onClick.AddListener(ShowMetaPrestigio);
     }
 
     private void Start()
@@ -30,28 +40,47 @@ public class TabsUI : MonoBehaviour
         ShowGeneracion();   // pestaña por defecto
     }
 
+    private void HideAll()
+    {
+        if (panelGeneracion != null)    panelGeneracion.SetActive(false);
+        if (panelLab != null)          panelLab.SetActive(false);
+        if (panelLogros != null)       panelLogros.SetActive(false);
+        if (prestigePanel != null)     prestigePanel.SetActive(false);
+        if (metaPrestigePanel != null) metaPrestigePanel.SetActive(false);
+    }
+
     private void ShowGeneracion()
     {
         Debug.Log("[Tabs] Mostrar GENERACIÓN");
-        SetPanels(true, false, false);
+        HideAll();
+        if (panelGeneracion != null) panelGeneracion.SetActive(true);
     }
 
     private void ShowLab()
     {
         Debug.Log("[Tabs] Mostrar LABORATORIO");
-        SetPanels(false, true, false);
+        HideAll();
+        if (panelLab != null) panelLab.SetActive(true);
     }
 
     private void ShowLogros()
     {
         Debug.Log("[Tabs] Mostrar LOGROS");
-        SetPanels(false, false, true);
+        HideAll();
+        if (panelLogros != null) panelLogros.SetActive(true);
     }
 
-    private void SetPanels(bool gen, bool lab, bool logros)
+    private void ShowPrestigio()
     {
-        if (panelGeneracion != null) panelGeneracion.SetActive(gen);
-        if (panelLab != null)        panelLab.SetActive(lab);
-        if (panelLogros != null)     panelLogros.SetActive(logros);
+        Debug.Log("[Tabs] Mostrar PRESTIGIO");
+        HideAll();
+        if (prestigePanel != null) prestigePanel.SetActive(true);
+    }
+
+    private void ShowMetaPrestigio()
+    {
+        Debug.Log("[Tabs] Mostrar META-PRESTIGIO Λ");
+        HideAll();
+        if (metaPrestigePanel != null) metaPrestigePanel.SetActive(true);
     }
 }

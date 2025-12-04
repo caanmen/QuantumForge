@@ -164,6 +164,53 @@
       "unlockMinTotalLEps": 0.0,
       "unlockRequireId": "em_field_array",
       "unlockRequireLevel": 3
-    }
+    },
+
+    {
+      "id": "adp_reactor",
+      "displayName": "Reactor ADP",
+      "description": "Convierte fluctuaciones EM extremas en plasma oscuro anisotrópico (ADP).",
+      "baseCost": 20000000.0,
+      "costMult": 1.35,
+      "baseLEps": 0.0,
+      "tier": 4,
+      "bonusType": "None",
+      "bonusPerLevel": 0.0,
+      "unlockMinLE": 15000000.0,
+      "unlockMinTotalLEps": 0.0,
+      "unlockRequireId": "micro_collider",
+      "unlockRequireLevel": 3
+    },
+    {
+      "id": "sc_matrix",
+      "displayName": "Matriz de Simetría Cuántica",
+      "description": "Reordena el vacío a escala cosmológica, potenciando la generación de ADP.",
+      "baseCost": 80000000.0,
+      "costMult": 1.38,
+      "baseLEps": 0.0,
+      "tier": 4,
+      "bonusType": "None",
+      "bonusPerLevel": 0.0,
+      "unlockMinLE": 50000000.0,
+      "unlockMinTotalLEps": 0.0,
+      "unlockRequireId": "adp_reactor",
+      "unlockRequireLevel": 3
+    },
+    {
+      "id": "wormhole_generator",
+      "displayName": "Generador de Agujeros de Gusano",
+      "description": "Experimentos extremos que fuerzan la apertura de microagujeros de gusano en el vacío.",
+      "baseCost": 300000000.0,
+      "costMult": 1.4,
+      "baseLEps": 0.0,
+      "tier": 4,
+      "bonusType": "None",
+      "bonusPerLevel": 0.0,
+      "unlockMinLE": 200000000.0,
+      "unlockMinTotalLEps": 0.0,
+      "unlockRequireId": "sc_matrix",
+      "unlockRequireLevel": 3
+  }
+
   ]
 }
