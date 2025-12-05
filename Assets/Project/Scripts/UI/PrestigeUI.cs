@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 
 public class PrestigeUI : MonoBehaviour
@@ -14,6 +15,10 @@ public class PrestigeUI : MonoBehaviour
     [Header("Costes de upgrades (en ENT)")]
     public int costoLeMult1 = 3;
     public int costoAutoBuy1 = 5;
+
+    [Header("Auto-compra: toggle")]
+    public Button autoBuyToggleButton;
+    public TextMeshProUGUI autoBuyToggleLabel;
 
     private void Update()
     {
@@ -58,7 +63,37 @@ public class PrestigeUI : MonoBehaviour
                 autoBuy1Text.text = $"Auto-compra Edificio 1 (cada 0.5 s) - Coste: {costoAutoBuy1} ENT";
             }
         }
+
+            // Toggle de auto-compra ON/OFF
+        if (autoBuyToggleButton != null && autoBuyToggleLabel != null)
+        {
+            bool unlocked = gs.prestigeAutoBuyFirstUnlocked;
+
+            // Solo mostramos el botón cuando el upgrade está comprado
+            autoBuyToggleButton.gameObject.SetActive(unlocked);
+
+            if (unlocked)
+            {
+                autoBuyToggleButton.interactable = true;
+                autoBuyToggleLabel.text = gs.prestigeAutoBuyFirstEnabled ? "Auto: ON" : "Auto: OFF";
+            }
+        }
+
     }
+
+    // Botón: encender / apagar auto-compra del edificio 1
+    public void OnClickToggleAutoBuy()
+    {
+        var gs = GameState.I;
+        if (gs == null) return;
+        if (!gs.prestigeAutoBuyFirstUnlocked) return;
+
+        gs.prestigeAutoBuyFirstEnabled = !gs.prestigeAutoBuyFirstEnabled;
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+    }
+
 
     // Botón de prestigio
     public void OnClickPrestige()
@@ -123,6 +158,8 @@ public class PrestigeUI : MonoBehaviour
 
         gs.ENT -= costoAutoBuy1;
         gs.prestigeAutoBuyFirstUnlocked = true;
+        gs.prestigeAutoBuyFirstEnabled  = true;   // se enciende al comprar
+
 
         if (SaveService.I != null)
             SaveService.I.Save();

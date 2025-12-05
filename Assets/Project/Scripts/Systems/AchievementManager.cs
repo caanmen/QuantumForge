@@ -191,7 +191,9 @@ public class AchievementManager : MonoBehaviour
         switch (type)
         {
             case AchievementConditionType.ReachLE:
-                return gs.LE >= def.threshold;
+                // Usar el MÁXIMO LE alcanzado en la run,
+                // así no importa si luego baja o si se pasa rápido por 1000.
+                return gs.maxLEAlcanzado >= def.threshold;
 
             case AchievementConditionType.ReachEM:
                 return gs.EM >= def.threshold;
@@ -213,6 +215,7 @@ public class AchievementManager : MonoBehaviour
         }
     }
 
+
     private void OnAchievementUnlocked(AchievementDef def)
     {
         Debug.Log($"[AchievementManager] Logro desbloqueado: {def.name} - {def.description}");
@@ -222,7 +225,15 @@ public class AchievementManager : MonoBehaviour
         {
             AchievementPopupUI.I.ShowPopup(def.name, def.description);
         }
+
+        // 🔹 Nuevo: refrescar la lista de logros en pantalla si existe
+        var listUI = FindFirstObjectByType<AchievementListUI>();
+        if (listUI != null)
+        {
+            listUI.Refresh();
+        }
     }
+
 
 
     private void RecalculateBonuses()
@@ -269,4 +280,24 @@ public class AchievementManager : MonoBehaviour
         }
         return list;
     }
+
+        /// <summary>
+    /// Resetea TODOS los logros a bloqueados.
+    /// Usado por el debug "Reset Save (completo)".
+    /// </summary>
+    public void ResetAllAchievements()
+    {
+        // Poner todos los estados en bloqueado
+        foreach (var kv in states)
+        {
+            kv.Value.unlocked = false;
+        }
+
+        // Recalcular el bonus global de LE (se pondrá a 0)
+        RecalculateBonuses();
+
+        // Si tienes una lista UI abierta, se refrescará cuando se vuelva a abrir.
+        // (No hace falta nada más aquí)
+    }
+
 }

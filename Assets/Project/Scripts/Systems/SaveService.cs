@@ -46,12 +46,24 @@ public class SaveData
     // F6.4: Upgrades de prestigio
     public bool prestigeLeMult1Unlocked;
     public bool prestigeAutoBuyFirstUnlocked;
+    public bool prestigeAutoBuyFirstEnabled;
+
+
+    // F7.5: Meta-upgrades comprados con Λ
+    public bool metaEntBoost1Bought;
+    public bool metaEmBoost1Bought;
+
+    // Niveles de edificios
+    public List<SavedBuildingLevel> buildingLevels;
 }
 
 public class SaveService : MonoBehaviour
 {
     public static List<string> LastLoadedResearchIds;
     public static List<string> LastLoadedAchievementIds;
+    public static List<SavedBuildingLevel> LastLoadedBuildingLevels;
+
+
 
     public static SaveService I { get; private set; }
 
@@ -132,8 +144,18 @@ public class SaveService : MonoBehaviour
         totalWHFGenerada = GameState.I.totalWHFGenerada,
 
         // F6.4: upgrades de prestigio
-            prestigeLeMult1Unlocked = GameState.I.prestigeLeMult1Unlocked,
-            prestigeAutoBuyFirstUnlocked = GameState.I.prestigeAutoBuyFirstUnlocked,
+        prestigeLeMult1Unlocked = GameState.I.prestigeLeMult1Unlocked,
+        prestigeAutoBuyFirstUnlocked = GameState.I.prestigeAutoBuyFirstUnlocked,
+        prestigeAutoBuyFirstEnabled = GameState.I.prestigeAutoBuyFirstEnabled,
+
+
+        // F7.5: meta-upgrades
+        metaEntBoost1Bought = GameState.I.metaEntBoost1Bought,
+        metaEmBoost1Bought = GameState.I.metaEmBoost1Bought,
+
+         // 🆕 Niveles de edificios
+        buildingLevels = GameState.I.GetBuildingLevelsForSave(),
+
 
         purchasedResearchIds = (ResearchManager.I != null)
             ? ResearchManager.I.GetPurchasedIds()
@@ -187,6 +209,17 @@ public class SaveService : MonoBehaviour
         // F6.4: upgrades de prestigio
         GameState.I.prestigeLeMult1Unlocked = data.prestigeLeMult1Unlocked;
         GameState.I.prestigeAutoBuyFirstUnlocked = data.prestigeAutoBuyFirstUnlocked;
+        GameState.I.prestigeAutoBuyFirstEnabled  = data.prestigeAutoBuyFirstEnabled;
+
+
+        // F7.5: meta-upgrades
+        GameState.I.metaEntBoost1Bought = data.metaEntBoost1Bought;
+        GameState.I.metaEmBoost1Bought = data.metaEmBoost1Bought;
+
+        
+        // 🆕 Guardar niveles de edificios para aplicarlos después
+        SaveService.LastLoadedBuildingLevels = data.buildingLevels ?? new List<SavedBuildingLevel>();
+
 
         // Nos aseguramos de que el máximo quede coherente
         GameState.I.ActualizarMaxLE();
@@ -233,16 +266,64 @@ public class SaveService : MonoBehaviour
 
             LastLoadedResearchIds = null;
             LastLoadedAchievementIds = null;
+            LastLoadedBuildingLevels = null;
+
 
             if (GameState.I != null)
-            {
-                GameState.I.LE = 0;
-                GameState.I.VP = 0;
-                GameState.I.EM = 0;
-                GameState.I.emMult = 0;
-                GameState.I.IP = 0;
-            }
+        {
+        // Recursos básicos
+        GameState.I.LE = 0;
+        GameState.I.VP = 0;
+        GameState.I.EM = 0;
+        GameState.I.emMult = 0;
+        GameState.I.IP = 0;
+
+        // Prestigio 1
+        GameState.I.ENT = 0;
+        GameState.I.maxLEAlcanzado = 0;
+
+        // F7: recursos late-game (por run)
+        GameState.I.ADP = 0;
+        GameState.I.WHF = 0;
+
+        // F7: Lambda y estadísticas acumuladas
+        GameState.I.Lambda            = 0;
+        GameState.I.totalENTAcumulada = 0;
+        GameState.I.totalADPGenerada  = 0;
+        GameState.I.totalWHFGenerada  = 0;
+
+        // (opcional) si quieres un reset TOTAL, también puedes limpiar upgrades:
+        GameState.I.prestigeLeMult1Unlocked      = false;
+        GameState.I.prestigeAutoBuyFirstUnlocked = false;
+        GameState.I.prestigeAutoBuyFirstEnabled  = true;
+        GameState.I.metaEntBoost1Bought = false;
+        GameState.I.metaEmBoost1Bought  = false;
+        
         }
+
+          if (AchievementManager.I != null)
+    {
+        // 1) marcar TODOS como bloqueados
+        foreach (var kv in AchievementManager.I.states)
+        {
+            kv.Value.unlocked = false;
+        }
+
+        // 2) recalcular bonus global
+        AchievementManager.I.SendMessage("RecalculateBonuses", SendMessageOptions.DontRequireReceiver);
+
+        // 3) refrescar la UI de la lista de logros si está en pantalla
+        var listUI = FindFirstObjectByType<AchievementListUI>();
+        if (listUI != null)
+        {
+            listUI.Refresh();
+        }
+    }
+
+
+        }
+
+        
         catch (Exception ex)
         {
             Debug.LogError("[SaveService] DEBUG: Error al borrar el save: " + ex.Message);

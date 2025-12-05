@@ -27,6 +27,9 @@ public class GameState : MonoBehaviour
     [Tooltip("Upgrade de prestigio: auto-compra del primer edificio.")]
     public bool prestigeAutoBuyFirstUnlocked = false;
 
+    [Tooltip("Si está en true, la auto-compra del primer edificio está activa.")]
+    public bool prestigeAutoBuyFirstEnabled = true;
+
     // Bonus del upgrade de multiplicador (por ejemplo +25% LE/s)
     public double prestigeLeMult1Bonus = 0.25;
 
@@ -49,6 +52,14 @@ public class GameState : MonoBehaviour
     [Header("Prestigio 2 (Lambda)")]
     [Tooltip("Moneda de meta-prestigio (Prestigio 2). No se pierde al resetear runs ni en Prestigio 1.")]
     public double Lambda = 0.0;
+
+        // F7.5: Meta-upgrades comprados con Λ
+    [Header("Meta-upgrades (Prestigio 2)")]
+    [Tooltip("Upgrade de Lambda: +20% ENT ganada permanentemente.")]
+    public bool metaEntBoost1Bought = false;
+
+    [Tooltip("Upgrade de Lambda: +15% EM base permanente.")]
+    public bool metaEmBoost1Bought = false;
 
     // F7: Estadísticas acumuladas para meta-prestigio
     [Tooltip("Total de ENT acumulada a lo largo de todas las runs (sirve para fórmulas futuras de Lambda).")]
@@ -81,6 +92,57 @@ public class GameState : MonoBehaviour
 
     // Lista de edificios que producen LE (se llena desde la UI / BuildingList)
     private List<BuildingState> buildingStates = new List<BuildingState>();
+
+    // Para evitar aplicar los niveles cargados más de una vez
+    private bool buildingLevelsApplied = false;
+
+
+    // Exporta los niveles de edificios para el sistema de guardado
+    public List<SavedBuildingLevel> GetBuildingLevelsForSave()
+    {
+        var list = new List<SavedBuildingLevel>();
+
+        if (buildingStates == null) return list;
+
+        foreach (var b in buildingStates)
+        {
+            if (b == null || b.def == null) continue;
+            if (b.level <= 0) continue; // solo guardamos los que tengan nivel
+
+            list.Add(new SavedBuildingLevel
+            {
+                id = b.def.id,
+                level = b.level
+            });
+        }
+
+        return list;
+    }
+
+    // Aplica niveles cargados desde el save
+    public void ApplyBuildingLevelsFromSave(List<SavedBuildingLevel> saved)
+    {
+        if (saved == null || buildingStates == null) return;
+
+        foreach (var sb in saved)
+        {
+            if (string.IsNullOrEmpty(sb.id)) continue;
+
+            foreach (var b in buildingStates)
+            {
+                if (b == null || b.def == null) continue;
+                if (b.def.id == sb.id)
+                {
+                    b.level = sb.level;
+                    break;
+                }
+            }
+        }
+
+            // Si más adelante tienes un recalculo específico, lo puedes llamar aquí.
+            // De momento, CalculateTotalLEps() ya usa buildingStates.
+    }
+
 
     [Header("Decoherencia (soft cap) - DESACTIVADA POR AHORA")]
     [Tooltip("Por ahora no afecta la producción. Más adelante se reutilizará.")]
@@ -202,14 +264,21 @@ public class GameState : MonoBehaviour
         // log10 del máximo LE
         double log = System.Math.Log10(maxLEAlcanzado);
 
-        // ENT = floor(log10(maxLE) - K)
-        double raw = System.Math.Floor(log - prestigeK);
+        // ENT base (antes de meta-upgrades)
+        double baseEnt = log - prestigeK;
+        if (baseEnt <= 0.0)
+            return 0.0;
 
+        // F7.5: aplicar multiplicador de meta-upgrades (Λ)
+        double withMeta = baseEnt * GetMetaENTMultiplier();
+
+        double raw = System.Math.Floor(withMeta);
         if (raw < 0.0)
             raw = 0.0;
 
         return raw;
     }
+
 
     // F6.2: ENT que ganarías si haces prestigio AHORA.
     // Por ahora es igual a la ENT teórica. Más adelante, si quieres evitar farmeo
@@ -231,6 +300,39 @@ public class GameState : MonoBehaviour
 
         return mult;
     }
+
+    // F7.5: multiplicadores provenientes de meta-upgrades (Prestigio 2)
+
+    /// <summary>
+    /// Multiplicador para ENT ganada al prestigiar (ej: +20% si el upgrade está comprado).
+    /// </summary>
+    public double GetMetaENTMultiplier()
+    {
+        double mult = 1.0;
+
+        if (metaEntBoost1Bought)
+        {
+            mult *= 1.20; // +20% ENT
+        }
+
+        return mult;
+    }
+
+    /// <summary>
+    /// Multiplicador para la generación de EM (ej: +15% si el upgrade está comprado).
+    /// </summary>
+    public double GetMetaEMGenerationMultiplier()
+    {
+        double mult = 1.0;
+
+        if (metaEmBoost1Bought)
+        {
+            mult *= 1.15; // +15% EM
+        }
+
+        return mult;
+    }
+
 
     /// <summary>
     /// Calcula la producción total de LE/s:
@@ -331,6 +433,9 @@ public class GameState : MonoBehaviour
     {
         emPs *= ResearchManager.I.GetEMGenerationFactor();
     }
+
+    // F7.5: meta-upgrades de Λ que afectan la generación de EM
+    emPs *= GetMetaEMGenerationMultiplier();
 
     return emPs;
     }
@@ -455,7 +560,15 @@ private double CalculateEMMultiplier()
         {
             buildingStates.Add(state);
         }
+
+        // 🆕 Si hay niveles cargados desde el save, aplicarlos
+        if (SaveService.LastLoadedBuildingLevels != null &&
+            SaveService.LastLoadedBuildingLevels.Count > 0)
+        {
+            ApplyBuildingLevelsFromSave(SaveService.LastLoadedBuildingLevels);
+        }
     }
+
 
     /// <summary>
     /// Devuelve la producción total de LE por segundo.
@@ -639,6 +752,23 @@ private double CalculateEMMultiplier()
         EM = 0.0;
         emMult = 0.0;
         IP = 0.0;
+        ADP = 0.0;
+        WHF = 0.0;
+
+        // F7: prestigio 2 (Lambda) y estadísticas
+        Lambda = 0.0;
+        totalENTAcumulada = 0.0;
+        totalADPGenerada = 0.0;
+        totalWHFGenerada = 0.0;
+
+        // Meta-upgrades de Lambda
+        metaEntBoost1Bought = false;
+        metaEmBoost1Bought = false;
+
+        // Upgrades de prestigio 1 (si quieres que el reset debug sea TOTAL)
+        prestigeLeMult1Unlocked = false;
+        prestigeAutoBuyFirstUnlocked = false;
+        prestigeAutoBuyFirstEnabled = true;
 
         // Multiplicadores de investigación (LOS DEJAMOS como están por ahora
         // porque más adelante podríamos decidir si el prestigio los borra o no).
@@ -657,9 +787,12 @@ private double CalculateEMMultiplier()
     }
 
         // F6.5: corre las automatizaciones asociadas a upgrades de prestigio
+    // F6.5: corre las automatizaciones asociadas a upgrades de prestigio
     private void RunPrestigeAutomations(double dt)
     {
+        // Solo si tienes el upgrade Y está encendido
         if (!prestigeAutoBuyFirstUnlocked) return;
+        if (!prestigeAutoBuyFirstEnabled)  return;
 
         prestigeAutoBuyTimer += dt;
         if (prestigeAutoBuyTimer < 0.5) return;   // cada 0.5 s aprox.
@@ -667,6 +800,7 @@ private double CalculateEMMultiplier()
 
         TryAutoBuyFirstBuilding();
     }
+
 
     // F6.5: intenta comprar automáticamente el primer edificio
     private void TryAutoBuyFirstBuilding()
