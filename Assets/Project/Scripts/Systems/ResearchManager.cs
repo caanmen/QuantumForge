@@ -163,21 +163,57 @@ public class ResearchManager : MonoBehaviour
 
     public bool CanPurchase(string id)
     {
-        if (GameState.I == null) return false;
+        if (GameState.I == null)
+        {
+            DebugLogCanPurchaseReason(id, "GameState nulo");
+            return false;
+        }
 
         var def = defs.Find(d => d.id == id);
-        if (def == null) return false;
+        if (def == null)
+        {
+            DebugLogCanPurchaseReason(id, "Def no encontrada");
+            return false;
+        }
 
         // Ya comprada
-        if (IsPurchased(id)) return false;
+        if (IsPurchased(id))
+        {
+            DebugLogCanPurchaseReason(id, "Ya estaba comprada");
+            return false;
+        }
 
         // Requisito previo
         if (!string.IsNullOrEmpty(def.prereqId) && !IsPurchased(def.prereqId))
+        {
+            DebugLogCanPurchaseReason(id, $"Falta prereq '{def.prereqId}'");
             return false;
+        }
 
         // IP suficiente
-        return GameState.I.IP >= def.costIP;
+        if (GameState.I.IP < def.costIP)
+        {
+            DebugLogCanPurchaseReason(
+                id,
+                $"Falta IP (tiene {GameState.I.IP}, requiere {def.costIP})"
+            );
+            return false;
+        }
+
+        return true;
     }
+
+
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    private void DebugLogCanPurchaseReason(string id, string reason)
+    {
+        // Solo nos interesa depurar em_stability_2
+        if (id == "em_stability_2")
+        {
+            Debug.Log($"[ResearchManager] CanPurchase({id}) = false -> {reason}");
+        }
+    }
+
 
     public bool TryPurchase(string id)
     {

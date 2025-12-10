@@ -254,6 +254,7 @@ public class SaveService : MonoBehaviour
     {
         try
         {
+            // 1) Borrar el archivo de save en disco
             if (File.Exists(SavePath))
             {
                 File.Delete(SavePath);
@@ -264,71 +265,66 @@ public class SaveService : MonoBehaviour
                 Debug.Log("[SaveService] DEBUG: No había archivo de save para borrar.");
             }
 
-            LastLoadedResearchIds = null;
+            // 2) Limpiar los buffers estáticos en memoria
+            LastLoadedResearchIds    = null;
             LastLoadedAchievementIds = null;
             LastLoadedBuildingLevels = null;
 
-
+            // 3) Resetear el GameState en memoria (LE, base, edificios, prestigio, etc.)
             if (GameState.I != null)
-        {
-        // Recursos básicos
-        GameState.I.LE = 0;
-        GameState.I.VP = 0;
-        GameState.I.EM = 0;
-        GameState.I.emMult = 0;
-        GameState.I.IP = 0;
+            {
+                // Reset del run completo (LE, base, edificios, maxLE, etc.)
+                GameState.I.DebugResetRunState();
 
-        // Prestigio 1
-        GameState.I.ENT = 0;
-        GameState.I.maxLEAlcanzado = 0;
+                // Reset de monedas de prestigio y late-game
+                GameState.I.ENT  = 0.0;
+                GameState.I.ADP  = 0.0;
+                GameState.I.WHF  = 0.0;
+                GameState.I.Lambda            = 0.0;
+                GameState.I.totalENTAcumulada = 0.0;
+                GameState.I.totalADPGenerada  = 0.0;
+                GameState.I.totalWHFGenerada  = 0.0;
 
-        // F7: recursos late-game (por run)
-        GameState.I.ADP = 0;
-        GameState.I.WHF = 0;
+                // Reset de upgrades de prestigio y meta-upgrades
+                GameState.I.prestigeLeMult1Unlocked      = false;
+                GameState.I.prestigeAutoBuyFirstUnlocked = false;
+                GameState.I.prestigeAutoBuyFirstEnabled  = true;
+                GameState.I.metaEntBoost1Bought          = false;
+                GameState.I.metaEmBoost1Bought           = false;
+            }
 
-        // F7: Lambda y estadísticas acumuladas
-        GameState.I.Lambda            = 0;
-        GameState.I.totalENTAcumulada = 0;
-        GameState.I.totalADPGenerada  = 0;
-        GameState.I.totalWHFGenerada  = 0;
+            // 4) Resetear logros en memoria
+            if (AchievementManager.I != null)
+            {
+                // Marcar TODOS los logros como bloqueados
+                foreach (var kv in AchievementManager.I.states)
+                {
+                    kv.Value.unlocked = false;
+                }
 
-        // (opcional) si quieres un reset TOTAL, también puedes limpiar upgrades:
-        GameState.I.prestigeLeMult1Unlocked      = false;
-        GameState.I.prestigeAutoBuyFirstUnlocked = false;
-        GameState.I.prestigeAutoBuyFirstEnabled  = true;
-        GameState.I.metaEntBoost1Bought = false;
-        GameState.I.metaEmBoost1Bought  = false;
-        
+                // Recalcular bonus global
+                AchievementManager.I.SendMessage(
+                    "RecalculateBonuses",
+                    SendMessageOptions.DontRequireReceiver
+                );
+
+                // Refrescar la UI de la lista de logros si está abierta
+                var listUI = FindFirstObjectByType<AchievementListUI>();
+                if (listUI != null)
+                {
+                    listUI.Refresh();
+                }
+            }
+
+            Debug.Log("[SaveService] DEBUG: Reset completo aplicado en memoria.");
         }
-
-          if (AchievementManager.I != null)
-    {
-        // 1) marcar TODOS como bloqueados
-        foreach (var kv in AchievementManager.I.states)
-        {
-            kv.Value.unlocked = false;
-        }
-
-        // 2) recalcular bonus global
-        AchievementManager.I.SendMessage("RecalculateBonuses", SendMessageOptions.DontRequireReceiver);
-
-        // 3) refrescar la UI de la lista de logros si está en pantalla
-        var listUI = FindFirstObjectByType<AchievementListUI>();
-        if (listUI != null)
-        {
-            listUI.Refresh();
-        }
-    }
-
-
-        }
-
-        
         catch (Exception ex)
         {
             Debug.LogError("[SaveService] DEBUG: Error al borrar el save: " + ex.Message);
         }
     }
+
+
 
     [ContextMenu("DEBUG: Save Now")]
     private void DebugSaveNow()

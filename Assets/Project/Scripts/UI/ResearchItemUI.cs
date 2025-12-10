@@ -33,29 +33,44 @@ public class ResearchItemUI : MonoBehaviour
     }
 
     private void RefreshState()
+{
+    if (ResearchManager.I == null || def == null || buyButton == null) return;
+
+    bool purchased = ResearchManager.I.IsPurchased(researchId);
+    bool canBuy = ResearchManager.I.CanPurchase(researchId);
+    var buttonText = buyButton.GetComponentInChildren<TMP_Text>();
+
+    if (purchased)
     {
-        if (ResearchManager.I == null || def == null || buyButton == null) return;
-
-        bool purchased = ResearchManager.I.IsPurchased(researchId);
-        bool canBuy = ResearchManager.I.CanPurchase(researchId);
-        var buttonText = buyButton.GetComponentInChildren<TMP_Text>();
-
-        if (purchased)
-        {
-            buyButton.interactable = false;
-            if (buttonText != null) buttonText.text = "Comprado";
-        }
-        else if (!canBuy)
-        {
-            buyButton.interactable = false;
-            if (buttonText != null) buttonText.text = "Bloqueado";
-        }
-        else
-        {
-            buyButton.interactable = true;
-            if (buttonText != null) buttonText.text = "Comprar";
-        }
+        buyButton.interactable = false;
+        if (buttonText != null) buttonText.text = "Comprado";
+        return;
     }
+
+    // Aquí diferenciamos el por qué NO se puede comprar
+    bool hasPrereq = true;
+    if (!string.IsNullOrEmpty(def.prereqId))
+    {
+        hasPrereq = ResearchManager.I.IsPurchased(def.prereqId);
+    }
+
+    if (!hasPrereq)
+    {
+        buyButton.interactable = false;
+        if (buttonText != null) buttonText.text = "Bloqueado";
+    }
+    else if (GameState.I.IP < def.costIP)
+    {
+        buyButton.interactable = false;
+        if (buttonText != null) buttonText.text = "Sin IP";
+    }
+    else
+    {
+        buyButton.interactable = true;
+        if (buttonText != null) buttonText.text = "Comprar";
+    }
+}
+
 
     private void Update()
 {

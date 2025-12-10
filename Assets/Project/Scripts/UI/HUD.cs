@@ -15,14 +15,34 @@ public class HUD : MonoBehaviour
     private void Update()
     {
         var gs = GameState.I;
-        if (gs == null) return;
+    if (gs == null) return;
 
         // LE y LE/s
         if (leText != null)
         {
             double leps = gs.GetTotalLEps();
-            leText.text = $"LE: {gs.LE:0}  (LE/s: {leps:0.00}  EMx: {1.0 + gs.emMult:0.00})";
+
+            // 1) Factor base por EM (por la cantidad de EM)
+            double emBase = 1.0 + gs.emMult;
+
+            // 2) Factor por investigaciones de Cosecha EM
+            double emGenFactor = 1.0;
+            if (ResearchManager.I != null)
+            {
+                emGenFactor = ResearchManager.I.GetEMGenerationFactor();
+            }
+
+            // 🔹 EMx total que queremos mostrar en pantalla
+            double emxVisual = emBase * emGenFactor;
+
+            // 3) Factor de laboratorio (Estabilización EM I/II/III)
+            double labFactor = gs.researchGlobalLEMult;
+
+            leText.text =
+                $"LE: {gs.LE:0}  " +
+                $"(LE/s: {leps:0.00}  EMx: {emxVisual:0.00}  Labx: {labFactor:0.00})";
         }
+
 
         // VP
         if (vpText != null)

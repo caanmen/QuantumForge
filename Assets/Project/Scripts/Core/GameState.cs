@@ -255,6 +255,37 @@ public class GameState : MonoBehaviour
         }
     }
 
+    public void DebugResetRunState()
+    {
+    // 🔹 Recursos básicos
+    LE = 0.0;
+    VP = 0.0;
+    
+    // 🔹 EM e IP también deben resetearse
+    EM = 0.0;         // 👈 NUEVO
+    emMult = 0.0;     // 👈 NUEVO
+    IP = 0.0;         // 👈 NUEVO
+    
+    // 🔹 Producción base sin edificios
+    baseLEps = 0.5;
+
+    // 🔹 Reset del máximo de LE alcanzado en el run
+    maxLEAlcanzado = 0.0;
+
+    // 🔹 Reset de edificios (nivel 0)
+    if (buildingStates != null)
+    {
+        foreach (var b in buildingStates)
+        {
+            if (b == null) continue;
+            b.ResetForPrestige();   // este método ya existe en BuildingState
+        }
+    }
+
+    // Si más adelante quieres, aquí también puedes resetear BEC, EM, ADP, WHF, etc.
+    }
+
+
     // F6.2: ENT total teórica según el máximo LE alcanzado en este run.
     public double GetENTTeorica()
     {
