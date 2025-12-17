@@ -17,7 +17,7 @@ public class GameState : MonoBehaviour
 
     // F6.2: constante para la fórmula de prestigio (log10(maxLE) - K)
     [Tooltip("Constante K para el cálculo de ENT (log10(maxLE) - K). Empieza en 6.0.")]
-    public double prestigeK = 6.0;
+    public double prestigeK = 5.0;
 
      // F6.4: Upgrades de prestigio
     [Header("Prestigio - upgrades")]
@@ -87,7 +87,7 @@ public class GameState : MonoBehaviour
 
 
     [Header("Producción base (sin edificios)")]
-    public double baseLEps = 0.5;   // producción base sin edificios
+    public double baseLEps = 0.0;   // producción base sin edificios
 
 
     // Lista de edificios que producen LE (se llena desde la UI / BuildingList)
@@ -192,8 +192,7 @@ public class GameState : MonoBehaviour
         {
         double totalLEps = GetTotalLEps();
         double entPreview = GetENTGanariasAlPrestigiar();
-        Debug.Log($"[GameState] LE = {LE:0.000} | LE/s = {totalLEps:0.00} | ENT si prestigias: {entPreview}");
-        _dbg = 0f;
+        
         }
     }
 
@@ -201,33 +200,34 @@ public class GameState : MonoBehaviour
     /// Avanza el juego dt segundos (lógica principal de producción).
     /// </summary>
     public void Tick(double dt)
-    {
+{
     // 1) Producir EM...
     double emPs = CalculateEMps();
     if (emPs > 0.0)
     {
         EM += emPs * dt;
 
-        // 1b) Generar IP (una sola vez)
-        double ipPs = emPs * 0.1;
+        // 1b) Generar IP (pasivo a partir de EM)
+        double ipPs = emPs * 0.5;
         IP += ipPs * dt;
     }
 
     // 2) Actualizar el multiplicador EM
     emMult = CalculateEMMultiplier();
 
-    // 3) Producir LE usando multiplicadores de EM + Research
-    double totalLEps = CalculateTotalLEps();
-    LE += totalLEps * dt;
+    // 3) Producir LE
+    //    - CalculateTotalLEps() se sigue usando para HUD y lógica de desbloqueos.
+    //    - PERO ya NO sumamos LE usando esa fórmula directamente.
+    double totalLEps = CalculateTotalLEps(); // <-- solo informativo / HUD
+    GenerateLEFromBaseAndBuildings(dt);      // <-- NUEVO: producción real
 
     // 🔹 F7.3: Producir ADP
-        double adpPs = CalculateADPps();
-        if (adpPs > 0.0)
-
-        {
+    double adpPs = CalculateADPps();
+    if (adpPs > 0.0)
+    {
         ADP += adpPs * dt;
         totalADPGenerada += adpPs * dt;
-        }
+    }
 
     // 🔹 F7.4: WHF (Wormhole Fragments)
     double whfPs = CalculateWHFps();
@@ -242,7 +242,8 @@ public class GameState : MonoBehaviour
 
     // F6.1: registrar el máximo LE alcanzado
     ActualizarMaxLE();
-    }
+}
+
 
 
 
@@ -258,7 +259,7 @@ public class GameState : MonoBehaviour
     public void DebugResetRunState()
     {
     // 🔹 Recursos básicos
-    LE = 0.0;
+    LE = 10.0;
     VP = 0.0;
     
     // 🔹 EM e IP también deben resetearse
@@ -267,7 +268,7 @@ public class GameState : MonoBehaviour
     IP = 0.0;         // 👈 NUEVO
     
     // 🔹 Producción base sin edificios
-    baseLEps = 0.5;
+    baseLEps = 0.0;
 
     // 🔹 Reset del máximo de LE alcanzado en el run
     maxLEAlcanzado = 0.0;
@@ -566,7 +567,7 @@ private double CalculateEMMultiplier()
     if (EM <= 0.0) return 0.0;
 
     // Cada 100 EM aporta ~5% extra, con rendimientos decrecientes (sqrt)
-    double k = 0.05; // 5% base
+    double k = 0.15; // 5% base
     double normalized = EM / 100.0;
 
     return k * System.Math.Sqrt(normalized);
@@ -853,6 +854,156 @@ private double CalculateEMMultiplier()
         LE -= first.currentCost;
         first.OnPurchased();
     }
+
+    // Pon esto DENTRO de la clase GameState
+    /// <summary>
+    /// F8: Genera LE usando:
+    /// - baseLEps (producción base continua)
+    /// - edificios:
+    ///     * si NO tienen tickInterval -> se comportan como antes (LE/s continuo)
+    ///     * si tienen tickInterval y lePerTickBase -> generan LE por tick
+    /// 
+    /// Los multiplicadores globales (EM, research, achievements) se aplican igual
+    /// que en CalculateTotalLEps(), para que el HUD y la producción real estén alineados.
+    /// </summary>
+    private void GenerateLEFromBaseAndBuildings(double dt)
+{
+    // Seguridad
+    if (dt <= 0.0) return;
+
+    // 1) Multiplicadores globales y bonus planos (para LE)
+    double multiplier = 1.0;
+    double flatBonus = 0.0;
+
+    if (buildingStates != null)
+    {
+        foreach (var b in buildingStates)
+        {
+            if (b == null || b.def == null) continue;
+            if (b.level <= 0) continue;
+
+            switch (b.def.bonusType)
+            {
+                case BuildingBonusType.MultiplierLE:
+                    multiplier += b.def.bonusPerLevel * b.level;
+                    break;
+
+                case BuildingBonusType.FlatLE:
+                    flatBonus += b.def.bonusPerLevel * b.level;
+                    break;
+            }
+        }
+    }
+
+    // EM → multiplicador de LE
+    double emFactor = 1.0 + emMult;
+
+    // Research global de LE
+    double researchFactor = researchGlobalLEMult;
+
+    // Achievements
+    double achFactor = 1.0;
+    if (AchievementManager.I != null)
+    {
+        achFactor = AchievementManager.I.GetGlobalLEFactor();
+    }
+
+    double worldMult = multiplier * emFactor * researchFactor * achFactor;
+
+    // 2) Producción base continua (sin edificios)
+    if (baseLEps > 0.0)
+    {
+        LE += baseLEps * worldMult * dt;
+    }
+
+    // 3) Producción de edificios (ticks + continuo)
+    if (buildingStates != null)
+    {
+        foreach (var b in buildingStates)
+        {
+            if (b == null || b.def == null) continue;
+            if (b.level <= 0) continue;
+
+            var def = b.def;
+
+            // 🔹 3A) Edificios con ticks (B1, B2, B3...)
+            if (def.tickInterval > 0.0 && def.lePerTickBase > 0.0)
+            {
+                b.tickTimer += dt;
+
+                if (b.tickTimer < def.tickInterval)
+                    continue;
+
+                int ticks = (int)(b.tickTimer / def.tickInterval);
+                if (ticks <= 0) continue;
+
+                b.tickTimer -= ticks * def.tickInterval;
+
+                // --- LE por tick ---
+                double lePerTick = def.lePerTickBase * b.level;
+
+                // Buff de Placas de Casimir (B2) sobre Generador de Vacío (B1)
+                if (def.id == "vacuum_observer")
+                {
+                    int casimirLevel = GetBuildingLevel("casimir_panel");
+                    if (casimirLevel > 0)
+                    {
+                        double buffFromCasimir = 1.0 + 0.02 * casimirLevel;
+                        buffFromCasimir = System.Math.Min(buffFromCasimir, 2.1);
+                        lePerTick *= buffFromCasimir;
+                    }
+                }
+
+                double leGain = lePerTick * ticks * worldMult;
+                LE += leGain;
+
+                // --- EM por tick (para edificios híbridos como B3) ---
+                if (def.emPerTickBase > 0.0)
+                {
+                    // Factor de generación de EM (research + meta-upgrades Λ)
+                    double emGenFactor = 1.0;
+
+                    if (ResearchManager.I != null)
+                    {
+                        emGenFactor *= ResearchManager.I.GetEMGenerationFactor();
+                    }
+
+                    emGenFactor *= GetMetaEMGenerationMultiplier();
+
+                    double emPerTick = def.emPerTickBase * b.level * emGenFactor;
+                    double emGain = emPerTick * ticks;
+
+                    EM += emGain;
+
+                    // IP pasivo a partir de esta EM (igual que en Tick con EMps)
+                    double ipGain = emGain * 0.5;
+                    IP += ipGain;
+
+                    // DEBUG (puedes quitarlo luego)
+                    Debug.Log($"[TICK-EM] {def.id} lvl {b.level} → {ticks} ticks, +{emGain:0.00} EM, +{ipGain:0.00} IP");
+                }
+
+                
+            }
+            else
+            {
+                // 🔹 3B) Edificios "clásicos": LE/s continuo
+                if (def.baseLEps > 0.0)
+                {
+                    double leps = def.baseLEps * b.level;
+                    LE += leps * worldMult * dt;
+                }
+            }
+        }
+    }
+
+    // 4) Bonus plano (LE/s constantes)
+    if (flatBonus > 0.0)
+    {
+        LE += flatBonus * dt;
+    }
+}
+
 
 
 }

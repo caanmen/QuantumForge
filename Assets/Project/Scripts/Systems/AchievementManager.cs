@@ -151,24 +151,29 @@ public class AchievementManager : MonoBehaviour
     }
 
     private void CheckAchievements()
+{
+    var gs = GameState.I;
+    if (gs == null) return;
+
+    bool changed = false;
+
+    foreach (var def in defs)
     {
-        var gs = GameState.I;
-        if (gs == null) return;
+        if (!states.TryGetValue(def.id, out var st)) continue;
+        if (st.unlocked) continue;
 
-        foreach (var def in defs)
+        if (IsConditionMet(def, gs))
         {
-            if (!states.TryGetValue(def.id, out var st)) continue;
-            if (st.unlocked) continue; // ya desbloqueado
-
-            if (IsConditionMet(def, gs))
-            {
-                st.unlocked = true;
-                OnAchievementUnlocked(def);
-            }
+            st.unlocked = true;
+            changed = true;
+            OnAchievementUnlocked(def);
         }
-
-        RecalculateBonuses();
     }
+
+    if (changed)
+        RecalculateBonuses();
+}
+
 
     private AchievementConditionType ParseCondition(string cond)
     {

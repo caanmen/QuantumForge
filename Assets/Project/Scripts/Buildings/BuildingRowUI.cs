@@ -21,11 +21,24 @@ public class BuildingRowUI : MonoBehaviour
     [Tooltip("CanvasGroup de la fila, para manejar opacidad e interacción cuando está bloqueada.")]
     public CanvasGroup rowCanvasGroup;
 
+    [Header("Rendimiento")]
+    [SerializeField] private float refreshInterval = 0.25f;
+    private float _t;
+
     // Estado del edificio que esta fila representa
     private BuildingState state;
 
     // Referencia al GameState para leer y gastar LE
     private GameState gameState;
+
+    // Cache (para no re-asignar texto si no cambió)
+    private bool _lastUnlocked;
+    private int _lastLevel = -1;
+    private double _lastCost = double.NaN;
+    private string _lastReqText;
+
+    // Cache de nombre (no cambia)
+    private string _cachedName;
 
     /// <summary>
     /// Inicializa la fila con un estado concreto y el GameState.
@@ -36,11 +49,28 @@ public class BuildingRowUI : MonoBehaviour
         this.state = state;
         this.gameState = gameState;
 
+        _cachedName = (state != null && state.def != null) ? state.def.displayName : "";
+
         if (buyButton != null)
         {
             buyButton.onClick.RemoveListener(OnBuyClicked);
             buyButton.onClick.AddListener(OnBuyClicked);
         }
+
+        // Forzar primer refresh
+        _lastUnlocked = false;
+        _lastLevel = -1;
+        _lastCost = double.NaN;
+        _lastReqText = null;
+
+        Refresh();
+    }
+
+    private void Update()
+    {
+        _t += Time.unscaledDeltaTime;
+        if (_t < refreshInterval) return;
+        _t = 0f;
 
         Refresh();
     }
@@ -54,83 +84,104 @@ public class BuildingRowUI : MonoBehaviour
         if (state == null || state.def == null || gameState == null)
             return;
 
-        // Nombre siempre visible
-        if (nameText != null)
-            nameText.text = state.def.displayName;
+        // Nombre siempre visible (no cambia normalmente)
+        if (nameText != null && nameText.text != _cachedName)
+            nameText.SetText(_cachedName);
 
-        // ¿Está desbloqueado según el GameState?
         bool unlocked = BuildingUnlock.IsUnlocked(state.def);
 
-        if (!unlocked)
-    {
-        // ---------- MODO BLOQUEADO ----------
-
-        // Visual: fila apagada y sin interacción
-        if (rowCanvasGroup != null)
+        // Si cambió el estado bloqueado/desbloqueado, ajusta visual una sola vez
+        if (unlocked != _lastUnlocked)
         {
-            rowCanvasGroup.alpha = 0.4f;
-            rowCanvasGroup.interactable = false;
-            rowCanvasGroup.blocksRaycasts = false;
+            _lastUnlocked = unlocked;
+
+            if (!unlocked)
+            {
+                // ---------- MODO BLOQUEADO ----------
+                if (rowCanvasGroup != null)
+                {
+                    rowCanvasGroup.alpha = 0.4f;
+                    rowCanvasGroup.interactable = false;
+                    rowCanvasGroup.blocksRaycasts = false;
+                }
+
+                if (buyButton != null)
+                    buyButton.interactable = false;
+
+                if (levelText != null)
+                    levelText.SetText("Bloqueado");
+
+                // Requisitos
+                _lastReqText = BuildRequirementsText(state.def);
+                if (costText != null)
+                    costText.SetText(_lastReqText);
+
+                return; // ya está todo para modo bloqueado
+            }
+            else
+            {
+                // ---------- MODO DESBLOQUEADO ----------
+                if (rowCanvasGroup != null)
+                {
+                    rowCanvasGroup.alpha = 1f;
+                    rowCanvasGroup.interactable = true;
+                    rowCanvasGroup.blocksRaycasts = true;
+                }
+            }
         }
 
-        // Botón desactivado
-        if (buyButton != null)
-            buyButton.interactable = false;
-
-        // Texto de nivel
-        if (levelText != null)
-            levelText.text = "Bloqueado";
-
-        // SOLO mostramos requisitos (LE y edificio), sin coste inicial
-        if (costText != null)
+        if (!unlocked)
         {
+            // Sigue bloqueado: por si cambian requisitos con el tiempo (raro, pero posible)
             string req = BuildRequirementsText(state.def);
-            costText.text = req;
+            if (_lastReqText != req)
+            {
+                _lastReqText = req;
+                if (costText != null) costText.SetText(req);
+            }
+            return;
+        }
+
+        // ---------- MODO DESBLOQUEADO ----------
+        // Botón activo si puede pagar (esto sí cambia seguido)
+        bool canAfford = state.CanAfford(gameState.LE);
+        if (buyButton != null)
+            buyButton.interactable = canAfford;
+
+        // Nivel (solo si cambió)
+        if (state.level != _lastLevel)
+        {
+            _lastLevel = state.level;
+            if (levelText != null)
+                levelText.SetText("Nivel: {0}", _lastLevel);
+        }
+
+        // Coste (solo si cambió)
+        if (!NearlyEqual(state.currentCost, _lastCost))
+        {
+            _lastCost = state.currentCost;
+            if (costText != null)
+                costText.SetText("Coste: {0:0} LE", (float)_lastCost);
         }
     }
 
-        else
-        {
-            // ---------- MODO DESBLOQUEADO ----------
-
-            // Visual: fila normal
-            if (rowCanvasGroup != null)
-            {
-                rowCanvasGroup.alpha = 1f;
-                rowCanvasGroup.interactable = true;
-                rowCanvasGroup.blocksRaycasts = true;
-            }
-
-            // Botón solo activo si puede pagar
-            bool canAfford = state.CanAfford(gameState.LE);
-            if (buyButton != null)
-                buyButton.interactable = canAfford;
-
-            // Texto de nivel
-            if (levelText != null)
-                levelText.text = $"Nivel: {state.level}";
-
-            // Coste actual
-            if (costText != null)
-                costText.text = $"Coste: {state.currentCost:0} LE";
-        }
+    private static bool NearlyEqual(double a, double b)
+    {
+        if (double.IsNaN(a) || double.IsNaN(b)) return false;
+        return System.Math.Abs(a - b) < 0.0001;
     }
 
     /// <summary>
     /// Construye un texto corto de requisitos para que quepa mejor en la UI.
-    /// Ejemplo: "Req: LE ≥ 5000 · LE/s ≥ 40 · Lab ≥ 3"
+    /// Ejemplo: "Req: LE ≥ 5000 · Obs. ≥ 8"
     /// </summary>
     private string BuildRequirementsText(BuildingDef def)
     {
         List<string> parts = new List<string>();
 
-        // LE mínima actual
         if (def.unlockMinLE > 0.0)
-        {
             parts.Add($"LE ≥ {def.unlockMinLE:0}");
-        }
 
-        // SOLO mostramos edificio requerido y nivel (no mostramos LE/s)
         if (!string.IsNullOrEmpty(def.unlockRequireId) && def.unlockRequireLevel > 0)
         {
             string shortName = GetShortReqName(def.unlockRequireId);
@@ -140,16 +191,9 @@ public class BuildingRowUI : MonoBehaviour
         if (parts.Count == 0)
             return "Req: progreso";
 
-        // Usamos " · " en vez de coma para que quepa mejor
         return "Req: " + string.Join(" · ", parts);
     }
 
-
-
-    /// <summary>
-    /// Devuelve un nombre corto para el edificio requerido,
-    /// para que el texto no sea tan largo.
-    /// </summary>
     private string GetShortReqName(string id)
     {
         switch (id)
@@ -162,22 +206,13 @@ public class BuildingRowUI : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        // Refrescamos cada frame para que, en cuanto se cumplan los requisitos,
-        // la fila pase de "Bloqueado" a normal automáticamente.
-        Refresh();
-    }
-
     private void OnBuyClicked()
     {
         if (state == null || gameState == null) return;
 
         // Por seguridad, no dejar comprar si aún está bloqueado
         if (!BuildingUnlock.IsUnlocked(state.def))
-        {
             return;
-        }
 
         // ¿Puede pagar?
         if (!state.CanAfford(gameState.LE))
@@ -189,7 +224,10 @@ public class BuildingRowUI : MonoBehaviour
         // Subir nivel y recalcular coste
         state.OnPurchased();
 
-        // Actualizar textos (nivel, coste, etc.)
+        // Forzar refresh de nivel/coste
+        _lastLevel = -1;
+        _lastCost = double.NaN;
+
         Refresh();
     }
 }
