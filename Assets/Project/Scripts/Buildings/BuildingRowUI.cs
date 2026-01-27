@@ -16,6 +16,10 @@ public class BuildingRowUI : MonoBehaviour
     public TextMeshProUGUI levelText;
     public TextMeshProUGUI costText;
     public Button buyButton;
+    public TextMeshProUGUI statsText;
+    public Image tickFill;
+
+
 
     [Header("Estado visual")]
     [Tooltip("CanvasGroup de la fila, para manejar opacidad e interacción cuando está bloqueada.")]
@@ -37,8 +41,20 @@ public class BuildingRowUI : MonoBehaviour
     private double _lastCost = double.NaN;
     private string _lastReqText;
 
+
     // Cache de nombre (no cambia)
     private string _cachedName;
+
+    // Cache stats (para no recalcular / reescribir si no cambió)
+    private int _lastCasimirLevel = -1;
+    private int _lastLang = -999;
+
+    private double _lastStatsLeTick = double.NaN;
+    private double _lastStatsEmTick = double.NaN;
+    private double _lastStatsIpTick = double.NaN;
+    private double _lastStatsInterval = double.NaN;
+    private double _lastStatsWorld = double.NaN;
+
 
     /// <summary>
     /// Inicializa la fila con un estado concreto y el GameState.
@@ -58,22 +74,56 @@ public class BuildingRowUI : MonoBehaviour
         }
 
         // Forzar primer refresh
-        _lastUnlocked = false;
+        _lastUnlocked = true;
         _lastLevel = -1;
         _lastCost = double.NaN;
         _lastReqText = null;
+        _lastCasimirLevel = -1;
+        _lastStatsLeTick = double.NaN;
+        _lastStatsEmTick = double.NaN;
+        _lastStatsIpTick = double.NaN;
+        _lastStatsInterval = double.NaN;
+        _lastStatsWorld = double.NaN;
+
 
         Refresh();
     }
 
     private void Update()
     {
+
+        UpdateTickBar();
+
         _t += Time.unscaledDeltaTime;
         if (_t < refreshInterval) return;
         _t = 0f;
 
         Refresh();
     }
+    
+    private void UpdateTickBar()
+    {
+        if (tickFill == null || state == null || state.def == null) return;
+
+            bool unlocked = BuildingUnlock.IsUnlocked(state.def);
+
+
+        // Ocultar si no produce todavía
+        if (state.level <= 0 || state.def.tickInterval <= 0.0)
+        {
+            tickFill.transform.parent.gameObject.SetActive(false);
+            return;
+        }
+
+        tickFill.transform.parent.gameObject.SetActive(true);
+
+        float interval = (float)state.def.tickInterval;
+        float p = Mathf.Clamp01((float)(state.tickTimer / interval));
+        tickFill.fillAmount = p;
+
+
+    }
+
 
     /// <summary>
     /// Actualiza los textos de la UI según el estado actual
@@ -109,12 +159,20 @@ public class BuildingRowUI : MonoBehaviour
                     buyButton.interactable = false;
 
                 if (levelText != null)
-                    levelText.SetText("Bloqueado");
+                    {
+                        levelText.SetText(LocalizationManager.I != null
+                            ? LocalizationManager.I.T("ui.locked")
+                            : "Locked");
+                    }
+
 
                 // Requisitos
                 _lastReqText = BuildRequirementsText(state.def);
                 if (costText != null)
                     costText.SetText(_lastReqText);
+                
+                if (statsText != null) statsText.gameObject.SetActive(false);
+
 
                 return; // ya está todo para modo bloqueado
             }
@@ -139,6 +197,9 @@ public class BuildingRowUI : MonoBehaviour
                 _lastReqText = req;
                 if (costText != null) costText.SetText(req);
             }
+            if (statsText != null) statsText.gameObject.SetActive(false);
+
+
             return;
         }
 
@@ -148,21 +209,54 @@ public class BuildingRowUI : MonoBehaviour
         if (buyButton != null)
             buyButton.interactable = canAfford;
 
+        int langNow = (LocalizationManager.I != null) ? (int)LocalizationManager.I.CurrentLanguage : -1;
+        bool langChanged = (langNow != _lastLang);
+        if (langChanged) _lastLang = langNow;
+
+
         // Nivel (solo si cambió)
-        if (state.level != _lastLevel)
+        // Nivel (actualiza si cambió el nivel o el idioma)
+        if (state.level != _lastLevel || langChanged)
         {
             _lastLevel = state.level;
+
             if (levelText != null)
-                levelText.SetText("Nivel: {0}", _lastLevel);
+            {
+                string lvl = (LocalizationManager.I != null)
+                    ? LocalizationManager.I.T("ui.level_prefix")
+                    : "Level:";
+
+                levelText.SetText($"{lvl} {_lastLevel}");
+
+            }
         }
 
+
+
+
         // Coste (solo si cambió)
-        if (!NearlyEqual(state.currentCost, _lastCost))
-        {
-            _lastCost = state.currentCost;
-            if (costText != null)
-                costText.SetText("Coste: {0:0} LE", (float)_lastCost);
-        }
+        // Coste (actualiza si cambió el coste O cambió el idioma)
+        if (!NearlyEqual(state.currentCost, _lastCost) || langChanged)
+            {
+                _lastCost = state.currentCost;
+
+                if (costText != null)
+                {
+                    string costPrefix = (LocalizationManager.I != null)
+                        ? LocalizationManager.I.T("ui.cost_prefix")
+                        : "Cost:";
+
+                    costText.SetText($"{costPrefix} {(float)_lastCost:0} LE");
+                }
+            }
+
+
+
+        
+        UpdateStatsText();
+        UpdateTickBar();
+
+
     }
 
     private static bool NearlyEqual(double a, double b)
@@ -170,6 +264,108 @@ public class BuildingRowUI : MonoBehaviour
         if (double.IsNaN(a) || double.IsNaN(b)) return false;
         return System.Math.Abs(a - b) < 0.0001;
     }
+
+    private void UpdateStatsText()
+    {
+        if (statsText == null || state == null || state.def == null || gameState == null)
+            return;
+
+        var def = state.def;
+
+        // Si el edificio no es de ticks, no mostramos nada (por ahora)
+        if (def.tickInterval <= 0.0)
+        {
+            statsText.gameObject.SetActive(false);
+            return;
+        }
+
+        statsText.gameObject.SetActive(true);
+
+        double interval = def.tickInterval;
+
+        // Multiplicadores globales (alineados con tu producción real)
+        double achFactor = (AchievementManager.I != null) ? AchievementManager.I.GetGlobalLEFactor() : 1.0;
+        double worldMult = (1.0 + gameState.emMult) * gameState.researchGlobalLEMult * achFactor;
+
+        // Buff local (Casimir -> Vacuum Observer)
+        int casimirLevel = 0;
+        double localBuff = 1.0;
+        if (def.id == "vacuum_observer")
+        {
+            casimirLevel = gameState.GetBuildingLevel("casimir_panel");
+            if (casimirLevel > 0)
+                localBuff *= (1.0 + 0.02 * casimirLevel);
+        }
+
+        // LE real por tick (base * nivel * buffs)
+        double baseLeTick = def.lePerTickBase * state.level;
+        double leTickReal = baseLeTick * localBuff * worldMult;
+
+        // EM/IP por tick (si aplica)
+        double emTick = 0.0;
+        double ipTick = 0.0;
+
+        if (def.emPerTickBase > 0.0)
+        {
+            double emGenFactor = 1.0;
+            if (ResearchManager.I != null)
+                emGenFactor *= ResearchManager.I.GetEMGenerationFactor();
+
+            emGenFactor *= gameState.GetMetaEMGenerationMultiplier();
+
+            emTick = def.emPerTickBase * state.level * emGenFactor;
+            ipTick = emTick * 0.1;
+        }
+
+        // Si no cambió nada relevante, no reescribas texto
+        if (NearlyEqual(interval, _lastStatsInterval) &&
+            NearlyEqual(leTickReal, _lastStatsLeTick) &&
+            NearlyEqual(emTick, _lastStatsEmTick) &&
+            NearlyEqual(ipTick, _lastStatsIpTick) &&
+            NearlyEqual(worldMult, _lastStatsWorld) &&
+            casimirLevel == _lastCasimirLevel)
+        {
+            return;
+        }
+
+        _lastStatsInterval = interval;
+        _lastStatsLeTick = leTickReal;
+        _lastStatsEmTick = emTick;
+        _lastStatsIpTick = ipTick;
+        _lastStatsWorld = worldMult;
+        _lastCasimirLevel = casimirLevel;
+
+        // Texto final
+        if (def.id == "vacuum_observer" && casimirLevel > 0)
+        {
+            // muestra el buff de Casimir
+            if (def.emPerTickBase > 0.0)
+                statsText.SetText(
+                    "Tick: +{0:0.00} LE / {1:0.0}s (Casimir x{2:0.00})\n+{3:0.00} EM  +{4:0.00} IP",
+                    (float)leTickReal, (float)interval, (float)localBuff, (float)emTick, (float)ipTick
+                );
+            else
+                statsText.SetText(
+                    "Tick: +{0:0.00} LE / {1:0.0}s (Casimir x{2:0.00})",
+                    (float)leTickReal, (float)interval, (float)localBuff
+                );
+        }
+        else
+        {
+            if (def.emPerTickBase > 0.0)
+                statsText.SetText(
+                    "Tick: +{0:0.00} LE / {1:0.0}s\n+{2:0.00} EM  +{3:0.00} IP",
+                    (float)leTickReal, (float)interval, (float)emTick, (float)ipTick
+                );
+            else
+                statsText.SetText(
+                    "Tick: +{0:0.00} LE / {1:0.0}s",
+                    (float)leTickReal, (float)interval
+                );
+        }
+
+    }
+
 
     /// <summary>
     /// Construye un texto corto de requisitos para que quepa mejor en la UI.
@@ -227,6 +423,13 @@ public class BuildingRowUI : MonoBehaviour
         // Forzar refresh de nivel/coste
         _lastLevel = -1;
         _lastCost = double.NaN;
+        _lastCasimirLevel = -1;
+        _lastStatsLeTick = double.NaN;
+        _lastStatsEmTick = double.NaN;
+        _lastStatsIpTick = double.NaN;
+        _lastStatsInterval = double.NaN;
+        _lastStatsWorld = double.NaN;
+
 
         Refresh();
     }

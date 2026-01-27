@@ -182,20 +182,7 @@ public class GameState : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        double dt = Time.unscaledDeltaTime;
-        Tick(dt);
-
-        _dbg += Time.unscaledDeltaTime;
-        if (_dbg >= 1f)
-        {
-        double totalLEps = GetTotalLEps();
-        double entPreview = GetENTGanariasAlPrestigiar();
-        
-        }
-    }
-
+    
     /// <summary>
     /// Avanza el juego dt segundos (lógica principal de producción).
     /// </summary>
@@ -895,20 +882,21 @@ private double CalculateEMMultiplier()
         }
     }
 
-    // EM → multiplicador de LE
     double emFactor = 1.0 + emMult;
-
-    // Research global de LE
     double researchFactor = researchGlobalLEMult;
 
-    // Achievements
     double achFactor = 1.0;
     if (AchievementManager.I != null)
     {
         achFactor = AchievementManager.I.GetGlobalLEFactor();
     }
 
-    double worldMult = multiplier * emFactor * researchFactor * achFactor;
+    // 🔥 Igual que en CalculateTotalLEps()
+    double prestigeFactor = GetPrestigeLEMultiplier();
+
+    double worldMult = multiplier * emFactor * researchFactor * achFactor * prestigeFactor;
+    if (worldMult <= 0) worldMult = 1.0;
+
 
     // 2) Producción base continua (sin edificios)
     if (baseLEps > 0.0)
@@ -926,23 +914,25 @@ private double CalculateEMMultiplier()
 
             var def = b.def;
 
-            // 🔹 3A) Edificios con ticks (B1, B2, B3...)
+            // 3A) Edificios con ticks
             if (def.tickInterval > 0.0 && def.lePerTickBase > 0.0)
             {
-                b.tickTimer += dt;
+                float interval = (float)def.tickInterval;
 
-                if (b.tickTimer < def.tickInterval)
+                b.tickTimer += (float)dt;
+
+                if (b.tickTimer < interval)
                     continue;
 
-                int ticks = (int)(b.tickTimer / def.tickInterval);
+                int ticks = (int)(b.tickTimer / interval);
                 if (ticks <= 0) continue;
 
-                b.tickTimer -= ticks * def.tickInterval;
+                b.tickTimer -= ticks * interval;
 
-                // --- LE por tick ---
+                // LE por tick
                 double lePerTick = def.lePerTickBase * b.level;
 
-                // Buff de Placas de Casimir (B2) sobre Generador de Vacío (B1)
+                // Buff Casimir sobre Vacuum Observer
                 if (def.id == "vacuum_observer")
                 {
                     int casimirLevel = GetBuildingLevel("casimir_panel");
@@ -957,16 +947,13 @@ private double CalculateEMMultiplier()
                 double leGain = lePerTick * ticks * worldMult;
                 LE += leGain;
 
-                // --- EM por tick (para edificios híbridos como B3) ---
+                // EM/IP por tick (si aplica)
                 if (def.emPerTickBase > 0.0)
                 {
-                    // Factor de generación de EM (research + meta-upgrades Λ)
                     double emGenFactor = 1.0;
 
                     if (ResearchManager.I != null)
-                    {
                         emGenFactor *= ResearchManager.I.GetEMGenerationFactor();
-                    }
 
                     emGenFactor *= GetMetaEMGenerationMultiplier();
 
@@ -975,25 +962,20 @@ private double CalculateEMMultiplier()
 
                     EM += emGain;
 
-                    // IP pasivo a partir de esta EM (igual que en Tick con EMps)
                     double ipGain = emGain * 0.5;
                     IP += ipGain;
-
-                    // DEBUG (puedes quitarlo luego)
-                    Debug.Log($"[TICK-EM] {def.id} lvl {b.level} → {ticks} ticks, +{emGain:0.00} EM, +{ipGain:0.00} IP");
                 }
-
-                
             }
             else
             {
-                // 🔹 3B) Edificios "clásicos": LE/s continuo
+                // 3B) Edificios clásicos (LE/s continuo)
                 if (def.baseLEps > 0.0)
                 {
                     double leps = def.baseLEps * b.level;
                     LE += leps * worldMult * dt;
                 }
             }
+
         }
     }
 

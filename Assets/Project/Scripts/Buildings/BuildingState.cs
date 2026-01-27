@@ -12,7 +12,9 @@ public class BuildingState
     public double currentCost = 0.0;
 
     // ⏱ F8: timer acumulado para los ticks de este edificio
-    public double tickTimer = 0.0;
+    public float tickTimer = 0f;
+
+    
 
     /// <summary>
     /// Inicializa el estado a partir de la definición.
@@ -43,7 +45,7 @@ public class BuildingState
         }
 
         // Reset del timer de ticks
-        tickTimer = 0.0;
+        tickTimer = 0f;
     }
 
     /// <summary>
@@ -82,9 +84,14 @@ public class BuildingState
             }
         }
 
+        // Si estaba en 0 y lo compras, arranca el ciclo desde 0
+        if (level == 0)
+            tickTimer = 0f;
+
         level++;
         currentCost *= def.costMult;
     }
+
 
     /// <summary>
     /// Reset de edificio para un nuevo run de prestigio.
@@ -92,7 +99,7 @@ public class BuildingState
     public void ResetForPrestige()
     {
         level = 0;
-        tickTimer = 0.0;
+        tickTimer = 0f;
 
         if (def != null)
         {

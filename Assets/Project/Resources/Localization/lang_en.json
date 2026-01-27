@@ -1,0 +1,18 @@
+{
+  "ui.play": "Play",
+  "ui.options": "Options",
+  "ui.buy": "Buy",
+  "ui.level": "Level",
+  "ui.back": "Back",
+  "ui.locked": "Locked",
+  "ui.level_prefix": "Level:",
+  "ui.cost_prefix": "Cost:",
+  "ui.tick_prefix": "Tick:",
+  "ui.menu.lab": "Laboratory",
+  "ui.menu.generation": "Generation",
+  "ui.menu.prestige": "Prestige",
+  "ui.menu.meta": "Λ Meta"
+
+
+
+}
