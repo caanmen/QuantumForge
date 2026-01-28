@@ -12,6 +12,26 @@ public class MetaPrestigeUI : MonoBehaviour
     [Header("Botón")]
     public Button metaPrestigeButton;         // botón "Forjar Λ"
 
+    private string L(string key, string fallback)
+    {
+        var lm = LocalizationManager.I;
+        if (lm == null) return fallback;
+
+        var s = lm.T(key);
+
+        // Si no existe, tu T() devuelve la misma key
+        if (string.IsNullOrEmpty(s) || s == key) return fallback;
+
+        return s;
+    }
+
+    private string LF(string key, string fallback, params object[] args)
+    {
+        string fmt = L(key, fallback);
+        try { return string.Format(fmt, args); }
+        catch { return fmt; }
+    }
+
     private void Start()
     {
         if (metaPrestigeButton != null)
@@ -23,17 +43,25 @@ public class MetaPrestigeUI : MonoBehaviour
         var gs = GameState.I;
         if (gs == null) return;
 
-        // Λ actual
+        double lambdaPreview = gs.GetLambdaPreview();
+        double lambda = gs.Lambda;
+
         if (lambdaActualText != null)
         {
-            lambdaActualText.text = $"Λ actual: {gs.Lambda:0}";
+            lambdaActualText.text = LF(
+                "meta.lambda_current",
+                "Λ actual: {0:0}",
+                lambda
+            );
         }
 
-        // Λ a ganar (preview)
-        double lambdaPreview = gs.GetLambdaPreview();
         if (lambdaGainText != null)
         {
-            lambdaGainText.text = $"Si meta-prestigias ahora: +{lambdaPreview:0} Λ";
+            lambdaGainText.text = LF(
+                "meta.lambda_gain",
+                "Si meta-prestigias ahora: +{0:0} Λ",
+                lambdaPreview
+            );
         }
 
         // Estado de desbloqueo / advertencia
@@ -44,29 +72,30 @@ public class MetaPrestigeUI : MonoBehaviour
         {
             if (!unlocked)
             {
-                metaWarningText.text =
-                    "Aún no has desbloqueado el Meta-Prestigio.\n" +
-                    "Acumula al menos 50 ENT totales para activarlo.";
+                metaWarningText.text = L(
+                    "meta.warn_locked",
+                    "Aún no has desbloqueado el Meta-Prestigio.\nAcumula al menos 50 ENT totales para activarlo."
+                );
             }
             else if (!canMeta)
             {
-                metaWarningText.text =
-                    "Progreso insuficiente para ganar Λ.\n" +
-                    "Sigue subiendo LE, ENT, ADP y WHF.";
+                metaWarningText.text = L(
+                    "meta.warn_nogain",
+                    "Progreso insuficiente para ganar Λ.\nSigue subiendo LE, ENT, ADP y WHF."
+                );
             }
             else
             {
-                metaWarningText.text =
-                    "Advertencia: esto reseteará LE, EM, IP, ADP, WHF,\n" +
-                    "todos los edificios, ENT y sus mejoras.";
+                metaWarningText.text = L(
+                    "meta.warn_reset",
+                    "Advertencia: esto reseteará LE, EM, IP, ADP, WHF,\ntodos los edificios, ENT y sus mejoras."
+                );
             }
         }
 
         // Habilitar / deshabilitar el botón según si se puede meta-prestigiar
         if (metaPrestigeButton != null)
-        {
             metaPrestigeButton.interactable = canMeta;
-        }
     }
 
     private void OnClickMetaPrestige()

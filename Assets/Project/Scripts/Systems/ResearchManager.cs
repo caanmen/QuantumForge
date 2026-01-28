@@ -207,12 +207,9 @@ public class ResearchManager : MonoBehaviour
     [System.Diagnostics.Conditional("UNITY_EDITOR")]
     private void DebugLogCanPurchaseReason(string id, string reason)
     {
-        // Solo nos interesa depurar em_stability_2
-        if (id == "em_stability_2")
-        {
-            Debug.Log($"[ResearchManager] CanPurchase({id}) = false -> {reason}");
-        }
+        // Logs desactivados (evita spam en consola)
     }
+
 
 
     public bool TryPurchase(string id)

@@ -8,11 +8,17 @@ public class AchievementListUI : MonoBehaviour
 
     [Tooltip("Fila plantilla que se clonará por cada logro.")]
     public AchievementRowUI rowTemplate;
+    private int _lastLang = -1;
+
 
     private void Start()
     {
+        var lm = LocalizationManager.I;
+        _lastLang = lm != null ? (int)lm.CurrentLanguage : -1;
+
         BuildList();
     }
+
 
     /// <summary>
     /// Genera la lista de logros según los datos del AchievementManager.
@@ -53,6 +59,19 @@ public class AchievementListUI : MonoBehaviour
 
             rowInstance.SetData(def, unlocked);
             rowInstance.gameObject.SetActive(true);
+        }
+    }
+
+    private void Update()
+    {
+        var lm = LocalizationManager.I;
+        if (lm == null) return;
+
+        int lang = (int)lm.CurrentLanguage;
+        if (lang != _lastLang)
+        {
+            _lastLang = lang;
+            BuildList(); // Re-crea filas para que cambie idioma en pantalla
         }
     }
 

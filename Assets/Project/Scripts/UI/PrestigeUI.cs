@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -20,7 +21,22 @@ public class PrestigeUI : MonoBehaviour
     public Button autoBuyToggleButton;
     public TextMeshProUGUI autoBuyToggleLabel;
 
-    private void Update()
+       private string L(string key, string fallback)
+    {
+        var lm = LocalizationManager.I;
+        if (lm == null) return fallback;
+        var s = lm.T(key);
+        return string.IsNullOrEmpty(s) ? fallback : s;
+    }
+
+    private string LF(string key, string fallback, params object[] args)
+    {
+        string fmt = L(key, fallback);
+        try { return string.Format(fmt, args); }
+        catch { return fmt; }
+    }
+
+        private void Update()
     {
         var gs = GameState.I;
         if (gs == null) return;
@@ -28,26 +44,44 @@ public class PrestigeUI : MonoBehaviour
         // ENT actual
         if (entActualText != null)
         {
-            entActualText.text = $"ENT: {gs.ENT:0}";
+            entActualText.text = LF(
+                "prestige.ent_current",
+                "ENT: {0:0}",
+                gs.ENT
+            );
         }
 
         // ENT que ganarías si prestigias ahora
         if (entGananciaText != null)
         {
             double entGanar = gs.GetENTGanariasAlPrestigiar();
-            entGananciaText.text = $"Si prestigias ahora: +{entGanar:0} ENT";
+            entGananciaText.text = LF(
+                "prestige.ent_gain",
+                "Si prestigias ahora: +{0:0} ENT",
+                entGanar
+            );
         }
 
         // Texto upgrade LE/s
         if (leMult1Text != null)
         {
+            double pct = gs.prestigeLeMult1Bonus * 100.0;
+
             if (gs.prestigeLeMult1Unlocked)
             {
-                leMult1Text.text = $"Upgrade LE/s I (+{gs.prestigeLeMult1Bonus * 100:0}% LE/s) - COMPRADO";
+                leMult1Text.text = LF(
+                    "prestige.upg_le_mult1_bought",
+                    "Upgrade LE/s I (+{0:0}% LE/s) - COMPRADO",
+                    pct
+                );
             }
             else
             {
-                leMult1Text.text = $"Upgrade LE/s I (+{gs.prestigeLeMult1Bonus * 100:0}% LE/s) - Coste: {costoLeMult1} ENT";
+                leMult1Text.text = LF(
+                    "prestige.upg_le_mult1_cost",
+                    "Upgrade LE/s I (+{0:0}% LE/s) - Coste: {1} ENT",
+                    pct, costoLeMult1
+                );
             }
         }
 
@@ -56,15 +90,22 @@ public class PrestigeUI : MonoBehaviour
         {
             if (gs.prestigeAutoBuyFirstUnlocked)
             {
-                autoBuy1Text.text = "Auto-compra Edificio 1 - COMPRADO";
+                autoBuy1Text.text = L(
+                    "prestige.upg_autobuy1_bought",
+                    "Auto-compra Edificio 1 - COMPRADO"
+                );
             }
             else
             {
-                autoBuy1Text.text = $"Auto-compra Edificio 1 (cada 0.5 s) - Coste: {costoAutoBuy1} ENT";
+                autoBuy1Text.text = LF(
+                    "prestige.upg_autobuy1_cost",
+                    "Auto-compra Edificio 1 (cada 0.5 s) - Coste: {0} ENT",
+                    costoAutoBuy1
+                );
             }
         }
 
-            // Toggle de auto-compra ON/OFF
+        // Toggle de auto-compra ON/OFF
         if (autoBuyToggleButton != null && autoBuyToggleLabel != null)
         {
             bool unlocked = gs.prestigeAutoBuyFirstUnlocked;
@@ -75,11 +116,14 @@ public class PrestigeUI : MonoBehaviour
             if (unlocked)
             {
                 autoBuyToggleButton.interactable = true;
-                autoBuyToggleLabel.text = gs.prestigeAutoBuyFirstEnabled ? "Auto: ON" : "Auto: OFF";
+
+                autoBuyToggleLabel.text = gs.prestigeAutoBuyFirstEnabled
+                    ? L("prestige.auto_on", "Auto: ON")
+                    : L("prestige.auto_off", "Auto: OFF");
             }
         }
-
     }
+
 
     // Botón: encender / apagar auto-compra del edificio 1
     public void OnClickToggleAutoBuy()

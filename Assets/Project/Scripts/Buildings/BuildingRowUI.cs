@@ -55,6 +55,24 @@ public class BuildingRowUI : MonoBehaviour
     private double _lastStatsInterval = double.NaN;
     private double _lastStatsWorld = double.NaN;
 
+    private string GetLocalizedBuildingName()
+    {
+        if (state == null || state.def == null) return "";
+
+        string fallback = state.def.displayName ?? "";
+        string key = $"bld.{state.def.id}.name";
+
+        var lm = LocalizationManager.I;
+        if (lm == null) return fallback;
+
+        string s = lm.T(key);
+
+        // Si no existe, tu T() devuelve la misma key
+        if (string.IsNullOrEmpty(s) || s == key) return fallback;
+
+        return s;
+    }
+
 
     /// <summary>
     /// Inicializa la fila con un estado concreto y el GameState.
@@ -65,7 +83,7 @@ public class BuildingRowUI : MonoBehaviour
         this.state = state;
         this.gameState = gameState;
 
-        _cachedName = (state != null && state.def != null) ? state.def.displayName : "";
+        _cachedName = GetLocalizedBuildingName();
 
         if (buyButton != null)
         {
@@ -133,6 +151,14 @@ public class BuildingRowUI : MonoBehaviour
     {
         if (state == null || state.def == null || gameState == null)
             return;
+
+        int langNow = (LocalizationManager.I != null) ? (int)LocalizationManager.I.CurrentLanguage : -1;
+        bool langChanged = (langNow != _lastLang);
+        if (langChanged) _lastLang = langNow;
+
+        if (langChanged)
+        _cachedName = GetLocalizedBuildingName();
+
 
         // Nombre siempre visible (no cambia normalmente)
         if (nameText != null && nameText.text != _cachedName)
@@ -208,10 +234,6 @@ public class BuildingRowUI : MonoBehaviour
         bool canAfford = state.CanAfford(gameState.LE);
         if (buyButton != null)
             buyButton.interactable = canAfford;
-
-        int langNow = (LocalizationManager.I != null) ? (int)LocalizationManager.I.CurrentLanguage : -1;
-        bool langChanged = (langNow != _lastLang);
-        if (langChanged) _lastLang = langNow;
 
 
         // Nivel (solo si cambió)

@@ -108,6 +108,8 @@ public class LocalizationManager : MonoBehaviour
 
         Debug.Log($"[Localization] Idioma cargado: {lang} | keys: {_dict.Count} | has level_prefix: {_dict.ContainsKey("ui.level_prefix")}");
 
+        Debug.Log("[Localization] has ui.buy: " + _dict.ContainsKey("ui.buy"));
+
         LocalizedTMP.RefreshAll();
 
     }

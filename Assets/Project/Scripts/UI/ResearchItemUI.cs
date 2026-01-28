@@ -9,6 +9,19 @@ public class ResearchItemUI : MonoBehaviour
     public TextMeshProUGUI descText;
     public TextMeshProUGUI costText;
     public Button buyButton;
+    private string L(string key, string fallback)
+    {
+        var lm = LocalizationManager.I;
+        if (lm == null) return fallback;
+
+        var s = lm.T(key);
+
+        // Si no existe, tu T() devuelve la key
+        if (string.IsNullOrEmpty(s) || s == key) return fallback;
+
+        return s;
+    }
+
 
     private string researchId;
     private ResearchDef def;
@@ -19,10 +32,21 @@ public class ResearchItemUI : MonoBehaviour
         this.def = def;
         this.researchId = def.id;
 
-        if (nameText != null) nameText.text = def.name;
-        if (descText != null) descText.text = def.description;
-        if (costText != null) costText.text = $"Coste: {def.costIP:0} IP";
+        // Nombre (fallback: def.name)
+        {
+            string key = $"res.{def.id}.name";
+            string s = (LocalizationManager.I != null) ? LocalizationManager.I.T(key) : null;
+            nameText.text = (!string.IsNullOrEmpty(s) && s != key) ? s : def.name;
+        }       
+        
+        // Descripción (fallback: def.description)
+        {
+            string key = $"res.{def.id}.desc";
+            string s = (LocalizationManager.I != null) ? LocalizationManager.I.T(key) : null;
+            descText.text = (!string.IsNullOrEmpty(s) && s != key) ? s : def.description;
+        }       
 
+        if (costText != null) costText.text = $"Coste: {def.costIP:0} IP";
         if (buyButton != null)
         {
             buyButton.onClick.RemoveAllListeners();
@@ -57,18 +81,19 @@ public class ResearchItemUI : MonoBehaviour
     if (!hasPrereq)
     {
         buyButton.interactable = false;
-        if (buttonText != null) buttonText.text = "Bloqueado";
+        if (buttonText != null) buttonText.text = L("lab.locked", "Bloqueado");
     }
     else if (GameState.I.IP < def.costIP)
     {
         buyButton.interactable = false;
-        if (buttonText != null) buttonText.text = "Sin IP";
+        if (buttonText != null) buttonText.text = L("lab.no_ip", "Sin IP");
     }
     else
     {
         buyButton.interactable = true;
-        if (buttonText != null) buttonText.text = "Comprar";
+        if (buttonText != null) buttonText.text = L("lab.buy", "Comprar");
     }
+
 }
 
 

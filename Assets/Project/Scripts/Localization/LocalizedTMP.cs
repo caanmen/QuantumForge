@@ -8,6 +8,7 @@ public class LocalizedTMP : MonoBehaviour
     public string key;
 
     private TextMeshProUGUI _tmp;
+    private int _lastLang = -1;
 
     private static readonly HashSet<LocalizedTMP> _all = new HashSet<LocalizedTMP>();
 
@@ -19,7 +20,7 @@ public class LocalizedTMP : MonoBehaviour
     private void OnEnable()
     {
         _all.Add(this);
-        Refresh();
+        ForceRefresh();
     }
 
     private void OnDisable()
@@ -27,13 +28,36 @@ public class LocalizedTMP : MonoBehaviour
         _all.Remove(this);
     }
 
-    public void Refresh()
+    private void Update()
+    {
+        var lm = LocalizationManager.I;
+        if (lm == null) return;
+
+        int langNow = (int)lm.CurrentLanguage;
+        if (langNow != _lastLang)
+        {
+            _lastLang = langNow;
+            ForceRefresh();
+        }
+    }
+
+    private void ForceRefresh()
     {
         if (_tmp == null) return;
         if (LocalizationManager.I == null) return;
         if (string.IsNullOrEmpty(key)) return;
 
-        _tmp.SetText(LocalizationManager.I.T(key));
+        string k = key.Trim();   // <- CLAVE: limpia espacios invisibles
+        key = k;                 // opcional: deja guardado limpio
+
+        _lastLang = (int)LocalizationManager.I.CurrentLanguage;
+        _tmp.SetText(LocalizationManager.I.T(k));
+    }
+
+
+    public void Refresh()
+    {
+        ForceRefresh();
     }
 
     public static void RefreshAll()
