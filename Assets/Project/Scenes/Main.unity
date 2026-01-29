@@ -6720,8 +6720,8 @@ MonoBehaviour:
   upgradeType: 0
   costLambda: 1
   descriptionText: {fileID: 192902828}
-  buyButton: {fileID: 0}
-  buyButtonLabel: {fileID: 0}
+  buyButton: {fileID: 1599794598}
+  buyButtonLabel: {fileID: 1506148075}
 --- !u!1 &1189287368
 GameObject:
   m_ObjectHideFlags: 0
@@ -6913,8 +6913,8 @@ MonoBehaviour:
   upgradeType: 1
   costLambda: 1
   descriptionText: {fileID: 1338582472}
-  buyButton: {fileID: 0}
-  buyButtonLabel: {fileID: 0}
+  buyButton: {fileID: 2052676562}
+  buyButtonLabel: {fileID: 1915333820}
 --- !u!1 &1226161172
 GameObject:
   m_ObjectHideFlags: 0

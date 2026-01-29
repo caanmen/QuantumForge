@@ -227,6 +227,10 @@ public class SaveService : MonoBehaviour
         LastLoadedResearchIds = data.purchasedResearchIds ?? new List<string>();
         LastLoadedAchievementIds = data.unlockedAchievementIds ?? new List<string>();
 
+        if (ResearchManager.I != null)
+        {
+            ResearchManager.I.ApplyLoadedResearch(LastLoadedResearchIds);
+        }
 
 
         if (AchievementManager.I != null)

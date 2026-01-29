@@ -94,21 +94,12 @@ public class LocalizationManager : MonoBehaviour
 
         string fileName = (lang == Language.EN) ? "lang_en" : "lang_es";
         TextAsset ta = Resources.Load<TextAsset>($"Localization/{fileName}");
-        Debug.Log($"[Localization] RAW contains ui.cost_prefix? {(ta.text.Contains("ui.cost_prefix"))}");
 
         if (ta == null) return;
 
         var parsed = ParseSimpleJsonObject(ta.text);
         foreach (var kv in parsed)
             _dict[kv.Key] = kv.Value;
-
-
-
-        Debug.Log($"Has ui.cost_prefix? {_dict.ContainsKey("ui.cost_prefix")}");
-
-        Debug.Log($"[Localization] Idioma cargado: {lang} | keys: {_dict.Count} | has level_prefix: {_dict.ContainsKey("ui.level_prefix")}");
-
-        Debug.Log("[Localization] has ui.buy: " + _dict.ContainsKey("ui.buy"));
 
         LocalizedTMP.RefreshAll();
 

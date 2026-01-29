@@ -36,30 +36,39 @@ public class PrestigeUI : MonoBehaviour
         catch { return fmt; }
     }
 
+        [Header("Rendimiento UI")]
+        [SerializeField] private float uiRefreshInterval = 0.25f;
+        private float _uiTimer = 0f;
+
         private void Update()
     {
         var gs = GameState.I;
         if (gs == null) return;
 
+        _uiTimer += Time.unscaledDeltaTime;
+        if (_uiTimer < uiRefreshInterval) return;
+        _uiTimer = 0f;
+
+
         // ENT actual
         if (entActualText != null)
         {
-            entActualText.text = LF(
-                "prestige.ent_current",
-                "ENT: {0:0}",
-                gs.ENT
+            entActualText.SetText(
+            L("prestige.ent_current", "ENT: {0:0}"),
+            (float)gs.ENT
+
             );
         }
 
         // ENT que ganarías si prestigias ahora
         if (entGananciaText != null)
         {
-            double entGanar = gs.GetENTGanariasAlPrestigiar();
-            entGananciaText.text = LF(
-                "prestige.ent_gain",
-                "Si prestigias ahora: +{0:0} ENT",
+            float entGanar = (float)gs.GetENTGanariasAlPrestigiar();
+            entGananciaText.SetText(
+                L("prestige.ent_gain", "Si prestigias ahora: +{0:0} ENT"),
                 entGanar
             );
+
         }
 
         // Texto upgrade LE/s
@@ -69,19 +78,19 @@ public class PrestigeUI : MonoBehaviour
 
             if (gs.prestigeLeMult1Unlocked)
             {
-                leMult1Text.text = LF(
-                    "prestige.upg_le_mult1_bought",
-                    "Upgrade LE/s I (+{0:0}% LE/s) - COMPRADO",
-                    pct
-                );
+                leMult1Text.SetText(
+                L("prestige.upg_le_mult1_bought", "Upgrade LE/s I (+{0:0}% LE/s) - COMPRADO"),
+                (float)pct
+            );
+
             }
             else
             {
-                leMult1Text.text = LF(
-                    "prestige.upg_le_mult1_cost",
-                    "Upgrade LE/s I (+{0:0}% LE/s) - Coste: {1} ENT",
-                    pct, costoLeMult1
-                );
+                leMult1Text.SetText(
+                L("prestige.upg_le_mult1_cost", "Upgrade LE/s I (+{0:0}% LE/s) - Coste: {1:0} ENT"),
+                (float)pct, (float)costoLeMult1
+            );
+
             }
         }
 
@@ -97,11 +106,11 @@ public class PrestigeUI : MonoBehaviour
             }
             else
             {
-                autoBuy1Text.text = LF(
-                    "prestige.upg_autobuy1_cost",
-                    "Auto-compra Edificio 1 (cada 0.5 s) - Coste: {0} ENT",
-                    costoAutoBuy1
-                );
+                autoBuy1Text.SetText(
+                L("prestige.upg_autobuy1_cost", "Auto-compra Edificio 1 (cada 0.5 s) - Coste: {0:0} ENT"),
+                (float)costoAutoBuy1
+            );
+
             }
         }
 

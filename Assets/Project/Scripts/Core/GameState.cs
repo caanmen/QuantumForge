@@ -650,7 +650,7 @@ private double CalculateEMMultiplier()
         double whfFactor = 1.0 + 0.5 * System.Math.Sqrt(totalWHFGenerada);
 
         // Escalado global para que los valores sean razonables
-        double raw = baseFromLE * entFactor * adpFactor * whfFactor * 0.01;
+        double raw = baseFromLE * entFactor * adpFactor * whfFactor * 0.02;
 
         if (raw < 1.0)
             return 0.0;
@@ -727,6 +727,8 @@ private double CalculateEMMultiplier()
         ENT = 0.0;
         prestigeLeMult1Unlocked = false;
         prestigeAutoBuyFirstUnlocked = false;
+        prestigeAutoBuyFirstEnabled = true;
+        totalENTAcumulada = 0.0; // si existe
 
         // 3) Resetear todo el run (esto ya borra LE, EM, IP, ADP, WHF, edificios, etc.)
         ResetRunForPrestige();
@@ -774,21 +776,6 @@ private double CalculateEMMultiplier()
         ADP = 0.0;
         WHF = 0.0;
 
-        // F7: prestigio 2 (Lambda) y estadísticas
-        Lambda = 0.0;
-        totalENTAcumulada = 0.0;
-        totalADPGenerada = 0.0;
-        totalWHFGenerada = 0.0;
-
-        // Meta-upgrades de Lambda
-        metaEntBoost1Bought = false;
-        metaEmBoost1Bought = false;
-
-        // Upgrades de prestigio 1 (si quieres que el reset debug sea TOTAL)
-        prestigeLeMult1Unlocked = false;
-        prestigeAutoBuyFirstUnlocked = false;
-        prestigeAutoBuyFirstEnabled = true;
-
         // Multiplicadores de investigación (LOS DEJAMOS como están por ahora
         // porque más adelante podríamos decidir si el prestigio los borra o no).
         // researchGlobalLEMult se recalcula desde ResearchManager, así que no lo tocamos.
@@ -804,6 +791,26 @@ private double CalculateEMMultiplier()
             b.ResetForPrestige();
         }
     }
+
+    private void ResetAllForMetaPrestige()
+    {
+        // 1) Primero resetea lo de run
+        ResetRunForPrestige();
+
+        // 2) Ahora sí resetea la capa ENT
+        ENT = 0.0;
+
+        prestigeLeMult1Unlocked = false;
+        prestigeAutoBuyFirstUnlocked = false;
+        prestigeAutoBuyFirstEnabled = true;
+
+        // Estadísticas acumuladas de capa (si tienes)
+        totalENTAcumulada = 0.0;
+
+        // IMPORTANTE: NO tocar meta upgrades aquí (metaEntBoost1Bought, metaEmBoost1Bought)
+        // IMPORTANTE: NO poner Lambda = 0 aquí si Lambda es la moneda meta que se acumula.
+    }
+
 
         // F6.5: corre las automatizaciones asociadas a upgrades de prestigio
     // F6.5: corre las automatizaciones asociadas a upgrades de prestigio

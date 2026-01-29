@@ -51,35 +51,30 @@ public class TabsUI : MonoBehaviour
 
     private void ShowGeneracion()
     {
-        Debug.Log("[Tabs] Mostrar GENERACIÓN");
         HideAll();
         if (panelGeneracion != null) panelGeneracion.SetActive(true);
     }
 
     private void ShowLab()
     {
-        Debug.Log("[Tabs] Mostrar LABORATORIO");
         HideAll();
         if (panelLab != null) panelLab.SetActive(true);
     }
 
     private void ShowLogros()
     {
-        Debug.Log("[Tabs] Mostrar LOGROS");
         HideAll();
         if (panelLogros != null) panelLogros.SetActive(true);
     }
 
     private void ShowPrestigio()
     {
-        Debug.Log("[Tabs] Mostrar PRESTIGIO");
         HideAll();
         if (prestigePanel != null) prestigePanel.SetActive(true);
     }
 
     private void ShowMetaPrestigio()
     {
-        Debug.Log("[Tabs] Mostrar META-PRESTIGIO Λ");
         HideAll();
         if (metaPrestigePanel != null) metaPrestigePanel.SetActive(true);
     }

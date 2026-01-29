@@ -119,6 +119,29 @@ public class ResearchManager : MonoBehaviour
         }
     }
 
+    public void ApplyLoadedResearch(List<string> ids)
+    {
+        if (ids == null) return;
+
+        // Reset a false
+        foreach (var kv in states)
+        {
+            kv.Value.purchased = false;
+        }
+
+        // Aplicar compras
+        foreach (var id in ids)
+        {
+            if (states.TryGetValue(id, out var st))
+            {
+                st.purchased = true;
+            }
+        }
+
+        RecalculateBonuses();
+    }
+
+
     private void RecalculateBonuses()
     {
         totalGlobalLEBonus = 0.0;

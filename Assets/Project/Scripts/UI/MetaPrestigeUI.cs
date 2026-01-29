@@ -11,6 +11,10 @@ public class MetaPrestigeUI : MonoBehaviour
 
     [Header("Botón")]
     public Button metaPrestigeButton;         // botón "Forjar Λ"
+    [Header("Rendimiento UI")]
+    [SerializeField] private float uiRefreshInterval = 0.25f;
+    private float _uiTimer = 0f;
+
 
     private string L(string key, string fallback)
     {
@@ -43,25 +47,30 @@ public class MetaPrestigeUI : MonoBehaviour
         var gs = GameState.I;
         if (gs == null) return;
 
+        _uiTimer += Time.unscaledDeltaTime;
+        if (_uiTimer < uiRefreshInterval) return;
+        _uiTimer = 0f;
+
+
         double lambdaPreview = gs.GetLambdaPreview();
         double lambda = gs.Lambda;
 
         if (lambdaActualText != null)
         {
-            lambdaActualText.text = LF(
-                "meta.lambda_current",
-                "Λ actual: {0:0}",
-                lambda
-            );
+            lambdaActualText.SetText(
+            L("meta.lambda_current", "Λ actual: {0:0}"),
+            (float)lambda
+        );
+
         }
 
         if (lambdaGainText != null)
         {
-            lambdaGainText.text = LF(
-                "meta.lambda_gain",
-                "Si meta-prestigias ahora: +{0:0} Λ",
-                lambdaPreview
-            );
+            lambdaGainText.SetText(
+            L("meta.lambda_gain", "Si meta-prestigias ahora: +{0:0} Λ"),
+            (float)lambdaPreview
+        );
+
         }
 
         // Estado de desbloqueo / advertencia
@@ -104,6 +113,5 @@ public class MetaPrestigeUI : MonoBehaviour
         if (gs == null) return;
 
         double gained = gs.DoMetaPrestigeReset();
-        Debug.Log($"[MetaPrestigeUI] Meta-prestigio ejecutado. Λ ganada: {gained}");
     }
 }

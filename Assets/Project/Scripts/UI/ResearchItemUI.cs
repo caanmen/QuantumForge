@@ -46,7 +46,6 @@ public class ResearchItemUI : MonoBehaviour
             descText.text = (!string.IsNullOrEmpty(s) && s != key) ? s : def.description;
         }       
 
-        if (costText != null) costText.text = $"Coste: {def.costIP:0} IP";
         if (buyButton != null)
         {
             buyButton.onClick.RemoveAllListeners();
@@ -60,6 +59,14 @@ public class ResearchItemUI : MonoBehaviour
 {
     if (ResearchManager.I == null || def == null || buyButton == null) return;
 
+    // Coste (se actualiza también al cambiar idioma)
+    if (costText != null)
+    {
+        string prefix = L("ui.cost_prefix", "Coste:");
+        costText.text = $"{prefix} {def.costIP:0} IP";
+    }
+
+
     bool purchased = ResearchManager.I.IsPurchased(researchId);
     bool canBuy = ResearchManager.I.CanPurchase(researchId);
     var buttonText = buyButton.GetComponentInChildren<TMP_Text>();
@@ -67,7 +74,7 @@ public class ResearchItemUI : MonoBehaviour
     if (purchased)
     {
         buyButton.interactable = false;
-        if (buttonText != null) buttonText.text = "Comprado";
+        if (buttonText != null) buttonText.text = L("ui.bought", "Comprado");
         return;
     }
 
@@ -94,15 +101,6 @@ public class ResearchItemUI : MonoBehaviour
         if (buttonText != null) buttonText.text = L("lab.buy", "Comprar");
     }
 
-}
-
-
-    private void Update()
-{
-    // Revisamos el estado cada frame para que el botón
-    // cambie de Bloqueado/Comprar/Comprado cuando
-    // cambian el IP o las investigaciones compradas.
-    RefreshState();
 }
 
 
