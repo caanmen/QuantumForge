@@ -65,7 +65,20 @@
   "ui.bought": "Comprado",
   "meta.upg_ent_boost_desc": "Boost ENT I: +20% ENT ganada permanentemente - Coste: {0:0} Λ",
   "meta.upg_em_boost_desc": "Boost EM I: +15% EM base permanente - Coste: {0:0} Λ",
-  "ui.title_meta_prestige": "Meta-Prestigio Λ"
-
+  "ui.title_meta_prestige": "Meta-Prestigio Λ",
+  "ui.req_prefix": "Requiere:",
+  "ui.req_progress": "progreso",
+  "ui.tick_label": "Tick",
+  "ui.each_seconds": "cada {0:0.##} s",
+  "ui.le_per_tick": "LE/tick: {0:0.##}",
+  "ui.em_per_tick": "EM/tick: {0:0.##}",
+  "ui.ip_per_tick": "IP/tick: {0:0.##}",
+  "ui.tick_basic": "Tick: +{0:0.00} LE / {1:0.0}s",
+  "ui.tick_basic_emip": "Tick: +{0:0.00} LE / {1:0.0}s\n+{2:0.00} EM  +{3:0.00} IP",
+  "ui.tick_casimir": "Tick: +{0:0.00} LE / {1:0.0}s (Casimir x{2:0.00})",
+  "ui.tick_casimir_emip": "Tick: +{0:0.00} LE / {1:0.0}s (Casimir x{2:0.00})\n+{3:0.00} EM  +{4:0.00} IP",
+  "ui.req_le_label": "LE",
+  "ui.req_ge": "≥",
+  "ui.req_sep": " · "
 
 }

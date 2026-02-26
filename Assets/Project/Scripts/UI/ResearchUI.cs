@@ -4,7 +4,6 @@ using UnityEngine;
 public class ResearchUI : MonoBehaviour
 
 {
-    private int _lastLang = -1;
 
     [Header("Referencias")]
     public Transform listContainer;   // ResearchList
@@ -12,8 +11,7 @@ public class ResearchUI : MonoBehaviour
 
     private void Start()
     {
-        var lm = LocalizationManager.I;
-        _lastLang = (lm != null) ? (int)lm.CurrentLanguage : -1;
+        
 
         RefreshList();
     }
@@ -56,18 +54,7 @@ public class ResearchUI : MonoBehaviour
             }
         }
     }
-    private void Update()
-    {
-        var lm = LocalizationManager.I;
-        if (lm == null) return;
-
-        int langNow = (int)lm.CurrentLanguage;
-        if (langNow != _lastLang)
-        {
-            _lastLang = langNow;
-            RefreshList();
-        }
-    }
+   
 
 }
 

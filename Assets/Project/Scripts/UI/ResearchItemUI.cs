@@ -26,34 +26,67 @@ public class ResearchItemUI : MonoBehaviour
     private string researchId;
     private ResearchDef def;
 
+    // ✅ Nuevo: refresco por localización y throttling
+    private int _lastLocRevision = -1;
+    private float _nextRefreshTime = 0f;
+    private const float REFRESH_INTERVAL = 0.25f;
+
     // Llamado desde ResearchUI cuando instanciemos el item
-    public void Setup(ResearchDef def)
+public void Setup(ResearchDef researchDef)
+{
+    def = researchDef;
+    researchId = (def != null) ? def.id : null;
+
+    // Botón
+    if (buyButton != null)
     {
-        this.def = def;
-        this.researchId = def.id;
-
-        // Nombre (fallback: def.name)
-        {
-            string key = $"res.{def.id}.name";
-            string s = (LocalizationManager.I != null) ? LocalizationManager.I.T(key) : null;
-            nameText.text = (!string.IsNullOrEmpty(s) && s != key) ? s : def.name;
-        }       
-        
-        // Descripción (fallback: def.description)
-        {
-            string key = $"res.{def.id}.desc";
-            string s = (LocalizationManager.I != null) ? LocalizationManager.I.T(key) : null;
-            descText.text = (!string.IsNullOrEmpty(s) && s != key) ? s : def.description;
-        }       
-
-        if (buyButton != null)
-        {
-            buyButton.onClick.RemoveAllListeners();
-            buyButton.onClick.AddListener(OnClickBuy);
-        }
-
-        RefreshState();
+        buyButton.onClick.RemoveAllListeners();
+        buyButton.onClick.AddListener(OnClickBuy);
     }
+
+    // Primer pintado + sincroniza revision actual
+    _lastLocRevision = (LocalizationManager.I != null) ? LocalizationManager.I.Revision : -1;
+
+    RefreshLocalizedTextsOnly();
+    RefreshState();
+}
+
+    // Llamado desde ResearchUI cuando instanciemos el item
+    private void RefreshLocalizedTextsOnly()
+{
+    if (def == null) return;
+
+    // Nombre (fallback: def.name)
+    if (nameText != null)
+    {
+        string key = $"res.{def.id}.name";
+        string s = (LocalizationManager.I != null) ? LocalizationManager.I.T(key) : null;
+        nameText.text = (!string.IsNullOrEmpty(s) && s != key) ? s : def.name;
+    }
+
+    // Descripción (fallback: def.description)
+    if (descText != null)
+    {
+        string key = $"res.{def.id}.desc";
+        string s = (LocalizationManager.I != null) ? LocalizationManager.I.T(key) : null;
+        descText.text = (!string.IsNullOrEmpty(s) && s != key) ? s : def.description;
+    }
+}
+
+private void SyncLocalizationRevisionIfNeeded()
+{
+    var lm = LocalizationManager.I;
+    if (lm == null) return;
+
+    int rev = lm.Revision;
+    if (rev != _lastLocRevision)
+    {
+        _lastLocRevision = rev;
+
+        RefreshLocalizedTextsOnly();
+        RefreshState(); // para que “Coste/Cost” + estados cambien también
+    }
+}
 
     private void RefreshState()
 {
@@ -113,4 +146,17 @@ public class ResearchItemUI : MonoBehaviour
             RefreshState();
         }
     }
+
+    private void Update()
+{
+    if (Time.unscaledTime < _nextRefreshTime) return;
+    _nextRefreshTime = Time.unscaledTime + REFRESH_INTERVAL;
+
+    // Si cambió idioma, refresca textos + estados
+    SyncLocalizationRevisionIfNeeded();
+
+    // Aunque no cambie idioma, refresca estado (IP/prereq) en vivo
+    RefreshState();
+}
+
 }

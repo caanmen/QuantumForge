@@ -13,6 +13,8 @@ public class LocalizationManager : MonoBehaviour
     private readonly Dictionary<string, string> _dict = new Dictionary<string, string>();
     public Language CurrentLanguage { get; private set; }
 
+    public int Revision { get; private set; } = 0;
+
     [Serializable]
     private class JsonDict
     {
@@ -101,7 +103,8 @@ public class LocalizationManager : MonoBehaviour
         foreach (var kv in parsed)
             _dict[kv.Key] = kv.Value;
 
-        LocalizedTMP.RefreshAll();
+        LocalizedTMP.RefreshAll();// ✅ Nuevo: marca un cambio de idioma (útil para UIs que refrescan en vivo)
+        Revision++;
 
     }
 

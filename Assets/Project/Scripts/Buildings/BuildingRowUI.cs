@@ -40,6 +40,8 @@ public class BuildingRowUI : MonoBehaviour
     private int _lastLevel = -1;
     private double _lastCost = double.NaN;
     private string _lastReqText;
+    private int _lastReqLang = -999;
+    private string _cachedReqText = null;
 
 
     // Cache de nombre (no cambia)
@@ -54,6 +56,8 @@ public class BuildingRowUI : MonoBehaviour
     private double _lastStatsIpTick = double.NaN;
     private double _lastStatsInterval = double.NaN;
     private double _lastStatsWorld = double.NaN;
+    private int _lastStatsLang = -999;
+
 
     private string GetLocalizedBuildingName()
     {
@@ -159,6 +163,8 @@ public class BuildingRowUI : MonoBehaviour
         if (langChanged)
         _cachedName = GetLocalizedBuildingName();
 
+        if (langChanged) _cachedReqText = null; // para que "Req:" se regenere en el nuevo idioma
+
 
         // Nombre siempre visible (no cambia normalmente)
         if (nameText != null && nameText.text != _cachedName)
@@ -216,13 +222,17 @@ public class BuildingRowUI : MonoBehaviour
 
         if (!unlocked)
         {
-            // Sigue bloqueado: por si cambian requisitos con el tiempo (raro, pero posible)
-            string req = BuildRequirementsText(state.def);
-            if (_lastReqText != req)
+
+            // Los requisitos NO cambian con el tiempo, solo con idioma (y ni eso todavía)
+            if (_cachedReqText == null)
             {
-                _lastReqText = req;
-                if (costText != null) costText.SetText(req);
+                _cachedReqText = BuildRequirementsText(state.def);
+
+                if (costText != null)
+                    costText.SetText(_cachedReqText);
             }
+
+
             if (statsText != null) statsText.gameObject.SetActive(false);
 
 
@@ -287,6 +297,23 @@ public class BuildingRowUI : MonoBehaviour
         return System.Math.Abs(a - b) < 0.0001;
     }
 
+    private string L(string key, string fallback)
+    {
+        var lm = LocalizationManager.I;
+        if (lm == null) return fallback;
+        var s = lm.T(key);
+        return string.IsNullOrEmpty(s) ? fallback : s;
+    }
+
+    private string LF(string key, string fallback, params object[] args)
+    {
+        string fmt = L(key, fallback);
+        try { return string.Format(fmt, args); }
+        catch { return fmt; }
+    }
+
+
+
     private void UpdateStatsText()
     {
         if (statsText == null || state == null || state.def == null || gameState == null)
@@ -340,12 +367,18 @@ public class BuildingRowUI : MonoBehaviour
         }
 
         // Si no cambió nada relevante, no reescribas texto
+
+        int langNow = (LocalizationManager.I != null) ? (int)LocalizationManager.I.CurrentLanguage : -1;
+
+
         if (NearlyEqual(interval, _lastStatsInterval) &&
             NearlyEqual(leTickReal, _lastStatsLeTick) &&
             NearlyEqual(emTick, _lastStatsEmTick) &&
             NearlyEqual(ipTick, _lastStatsIpTick) &&
             NearlyEqual(worldMult, _lastStatsWorld) &&
-            casimirLevel == _lastCasimirLevel)
+            casimirLevel == _lastCasimirLevel &&
+            langNow == _lastStatsLang)
+            
         {
             return;
         }
@@ -356,37 +389,52 @@ public class BuildingRowUI : MonoBehaviour
         _lastStatsIpTick = ipTick;
         _lastStatsWorld = worldMult;
         _lastCasimirLevel = casimirLevel;
+        _lastStatsLang = langNow;
+
 
         // Texto final
         if (def.id == "vacuum_observer" && casimirLevel > 0)
         {
-            // muestra el buff de Casimir
             if (def.emPerTickBase > 0.0)
+            {
                 statsText.SetText(
+                    LF("ui.tick_casimir_emip",
                     "Tick: +{0:0.00} LE / {1:0.0}s (Casimir x{2:0.00})\n+{3:0.00} EM  +{4:0.00} IP",
-                    (float)leTickReal, (float)interval, (float)localBuff, (float)emTick, (float)ipTick
+                    (float)leTickReal, (float)interval, (float)localBuff, (float)emTick, (float)ipTick)
                 );
+            }
             else
+            {
                 statsText.SetText(
+                    LF("ui.tick_casimir",
                     "Tick: +{0:0.00} LE / {1:0.0}s (Casimir x{2:0.00})",
-                    (float)leTickReal, (float)interval, (float)localBuff
+                    (float)leTickReal, (float)interval, (float)localBuff)
                 );
+            }
         }
         else
         {
             if (def.emPerTickBase > 0.0)
+            {
                 statsText.SetText(
+                    LF("ui.tick_basic_emip",
                     "Tick: +{0:0.00} LE / {1:0.0}s\n+{2:0.00} EM  +{3:0.00} IP",
-                    (float)leTickReal, (float)interval, (float)emTick, (float)ipTick
+                    (float)leTickReal, (float)interval, (float)emTick, (float)ipTick)
                 );
+            }
             else
+            {
                 statsText.SetText(
+                    LF("ui.tick_basic",
                     "Tick: +{0:0.00} LE / {1:0.0}s",
-                    (float)leTickReal, (float)interval
+                    (float)leTickReal, (float)interval)
                 );
+            }
+
         }
 
     }
+    
 
 
     /// <summary>
@@ -395,22 +443,47 @@ public class BuildingRowUI : MonoBehaviour
     /// </summary>
     private string BuildRequirementsText(BuildingDef def)
     {
-        List<string> parts = new List<string>();
+        // Prefijos localizados
+        string prefix = (LocalizationManager.I != null)
+            ? LocalizationManager.I.T("ui.req_prefix")
+            : "Req:";
+
+        string progress = (LocalizationManager.I != null)
+            ? LocalizationManager.I.T("ui.req_progress")
+            : "progress";
+
+        string leLabel = (LocalizationManager.I != null) ? LocalizationManager.I.T("ui.req_le_label") : "LE";
+        string ge      = (LocalizationManager.I != null) ? LocalizationManager.I.T("ui.req_ge") : "≥";
+        string sep     = (LocalizationManager.I != null) ? LocalizationManager.I.T("ui.req_sep") : " · ";
+
+
+        // Asegurar espacio después del prefijo
+        if (!prefix.EndsWith(" ")) prefix += " ";
+
+        bool hasAny = false;
+        string s = prefix;
 
         if (def.unlockMinLE > 0.0)
-            parts.Add($"LE ≥ {def.unlockMinLE:0}");
+        {
+            hasAny = true;
+            s += leLabel + " " + ge + " " + def.unlockMinLE.ToString("0");
+        }
 
         if (!string.IsNullOrEmpty(def.unlockRequireId) && def.unlockRequireLevel > 0)
         {
             string shortName = GetShortReqName(def.unlockRequireId);
-            parts.Add($"{shortName} ≥ {def.unlockRequireLevel}");
+            if (hasAny) s += sep;
+            hasAny = true;
+            s += shortName + " " + ge + " " + def.unlockRequireLevel;
         }
 
-        if (parts.Count == 0)
-            return "Req: progreso";
 
-        return "Req: " + string.Join(" · ", parts);
+        if (!hasAny)
+            return prefix + progress;
+
+        return s;
     }
+
 
     private string GetShortReqName(string id)
     {

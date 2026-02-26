@@ -28,19 +28,7 @@ public class LocalizedTMP : MonoBehaviour
         _all.Remove(this);
     }
 
-    private void Update()
-    {
-        var lm = LocalizationManager.I;
-        if (lm == null) return;
-
-        int langNow = (int)lm.CurrentLanguage;
-        if (langNow != _lastLang)
-        {
-            _lastLang = langNow;
-            ForceRefresh();
-        }
-    }
-
+    
     private void ForceRefresh()
     {
         if (_tmp == null) return;
