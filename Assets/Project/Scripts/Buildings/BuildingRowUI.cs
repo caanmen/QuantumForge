@@ -48,7 +48,6 @@ public class BuildingRowUI : MonoBehaviour
     private string _cachedName;
 
     // Cache stats (para no recalcular / reescribir si no cambió)
-    private int _lastCasimirLevel = -1;
     private int _lastLang = -999;
 
     private double _lastStatsLeTick = double.NaN;
@@ -100,7 +99,6 @@ public class BuildingRowUI : MonoBehaviour
         _lastLevel = -1;
         _lastCost = double.NaN;
         _lastReqText = null;
-        _lastCasimirLevel = -1;
         _lastStatsLeTick = double.NaN;
         _lastStatsEmTick = double.NaN;
         _lastStatsIpTick = double.NaN;
@@ -314,126 +312,85 @@ public class BuildingRowUI : MonoBehaviour
 
 
 
-    private void UpdateStatsText()
+        private void UpdateStatsText()
+{
+    if (statsText == null || state == null || state.def == null || gameState == null)
+        return;
+
+    var def = state.def;
+
+    if (def.tickInterval <= 0.0)
     {
-        if (statsText == null || state == null || state.def == null || gameState == null)
-            return;
-
-        var def = state.def;
-
-        // Si el edificio no es de ticks, no mostramos nada (por ahora)
-        if (def.tickInterval <= 0.0)
-        {
-            statsText.gameObject.SetActive(false);
-            return;
-        }
-
-        statsText.gameObject.SetActive(true);
-
-        double interval = def.tickInterval;
-
-        // Multiplicadores globales (alineados con tu producción real)
-        double achFactor = (AchievementManager.I != null) ? AchievementManager.I.GetGlobalLEFactor() : 1.0;
-        double worldMult = (1.0 + gameState.emMult) * gameState.researchGlobalLEMult * achFactor;
-
-        // Buff local (Casimir -> Vacuum Observer)
-        int casimirLevel = 0;
-        double localBuff = 1.0;
-        if (def.id == "vacuum_observer")
-        {
-            casimirLevel = gameState.GetBuildingLevel("casimir_panel");
-            if (casimirLevel > 0)
-                localBuff *= (1.0 + 0.02 * casimirLevel);
-        }
-
-        // LE real por tick (base * nivel * buffs)
-        double baseLeTick = def.lePerTickBase * state.level;
-        double leTickReal = baseLeTick * localBuff * worldMult;
-
-        // EM/IP por tick (si aplica)
-        double emTick = 0.0;
-        double ipTick = 0.0;
-
-        if (def.emPerTickBase > 0.0)
-        {
-            double emGenFactor = 1.0;
-            if (ResearchManager.I != null)
-                emGenFactor *= ResearchManager.I.GetEMGenerationFactor();
-
-            emGenFactor *= gameState.GetMetaEMGenerationMultiplier();
-
-            emTick = def.emPerTickBase * state.level * emGenFactor;
-            ipTick = emTick * 0.1;
-        }
-
-        // Si no cambió nada relevante, no reescribas texto
-
-        int langNow = (LocalizationManager.I != null) ? (int)LocalizationManager.I.CurrentLanguage : -1;
-
-
-        if (NearlyEqual(interval, _lastStatsInterval) &&
-            NearlyEqual(leTickReal, _lastStatsLeTick) &&
-            NearlyEqual(emTick, _lastStatsEmTick) &&
-            NearlyEqual(ipTick, _lastStatsIpTick) &&
-            NearlyEqual(worldMult, _lastStatsWorld) &&
-            casimirLevel == _lastCasimirLevel &&
-            langNow == _lastStatsLang)
-            
-        {
-            return;
-        }
-
-        _lastStatsInterval = interval;
-        _lastStatsLeTick = leTickReal;
-        _lastStatsEmTick = emTick;
-        _lastStatsIpTick = ipTick;
-        _lastStatsWorld = worldMult;
-        _lastCasimirLevel = casimirLevel;
-        _lastStatsLang = langNow;
-
-
-        // Texto final
-        if (def.id == "vacuum_observer" && casimirLevel > 0)
-        {
-            if (def.emPerTickBase > 0.0)
-            {
-                statsText.SetText(
-                    LF("ui.tick_casimir_emip",
-                    "Tick: +{0:0.00} LE / {1:0.0}s (Casimir x{2:0.00})\n+{3:0.00} EM  +{4:0.00} IP",
-                    (float)leTickReal, (float)interval, (float)localBuff, (float)emTick, (float)ipTick)
-                );
-            }
-            else
-            {
-                statsText.SetText(
-                    LF("ui.tick_casimir",
-                    "Tick: +{0:0.00} LE / {1:0.0}s (Casimir x{2:0.00})",
-                    (float)leTickReal, (float)interval, (float)localBuff)
-                );
-            }
-        }
-        else
-        {
-            if (def.emPerTickBase > 0.0)
-            {
-                statsText.SetText(
-                    LF("ui.tick_basic_emip",
-                    "Tick: +{0:0.00} LE / {1:0.0}s\n+{2:0.00} EM  +{3:0.00} IP",
-                    (float)leTickReal, (float)interval, (float)emTick, (float)ipTick)
-                );
-            }
-            else
-            {
-                statsText.SetText(
-                    LF("ui.tick_basic",
-                    "Tick: +{0:0.00} LE / {1:0.0}s",
-                    (float)leTickReal, (float)interval)
-                );
-            }
-
-        }
-
+        statsText.gameObject.SetActive(false);
+        return;
     }
+
+    statsText.gameObject.SetActive(true);
+
+    double interval = def.tickInterval;
+    double devMult = (TickSystem.I != null) ? TickSystem.I.devMultiplier : 1.0;
+    double shownInterval = interval / devMult;
+
+    double achFactor = (AchievementManager.I != null)
+        ? AchievementManager.I.GetGlobalLEFactor()
+        : 1.0;
+
+    double worldMult = (1.0 + gameState.emMult) * gameState.researchGlobalLEMult * achFactor;
+
+    double baseLeTick = def.lePerTickBase * state.level;
+    double leTickReal = baseLeTick * worldMult;
+
+    double emTick = 0.0;
+    double ipTick = 0.0;
+
+    if (def.emPerTickBase > 0.0)
+    {
+        double emGenFactor = 1.0;
+        if (ResearchManager.I != null)
+            emGenFactor *= ResearchManager.I.GetEMGenerationFactor();
+
+        emGenFactor *= gameState.GetMetaEMGenerationMultiplier();
+
+        emTick = def.emPerTickBase * state.level * emGenFactor;
+        ipTick = emTick * 0.5;
+    }
+
+    int langNow = (LocalizationManager.I != null) ? (int)LocalizationManager.I.CurrentLanguage : -1;
+
+    if (NearlyEqual(interval, _lastStatsInterval) &&
+        NearlyEqual(leTickReal, _lastStatsLeTick) &&
+        NearlyEqual(emTick, _lastStatsEmTick) &&
+        NearlyEqual(ipTick, _lastStatsIpTick) &&
+        NearlyEqual(worldMult, _lastStatsWorld) &&
+        langNow == _lastStatsLang)
+    {
+        return;
+    }
+
+    _lastStatsInterval = interval;
+    _lastStatsLeTick = leTickReal;
+    _lastStatsEmTick = emTick;
+    _lastStatsIpTick = ipTick;
+    _lastStatsWorld = worldMult;
+    _lastStatsLang = langNow;
+
+    if (def.emPerTickBase > 0.0)
+    {
+        statsText.SetText(
+            LF("ui.tick_basic_emip",
+            "Tick: +{0:0.00} LE / {1:0.0}s\n+{2:0.00} EM  +{3:0.00} IP",
+            (float)leTickReal, (float)shownInterval, (float)emTick, (float)ipTick)
+        );
+    }
+    else
+    {
+        statsText.SetText(
+            LF("ui.tick_basic",
+            "Tick: +{0:0.00} LE / {1:0.0}s",
+            (float)leTickReal, (float)shownInterval)
+        );
+    }
+}
     
 
 
@@ -485,14 +442,13 @@ public class BuildingRowUI : MonoBehaviour
     }
 
 
-    private string GetShortReqName(string id)
+        private string GetShortReqName(string id)
     {
         switch (id)
         {
-            case "vacuum_observer":     return "Obs.";
-            case "fluctuation_antenna": return "Ant.";
-            case "decoherence_lab":     return "Lab";
-            case "vacuum_amplifier":    return "Amp.";
+            case "vacuum_observer":     return "Higgs";
+            case "casimir_panel":       return "Tetra";
+            case "fluctuation_antenna": return "Matriz";
             default:                    return id;
         }
     }
@@ -518,7 +474,6 @@ public class BuildingRowUI : MonoBehaviour
         // Forzar refresh de nivel/coste
         _lastLevel = -1;
         _lastCost = double.NaN;
-        _lastCasimirLevel = -1;
         _lastStatsLeTick = double.NaN;
         _lastStatsEmTick = double.NaN;
         _lastStatsIpTick = double.NaN;

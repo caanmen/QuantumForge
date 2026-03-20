@@ -60,6 +60,14 @@ public class BuildingDatabase : MonoBehaviour
 
         buildings = new List<BuildingDef>(collection.buildings);
         Debug.Log($"[BuildingDatabase] Cargados {buildings.Count} edificio(s) desde JSON.");
+
+        if (buildings != null && buildings.Count > 0)
+        {
+            var b0 = buildings[0];
+            Debug.Log(
+                $"[BuildingDatabase] Primer edificio => id={b0.id}, nombre={b0.displayName}, baseCost={b0.baseCost}, tickInterval={b0.tickInterval}, lePerTickBase={b0.lePerTickBase}"
+            );
+        }
     }
 
     /// <summary>

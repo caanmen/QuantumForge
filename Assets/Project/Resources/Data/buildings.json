@@ -2,65 +2,57 @@
   "buildings": [
     {
       "id": "vacuum_observer",
-      "displayName": "Generador de Vacío",
-      "description": "El generador básico que extrae LE del vacío cuántico.",
+      "displayName": "Condensador de Higgs",
+      "description": "Artefacto base del laboratorio. Condensa energía y genera LE puro.",
       "baseCost": 10.0,
       "costMult": 1.15,
       "baseLEps": 0.0,
       "tier": 1,
       "bonusType": "None",
       "bonusPerLevel": 0.0,
-
-      "tickInterval": 3.0,
+      "tickInterval": 1.0,
       "lePerTickBase": 1.0,
       "emPerTickBase": 0.0,
-
       "unlockMinLE": 0.0,
       "unlockMinTotalLEps": 0.0,
       "unlockRequireId": "",
       "unlockRequireLevel": 0
     },
-
     {
       "id": "casimir_panel",
-      "displayName": "Placas de Casimir",
-      "description": "Placas paralelas que aprovechan el efecto Casimir para extraer LE más eficientemente.",
-      "baseCost": 75.0,
-      "costMult": 1.19,
+      "displayName": "Núcleo Tetraquark",
+      "description": "Segundo artefacto del progreso. Genera LE y abre el acceso a Trazas.",
+      "baseCost": 700.0,
+      "costMult": 1.18,
       "baseLEps": 0.0,
       "tier": 1,
       "bonusType": "None",
       "bonusPerLevel": 0.0,
-
-      "tickInterval": 7.0,
-      "lePerTickBase": 3.5,
+      "tickInterval": 1.0,
+      "lePerTickBase": 4.0,
       "emPerTickBase": 0.0,
-
       "unlockMinLE": 0.0,
       "unlockMinTotalLEps": 0.0,
       "unlockRequireId": "vacuum_observer",
-      "unlockRequireLevel": 5
+      "unlockRequireLevel": 1
     },
-
     {
       "id": "fluctuation_antenna",
-      "displayName": "Antena de Fluctuaciones",
-      "description": "Captura fluctuaciones más intensas del vacío, generando LE y pequeñas cantidades de EM.",
-      "baseCost": 350.0,
+      "displayName": "Matriz de Fase Exótica",
+      "description": "Artefacto adaptable de mid-early game. Más adelante podrá alternar entre modos de generación.",
+      "baseCost": 10000.0,
       "costMult": 1.20,
       "baseLEps": 0.0,
       "tier": 1,
       "bonusType": "None",
       "bonusPerLevel": 0.0,
-
-      "tickInterval": 12.0,
-      "lePerTickBase": 10.0,
-      "emPerTickBase": 0.25,
-
+      "tickInterval": 1.0,
+      "lePerTickBase": 20.0,
+      "emPerTickBase": 0.0,
       "unlockMinLE": 0.0,
       "unlockMinTotalLEps": 0.0,
       "unlockRequireId": "casimir_panel",
-      "unlockRequireLevel": 20
+      "unlockRequireLevel": 1
     }
   ]
 }

@@ -4,13 +4,14 @@ using TMPro;
 public class HUD : MonoBehaviour
 {
     [Header("Textos HUD")]
-    public TextMeshProUGUI leText;    // LE y LE/s
-    public TextMeshProUGUI vpText;    // VP
-    public TextMeshProUGUI emText;    // EM
-    public TextMeshProUGUI adpText;   // ADP
-    public TextMeshProUGUI whfText;   // WHF
-    public TextMeshProUGUI becText;   // BEC
-    public TextMeshProUGUI ipText;    // IP
+    public TextMeshProUGUI leText;        // LE y LE/s
+    public TextMeshProUGUI tracesText;    // Trazas
+    public TextMeshProUGUI vpText;        // VP
+    public TextMeshProUGUI emText;        // EM
+    public TextMeshProUGUI adpText;       // ADP
+    public TextMeshProUGUI whfText;       // WHF
+    public TextMeshProUGUI becText;       // BEC
+    public TextMeshProUGUI ipText;        // IP
 
     [Header("Rendimiento")]
     [SerializeField] private float uiRefreshInterval = 0.25f;
@@ -30,24 +31,24 @@ public class HUD : MonoBehaviour
         {
             double leps = gs.GetTotalLEps();
 
-            // 1) Factor base por EM
             double emBase = 1.0 + gs.emMult;
 
-            // 2) Factor por investigaciones de Cosecha EM
             double emGenFactor = 1.0;
             if (ResearchManager.I != null)
                 emGenFactor = ResearchManager.I.GetEMGenerationFactor();
 
-            // EMx visual
             double emxVisual = emBase * emGenFactor;
-
-            // 3) Factor de laboratorio
             double labFactor = gs.researchGlobalLEMult;
 
-            // TMP SetText (menos alloc)
-            leText.SetText("LE: {0:0}  (LE/s: {1:0.00}  EMx: {2:0.00}  Labx: {3:0.00})",
-                (float)gs.LE, (float)leps, (float)emxVisual, (float)labFactor);
+            leText.SetText(
+                "LE: {0:0}  (LE/s: {1:0.00}  EMx: {2:0.00}  Labx: {3:0.00})",
+                (float)gs.LE, (float)leps, (float)emxVisual, (float)labFactor
+            );
         }
+
+        // Trazas
+        if (tracesText != null)
+            tracesText.text = "Trazas: " + gs.Traces.ToString("0.###");
 
         // VP
         if (vpText != null)

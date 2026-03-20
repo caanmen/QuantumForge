@@ -7,6 +7,7 @@ using UnityEngine;
 public class SaveData
 {
     public double LE;
+    public double Traces;
     public double VP;
 
     // Mid-game: recurso EM
@@ -123,6 +124,7 @@ public class SaveService : MonoBehaviour
         var data = new SaveData
         {
         LE = GameState.I.LE,
+        Traces = GameState.I.Traces,
         VP = GameState.I.VP,
         EM = GameState.I.EM,
         emMult = GameState.I.emMult,
@@ -182,12 +184,29 @@ public class SaveService : MonoBehaviour
         Debug.Log($"[SaveService] Load() llamado. Existe archivo? {File.Exists(SavePath)} ({SavePath})");
 #endif
 
-        if (!File.Exists(SavePath) || GameState.I == null) return;
+        if (GameState.I == null) return;
+
+        if (!File.Exists(SavePath))
+        {
+            InitNewGame();
+            return;
+        }
 
         var json = File.ReadAllText(SavePath);
         var data = JsonUtility.FromJson<SaveData>(json);
 
+        bool noBuildings = (data.buildingLevels == null || data.buildingLevels.Count == 0);
+        bool looksFresh = data.LE <= 0.0 && data.maxLEAlcanzado <= 0.0 && data.ENT <= 0.0 && data.Lambda <= 0.0 && noBuildings;
+
+        if (looksFresh)
+        {
+            InitNewGame();
+            return;
+        }
+
+
         GameState.I.LE = data.LE;
+        GameState.I.Traces = data.Traces;
         GameState.I.VP = data.VP;
         GameState.I.EM = data.EM;
         GameState.I.emMult = data.emMult;
@@ -243,16 +262,74 @@ public class SaveService : MonoBehaviour
 #endif
     }
 
+    private void InitNewGame()
+    {
+        if (GameState.I == null) return;
+
+        // ✅ Starter: lo mínimo para poder comprar el primer edificio (coste 10)
+        GameState.I.LE = 10.0;
+        GameState.I.VP = 0.0;
+
+        GameState.I.EM = 0.0;
+        GameState.I.emMult = 0.0;
+
+        GameState.I.IP = 0.0;
+        GameState.I.baseLEps = 0.0;
+
+        GameState.I.ENT = 0.0;
+        GameState.I.maxLEAlcanzado = 0.0;
+
+        GameState.I.ADP = 0.0;
+        GameState.I.WHF = 0.0;
+
+        // Meta-progreso se mantiene en 0 para un save nuevo
+        GameState.I.Lambda = 0.0;
+        GameState.I.totalENTAcumulada = 0.0;
+        GameState.I.totalADPGenerada = 0.0;
+        GameState.I.totalWHFGenerada = 0.0;
+
+        // Flags prestigio/meta-upgrades por defecto
+        GameState.I.prestigeLeMult1Unlocked = false;
+        GameState.I.prestigeAutoBuyFirstUnlocked = false;
+        GameState.I.prestigeAutoBuyFirstEnabled = true;
+
+        GameState.I.metaEntBoost1Bought = false;
+        GameState.I.metaEmBoost1Bought = false;
+
+        // Limpiar caches de load para evitar arrastrar algo raro
+        LastLoadedResearchIds = new List<string>();
+        LastLoadedAchievementIds = new List<string>();
+        LastLoadedBuildingLevels = new List<SavedBuildingLevel>();
+
+        // Aplica listas vacías si existen managers
+        if (ResearchManager.I != null) ResearchManager.I.ApplyLoadedResearch(LastLoadedResearchIds);
+        if (AchievementManager.I != null) AchievementManager.I.ApplyLoadedAchievements(LastLoadedAchievementIds);
+
+        // Dejar max coherente
+        GameState.I.ActualizarMaxLE();
+
+        // ✅ Crear el save inmediatamente (en Android es clave)
+        Save();
+    }
+
+
     [ContextMenu("Reset Save (simple)")]
     public void ResetSave()
     {
         if (File.Exists(SavePath)) File.Delete(SavePath);
-#if UNITY_EDITOR
+
+        if (GameState.I != null)
+        {
+            GameState.I.DebugResetRunState();
+            GameState.I.Traces = 0.0;
+        }
+
+    #if UNITY_EDITOR
         Debug.Log("[SaveService] Save deleted.");
-#endif
+    #endif
     }
 
-#if UNITY_EDITOR
+    #if UNITY_EDITOR
     [ContextMenu("DEBUG: Reset Save (completo)")]
     private void DebugResetSave()
     {
@@ -260,7 +337,7 @@ public class SaveService : MonoBehaviour
         {
             // 1) Borrar el archivo de save en disco
             if (File.Exists(SavePath))
-            {
+            {   
                 File.Delete(SavePath);
                 Debug.Log($"[SaveService] DEBUG: Save borrado en {SavePath}");
             }
@@ -282,6 +359,7 @@ public class SaveService : MonoBehaviour
 
                 // Reset de monedas de prestigio y late-game
                 GameState.I.ENT  = 0.0;
+                GameState.I.Traces = 0.0;
                 GameState.I.ADP  = 0.0;
                 GameState.I.WHF  = 0.0;
                 GameState.I.Lambda            = 0.0;
@@ -295,6 +373,12 @@ public class SaveService : MonoBehaviour
                 GameState.I.prestigeAutoBuyFirstEnabled  = true;
                 GameState.I.metaEntBoost1Bought          = false;
                 GameState.I.metaEmBoost1Bought           = false;
+                
+                // Resetear research en memoria
+                if (ResearchManager.I != null)
+                {
+                    ResearchManager.I.ApplyLoadedResearch(new List<string>());
+                }
             }
 
             // 4) Resetear logros en memoria

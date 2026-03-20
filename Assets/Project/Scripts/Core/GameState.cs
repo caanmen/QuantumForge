@@ -7,6 +7,7 @@ public class GameState : MonoBehaviour
 
     [Header("Recursos básicos")]
     public double LE = 0.0;   // Luz de Energía (recurso principal)
+    public double Traces = 0.0;    // Trazas (recurso secundario temprano)
     public double VP = 0.0;   // Vacuum Points (recurso raro, aún sin lógica)
 
     // F6.1: Moneda de prestigio (Entrelazamiento Cuántico)
@@ -206,7 +207,14 @@ public class GameState : MonoBehaviour
     //    - CalculateTotalLEps() se sigue usando para HUD y lógica de desbloqueos.
     //    - PERO ya NO sumamos LE usando esa fórmula directamente.
     double totalLEps = CalculateTotalLEps(); // <-- solo informativo / HUD
-    GenerateLEFromBaseAndBuildings(dt);      // <-- NUEVO: producción real
+
+    GenerateLEFromBaseAndBuildings(dt);
+
+    double tracesPs = CalculateTracesPs();
+    if (tracesPs > 0.0)
+    {
+        Traces += tracesPs * dt;
+    }
 
     // 🔹 F7.3: Producir ADP
     double adpPs = CalculateADPps();
@@ -407,12 +415,20 @@ public class GameState : MonoBehaviour
     // 🔥 F6.4: factor de prestigio
     double prestigeFactor = GetPrestigeLEMultiplier();
 
+    double f2UpgradeFactor = 1.0;
+    if (F2UpgradeManager.I != null)
+    {
+        f2UpgradeFactor += F2UpgradeManager.I.GetTotalGlobalLEMultBonus();
+    }
+
     double rawTotal = (baseProd + fromBuildings)
-                      * multiplier
-                      * emFactor
-                      * researchFactor
-                      * achFactor
-                      + flatBonus;
+                    * multiplier
+                    * emFactor
+                    * researchFactor
+                    * achFactor
+                    * prestigeFactor
+                    * f2UpgradeFactor
+                    + flatBonus;
 
     return rawTotal;
 }
@@ -595,6 +611,17 @@ private double CalculateEMMultiplier()
     public double GetTotalLEps()
     {
         return CalculateTotalLEps();
+    }
+
+    public double CalculateTracesPs()
+    {
+        // Puente temporal:
+        // usamos casimir_panel como equivalente provisional del artefacto
+        // que abre el recurso secundario en F2.
+        int casimirLevel = GetBuildingLevel("casimir_panel");
+        if (casimirLevel <= 0) return 0.0;
+
+        return 0.03 * casimirLevel;
     }
 
     /// <summary>
@@ -901,9 +928,14 @@ private double CalculateEMMultiplier()
     // 🔥 Igual que en CalculateTotalLEps()
     double prestigeFactor = GetPrestigeLEMultiplier();
 
-    double worldMult = multiplier * emFactor * researchFactor * achFactor * prestigeFactor;
-    if (worldMult <= 0) worldMult = 1.0;
+    double f2UpgradeFactor = 1.0;
+    if (F2UpgradeManager.I != null)
+    {
+        f2UpgradeFactor += F2UpgradeManager.I.GetTotalGlobalLEMultBonus();
+    }
 
+    double worldMult = multiplier * emFactor * researchFactor * achFactor * prestigeFactor * f2UpgradeFactor;
+    if (worldMult <= 0) worldMult = 1.0;
 
     // 2) Producción base continua (sin edificios)
     if (baseLEps > 0.0)
@@ -939,20 +971,10 @@ private double CalculateEMMultiplier()
                 // LE por tick
                 double lePerTick = def.lePerTickBase * b.level;
 
-                // Buff Casimir sobre Vacuum Observer
-                if (def.id == "vacuum_observer")
-                {
-                    int casimirLevel = GetBuildingLevel("casimir_panel");
-                    if (casimirLevel > 0)
-                    {
-                        double buffFromCasimir = 1.0 + 0.02 * casimirLevel;
-                        buffFromCasimir = System.Math.Min(buffFromCasimir, 2.1);
-                        lePerTick *= buffFromCasimir;
-                    }
-                }
-
+               
                 double leGain = lePerTick * ticks * worldMult;
                 LE += leGain;
+                
 
                 // EM/IP por tick (si aplica)
                 if (def.emPerTickBase > 0.0)

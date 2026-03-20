@@ -1,0 +1,16 @@
+{
+  "upgrades": [
+    {
+      "id": "emission_focus",
+      "name": "Enfoque de Emisión",
+      "description": "Mejora global de LE.",
+      "currency": 0,
+      "effectType": 1,
+      "tiers": [
+        { "cost": 100.0, "effectValue": 0.05 },
+        { "cost": 250.0, "effectValue": 0.10 },
+        { "cost": 600.0, "effectValue": 0.20 }
+      ]
+    }
+  ]
+}
