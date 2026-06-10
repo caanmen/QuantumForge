@@ -1,222 +1,112 @@
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
 public class PrestigeUI : MonoBehaviour
 {
-    [Header("Textos de prestigio")]
-    public TextMeshProUGUI entActualText;      // Muestra ENT actual
-    public TextMeshProUGUI entGananciaText;    // Muestra ENT que ganarías al prestigiar
+    [Header("Textos de transición")]
+    public TextMeshProUGUI entActualText;
+    public TextMeshProUGUI entGananciaText;
 
-    [Header("Upgrades de prestigio - textos")]
-    public TextMeshProUGUI leMult1Text;        // Texto del upgrade de LE/s
-    public TextMeshProUGUI autoBuy1Text;       // Texto del upgrade de auto-compra
+    [Header("Textos viejos / opcionales")]
+    public TextMeshProUGUI leMult1Text;
+    public TextMeshProUGUI autoBuy1Text;
 
-    [Header("Costes de upgrades (en ENT)")]
-    public int costoLeMult1 = 3;
-    public int costoAutoBuy1 = 5;
-
-    [Header("Auto-compra: toggle")]
+    [Header("Botones viejos / opcionales")]
     public Button autoBuyToggleButton;
     public TextMeshProUGUI autoBuyToggleLabel;
 
-       private string L(string key, string fallback)
-    {
-        var lm = LocalizationManager.I;
-        if (lm == null) return fallback;
-        var s = lm.T(key);
-        return string.IsNullOrEmpty(s) ? fallback : s;
-    }
+    [Header("Rendimiento UI")]
+    [SerializeField] private float uiRefreshInterval = 0.25f;
+    private float _uiTimer = 0f;
 
-    private string LF(string key, string fallback, params object[] args)
+    private void Update()
     {
-        string fmt = L(key, fallback);
-        try { return string.Format(fmt, args); }
-        catch { return fmt; }
-    }
-
-        [Header("Rendimiento UI")]
-        [SerializeField] private float uiRefreshInterval = 0.25f;
-        private float _uiTimer = 0f;
-
-        private void Update()
-    {
-        var gs = GameState.I;
-        if (gs == null) return;
+        GameState gs = GameState.I;
+        if (gs == null)
+            return;
 
         _uiTimer += Time.unscaledDeltaTime;
-        if (_uiTimer < uiRefreshInterval) return;
+        if (_uiTimer < uiRefreshInterval)
+            return;
+
         _uiTimer = 0f;
 
+        bool canPrestige1 = gs.CanDoPrestige1();
 
-        // ENT actual
         if (entActualText != null)
         {
-            entActualText.SetText(
-            L("prestige.ent_current", "ENT: {0:0}"),
-            (float)gs.ENT
-
-            );
+            entActualText.text =
+                "Prestigios 1 realizados: " + gs.prestige1Count;
         }
 
-        // ENT que ganarías si prestigias ahora
         if (entGananciaText != null)
         {
-            float entGanar = (float)gs.GetENTGanariasAlPrestigiar();
-            entGananciaText.SetText(
-                L("prestige.ent_gain", "Si prestigias ahora: +{0:0} ENT"),
-                entGanar
-            );
-
+            entGananciaText.text = gs.GetPrestige1StatusText();
         }
 
-        // Texto upgrade LE/s
         if (leMult1Text != null)
         {
-            double pct = gs.prestigeLeMult1Bonus * 100.0;
-
-            if (gs.prestigeLeMult1Unlocked)
-            {
-                leMult1Text.SetText(
-                L("prestige.upg_le_mult1_bought", "Upgrade LE/s I (+{0:0}% LE/s) - COMPRADO"),
-                (float)pct
-            );
-
-            }
-            else
-            {
-                leMult1Text.SetText(
-                L("prestige.upg_le_mult1_cost", "Upgrade LE/s I (+{0:0}% LE/s) - Coste: {1:0} ENT"),
-                (float)pct, (float)costoLeMult1
-            );
-
-            }
+            leMult1Text.text =
+                "Prestigio 1 reinicia el laboratorio base, pero conserva el conocimiento descubierto.";
         }
 
-        // Texto upgrade auto-compra
         if (autoBuy1Text != null)
         {
-            if (gs.prestigeAutoBuyFirstUnlocked)
-            {
-                autoBuy1Text.text = L(
-                    "prestige.upg_autobuy1_bought",
-                    "Auto-compra Edificio 1 - COMPRADO"
-                );
-            }
-            else
-            {
-                autoBuy1Text.SetText(
-                L("prestige.upg_autobuy1_cost", "Auto-compra Edificio 1 (cada 0.5 s) - Coste: {0:0} ENT"),
-                (float)costoAutoBuy1
-            );
-
-            }
+            autoBuy1Text.text = canPrestige1
+                ? "La convergencia está lista."
+                : "Repara la Máquina al 80% y activa el Canal de Convergencia.";
         }
 
-        // Toggle de auto-compra ON/OFF
-        if (autoBuyToggleButton != null && autoBuyToggleLabel != null)
+        if (autoBuyToggleButton != null)
         {
-            bool unlocked = gs.prestigeAutoBuyFirstUnlocked;
+            autoBuyToggleButton.gameObject.SetActive(false);
+        }
 
-            // Solo mostramos el botón cuando el upgrade está comprado
-            autoBuyToggleButton.gameObject.SetActive(unlocked);
-
-            if (unlocked)
-            {
-                autoBuyToggleButton.interactable = true;
-
-                autoBuyToggleLabel.text = gs.prestigeAutoBuyFirstEnabled
-                    ? L("prestige.auto_on", "Auto: ON")
-                    : L("prestige.auto_off", "Auto: OFF");
-            }
+        if (autoBuyToggleLabel != null)
+        {
+            autoBuyToggleLabel.text = "";
         }
     }
 
-
-    // Botón: encender / apagar auto-compra del edificio 1
-    public void OnClickToggleAutoBuy()
-    {
-        var gs = GameState.I;
-        if (gs == null) return;
-        if (!gs.prestigeAutoBuyFirstUnlocked) return;
-
-        gs.prestigeAutoBuyFirstEnabled = !gs.prestigeAutoBuyFirstEnabled;
-
-        if (SaveService.I != null)
-            SaveService.I.Save();
-    }
-
-
-    // Botón de prestigio
     public void OnClickPrestige()
     {
-        var gs = GameState.I;
-        if (gs == null) return;
+        GameState gs = GameState.I;
+        if (gs == null)
+            return;
 
-        if (!gs.CanPrestige())
+        if (!gs.CanDoPrestige1())
         {
-            Debug.Log("[PrestigeUI] No puedes prestigiar todavía (ENT ganada < 1).");
+            Debug.Log("[PrestigeUI] Prestigio 1 todavía no disponible: " + gs.GetPrestige1StatusText());
             return;
         }
 
-        double entGanada = gs.DoPrestigeReset();
-        Debug.Log($"[PrestigeUI] Prestigio hecho. ENT ganada: {entGanada}");
+        bool ok = gs.DoPrestige1Reset();
+
+        if (ok)
+        {
+            Debug.Log("[PrestigeUI] Prestigio 1 realizado correctamente.");
+
+            if (TabsUI.Instance != null)
+            {
+                TabsUI.Instance.RefreshDimension1ButtonVisibility();
+            }
+        }
     }
 
-    // Botón: comprar upgrade de LE/s
+    // Métodos viejos: se dejan para no romper botones asignados en la escena.
+    public void OnClickToggleAutoBuy()
+    {
+        Debug.Log("[PrestigeUI] Auto-buy viejo desactivado. ENT ya no se usa para Prestigio 1.");
+    }
+
     public void OnClickBuyLeMult1()
     {
-        var gs = GameState.I;
-        if (gs == null) return;
-
-        if (gs.prestigeLeMult1Unlocked)
-        {
-            Debug.Log("[PrestigeUI] Upgrade LE/s I ya está comprado.");
-            return;
-        }
-
-        if (gs.ENT < costoLeMult1)
-        {
-            Debug.Log("[PrestigeUI] No tienes suficiente ENT para Upgrade LE/s I.");
-            return;
-        }
-
-        gs.ENT -= costoLeMult1;
-        gs.prestigeLeMult1Unlocked = true;
-
-        if (SaveService.I != null)
-            SaveService.I.Save();
-
-        Debug.Log("[PrestigeUI] Upgrade LE/s I comprado.");
+        Debug.Log("[PrestigeUI] Upgrade viejo de ENT desactivado.");
     }
 
-    // Botón: comprar upgrade de auto-compra
     public void OnClickBuyAutoBuy1()
     {
-        var gs = GameState.I;
-        if (gs == null) return;
-
-        if (gs.prestigeAutoBuyFirstUnlocked)
-        {
-            Debug.Log("[PrestigeUI] Upgrade auto-compra ya está comprado.");
-            return;
-        }
-
-        if (gs.ENT < costoAutoBuy1)
-        {
-            Debug.Log("[PrestigeUI] No tienes suficiente ENT para auto-compra.");
-            return;
-        }
-
-        gs.ENT -= costoAutoBuy1;
-        gs.prestigeAutoBuyFirstUnlocked = true;
-        gs.prestigeAutoBuyFirstEnabled  = true;   // se enciende al comprar
-
-
-        if (SaveService.I != null)
-            SaveService.I.Save();
-
-        Debug.Log("[PrestigeUI] Upgrade auto-compra comprado.");
+        Debug.Log("[PrestigeUI] Upgrade viejo de auto-compra desactivado.");
     }
 }

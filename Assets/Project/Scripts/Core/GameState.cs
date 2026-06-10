@@ -1,6 +1,102 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+    public enum PhaseModulatorMode
+
+    {
+        None = 0,
+        Expansion = 1,
+        Conservation = 2,
+        Attunement = 3
+    }
+
+    public enum ExperimentalFragmentType
+    {
+        None = 0,
+        Condensation = 1,
+        Confinement = 2,
+        ResidualInterference = 3
+    }
+
+    public enum ExperimentalCatalystType
+    {
+        None = 0,
+        Alpha = 1,
+        Beta = 2
+    }
+
+    public enum ExperimentalResultType
+    {
+        None = 0,
+        Hallazgo = 1,
+        Muestra = 2,
+        LecturaIncompleta = 3,
+        CompuestoUtil = 4
+    }
+
+    public enum ExperimentalMixState
+    {
+        NoRegistrada = 0,
+        Inestable = 1,
+        Parcial = 2,
+        Catalogada = 3
+    }
+
+    [System.Serializable]
+    public class ExperimentalMixLogEntry
+    {
+        public string mixKey;
+        public string discoveredName;
+        public int fragmentA;
+        public int fragmentB;
+        public int catalyst;
+        public int lastResult;
+        public int bestResult;
+        public int mixState;
+        public int timesExecuted;
+        public int accumulatedErrors;
+        public bool discovered;
+    }
+
+    public enum TriangleSlotRole
+    {
+        None = 0,
+        Primary = 1,
+        Reinforcement = 2,
+        Alteration = 3
+    }
+
+    public enum TriangleProtocolType
+    {
+        None = 0,
+        Impulso = 1,
+        Sinergia = 2,
+        Persistencia = 3
+    }
+
+    [System.Serializable]
+    public class TriangleSlotState
+    {
+        public int role;
+        public string buildingId;
+    }
+
+    [System.Serializable]
+    public class ChronalSeedSlotState
+    {
+        public bool hasSeed;
+        public double progressSeconds;
+        public bool mature;
+    }
+
+    [System.Serializable]
+    public class ChronalInstantState
+    {
+        public bool hasInstant;
+        public double stability;
+        public double tension;
+    }
+
 public class GameState : MonoBehaviour
 {
     public static GameState I { get; private set; }
@@ -9,33 +105,101 @@ public class GameState : MonoBehaviour
     public double LE = 0.0;   // Luz de Energía (recurso principal)
     public double Traces = 0.0;    // Trazas (recurso secundario temprano)
     public double VP = 0.0;   // Vacuum Points (recurso raro, aún sin lógica)
+    [Header("F3 / Cuarto 2 - Recursos experimentales")]
+    public int fragmentCondensation = 0;
+    public int fragmentConfinement = 0;
+    public int fragmentResidualInterference = 0;
+    public double fragmentCondensationProgress = 0.0;
+    public double fragmentConfinementProgress = 0.0;
+    public double fragmentResidualInterferenceProgress = 0.0;
+    [Header("F3 / Cuarto 2 - Estado")]
+    public bool experimentalChamberUnlocked = false;
+    public bool experimentalChamberInitialPackGranted = false;
+    [Header("F3 / Cuarto 2 - Keycard")]
+    public double experimentalChamberKeycardLeCost = 150000.0;
+    public double experimentalChamberKeycardTraceCost = 250.0;
+    public int experimentalHallazgos = 0;
+    public int experimentalMuestras = 0;
+    public int experimentalLecturasIncompletas = 0;
+    public int experimentalCompuestosUtiles = 0;
+    [Header("F3 / Cuarto 2 - Núcleo de Síntesis")]
+    public int synthesisCoreFusionCounter = 0;
 
-    // F6.1: Moneda de prestigio (Entrelazamiento Cuántico)
-    public double ENT = 0.0;
+    [Header("Zona 4 - Semillas Dimensionales")]
+    public double chronalSeedDurationSeconds = 5.0; // prueba temporal
+    public List<ChronalSeedSlotState> chronalSeedSlots = new List<ChronalSeedSlotState>();
+    public int chronalMatureSeedsStored = 0;
+    
+    [Header("Zona 4 - Anclajes Inestables")]
+    public ChronalInstantState chronalInstant = new ChronalInstantState();
+    public int chronalMaterializedInstants = 0;
 
-    // F6.1: Máximo de LE alcanzado en el run actual
+    public int chronalPureInstants = 0;
+    public int chronalStableInstants = 0;
+    public int chronalForcedInstants = 0;
+
+    [Header("Zona 4 - Archivo de Anclajes")]
+    public int chronalArchivedInstants = 0;
+
+    public string lastChronalMaterializationQuality = "";
+
+    [Header("F3 / Cuarto 2 - Registro experimental")]
+    public List<ExperimentalMixLogEntry> experimentalMixLog = new List<ExperimentalMixLogEntry>();
+
+    [Header("F3 / Cuarto 2 - Síntesis Guiada")]
+    public int guidedSynthesisIntent = 0;
+
+    [Header("Prestigio 1 - Convergencia")]
+
+    [Tooltip("Cantidad de veces que el jugador ha realizado Prestigio 1.")]
+    public int prestige1Count = 0;
+
+    [Tooltip("Indica si el jugador ya realizó Prestigio 1 al menos una vez.")]
+    public bool hasDonePrestige1 = false;
+
+    // Máximo de LE alcanzado en el run actual.
+    // Se conserva porque todavía sirve como estadística interna del run.
     public double maxLEAlcanzado = 0.0;
 
-    // F6.2: constante para la fórmula de prestigio (log10(maxLE) - K)
-    [Tooltip("Constante K para el cálculo de ENT (log10(maxLE) - K). Empieza en 6.0.")]
-    public double prestigeK = 5.0;
+    [Header("Dimensión 1 - MVP")]
 
-     // F6.4: Upgrades de prestigio
-    [Header("Prestigio - upgrades")]
-    [Tooltip("Upgrade de prestigio: multiplicador global de LE/s.")]
-    public bool prestigeLeMult1Unlocked = false;
+    [Tooltip("Indica si la Dimensión 1 está desbloqueada después de Prestigio 1.")]
+    public bool dimension01Unlocked = false;
 
-    [Tooltip("Upgrade de prestigio: auto-compra del primer edificio.")]
-    public bool prestigeAutoBuyFirstUnlocked = false;
+    [Tooltip("Metales acumulados de Dimensión 1.")]
+    public List<D1MetalAmount> dimension1Metals = new List<D1MetalAmount>();
 
-    [Tooltip("Si está en true, la auto-compra del primer edificio está activa.")]
-    public bool prestigeAutoBuyFirstEnabled = true;
+    [Tooltip("Estado de planetas/extractores de Dimensión 1.")]
+    public List<D1PlanetState> dimension1Planets = new List<D1PlanetState>();
 
-    // Bonus del upgrade de multiplicador (por ejemplo +25% LE/s)
-    public double prestigeLeMult1Bonus = 0.25;
+    [Tooltip("Estado de naves de Dimensión 1.")]
+    public List<D1ShipState> dimension1Ships = new List<D1ShipState>();
 
-    // Temporizador interno para la auto-compra
-    private double prestigeAutoBuyTimer = 0.0;
+    [Tooltip("Destinos detectados por el escáner de Dimensión 1.")]
+    public List<D1ScannedDestinationState> dimension1ScannedDestinations = new List<D1ScannedDestinationState>();
+    [Tooltip("Indica si el escáner de Dimensión 1 está haciendo un barrido.")]
+
+    public bool dimension1ScanActive;
+
+    [Tooltip("Tiempo restante del barrido de escáner de Dimensión 1.")]
+    public double dimension1ScanRemainingSeconds;
+
+    [Tooltip("Tiempo total del barrido de escáner de Dimensión 1.")]
+    public double dimension1ScanTotalSeconds;
+
+    [Tooltip("Último destino completado por exploración en Dimensión 1.")]
+    public string dimension1LastExplorationDestinationId = "";
+
+    [Tooltip("Últimas recompensas obtenidas por exploración en Dimensión 1.")]
+    public List<D1MetalAmount> dimension1LastExplorationRewards = new List<D1MetalAmount>();
+
+    
+
+    [Tooltip("Fragmentos de blueprint acumulados en Dimensión 1.")]
+    public int dimension1BlueprintFragments = 0;
+
+    [Tooltip("Fragmentos de blueprint obtenidos en la última exploración.")]
+    public int dimension1LastExplorationBlueprintFragments = 0;
 
     [Header("Recursos avanzados (placeholder)")]
     [Tooltip("Recurso para el futuro sistema de BEC (aún sin implementar).")]
@@ -56,15 +220,9 @@ public class GameState : MonoBehaviour
 
         // F7.5: Meta-upgrades comprados con Λ
     [Header("Meta-upgrades (Prestigio 2)")]
-    [Tooltip("Upgrade de Lambda: +20% ENT ganada permanentemente.")]
-    public bool metaEntBoost1Bought = false;
 
     [Tooltip("Upgrade de Lambda: +15% EM base permanente.")]
     public bool metaEmBoost1Bought = false;
-
-    // F7: Estadísticas acumuladas para meta-prestigio
-    [Tooltip("Total de ENT acumulada a lo largo de todas las runs (sirve para fórmulas futuras de Lambda).")]
-    public double totalENTAcumulada = 0.0;
 
     [Tooltip("Total de ADP generada a lo largo de todas las runs (placeholder F7).")]
     public double totalADPGenerada = 0.0;
@@ -79,24 +237,58 @@ public class GameState : MonoBehaviour
     [Tooltip("Multiplicador adicional global de LE/s generado por el sistema EM.")]
     public double emMult = 0.0;
 
-    [Header("Investigación (Research)")]
-    [Tooltip("Puntos de investigación (IP) usados para comprar mejoras de laboratorio.")]
-    public double IP = 0.0;
-
     [Tooltip("Multiplicador global de LE/s proveniente de investigaciones.")]
     public double researchGlobalLEMult = 1.0;   // se recalcula desde ResearchManager
 
 
     [Header("Producción base (sin edificios)")]
-    public double baseLEps = 0.0;   // producción base sin edificios
 
+    [Header("Modulador de Fase")]
+    [Tooltip("Fase seleccionada actualmente por el Modulador.")]
+    public PhaseModulatorMode phaseModulatorMode = PhaseModulatorMode.None;
 
+    [Tooltip("Calibración actual de la fase seleccionada (0 a 1).")]
+    [Range(0f, 1f)]
+    public float phaseModulatorCalibration = 0f;
+
+    [Tooltip("Velocidad base de calibración por segundo.")]
+    public float phaseModulatorCalibrationPerSecond = 0.05f;
+
+    [Tooltip("Bonus máximo de velocidad de tick para la fase Expansión (0.15 = 15%).")]
+    [Range(0f, 1f)]
+    public float phaseModulatorExpansionMaxTickSpeedBonus = 0.70f;
+
+    [Tooltip("Descuento máximo de costo para la fase Conservación (0.15 = 15%).")]
+    [Range(0f, 0.5f)]
+    public float phaseModulatorConservationMaxCostReduction = 0.15f;
+
+    [Header("Sistema triangular - Cuarto 1")]
+
+    [Tooltip("Se activa cuando el jugador compra el desbloqueo Acople de Vértices.")]
+    public bool triangleSystemUnlocked = false;
+
+    [Tooltip("Artefacto asignado al slot Principal.")]
+    public string trianglePrimaryBuildingId = "";
+
+    [Tooltip("Artefacto asignado al slot Refuerzo.")]
+    public string triangleReinforcementBuildingId = "";
+
+    [Tooltip("Artefacto asignado al slot Alteración.")]
+    public string triangleAlterationBuildingId = "";
+
+    [Header("Triángulo - Persistencia")]
+
+    public float trianglePersistenceActiveUsageFactor = 0.70f;
+    public double trianglePersistenceReserveSeconds = 0.0;
+    public double trianglePersistenceReserveBaseMaxSeconds = 10800.0; // 3 horas
+    public double trianglePersistenceOfflineSecondsPerReserveHour = 14400.0; // 4h offline = 1h reserva
+    public double trianglePersistenceBuffHiggsMultiplier = 1.15;
+    public double trianglePersistenceBuffTetraMultiplier = 1.15;
+
+    public double baseLEps = 0.0;
+  
     // Lista de edificios que producen LE (se llena desde la UI / BuildingList)
     private List<BuildingState> buildingStates = new List<BuildingState>();
-
-    // Para evitar aplicar los niveles cargados más de una vez
-    private bool buildingLevelsApplied = false;
-
 
     // Exporta los niveles de edificios para el sistema de guardado
     public List<SavedBuildingLevel> GetBuildingLevelsForSave()
@@ -135,6 +327,14 @@ public class GameState : MonoBehaviour
                 if (b.def.id == sb.id)
                 {
                     b.level = sb.level;
+
+                    // Recalcular el coste correcto de la siguiente compra
+                    b.currentCost = b.def.baseCost;
+                    for (int i = 0; i < b.level; i++)
+                    {
+                        b.currentCost *= b.def.costMult;
+                    }
+
                     break;
                 }
             }
@@ -142,6 +342,725 @@ public class GameState : MonoBehaviour
 
             // Si más adelante tienes un recalculo específico, lo puedes llamar aquí.
             // De momento, CalculateTotalLEps() ya usa buildingStates.
+    }
+
+        public int GetFragmentCount(ExperimentalFragmentType type)
+    {
+        switch (type)
+        {
+            case ExperimentalFragmentType.Condensation:
+                return fragmentCondensation;
+
+            case ExperimentalFragmentType.Confinement:
+                return fragmentConfinement;
+
+            case ExperimentalFragmentType.ResidualInterference:
+                return fragmentResidualInterference;
+
+            default:
+                return 0;
+        }
+    }
+
+    public void AddFragment(ExperimentalFragmentType type, int amount)
+    {
+        if (amount <= 0) return;
+
+        switch (type)
+        {
+            case ExperimentalFragmentType.Condensation:
+                fragmentCondensation += amount;
+                break;
+
+            case ExperimentalFragmentType.Confinement:
+                fragmentConfinement += amount;
+                break;
+
+            case ExperimentalFragmentType.ResidualInterference:
+                fragmentResidualInterference += amount;
+                break;
+        }
+    }
+
+    public bool ConsumeFragment(ExperimentalFragmentType type, int amount)
+    {
+        if (amount <= 0) return true;
+
+        int current = GetFragmentCount(type);
+        if (current < amount) return false;
+
+        switch (type)
+        {
+            case ExperimentalFragmentType.Condensation:
+                fragmentCondensation -= amount;
+                break;
+
+            case ExperimentalFragmentType.Confinement:
+                fragmentConfinement -= amount;
+                break;
+
+            case ExperimentalFragmentType.ResidualInterference:
+                fragmentResidualInterference -= amount;
+                break;
+        }
+
+        return true;
+    }
+
+    public void AddExperimentalResult(ExperimentalResultType resultType, int amount = 1)
+    {
+        if (amount <= 0) return;
+
+        switch (resultType)
+        {
+            case ExperimentalResultType.Hallazgo:
+                experimentalHallazgos += amount;
+                break;
+
+            case ExperimentalResultType.Muestra:
+                experimentalMuestras += amount;
+                break;
+
+            case ExperimentalResultType.LecturaIncompleta:
+                experimentalLecturasIncompletas += amount;
+                break;
+
+            case ExperimentalResultType.CompuestoUtil:
+                experimentalCompuestosUtiles += amount;
+                break;
+        }
+    }
+
+    public string BuildExperimentalMixKey(
+        ExperimentalFragmentType fragmentA,
+        ExperimentalFragmentType fragmentB,
+        ExperimentalCatalystType catalyst)
+    {
+        int a = (int)fragmentA;
+        int b = (int)fragmentB;
+
+        if (a > b)
+        {
+            int temp = a;
+            a = b;
+            b = temp;
+        }
+
+        return $"mix_{a}_{b}_cat_{(int)catalyst}";
+    }
+
+    public ExperimentalMixLogEntry GetOrCreateExperimentalMixEntry(
+        ExperimentalFragmentType fragmentA,
+        ExperimentalFragmentType fragmentB,
+        ExperimentalCatalystType catalyst)
+    {
+        string key = BuildExperimentalMixKey(fragmentA, fragmentB, catalyst);
+
+        if (experimentalMixLog == null)
+            experimentalMixLog = new List<ExperimentalMixLogEntry>();
+
+        foreach (var entry in experimentalMixLog)
+        {
+            if (entry != null && entry.mixKey == key)
+                return entry;
+        }
+
+        var newEntry = new ExperimentalMixLogEntry
+        {
+            mixKey = key,
+            discoveredName = "",
+            fragmentA = (int)fragmentA,
+            fragmentB = (int)fragmentB,
+            catalyst = (int)catalyst,
+            lastResult = (int)ExperimentalResultType.None,
+            bestResult = (int)ExperimentalResultType.None,
+            mixState = (int)ExperimentalMixState.NoRegistrada,
+            timesExecuted = 0,
+            accumulatedErrors = 0,
+            discovered = false
+        };
+
+        experimentalMixLog.Add(newEntry);
+        return newEntry;
+    }
+    public int GetChronalSeedSlotCount()
+    {
+        int slots = 2;
+
+        if (MachineManager.I != null)
+        {
+            double slotBonus = MachineManager.I.GetTotalEffectValue(MachineNodeEffectType.SeedSlotBonus);
+            slots += Mathf.FloorToInt((float)slotBonus);
+        }
+
+        return Mathf.Clamp(slots, 2, 4);
+    }
+
+    public void EnsureChronalSeedSlots()
+    {
+        if (chronalSeedSlots == null)
+            chronalSeedSlots = new List<ChronalSeedSlotState>();
+
+        int targetCount = GetChronalSeedSlotCount();
+
+        while (chronalSeedSlots.Count < targetCount)
+        {
+            chronalSeedSlots.Add(new ChronalSeedSlotState());
+        }
+
+        while (chronalSeedSlots.Count > targetCount)
+        {
+            chronalSeedSlots.RemoveAt(chronalSeedSlots.Count - 1);
+        }
+    }
+
+    public bool TryCreateChronalSeed()
+    {
+        EnsureChronalSeedSlots();
+
+        for (int i = 0; i < chronalSeedSlots.Count; i++)
+        {
+            ChronalSeedSlotState slot = chronalSeedSlots[i];
+
+            if (slot == null)
+            {
+                slot = new ChronalSeedSlotState();
+                chronalSeedSlots[i] = slot;
+            }
+
+            if (slot.hasSeed)
+                continue;
+
+            slot.hasSeed = true;
+            slot.progressSeconds = 0.0;
+            slot.mature = false;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public void UpdateChronalSeeds(double dt)
+    {
+        EnsureChronalSeedSlots();
+
+        for (int i = 0; i < chronalSeedSlots.Count; i++)
+        {
+            ChronalSeedSlotState slot = chronalSeedSlots[i];
+
+            if (slot == null || !slot.hasSeed)
+                continue;
+
+            slot.progressSeconds += dt;
+
+            if (slot.progressSeconds >= chronalSeedDurationSeconds)
+            {
+                chronalMatureSeedsStored += 1;
+
+                slot.hasSeed = false;
+                slot.progressSeconds = 0.0;
+                slot.mature = false;
+            }
+        }
+    }
+
+    public int GetChronalSeedReadingLevel()
+    {
+        if (MachineManager.I == null)
+            return 0;
+
+        double value = MachineManager.I.GetTotalEffectValue(
+            MachineNodeEffectType.SeedReadingBonus
+        );
+
+        return Mathf.Clamp(Mathf.FloorToInt((float)value), 0, 2);
+    }
+
+    public string GetChronalSeedsStatusText()
+    {
+        EnsureChronalSeedSlots();
+
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+
+        int readingLevel = GetChronalSeedReadingLevel();
+
+        sb.AppendLine("Reserva de Semillas Dimensionales Maduras: " + chronalMatureSeedsStored);
+        sb.AppendLine("Slots de incubación: " + chronalSeedSlots.Count);
+
+        if (readingLevel <= 0)
+            sb.AppendLine("Lectura de maduración: No calibrada");
+        else if (readingLevel == 1)
+            sb.AppendLine("Lectura de maduración: Porcentaje visible");
+        else
+            sb.AppendLine("Lectura de maduración: Tiempo restante visible");
+
+        sb.AppendLine();
+
+        for (int i = 0; i < chronalSeedSlots.Count; i++)
+        {
+            ChronalSeedSlotState slot = chronalSeedSlots[i];
+
+            if (slot == null || !slot.hasSeed)
+            {
+                sb.AppendLine("Slot " + (i + 1) + ": Vacío");
+                continue;
+            }
+
+            if (slot.mature)
+            {
+                sb.AppendLine("Slot " + (i + 1) + ": Lista para mover a reserva");
+                continue;
+            }
+
+            double progress = 0.0;
+
+            if (chronalSeedDurationSeconds > 0.0)
+                progress = slot.progressSeconds / chronalSeedDurationSeconds;
+
+            progress = Mathf.Clamp01((float)progress);
+
+            int percent = Mathf.FloorToInt((float)(progress * 100.0));
+            double remaining = System.Math.Max(0.0, chronalSeedDurationSeconds - slot.progressSeconds);
+
+            if (readingLevel <= 0)
+            {
+                sb.AppendLine("Slot " + (i + 1) + ": Madurando");
+            }
+            else if (readingLevel == 1)
+            {
+                sb.AppendLine("Slot " + (i + 1) + ": Madurando " + percent + "%");
+            }
+            else
+            {
+                sb.AppendLine("Slot " + (i + 1) + ": Madurando " + percent + "%");
+                sb.AppendLine("Tiempo restante: " + remaining.ToString("0.0") + "s");
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    public double GetChronalInstantInitialStability()
+    {
+        double stability = 30.0;
+
+        if (MachineManager.I != null)
+        {
+            double bonus = MachineManager.I.GetTotalEffectValue(MachineNodeEffectType.InstantInitialStabilityBonus);
+            stability += bonus * 100.0;
+        }
+
+        return System.Math.Min(100.0, stability);
+    }
+
+    public bool TryFormChronalInstant()
+    {
+        if (chronalMatureSeedsStored <= 0)
+            return false;
+
+        if (chronalInstant == null)
+            chronalInstant = new ChronalInstantState();
+
+        if (chronalInstant.hasInstant)
+            return false;
+
+        chronalMatureSeedsStored -= 1;
+
+        chronalInstant.hasInstant = true;
+        chronalInstant.stability = GetChronalInstantInitialStability();
+        chronalInstant.tension = 0.0;
+
+        return true;
+    }
+
+    public string GetChronalInstantStatusText()
+    {
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+
+        sb.AppendLine("Archivo de Anclajes: " + GetChronalArchiveUsed() + " / " + GetChronalArchiveCapacity());
+        sb.AppendLine("Anclajes fijados: " + chronalMaterializedInstants);
+        sb.AppendLine("Anclajes disponibles:");
+        sb.AppendLine("- Puros: " + chronalPureInstants);
+        sb.AppendLine("- Estables: " + chronalStableInstants);
+        sb.AppendLine("- Forzados: " + chronalForcedInstants);
+        sb.AppendLine();
+
+        if (chronalInstant == null || !chronalInstant.hasInstant)
+        {
+            sb.AppendLine("Anclaje Inestable: ninguno");
+            return sb.ToString();
+        }   
+
+        sb.AppendLine("Ancaje Inestable");
+        sb.AppendLine("Estabilidad: " + chronalInstant.stability.ToString("0") + "%");
+        sb.AppendLine("Tensión: " + chronalInstant.tension.ToString("0") + "%");
+        sb.AppendLine("Umbral de fijación: " + GetChronalMaterializationThreshold().ToString("0") + "%");
+        sb.AppendLine(GetChronalRewindPreviewText());
+
+        return sb.ToString();
+    }
+
+    public int NormalizeChronalStabilizationIntensity(double intensityPercent)
+    {
+        int normalized = Mathf.RoundToInt((float)(intensityPercent / 10.0)) * 10;
+        return Mathf.Clamp(normalized, 10, 100);
+    }
+
+    public double GetChronalStabilityGainForIntensity(double intensityPercent)
+    {
+        int intensity = NormalizeChronalStabilizationIntensity(intensityPercent);
+        double baseStabilityGain = intensity * 0.2;
+
+        double syncBonus = 0.0;
+
+        if (MachineManager.I != null)
+        {
+            syncBonus = MachineManager.I.GetTotalEffectValue(
+                MachineNodeEffectType.SynchronizeStabilityBonus
+            );
+        }
+
+        return baseStabilityGain + syncBonus;
+    }
+
+    public double GetChronalTensionGainForIntensity(double intensityPercent)
+    {
+        int intensity = NormalizeChronalStabilizationIntensity(intensityPercent);
+
+        double baseTensionGain;
+
+        switch (intensity)
+        {
+            case 10: baseTensionGain = 0.0; break;
+            case 20: baseTensionGain = 1.0; break;
+            case 30: baseTensionGain = 2.0; break;
+            case 40: baseTensionGain = 3.0; break;
+            case 50: baseTensionGain = 5.0; break;
+            case 60: baseTensionGain = 7.0; break;
+            case 70: baseTensionGain = 9.0; break;
+            case 80: baseTensionGain = 12.0; break;
+            case 90: baseTensionGain = 15.0; break;
+            case 100: baseTensionGain = 18.0; break;
+            default: baseTensionGain = 5.0; break;
+        }
+
+        double containmentReduction = 0.0;
+
+        if (MachineManager.I != null)
+        {
+            containmentReduction = MachineManager.I.GetTotalEffectValue(
+                MachineNodeEffectType.TensionContainmentBonus
+            );
+        }
+
+        return System.Math.Max(0.0, baseTensionGain - containmentReduction);
+    }
+
+    public string GetChronalStabilizationPreviewText(double intensityPercent)
+    {
+        int intensity = NormalizeChronalStabilizationIntensity(intensityPercent);
+        double stabilityGain = GetChronalStabilityGainForIntensity(intensity);
+        double tensionGain = GetChronalTensionGainForIntensity(intensity);
+
+        return
+            "Intensidad de estabilización: " + intensity + "%\n" +
+            "Efecto previsto: +" + stabilityGain.ToString("0") +
+            "% estabilidad / +" + tensionGain.ToString("0") +
+            "% tensión";
+    }
+
+    public bool TryStabilizeChronalInstant(double intensityPercent = 50.0)
+    {
+        if (chronalInstant == null || !chronalInstant.hasInstant)
+            return false;
+
+        double stabilityGain = GetChronalStabilityGainForIntensity(intensityPercent);
+        double tensionGain = GetChronalTensionGainForIntensity(intensityPercent);
+
+        chronalInstant.stability = System.Math.Min(100.0, chronalInstant.stability + stabilityGain);
+        chronalInstant.tension = System.Math.Min(100.0, chronalInstant.tension + tensionGain);
+
+        return true;
+    }
+
+    public int GetChronalArchiveUsed()
+    {
+        return Mathf.Max(
+            0,
+            chronalPureInstants + chronalStableInstants + chronalForcedInstants
+        );
+    }
+
+    public int GetChronalArchiveCapacity()
+    {
+        int capacity = 30;
+
+        if (MachineManager.I != null)
+        {
+            double bonus = MachineManager.I.GetTotalEffectValue(
+                MachineNodeEffectType.ArchiveSlotBonus
+            );
+
+            capacity += Mathf.FloorToInt((float)bonus);
+        }
+
+        return Mathf.Max(0, capacity);
+    }
+
+    public bool IsChronalArchiveFull()
+    {
+        return GetChronalArchiveUsed() >= GetChronalArchiveCapacity();
+    }
+
+    public double GetChronalMaterializationThreshold()
+    {
+        double threshold = 70.0;
+
+        if (MachineManager.I != null)
+        {
+            double reduction = MachineManager.I.GetTotalEffectValue(MachineNodeEffectType.PureMaterialThresholdReduction);
+            threshold -= reduction * 100.0;
+        }
+
+        return System.Math.Max(50.0, threshold);
+    }
+
+    public string GetChronalMaterializationQualityName(double tension)
+    {
+        if (tension <= 15.0)
+            return "Anclaje Puro";
+
+        if (tension <= 30.0)
+            return "Anclaje Estable";
+
+        return "Anclaje Forzado";
+    }
+
+    public bool TryMaterializeChronalInstant()
+    {
+        
+        if (chronalInstant == null || !chronalInstant.hasInstant)
+            return false;
+
+        if (IsChronalArchiveFull())
+            return false;
+
+        double threshold = GetChronalMaterializationThreshold();
+
+        if (chronalInstant.stability < threshold)
+            return false;
+
+        string qualityName = GetChronalMaterializationQualityName(chronalInstant.tension);
+        lastChronalMaterializationQuality = qualityName;
+
+        chronalMaterializedInstants += 1;
+        chronalArchivedInstants += 1;
+
+        if (qualityName == "Anclaje Puro")
+            chronalPureInstants += 1;
+        else if (qualityName == "Anclaje Estable")
+            chronalStableInstants += 1;
+        else
+            chronalForcedInstants += 1;
+
+        chronalInstant.hasInstant = false;
+        chronalInstant.stability = 0.0;
+        chronalInstant.tension = 0.0;
+
+        return true;
+    }
+
+    public double GetChronalRewindTensionReduction()
+    {
+        return 10.0;
+    }
+
+    public double GetChronalRewindStabilityLoss()
+    {
+        double baseLoss = 5.0;
+        double safeRewindBonus = 0.0;
+
+        if (MachineManager.I != null)
+        {
+            safeRewindBonus = MachineManager.I.GetTotalEffectValue(
+                MachineNodeEffectType.SafeRewindBonus
+            );
+        }
+
+        return System.Math.Max(1.0, baseLoss - safeRewindBonus);
+    }
+
+    public string GetChronalRewindPreviewText()
+    {
+        double tensionReduction = GetChronalRewindTensionReduction();
+        double stabilityLoss = GetChronalRewindStabilityLoss();
+
+        return
+            "Compensar previsto: -" + tensionReduction.ToString("0") +
+            "% tensión / -" + stabilityLoss.ToString("0") +
+            "% estabilidad";
+    }
+
+    public bool TryRewindChronalInstant()
+    {
+        if (chronalInstant == null || !chronalInstant.hasInstant)
+            return false;
+
+        double tensionReduction = GetChronalRewindTensionReduction();
+        double stabilityLoss = GetChronalRewindStabilityLoss();
+
+        chronalInstant.tension = System.Math.Max(0.0, chronalInstant.tension - tensionReduction);
+        chronalInstant.stability = System.Math.Max(0.0, chronalInstant.stability - stabilityLoss);
+
+        return true;
+    }
+
+    public bool TryDiscardChronalInstant()
+    {
+        if (chronalInstant == null || !chronalInstant.hasInstant)
+            return false;
+
+        chronalInstant.hasInstant = false;
+        chronalInstant.stability = 0.0;
+        chronalInstant.tension = 0.0;
+
+        return true;
+    }
+
+    public void GenerateExperimentalFragments(double dt)
+    {
+        if (!experimentalChamberUnlocked)
+            return;
+
+        if (buildingStates == null || buildingStates.Count == 0)
+            return;
+
+        bool hasHiggs = false;
+        bool hasTetra = false;
+        bool hasModulator = false;
+
+        foreach (var b in buildingStates)
+        {
+            if (b == null || b.def == null) continue;
+            if (b.level <= 0) continue;
+
+            switch (b.def.id)
+            {
+                case "vacuum_observer":
+                    hasHiggs = true;
+                    break;
+
+                case "casimir_panel":
+                    hasTetra = true;
+                    break;
+
+                case "fluctuation_antenna":
+                    hasModulator = true;
+                    break;
+            }
+        }
+
+        // Cadencia base provisional:
+        // 1 fragmento cada 30 segundos por artefacto activo
+        double gainPerSecond = 1.0 / 30.0;
+
+        if (hasHiggs)
+        {
+            fragmentCondensationProgress += gainPerSecond * dt;
+
+            while (fragmentCondensationProgress >= 1.0)
+            {
+                fragmentCondensation += 1;
+                fragmentCondensationProgress -= 1.0;
+                Debug.Log("F3 DEBUG: +1 Fragmento de Condensación");
+            }
+        }
+
+        if (hasTetra)
+        {
+            fragmentConfinementProgress += gainPerSecond * dt;
+
+           while (fragmentConfinementProgress >= 1.0)
+            {
+                fragmentConfinement += 1;
+                fragmentConfinementProgress -= 1.0;
+                Debug.Log("F3 DEBUG: +1 Fragmento de Confinamiento");
+            }
+        }
+
+        if (hasModulator)
+        {
+            fragmentResidualInterferenceProgress += gainPerSecond * dt;
+
+            while (fragmentResidualInterferenceProgress >= 1.0)
+            {
+                fragmentResidualInterference += 1;
+                fragmentResidualInterferenceProgress -= 1.0;
+                Debug.Log("F3 DEBUG: +1 Interferencia Residual");
+            }
+        }
+    }
+
+        public void UnlockExperimentalChamber()
+    {
+        experimentalChamberUnlocked = true;
+
+        if (!experimentalChamberInitialPackGranted)
+        {
+            fragmentCondensation += 5;
+            fragmentConfinement += 5;
+            fragmentResidualInterference += 5;
+
+            experimentalChamberInitialPackGranted = true;
+        }
+    }
+
+        public bool HasExperimentalChamberKeycardRequirements()
+    {
+        if (experimentalChamberUnlocked)
+            return false;
+
+        bool hasHiggs = GetBuildingLevel("vacuum_observer") >= 1;
+        bool hasTetra = GetBuildingLevel("casimir_panel") >= 1;
+        bool hasModulator = GetBuildingLevel("fluctuation_antenna") >= 1;
+
+        return hasHiggs && hasTetra && hasModulator;
+    }
+
+    public bool CanBuyExperimentalChamberKeycard()
+    {
+        if (!HasExperimentalChamberKeycardRequirements())
+            return false;
+
+        return LE >= experimentalChamberKeycardLeCost
+            && Traces >= experimentalChamberKeycardTraceCost;
+    }
+
+    public bool TryBuyExperimentalChamberKeycard()
+    {
+        if (!CanBuyExperimentalChamberKeycard())
+            return false;
+
+        LE -= experimentalChamberKeycardLeCost;
+        Traces -= experimentalChamberKeycardTraceCost;
+
+        UnlockExperimentalChamber();
+        return true;
+    }
+
+    [ContextMenu("DEBUG: Buy Experimental Chamber Keycard")]
+    public void DebugBuyExperimentalChamberKeycard()
+    {
+        bool ok = TryBuyExperimentalChamberKeycard();
+        Debug.Log($"[F3] DEBUG Buy Keycard => {ok} | LE={LE:0.##} | Traces={Traces:0.##} | Unlocked={experimentalChamberUnlocked}");
+    }
+
+    [ContextMenu("DEBUG: Force Unlock Experimental Chamber")]
+    public void DebugUnlockExperimentalChamber()
+    {
+        UnlockExperimentalChamber();
+        Debug.Log("[F3] DEBUG Force Unlock Experimental Chamber");
     }
 
 
@@ -159,7 +1078,6 @@ public class GameState : MonoBehaviour
     public double decoMinFactor = 0.6;
 
     // Debug: acumulador de tiempo para logs
-    private float _dbg = 0f;
 
     private void Awake()
     {
@@ -181,7 +1099,444 @@ public class GameState : MonoBehaviour
         {
             SaveService.I.Load();
         }
+
+        EnsureDimension1State();
     }
+
+    public void EnsureDimension1State()
+    {
+        if (dimension1Metals == null)
+            dimension1Metals = new List<D1MetalAmount>();
+
+        if (dimension1Planets == null)
+            dimension1Planets = new List<D1PlanetState>();
+
+        if (dimension1Ships == null)
+            dimension1Ships = new List<D1ShipState>();
+
+        if (dimension1ScannedDestinations == null)
+            dimension1ScannedDestinations = new List<D1ScannedDestinationState>();
+
+        if (dimension1LastExplorationRewards == null)
+            dimension1LastExplorationRewards = new List<D1MetalAmount>();
+
+        foreach (string metalId in Dimension1System.StarterMetals)
+        {
+            GetOrCreateD1Metal(metalId);
+        }
+
+        foreach (string planetId in Dimension1System.StarterPlanets)
+        {
+            GetOrCreateD1Planet(planetId);
+        }
+
+        foreach (string shipId in Dimension1System.StarterShips)
+        {
+            GetOrCreateD1Ship(shipId);
+        }
+    }
+
+    private D1MetalAmount GetOrCreateD1Metal(string metalId)
+    {
+        foreach (var metal in dimension1Metals)
+        {
+            if (metal != null && metal.metalId == metalId)
+                return metal;
+        }
+
+        var newMetal = new D1MetalAmount
+        {
+            metalId = metalId,
+            amount = 0.0
+        };
+
+        dimension1Metals.Add(newMetal);
+        return newMetal;
+    }
+
+    private D1PlanetState GetOrCreateD1Planet(string planetId)
+    {
+        foreach (var planet in dimension1Planets)
+        {
+            if (planet != null && planet.planetId == planetId)
+                return planet;
+        }
+
+        var newPlanet = new D1PlanetState
+        {
+            planetId = planetId,
+            unlocked = false,
+            extractorTier = 0
+        };
+
+        dimension1Planets.Add(newPlanet);
+        return newPlanet;
+    }
+
+    private D1ShipState GetOrCreateD1Ship(string shipId)
+    {
+        foreach (var ship in dimension1Ships)
+        {
+            if (ship != null && ship.shipId == shipId)
+                return ship;
+        }
+
+        var newShip = new D1ShipState
+        {
+            shipId = shipId,
+            unlocked = false,
+            explorationActive = false,
+            activeDestinationId = "",
+            explorationRemainingSeconds = 0.0,
+            explorationTotalSeconds = 0.0
+        };
+
+        dimension1Ships.Add(newShip);
+        return newShip;
+    }
+
+    public double GetD1MetalAmount(string metalId)
+    {
+        EnsureDimension1State();
+        return GetOrCreateD1Metal(metalId).amount;
+    }
+
+    public void AddD1Metal(string metalId, double amount)
+    {
+        if (amount <= 0.0)
+            return;
+
+        EnsureDimension1State();
+        GetOrCreateD1Metal(metalId).amount += amount;
+    }
+
+    public bool SpendD1Metal(string metalId, double amount)
+    {
+        if (amount <= 0.0)
+            return true;
+
+        EnsureDimension1State();
+
+        D1MetalAmount metal = GetOrCreateD1Metal(metalId);
+
+        if (metal.amount < amount)
+            return false;
+
+        metal.amount -= amount;
+        return true;
+    }
+
+    public void UnlockDimension1Mvp()
+    {
+        dimension01Unlocked = true;
+
+        EnsureDimension1State();
+
+        D1PlanetState firstPlanet = GetOrCreateD1Planet(Dimension1System.Planet01);
+        firstPlanet.unlocked = true;
+
+        if (firstPlanet.extractorTier <= 0)
+            firstPlanet.extractorTier = 1;
+
+        D1ShipState lightProbe = GetOrCreateD1Ship(Dimension1System.ShipLightProbe);
+        lightProbe.unlocked = true;
+    }
+
+    public void ResetDimension1MvpState()
+    {
+        dimension01Unlocked = false;
+
+        dimension1Metals = new List<D1MetalAmount>();
+        dimension1Planets = new List<D1PlanetState>();
+        dimension1Ships = new List<D1ShipState>();
+        dimension1ScannedDestinations = new List<D1ScannedDestinationState>();
+        dimension1ScanActive = false;
+        dimension1ScanRemainingSeconds = 0.0;
+        dimension1ScanTotalSeconds = 0.0;
+        dimension1LastExplorationDestinationId = "";
+        dimension1LastExplorationRewards = new List<D1MetalAmount>();
+        dimension1BlueprintFragments = 0;
+        dimension1LastExplorationBlueprintFragments = 0;
+
+        EnsureDimension1State();
+    }
+
+    #if UNITY_EDITOR
+    [ContextMenu("D1 DEBUG: Ensure State")]
+    private void DebugEnsureDimension1State()
+    {
+        EnsureDimension1State();
+        Debug.Log("[D1] Estado base inicializado.");
+    }
+
+    [ContextMenu("D1 DEBUG: Unlock MVP")]
+    private void DebugUnlockDimension1Mvp()
+    {
+        UnlockDimension1Mvp();
+
+        if (TabsUI.Instance != null)
+        {
+            TabsUI.Instance.RefreshDimension1ButtonVisibility();
+        }
+
+        D1PlanetState planet = null;
+
+        foreach (D1PlanetState candidate in dimension1Planets)
+        {
+            if (candidate != null && candidate.planetId == Dimension1System.Planet01)
+            {
+                planet = candidate;
+                break;
+            }
+        }
+
+        int tier = planet != null ? planet.extractorTier : 0;
+        bool unlocked = planet != null && planet.unlocked;
+
+        Debug.Log(
+            "[D1] Dimensión 1 MVP desbloqueada. " +
+            "dimension01Unlocked: " + dimension01Unlocked +
+            " | Planeta 1 unlocked: " + unlocked +
+            " | Tier: " + tier
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Print Metals")]
+    private void DebugPrintDimension1Metals()
+    {
+        EnsureDimension1State();
+
+        Debug.Log(
+            "[D1] Metales => " +
+            "Hierro: " + GetD1MetalAmount(Dimension1System.MetalIron).ToString("0.00") +
+            " | Cobre: " + GetD1MetalAmount(Dimension1System.MetalCopper).ToString("0.00") +
+            " | Aluminio: " + GetD1MetalAmount(Dimension1System.MetalAluminum).ToString("0.00") +
+            " | Titanio: " + GetD1MetalAmount(Dimension1System.MetalTitanium).ToString("0.00") +
+            " | Níquel: " + GetD1MetalAmount(Dimension1System.MetalNickel).ToString("0.00") +
+            " | Cobalto: " + GetD1MetalAmount(Dimension1System.MetalCobalt).ToString("0.00")
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Print Planet 1")]
+    private void DebugPrintD1Planet01()
+    {
+        EnsureDimension1State();
+
+        D1PlanetState planet = null;
+
+        foreach (D1PlanetState candidate in dimension1Planets)
+        {
+            if (candidate != null && candidate.planetId == Dimension1System.Planet01)
+            {
+                planet = candidate;
+                break;
+            }
+        }
+
+        if (planet == null)
+        {
+            Debug.Log("[D1] Planeta 1 no existe en la lista.");
+            return;
+        }
+
+        Debug.Log(
+            "[D1] Planeta 1 => " +
+            "unlocked: " + planet.unlocked +
+            " | extractorTier: " + planet.extractorTier
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Upgrade Planet 2 Extractor")]
+    private void DebugUpgradeD1Planet02Extractor()
+    {
+        bool upgraded = Dimension1System.TryUpgradeExtractor(this, Dimension1System.Planet02);
+
+        if (upgraded)
+        {
+            EnsureDimension1State();
+
+            D1PlanetState planet = null;
+
+            foreach (D1PlanetState candidate in dimension1Planets)
+            {
+                if (candidate != null && candidate.planetId == Dimension1System.Planet02)
+                {
+                    planet = candidate;
+                    break;
+                }
+            }
+
+            int tier = planet != null ? planet.extractorTier : 0;
+
+            Debug.Log("[D1] Extractor de Planeta 2 mejorado. Tier actual: " + tier);
+        }
+        else
+        {
+            Debug.Log("[D1] No se pudo mejorar el extractor de Planeta 2. Revisa si tienes suficiente Aluminio.");
+        }
+    }
+
+    [ContextMenu("D1 DEBUG: Unlock Planet 2")]
+    private void DebugUnlockD1Planet02()
+    {
+        bool unlocked = Dimension1System.TryUnlockPlanet(this, Dimension1System.Planet02);
+
+        if (unlocked)
+        {
+            Debug.Log("[D1] Planeta 2 desbloqueado. Ahora debería producir Aluminio.");
+        }
+        else
+        {
+            Debug.Log("[D1] No se pudo desbloquear Planeta 2. Necesitas Hierro y Cobre suficientes.");
+        }
+    }
+
+    [ContextMenu("D1 DEBUG: Upgrade Planet 1 Extractor")]
+    private void DebugUpgradeD1Planet01Extractor()
+    {
+        bool upgraded = Dimension1System.TryUpgradeExtractor(this, Dimension1System.Planet01);
+
+        if (upgraded)
+        {
+            EnsureDimension1State();
+
+            D1PlanetState planet = null;
+
+            foreach (D1PlanetState candidate in dimension1Planets)
+            {
+                if (candidate != null && candidate.planetId == Dimension1System.Planet01)
+                {
+                    planet = candidate;
+                    break;
+                }
+            }
+
+            int tier = planet != null ? planet.extractorTier : 0;
+
+            Debug.Log("[D1] Extractor de Planeta 1 mejorado. Tier actual: " + tier);
+        }
+        else
+        {
+            Debug.Log("[D1] No se pudo mejorar el extractor de Planeta 1. Revisa si tienes suficiente Hierro.");
+        }
+    }
+
+    [ContextMenu("D1 DEBUG: Simulate 1h Offline Mining")]
+    private void DebugSimulateD1OneHourOfflineMining()
+    {
+        double appliedSeconds = Dimension1System.ApplyOfflineMining(this, 3600.0);
+
+        Debug.Log(
+            "[D1] Simulación offline minería: " +
+            appliedSeconds.ToString("0") +
+            " segundos aplicados."
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Print Planet 2")]
+    private void DebugPrintD1Planet02()
+    {
+        EnsureDimension1State();
+
+        D1PlanetState planet = null;
+
+        foreach (D1PlanetState candidate in dimension1Planets)
+        {
+            if (candidate != null && candidate.planetId == Dimension1System.Planet02)
+            {
+                planet = candidate;
+                break;
+            }
+        }
+
+        if (planet == null)
+        {
+            Debug.Log("[D1] Planeta 2 no existe en la lista.");
+            return;
+        }
+
+        Debug.Log(
+            "[D1] Planeta 2 => " +
+            "unlocked: " + planet.unlocked +
+            " | extractorTier: " + planet.extractorTier
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Unlock Planet 3")]
+    private void DebugUnlockD1Planet03()
+    {
+        bool unlocked = Dimension1System.TryUnlockPlanet(this, Dimension1System.Planet03);
+
+        if (unlocked)
+        {
+            Debug.Log("[D1] Planeta 3 desbloqueado. Ahora debería producir Níquel.");
+        }
+        else
+        {
+            Debug.Log("[D1] No se pudo desbloquear Planeta 3. Necesitas Aluminio y Titanio suficientes.");
+        }
+    }
+
+    [ContextMenu("D1 DEBUG: Print Planet 3")]
+    private void DebugPrintD1Planet03()
+    {
+        EnsureDimension1State();
+
+        D1PlanetState planet = null;
+
+        foreach (D1PlanetState candidate in dimension1Planets)
+        {
+            if (candidate != null && candidate.planetId == Dimension1System.Planet03)
+            {
+                planet = candidate;
+                break;
+            }
+        }
+
+        if (planet == null)
+        {
+            Debug.Log("[D1] Planeta 3 no existe en la lista.");
+            return;
+        }
+
+        Debug.Log(
+            "[D1] Planeta 3 => " +
+            "unlocked: " + planet.unlocked +
+            " | extractorTier: " + planet.extractorTier
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Upgrade Planet 3 Extractor")]
+    private void DebugUpgradeD1Planet03Extractor()
+    {
+        bool upgraded = Dimension1System.TryUpgradeExtractor(this, Dimension1System.Planet03);
+
+        if (upgraded)
+        {
+            EnsureDimension1State();
+
+            D1PlanetState planet = null;
+
+            foreach (D1PlanetState candidate in dimension1Planets)
+            {
+                if (candidate != null && candidate.planetId == Dimension1System.Planet03)
+                {
+                    planet = candidate;
+                    break;
+                }
+            }
+
+            int tier = planet != null ? planet.extractorTier : 0;
+
+            Debug.Log("[D1] Extractor de Planeta 3 mejorado. Tier actual: " + tier);
+        }
+        else
+        {
+            Debug.Log("[D1] No se pudo mejorar el extractor de Planeta 3. Revisa si tienes suficiente Níquel.");
+        }
+    }   
+
+    #endif
 
     
     /// <summary>
@@ -195,9 +1550,6 @@ public class GameState : MonoBehaviour
     {
         EM += emPs * dt;
 
-        // 1b) Generar IP (pasivo a partir de EM)
-        double ipPs = emPs * 0.5;
-        IP += ipPs * dt;
     }
 
     // 2) Actualizar el multiplicador EM
@@ -209,12 +1561,11 @@ public class GameState : MonoBehaviour
     double totalLEps = CalculateTotalLEps(); // <-- solo informativo / HUD
 
     GenerateLEFromBaseAndBuildings(dt);
+    GenerateExperimentalFragments(dt);
+    UpdateChronalSeeds(dt);
 
-    double tracesPs = CalculateTracesPs();
-    if (tracesPs > 0.0)
-    {
-        Traces += tracesPs * dt;
-    }
+    // Dimensión 1 - MVP: minería planetaria por segundo
+    Dimension1System.Tick(this, dt);
 
     // 🔹 F7.3: Producir ADP
     double adpPs = CalculateADPps();
@@ -232,8 +1583,15 @@ public class GameState : MonoBehaviour
         totalWHFGenerada += whfPs * dt;
     }
 
-    // 4) Automatizaciones de prestigio
-    RunPrestigeAutomations(dt);
+
+    // 5) Calibración del Modulador de Fase
+    UpdatePhaseModulatorCalibration(dt);
+
+    // 6) Consumo online de la reserva de Persistencia
+    UpdateTrianglePersistenceReserveConsumption(dt);
+
+    // 7) Lógica vieja de Persistencia desactivada por migración
+    // UpdateTrianglePersistenceMaturation(dt);
 
     // F6.1: registrar el máximo LE alcanzado
     ActualizarMaxLE();
@@ -251,23 +1609,640 @@ public class GameState : MonoBehaviour
         }
     }
 
+    public bool IsPhaseModulatorOwned()
+        {
+            return GetBuildingLevel("fluctuation_antenna") > 0;
+        }
+
+        public bool IsAttunementUnlocked()
+        {
+            return hasDonePrestige1 || prestige1Count > 0;
+        }
+
+    public void SetPhaseModulatorMode(PhaseModulatorMode newMode)
+        {
+            if (!IsPhaseModulatorOwned())
+                return;
+
+            if (newMode == PhaseModulatorMode.Attunement && !IsAttunementUnlocked())
+                return;
+
+            if (phaseModulatorMode != newMode)
+            {
+                phaseModulatorMode = newMode;
+                phaseModulatorCalibration = 0f;
+            }
+        }
+
+        public double GetPhaseModulatorEffectivenessMultiplier()
+        {
+            if (!IsPhaseModulatorOwned())
+                return 1.0;
+
+            double multiplier = 1.0;
+
+            multiplier *= GetTriangleSynergyModulatorMultiplier();
+
+            return multiplier;
+        }
+    
+        public float GetPhaseModulatorExpansionTickBonus()
+        {
+            if (!IsPhaseModulatorOwned())
+                return 0f;
+
+            if (phaseModulatorMode != PhaseModulatorMode.Expansion)
+                return 0f;
+
+            double effectiveness = GetPhaseModulatorEffectivenessMultiplier();
+            return (float)(phaseModulatorExpansionMaxTickSpeedBonus * phaseModulatorCalibration * effectiveness);
+        }
+
+        public float GetPhaseModulatorConservationDiscount()
+        {
+            if (!IsPhaseModulatorOwned())
+                return 0f;
+
+            if (phaseModulatorMode != PhaseModulatorMode.Conservation)
+                return 0f;
+
+            double effectiveness = GetPhaseModulatorEffectivenessMultiplier();
+            return (float)(phaseModulatorConservationMaxCostReduction * phaseModulatorCalibration * effectiveness);
+        }
+
+    public double GetEffectiveBuildingCost(BuildingState building)
+    {
+        if (building == null || building.def == null)
+            return 0.0;
+
+        double effectiveCost = building.currentCost;
+
+        bool affectedByConservation =
+            building.def.id == "vacuum_observer" ||
+            building.def.id == "casimir_panel";
+
+        if (affectedByConservation)
+        {
+            float conservationDiscount = GetPhaseModulatorConservationDiscount();
+            if (conservationDiscount > 0f)
+            {
+                effectiveCost *= (1.0 - conservationDiscount);
+            }
+        }
+
+        if (effectiveCost < 0.0)
+            effectiveCost = 0.0;
+
+        return effectiveCost;
+    }
+
+    public double GetMachineArtifactProductionMultiplier(string buildingId)
+    {
+        if (string.IsNullOrWhiteSpace(buildingId))
+            return 1.0;
+
+        bool isRoom1Artifact =
+            buildingId == "vacuum_observer" ||
+            buildingId == "casimir_panel";
+
+        if (!isRoom1Artifact)
+            return 1.0;
+
+        double factor = 1.0;
+
+        if (MachineManager.I != null)
+        {
+            factor += MachineManager.I.GetTotalEffectValue(MachineNodeEffectType.ArtifactBonus);
+        }
+
+        return factor;
+    }
+
+    public double GetMachineTriangleBonusMultiplier()
+    {
+        double factor = 1.0;
+
+        if (MachineManager.I != null)
+        {
+            factor += MachineManager.I.GetTotalEffectValue(MachineNodeEffectType.TriangleBonus);
+        }
+
+        return factor;
+    }
+
+    public double GetMachineRoom1GlobalMultiplier()
+    {
+        double factor = 1.0;
+
+        if (MachineManager.I != null)
+        {
+            factor += MachineManager.I.GetTotalEffectValue(MachineNodeEffectType.Room1GlobalBonus);
+            factor += MachineManager.I.GetZoneProgressSyncBonus(MachineZoneType.Room1Link);
+        }
+
+        return factor;
+    }
+
+        public bool IsTriangleSystemActive()
+    {
+        if (!triangleSystemUnlocked)
+            return false;
+
+        if (string.IsNullOrEmpty(trianglePrimaryBuildingId))
+            return false;
+
+        if (string.IsNullOrEmpty(triangleReinforcementBuildingId))
+            return false;
+
+        if (string.IsNullOrEmpty(triangleAlterationBuildingId))
+            return false;
+
+        // No permitir duplicados
+        if (trianglePrimaryBuildingId == triangleReinforcementBuildingId)
+            return false;
+
+        if (trianglePrimaryBuildingId == triangleAlterationBuildingId)
+            return false;
+
+        if (triangleReinforcementBuildingId == triangleAlterationBuildingId)
+            return false;
+
+        return true;
+    }
+
+        public bool IsTriangleFullyConfiguredWithBaseArtifacts()
+    {
+        if (!IsTriangleSystemActive())
+            return false;
+
+        bool hasHiggs = false;
+        bool hasTetra = false;
+        bool hasModulator = false;
+
+        string[] ids =
+        {
+            trianglePrimaryBuildingId,
+            triangleReinforcementBuildingId,
+            triangleAlterationBuildingId
+        };
+
+        foreach (string id in ids)
+        {
+            if (id == "vacuum_observer")
+                hasHiggs = true;
+            else if (id == "casimir_panel")
+                hasTetra = true;
+            else if (id == "fluctuation_antenna")
+                hasModulator = true;
+        }
+
+        return hasHiggs && hasTetra && hasModulator;
+    }
+
+    public TriangleSlotRole GetPhaseModulatorTrianglePosition()
+    {
+        if (!IsTriangleFullyConfiguredWithBaseArtifacts())
+            return TriangleSlotRole.None;
+
+        if (trianglePrimaryBuildingId == "fluctuation_antenna")
+            return TriangleSlotRole.Primary;
+
+        if (triangleReinforcementBuildingId == "fluctuation_antenna")
+            return TriangleSlotRole.Reinforcement;
+
+        if (triangleAlterationBuildingId == "fluctuation_antenna")
+            return TriangleSlotRole.Alteration;
+
+        return TriangleSlotRole.None;
+    }
+
+    public TriangleProtocolType GetActiveTriangleProtocol()
+    {
+        TriangleSlotRole modulatorPosition = GetPhaseModulatorTrianglePosition();
+
+        switch (modulatorPosition)
+        {
+            case TriangleSlotRole.Primary:
+                return TriangleProtocolType.Impulso;
+
+            case TriangleSlotRole.Reinforcement:
+                return TriangleProtocolType.Sinergia;
+
+            case TriangleSlotRole.Alteration:
+                return TriangleProtocolType.Persistencia;
+
+            default:
+                return TriangleProtocolType.None;
+        }
+    }
+
+    public string GetActiveTriangleProtocolId()
+    {
+        TriangleProtocolType protocol = GetActiveTriangleProtocol();
+
+        switch (protocol)
+        {
+            case TriangleProtocolType.Impulso:
+                return "impulso";
+
+            case TriangleProtocolType.Sinergia:
+                return "sinergia";
+
+            case TriangleProtocolType.Persistencia:
+                return "persistencia";
+
+            default:
+                return "none";
+        }
+    }
+
+    public double GetTriangleProtocolBaseMultiplier()
+    {
+        TriangleProtocolType protocol = GetActiveTriangleProtocol();
+
+        switch (protocol)
+        {
+            case TriangleProtocolType.Impulso:
+                return 1.12; // +12% LE
+
+            case TriangleProtocolType.Sinergia:
+                return 1.10; // base provisional para Higgs/Tetra
+
+            case TriangleProtocolType.Persistencia:
+                return 1.18; // base provisional del modulador al 100%
+
+            default:
+                return 1.0;
+        }
+    }
+
+        public double GetTriangleImpulseLEMultiplier()
+    {
+        if (!IsTriangleSystemActive()) return 1.0;
+        if (GetActiveTriangleProtocol() != TriangleProtocolType.Impulso) return 1.0;
+
+        int tier = 0;
+        if (F2UpgradeManager.I != null)
+            tier = F2UpgradeManager.I.GetTriangleImpulseTuningTier();
+
+        double baseMultiplier;
+
+        switch (tier)
+        {
+            case 1:
+                baseMultiplier = 1.16;
+                break;
+
+            case 2:
+                baseMultiplier = 1.20;
+                break;
+
+            default:
+                baseMultiplier = 1.12;
+                break;
+        }
+
+        return 1.0 + ((baseMultiplier - 1.0) * GetMachineTriangleBonusMultiplier());
+    }
+
+    public double GetTriangleSynergyBuildingMultiplier(string buildingId)
+    {
+        if (!IsTriangleSystemActive()) return 1.0;
+        if (GetActiveTriangleProtocol() != TriangleProtocolType.Sinergia) return 1.0;
+
+        int tier = 0;
+        if (F2UpgradeManager.I != null)
+            tier = F2UpgradeManager.I.GetTriangleSynergyResonanceTier();
+
+        double value = 1.0;
+
+        switch (tier)
+        {
+            case 1:
+                if (buildingId == "vacuum_observer") value = 1.13;
+                else if (buildingId == "casimir_panel") value = 1.13;
+                break;
+
+            case 2:
+                if (buildingId == "vacuum_observer") value = 1.15;
+                else if (buildingId == "casimir_panel") value = 1.15;
+                break;
+
+            default:
+                if (buildingId == "vacuum_observer") value = 1.10;
+                else if (buildingId == "casimir_panel") value = 1.10;
+                break;
+        }
+
+        return 1.0 + ((value - 1.0) * GetMachineTriangleBonusMultiplier());   
+    }
+
+    public double GetTriangleSynergyModulatorMultiplier()
+    {
+        if (!IsTriangleSystemActive()) return 1.0;
+        if (GetActiveTriangleProtocol() != TriangleProtocolType.Sinergia) return 1.0;
+
+        int tier = 0;
+        if (F2UpgradeManager.I != null)
+            tier = F2UpgradeManager.I.GetTriangleSynergyResonanceTier();
+
+        double baseMultiplier;
+
+        switch (tier)
+        {
+            case 1:
+                baseMultiplier = 1.08;
+                break;
+
+            case 2:
+                baseMultiplier = 1.10;
+                break;
+
+            default:
+                baseMultiplier = 1.06;
+                break;
+        }
+
+        return 1.0 + ((baseMultiplier - 1.0) * GetMachineTriangleBonusMultiplier());
+    }
+
+
+    public double GetTrianglePersistenceReserveMaxSeconds()
+    {
+        int tier = 0;
+        if (F2UpgradeManager.I != null)
+            tier = F2UpgradeManager.I.GetTrianglePersistenceAnchorTier();
+
+        switch (tier)
+        {
+            case 2:
+                return 14400.0; // 4 horas
+            default:
+                return trianglePersistenceReserveBaseMaxSeconds; // 3 horas
+        }
+    }
+
+    public double GetTrianglePersistenceOfflineSecondsPerReserveHour()
+    {
+        int tier = 0;
+        if (F2UpgradeManager.I != null)
+            tier = F2UpgradeManager.I.GetTrianglePersistenceAnchorTier();
+
+        switch (tier)
+        {
+            case 1:
+            case 2:
+                return 12600.0; // 3h30m offline = 1h reserva
+            default:
+                return trianglePersistenceOfflineSecondsPerReserveHour; // 4h offline = 1h reserva
+        }
+    }
+
+    public bool HasTrianglePersistenceReserveActive()
+    {
+        return trianglePersistenceReserveSeconds > 0.0;
+    }
+
+    public double GetTrianglePersistenceReserveBuildingMultiplier(string buildingId)
+    {
+        if (!HasTrianglePersistenceReserveActive())
+            return 1.0;
+
+        double baseMultiplier = 1.0;
+
+        if (buildingId == "vacuum_observer")
+            baseMultiplier = trianglePersistenceBuffHiggsMultiplier;
+
+        if (buildingId == "casimir_panel")
+            baseMultiplier = trianglePersistenceBuffTetraMultiplier;
+
+        return 1.0 + ((baseMultiplier - 1.0) * GetMachineTriangleBonusMultiplier());
+    }
+
+    public void ApplyOfflineTrianglePersistenceReserve(double offlineSeconds)
+    {
+        if (offlineSeconds <= 0.0) return;
+        if (!IsTriangleFullyConfiguredWithBaseArtifacts()) return;
+        if (GetActiveTriangleProtocol() != TriangleProtocolType.Persistencia) return;
+
+        double secondsPerReserveHour = GetTrianglePersistenceOfflineSecondsPerReserveHour();
+        if (secondsPerReserveHour <= 0.0) return;
+
+        double reserveSecondsToAdd = (offlineSeconds / secondsPerReserveHour) * 3600.0;
+        double maxReserve = GetTrianglePersistenceReserveMaxSeconds();
+        
+
+        trianglePersistenceReserveSeconds += reserveSecondsToAdd;
+
+        if (trianglePersistenceReserveSeconds > maxReserve)
+            trianglePersistenceReserveSeconds = maxReserve;
+    }
+
+    private void UpdateTrianglePersistenceReserveConsumption(double dt)
+    {
+        if (dt <= 0.0) return;
+        if (trianglePersistenceReserveSeconds <= 0.0) return;
+
+        trianglePersistenceReserveSeconds -= dt;
+
+        if (trianglePersistenceReserveSeconds < 0.0)
+            trianglePersistenceReserveSeconds = 0.0;
+    }
+
+    public bool IsValidTriangleBuildingId(string buildingId)
+    {
+        return buildingId == "vacuum_observer"
+            || buildingId == "casimir_panel"
+            || buildingId == "fluctuation_antenna";
+    }
+
+    public bool IsTriangleSlotFilled(TriangleSlotRole role)
+    {
+        switch (role)
+        {
+            case TriangleSlotRole.Primary:
+                return !string.IsNullOrEmpty(trianglePrimaryBuildingId);
+
+            case TriangleSlotRole.Reinforcement:
+                return !string.IsNullOrEmpty(triangleReinforcementBuildingId);
+
+            case TriangleSlotRole.Alteration:
+                return !string.IsNullOrEmpty(triangleAlterationBuildingId);
+
+            default:
+                return false;
+        }
+    }
+
+    public string GetTriangleBuildingId(TriangleSlotRole role)
+    {
+        switch (role)
+        {
+            case TriangleSlotRole.Primary:
+                return trianglePrimaryBuildingId;
+
+            case TriangleSlotRole.Reinforcement:
+                return triangleReinforcementBuildingId;
+
+            case TriangleSlotRole.Alteration:
+                return triangleAlterationBuildingId;
+
+            default:
+                return "";
+        }
+    }
+
+    private void SetTriangleBuildingId(TriangleSlotRole role, string buildingId)
+    {
+        switch (role)
+        {
+            case TriangleSlotRole.Primary:
+                trianglePrimaryBuildingId = buildingId;
+                break;
+
+            case TriangleSlotRole.Reinforcement:
+                triangleReinforcementBuildingId = buildingId;
+                break;
+
+            case TriangleSlotRole.Alteration:
+                triangleAlterationBuildingId = buildingId;
+                break;
+        }
+    }
+
+    public void ClearTriangleSlot(TriangleSlotRole role)
+    {
+        switch (role)
+        {
+            case TriangleSlotRole.Primary:
+                trianglePrimaryBuildingId = "";
+                break;
+
+            case TriangleSlotRole.Reinforcement:
+                triangleReinforcementBuildingId = "";
+                break;
+
+            case TriangleSlotRole.Alteration:
+                triangleAlterationBuildingId = "";
+                break;
+        }
+    }
+
+    public void ClearTriangleConfiguration()
+    {
+        trianglePrimaryBuildingId = "";
+        triangleReinforcementBuildingId = "";
+        triangleAlterationBuildingId = "";
+    }
+
+    public bool AssignTriangleBuilding(TriangleSlotRole role, string buildingId)
+    {
+        if (!triangleSystemUnlocked)
+            return false;
+
+        if (!IsValidTriangleBuildingId(buildingId))
+            return false;
+
+        // Slot destino actual
+        string targetCurrent = GetTriangleBuildingId(role);
+
+        // Detectar en qué slot está actualmente ese artefacto
+        TriangleSlotRole? sourceRole = null;
+
+        if (trianglePrimaryBuildingId == buildingId)
+            sourceRole = TriangleSlotRole.Primary;
+        else if (triangleReinforcementBuildingId == buildingId)
+            sourceRole = TriangleSlotRole.Reinforcement;
+        else if (triangleAlterationBuildingId == buildingId)
+            sourceRole = TriangleSlotRole.Alteration;
+
+        // Si ya está en el mismo slot, no hacemos nada
+        if (sourceRole.HasValue && sourceRole.Value == role)
+            return true;
+
+        // Caso 1: el artefacto viene de otro slot del triángulo
+        // -> hacemos intercambio (swap) con lo que haya en el slot destino
+        if (sourceRole.HasValue)
+        {
+            SetTriangleBuildingId(sourceRole.Value, targetCurrent);
+            SetTriangleBuildingId(role, buildingId);
+            return true;
+        }
+
+        // Caso 2: viene del drawer / fuera del triángulo
+        // -> solo asignamos al slot destino
+        // si el destino ya tenía algo, ese artefacto "vuelve al drawer"
+        SetTriangleBuildingId(role, buildingId);
+        return true;
+    }
+
+    public void SanitizeTriangleConfiguration()
+    {
+        if (!IsValidTriangleBuildingId(trianglePrimaryBuildingId))
+            trianglePrimaryBuildingId = "";
+
+        if (!IsValidTriangleBuildingId(triangleReinforcementBuildingId))
+            triangleReinforcementBuildingId = "";
+
+        if (!IsValidTriangleBuildingId(triangleAlterationBuildingId))
+            triangleAlterationBuildingId = "";
+
+        // Evitar duplicados después de cargar
+        if (!string.IsNullOrEmpty(trianglePrimaryBuildingId) &&
+            trianglePrimaryBuildingId == triangleReinforcementBuildingId)
+        {
+            triangleReinforcementBuildingId = "";
+        }
+
+        if (!string.IsNullOrEmpty(trianglePrimaryBuildingId) &&
+            trianglePrimaryBuildingId == triangleAlterationBuildingId)
+        {
+            triangleAlterationBuildingId = "";
+        }
+
+        if (!string.IsNullOrEmpty(triangleReinforcementBuildingId) &&
+            triangleReinforcementBuildingId == triangleAlterationBuildingId)
+        {
+            triangleAlterationBuildingId = "";
+        }
+    }
+
+        private void UpdatePhaseModulatorCalibration(double dt)
+    {
+        if (!IsPhaseModulatorOwned())
+        {
+            phaseModulatorMode = PhaseModulatorMode.None;
+            phaseModulatorCalibration = 0f;
+            return;
+        }
+
+        if (phaseModulatorMode == PhaseModulatorMode.None)
+        {
+            phaseModulatorCalibration = 0f;
+            return;
+        }
+
+        phaseModulatorCalibration += phaseModulatorCalibrationPerSecond * (float)dt;
+        if (phaseModulatorCalibration > 1f)
+            phaseModulatorCalibration = 1f;
+    }
+
     public void DebugResetRunState()
     {
     // 🔹 Recursos básicos
     LE = 10.0;
     VP = 0.0;
-    
-    // 🔹 EM e IP también deben resetearse
-    EM = 0.0;         // 👈 NUEVO
-    emMult = 0.0;     // 👈 NUEVO
-    IP = 0.0;         // 👈 NUEVO
+        
+    // 🔹 Reset de recursos secundarios
+    EM = 0.0;
+    emMult = 0.0;
     
     // 🔹 Producción base sin edificios
     baseLEps = 0.0;
 
     // 🔹 Reset del máximo de LE alcanzado en el run
-    maxLEAlcanzado = 0.0;
-
+    maxLEAlcanzado = 0.0;   
+ 
     // 🔹 Reset de edificios (nivel 0)
     if (buildingStates != null)
     {
@@ -281,69 +2256,6 @@ public class GameState : MonoBehaviour
     // Si más adelante quieres, aquí también puedes resetear BEC, EM, ADP, WHF, etc.
     }
 
-
-    // F6.2: ENT total teórica según el máximo LE alcanzado en este run.
-    public double GetENTTeorica()
-    {
-        if (maxLEAlcanzado <= 0.0)
-            return 0.0;
-
-        // log10 del máximo LE
-        double log = System.Math.Log10(maxLEAlcanzado);
-
-        // ENT base (antes de meta-upgrades)
-        double baseEnt = log - prestigeK;
-        if (baseEnt <= 0.0)
-            return 0.0;
-
-        // F7.5: aplicar multiplicador de meta-upgrades (Λ)
-        double withMeta = baseEnt * GetMetaENTMultiplier();
-
-        double raw = System.Math.Floor(withMeta);
-        if (raw < 0.0)
-            raw = 0.0;
-
-        return raw;
-    }
-
-
-    // F6.2: ENT que ganarías si haces prestigio AHORA.
-    // Por ahora es igual a la ENT teórica. Más adelante, si quieres evitar farmeo
-    // repetido, podemos restar aquí las ENT ya ganadas en otros runs.
-    public double GetENTGanariasAlPrestigiar()
-    {
-        return GetENTTeorica();
-    }
-
-        // F6.4: multiplicador global de LE/s proveniente de upgrades de prestigio
-    public double GetPrestigeLEMultiplier()
-    {
-        double mult = 1.0;
-
-        if (prestigeLeMult1Unlocked)
-        {
-            mult *= (1.0 + prestigeLeMult1Bonus); // +25% LE/s si está desbloqueado
-        }
-
-        return mult;
-    }
-
-    // F7.5: multiplicadores provenientes de meta-upgrades (Prestigio 2)
-
-    /// <summary>
-    /// Multiplicador para ENT ganada al prestigiar (ej: +20% si el upgrade está comprado).
-    /// </summary>
-    public double GetMetaENTMultiplier()
-    {
-        double mult = 1.0;
-
-        if (metaEntBoost1Bought)
-        {
-            mult *= 1.20; // +20% ENT
-        }
-
-        return mult;
-    }
 
     /// <summary>
     /// Multiplicador para la generación de EM (ej: +15% si el upgrade está comprado).
@@ -380,6 +2292,16 @@ public class GameState : MonoBehaviour
         if (b == null || b.def == null) continue;
 
         double buildingProd = b.GetLEps();
+
+        // Sinergia del triángulo solo afecta Higgs y Tetra
+        buildingProd *= GetTriangleSynergyBuildingMultiplier(b.def.id);
+
+        // Persistencia nueva por reserva activa
+        buildingProd *= GetTrianglePersistenceReserveBuildingMultiplier(b.def.id);
+
+        // Máquina / Zona 1: Calibración de Artefactos
+        buildingProd *= GetMachineArtifactProductionMultiplier(b.def.id);
+
         fromBuildings += buildingProd;
 
         if (b.level <= 0) continue;
@@ -413,7 +2335,7 @@ public class GameState : MonoBehaviour
     }
     
     // 🔥 F6.4: factor de prestigio
-    double prestigeFactor = GetPrestigeLEMultiplier();
+    double prestigeFactor = 1.0;
 
     double f2UpgradeFactor = 1.0;
     if (F2UpgradeManager.I != null)
@@ -421,17 +2343,29 @@ public class GameState : MonoBehaviour
         f2UpgradeFactor += F2UpgradeManager.I.GetTotalGlobalLEMultBonus();
     }
 
-    double rawTotal = (baseProd + fromBuildings)
+    double triangleImpulseFactor = GetTriangleImpulseLEMultiplier();
+
+    double machineLEFactor = 1.0;
+    if (MachineManager.I != null)
+    {
+        machineLEFactor += MachineManager.I.GetTotalEffectValue(MachineNodeEffectType.GlobalLEBonus);
+    }
+
+    double room1GlobalFactor = GetMachineRoom1GlobalMultiplier();
+
+    double rawTotal = ((baseProd + fromBuildings) * triangleImpulseFactor)
                     * multiplier
                     * emFactor
                     * researchFactor
                     * achFactor
                     * prestigeFactor
                     * f2UpgradeFactor
+                    * machineLEFactor
+                    * room1GlobalFactor
                     + flatBonus;
 
     return rawTotal;
-}
+    }
 
 
     /// <summary>
@@ -615,13 +2549,33 @@ private double CalculateEMMultiplier()
 
     public double CalculateTracesPs()
     {
-        // Puente temporal:
-        // usamos casimir_panel como equivalente provisional del artefacto
-        // que abre el recurso secundario en F2.
         int casimirLevel = GetBuildingLevel("casimir_panel");
-        if (casimirLevel <= 0) return 0.0;
+        if (casimirLevel <= 0)
+            return 0.0;
 
-        return 0.03 * casimirLevel;
+        double tracesPerSecond = 0.03 * casimirLevel;
+
+        // Sinergia del triángulo también mejora al Tetra en trazas
+        tracesPerSecond *= GetTriangleSynergyBuildingMultiplier("casimir_panel");
+
+        // Máquina / Zona 1: Calibración de Artefactos también afecta al Núcleo Tetraquark
+        tracesPerSecond *= GetMachineArtifactProductionMultiplier("casimir_panel");
+
+        if (F2UpgradeManager.I != null)
+        {
+            tracesPerSecond *= (1.0 + F2UpgradeManager.I.GetResidualAnalysisBonus());
+        }
+
+        double machineTracesFactor = 1.0;
+        if (MachineManager.I != null)
+        {
+            machineTracesFactor += MachineManager.I.GetTotalEffectValue(MachineNodeEffectType.TracesBonus);
+        }
+
+        tracesPerSecond *= machineTracesFactor;
+        tracesPerSecond *= GetMachineRoom1GlobalMultiplier();
+
+        return tracesPerSecond;
     }
 
     /// <summary>
@@ -643,150 +2597,170 @@ private double CalculateEMMultiplier()
         return 0;
     }
 
-    
 
-        // F6.3: ¿puedo prestigiar ahora?
-    public bool CanPrestige()
+    public bool CanDoPrestige1()
     {
-        // Por ahora, pedimos al menos 1 ENT para que valga la pena
-        double ent = GetENTGanariasAlPrestigiar();
-        return ent >= 1.0;
+        if (MachineManager.I == null)
+            return false;
+
+        return MachineManager.I.HasEnoughRepairForPrestige1()
+            && MachineManager.I.Prestige1Prepared;
     }
 
-    /// <summary>
-    /// F7.5: Calcula cuánta Lambda (Λ) ganarías si hicieras Prestigio 2 ahora.
-    /// Usa maxLEAlcanzado, totalENTAcumulada, totalADPGenerada y totalWHFGenerada.
-    /// La fórmula es intencionalmente sub-exponencial para que no se dispare.
-    /// </summary>
-    private double CalculateLambdaGain()
+    public string GetPrestige1StatusText()
     {
-        // Si no has avanzado casi nada, no hay Lambda.
-        if (maxLEAlcanzado <= 0.0 || totalENTAcumulada <= 0.0)
-            return 0.0;
+        if (MachineManager.I == null)
+            return "Máquina no disponible.";
 
-        // Base por LE máximo (ej: 1e6 -> 6, 1e9 -> 9...)
-        double baseFromLE = System.Math.Log10(1.0 + maxLEAlcanzado);
+        double repairPct = MachineManager.I.GetTotalMachineRepairProgress01() * 100.0;
 
-        // Factor por ENT acumulada (ej: 100 ENT -> ~6.3 con exp 0.4)
-        double entFactor = System.Math.Pow(totalENTAcumulada, 0.4);
+        if (!MachineManager.I.HasEnoughRepairForPrestige1())
+            return $"Reparación de Máquina: {repairPct:0}% / 80%";
 
-        // Factor por ADP total generada (muy suave)
-        double adpFactor = System.Math.Pow(1.0 + totalADPGenerada, 0.2);
+        if (!MachineManager.I.Prestige1Prepared)
+            return "Falta activar el Canal de Convergencia.";
 
-        // Factor por WHF total generada (algo más fuerte pero controlado)
-        double whfFactor = 1.0 + 0.5 * System.Math.Sqrt(totalWHFGenerada);
-
-        // Escalado global para que los valores sean razonables
-        double raw = baseFromLE * entFactor * adpFactor * whfFactor * 0.02;
-
-        if (raw < 1.0)
-            return 0.0;
-
-        return System.Math.Floor(raw);
+        return "Prestigio 1 disponible.";
     }
 
-    /// <summary>
-    /// Valor visible para UI / preview de Lambda a ganar.
-    /// </summary>
-    public double GetLambdaPreview()
+    public bool DoPrestige1Reset()
     {
-        return CalculateLambdaGain();
-    }
-
-    /// <summary>
-    /// Indica si hay suficiente progreso para hacer Prestigio 2 (Λ > 0).
-    /// </summary>
-    public bool CanMetaPrestige()
-    {
-        return GetLambdaPreview() >= 1.0;
-    }
-
-
-    // F6.3: aplica el prestigio (si es posible).
-    // Devuelve cuánta ENT se ganó.
-    public double DoPrestigeReset()
-    {
-        double entGanar = GetENTGanariasAlPrestigiar();
-        if (entGanar <= 0.0)
+        if (!CanDoPrestige1())
         {
-            Debug.Log("[GameState] No hay suficiente progreso para prestigiar (ENT ganada = 0).");
-            return 0.0;
+            Debug.Log("[GameState] Prestigio 1 no disponible todavía: " + GetPrestige1StatusText());
+            return false;
         }
 
-        // 1) Añadir ENT
-        ENT += entGanar;
-        totalENTAcumulada += entGanar;
-        Debug.Log($"[GameState] Prestigio realizado. ENT ganada: {entGanar}, ENT total: {ENT}");
+        prestige1Count++;
+        hasDonePrestige1 = true;
 
-        // 2) Resetear el run (recursos y edificios)
-        ResetRunForPrestige();
+        ResetGameBaseForPrestige1();
 
-        // 3) Guardar estado después del prestigio
+        // Dimensión 1 - MVP:
+        // Al hacer Prestigio 1, se desbloquea la Dimensión 1.
+        // Este método no reinicia tiers si ya existen, porque solo pone tier 1 si estaba en 0.
+        UnlockDimension1Mvp();
+
         if (SaveService.I != null)
-        {
             SaveService.I.Save();
-        }
 
-        return entGanar;
+        Debug.Log("[GameState] Prestigio 1 realizado. Total: " + prestige1Count);
+        return true;
     }
 
-    /// <summary>
-    /// F7.5: Ejecuta el Prestigio 2 (Meta-Prestigio).
-    /// - Suma Lambda (Λ) usando CalculateLambdaGain().
-    /// - Resetea ENT y sus upgrades.
-    /// - Hace un reset profundo del run (usando ResetRunForPrestige).
-    /// Devuelve la cantidad de Lambda ganada.
-    /// </summary>
-    public double DoMetaPrestigeReset()
+    private void ResetGameBaseForPrestige1()
     {
-        double lambdaGanar = GetLambdaPreview();
-        if (lambdaGanar <= 0.0)
-        {
-            Debug.Log("[GameState] No hay suficiente progreso para Meta-Prestigio (Λ ganada = 0).");
-            return 0.0;
-        }
+        // Recursos base
+        LE = 10.0;
+        Traces = 0.0;
+        VP = 0.0;
 
-        // 1) Añadir Lambda
-        Lambda += lambdaGanar;
-        Debug.Log($"[GameState] Meta-Prestigio realizado. Λ ganada: {lambdaGanar}, Λ total: {Lambda}");
-
-        // 2) Resetear moneda de prestigio 1 y sus upgrades
-        ENT = 0.0;
-        prestigeLeMult1Unlocked = false;
-        prestigeAutoBuyFirstUnlocked = false;
-        prestigeAutoBuyFirstEnabled = true;
-        totalENTAcumulada = 0.0; // si existe
-
-        // 3) Resetear todo el run (esto ya borra LE, EM, IP, ADP, WHF, edificios, etc.)
-        ResetRunForPrestige();
-
-        // 4) Opcional: reiniciar el máximo LE alcanzado (nuevo ciclo completamente)
+        // Recursos avanzados / viejos de run
+        BEC = 0.0;
+        EM = 0.0;
+        emMult = 0.0;
+        ADP = 0.0;
+        WHF = 0.0;
+        baseLEps = 0.0;
         maxLEAlcanzado = 0.0;
+        useDecoherence = false;
 
-        // 5) Guardar estado después del meta-prestigio
-        if (SaveService.I != null)
+        // Modulador de Fase
+        phaseModulatorMode = PhaseModulatorMode.None;
+        phaseModulatorCalibration = 0f;
+
+        // Triángulo
+        triangleSystemUnlocked = false;
+        trianglePrimaryBuildingId = "";
+        triangleReinforcementBuildingId = "";
+        triangleAlterationBuildingId = "";
+        trianglePersistenceReserveSeconds = 0.0;
+
+        // Cuarto 2 operativo
+        experimentalChamberUnlocked = false;
+        experimentalChamberInitialPackGranted = false;
+
+        fragmentCondensation = 0;
+        fragmentConfinement = 0;
+        fragmentResidualInterference = 0;
+
+        fragmentCondensationProgress = 0.0;
+        fragmentConfinementProgress = 0.0;
+        fragmentResidualInterferenceProgress = 0.0;
+
+        experimentalHallazgos = 0;
+        experimentalMuestras = 0;
+        experimentalLecturasIncompletas = 0;
+        experimentalCompuestosUtiles = 0;
+
+        synthesisCoreFusionCounter = 0;
+        guidedSynthesisIntent = 0;
+
+        // Zona 4 actual: Semillas Dimensionales / Anclajes.
+        // Aunque internamente aún se llamen chronal, los reseteamos como sistema activo del run.
+        chronalSeedSlots = new List<ChronalSeedSlotState>();
+        chronalMatureSeedsStored = 0;
+
+        chronalInstant = new ChronalInstantState();
+
+        chronalMaterializedInstants = 0;
+        chronalPureInstants = 0;
+        chronalStableInstants = 0;
+        chronalForcedInstants = 0;
+        chronalArchivedInstants = 0;
+        lastChronalMaterializationQuality = "";
+
+        EnsureChronalSeedSlots();
+
+        // IMPORTANTE:
+        // experimentalMixLog NO se borra.
+        // Ese es el conocimiento descubierto de fusiones.
+
+        // Artefactos / edificios
+        if (buildingStates != null)
         {
-            SaveService.I.Save();
+            foreach (var b in buildingStates)
+            {
+                if (b == null)
+                    continue;
+
+                b.ResetForPrestige();
+            }
         }
 
-        return lambdaGanar;
-    }
-
-    /// <summary>
-    /// F7.5: Indica si el sistema de Meta-Prestigio debería estar visible en la UI.
-    /// Lo consideramos desbloqueado cuando:
-    /// - Has acumulado al menos 50 ENT en total, o
-    /// - Ya tienes algo de Lambda.
-    /// </summary>
-    public bool IsMetaPrestigeUnlocked
-    {
-        get
+        // Upgrades F2
+        if (F2UpgradeManager.I != null)
         {
-            return totalENTAcumulada >= 50.0 || Lambda > 0.0;
+            F2UpgradeManager.I.DebugResetAllPurchases();
+        }
+
+        // Investigación/base vieja del run
+        SaveService.LastLoadedResearchIds = new List<string>();
+
+        if (ResearchManager.I != null)
+        {
+            ResearchManager.I.ApplyLoadedResearch(SaveService.LastLoadedResearchIds);
+        }
+
+        // Máquina / Cuarto 2
+        if (MachineManager.I != null)
+        {
+            MachineManager.I.ClearProgress();
+        }
+
+        // Evita que el guardado anterior reaplique niveles viejos en UI
+        SaveService.LastLoadedBuildingLevels = new List<SavedBuildingLevel>();
+
+        ActualizarMaxLE();
+
+        TabsUI tabsUI = FindFirstObjectByType<TabsUI>(FindObjectsInactive.Include);
+        if (tabsUI != null)
+        {
+            tabsUI.RefreshRoom2ButtonVisibility();
+            tabsUI.ShowGeneracion();
+            tabsUI.RefreshGenerationLayoutFromOutside();
         }
     }
-
-
 
     // F6.3: lógica de reset del run (sin tocar ENT ni upgrades de prestigio)
     private void ResetRunForPrestige()
@@ -799,7 +2773,6 @@ private double CalculateEMMultiplier()
         BEC = 0.0;
         EM = 0.0;
         emMult = 0.0;
-        IP = 0.0;
         ADP = 0.0;
         WHF = 0.0;
 
@@ -811,7 +2784,7 @@ private double CalculateEMMultiplier()
         useDecoherence = false;
         maxLEAlcanzado = 0.0;
 
-        // Reset de edificios: por ahora dejamos los niveles en 0.
+           // Reset de edificios: por ahora dejamos los niveles en 0.
         foreach (var b in buildingStates)
         {
             if (b == null) continue;
@@ -819,62 +2792,6 @@ private double CalculateEMMultiplier()
         }
     }
 
-    private void ResetAllForMetaPrestige()
-    {
-        // 1) Primero resetea lo de run
-        ResetRunForPrestige();
-
-        // 2) Ahora sí resetea la capa ENT
-        ENT = 0.0;
-
-        prestigeLeMult1Unlocked = false;
-        prestigeAutoBuyFirstUnlocked = false;
-        prestigeAutoBuyFirstEnabled = true;
-
-        // Estadísticas acumuladas de capa (si tienes)
-        totalENTAcumulada = 0.0;
-
-        // IMPORTANTE: NO tocar meta upgrades aquí (metaEntBoost1Bought, metaEmBoost1Bought)
-        // IMPORTANTE: NO poner Lambda = 0 aquí si Lambda es la moneda meta que se acumula.
-    }
-
-
-        // F6.5: corre las automatizaciones asociadas a upgrades de prestigio
-    // F6.5: corre las automatizaciones asociadas a upgrades de prestigio
-    private void RunPrestigeAutomations(double dt)
-    {
-        // Solo si tienes el upgrade Y está encendido
-        if (!prestigeAutoBuyFirstUnlocked) return;
-        if (!prestigeAutoBuyFirstEnabled)  return;
-
-        prestigeAutoBuyTimer += dt;
-        if (prestigeAutoBuyTimer < 0.5) return;   // cada 0.5 s aprox.
-        prestigeAutoBuyTimer = 0.0;
-
-        TryAutoBuyFirstBuilding();
-    }
-
-
-    // F6.5: intenta comprar automáticamente el primer edificio
-    private void TryAutoBuyFirstBuilding()
-    {
-        if (buildingStates == null || buildingStates.Count == 0) return;
-
-        var first = buildingStates[0];
-        if (first == null || first.def == null) return;
-
-        // Solo si está desbloqueado
-        if (!BuildingUnlock.IsUnlocked(first.def))
-            return;
-
-        // Solo si podemos pagar
-        if (!first.CanAfford(LE))
-            return;
-
-        // Pagar y comprar
-        LE -= first.currentCost;
-        first.OnPurchased();
-    }
 
     // Pon esto DENTRO de la clase GameState
     /// <summary>
@@ -926,7 +2843,7 @@ private double CalculateEMMultiplier()
     }
 
     // 🔥 Igual que en CalculateTotalLEps()
-    double prestigeFactor = GetPrestigeLEMultiplier();
+    double prestigeFactor = 1.0;
 
     double f2UpgradeFactor = 1.0;
     if (F2UpgradeManager.I != null)
@@ -934,7 +2851,23 @@ private double CalculateEMMultiplier()
         f2UpgradeFactor += F2UpgradeManager.I.GetTotalGlobalLEMultBonus();
     }
 
-    double worldMult = multiplier * emFactor * researchFactor * achFactor * prestigeFactor * f2UpgradeFactor;
+    double triangleImpulseFactor = GetTriangleImpulseLEMultiplier();
+
+    double machineLEFactor = 1.0;
+    if (MachineManager.I != null)
+    {
+        machineLEFactor += MachineManager.I.GetTotalEffectValue(MachineNodeEffectType.GlobalLEBonus);
+    }
+
+    double worldMult = triangleImpulseFactor
+                    * multiplier
+                    * emFactor
+                    * researchFactor
+                    * achFactor
+                    * prestigeFactor
+                    * f2UpgradeFactor
+                    * machineLEFactor;
+
     if (worldMult <= 0) worldMult = 1.0;
 
     // 2) Producción base continua (sin edificios)
@@ -943,78 +2876,130 @@ private double CalculateEMMultiplier()
         LE += baseLEps * worldMult * dt;
     }
 
-    // 3) Producción de edificios (ticks + continuo)
-    if (buildingStates != null)
+            // 3) Producción de edificios (ticks + continuo)
+if (buildingStates != null)
+{
+    foreach (var b in buildingStates)
     {
-        foreach (var b in buildingStates)
-        {
-            if (b == null || b.def == null) continue;
-            if (b.level <= 0) continue;
+        if (b == null || b.def == null) continue;
+        if (b.level <= 0) continue;
 
-            var def = b.def;
+        var def = b.def;
 
-            // 3A) Edificios con ticks
             if (def.tickInterval > 0.0 && def.lePerTickBase > 0.0)
             {
                 float interval = (float)def.tickInterval;
 
+                float expansionBonus = GetPhaseModulatorExpansionTickBonus();
+                if (expansionBonus > 0f)
+                {
+                    interval *= (1f - expansionBonus);
+                }
+
+                interval = Mathf.Max(0.0001f, interval);
+
                 b.tickTimer += (float)dt;
 
-                if (b.tickTimer < interval)
-                    continue;
+            if (b.tickTimer < interval)
+                continue;
 
-                int ticks = (int)(b.tickTimer / interval);
-                if (ticks <= 0) continue;
+            int ticks = (int)(b.tickTimer / interval);
+            if (ticks <= 0) continue;
 
-                b.tickTimer -= ticks * interval;
+            b.tickTimer -= ticks * interval;
 
-                // LE por tick
-                double lePerTick = def.lePerTickBase * b.level;
+            double lePerTick = def.lePerTickBase * b.level;
 
-               
-                double leGain = lePerTick * ticks * worldMult;
-                LE += leGain;
-                
+            // Sinergia del triángulo para Higgs / Tetra
+            lePerTick *= GetTriangleSynergyBuildingMultiplier(def.id);
 
-                // EM/IP por tick (si aplica)
-                if (def.emPerTickBase > 0.0)
-                {
-                    double emGenFactor = 1.0;
+            // Persistencia nueva por reserva activa
+            lePerTick *= GetTrianglePersistenceReserveBuildingMultiplier(def.id);
 
-                    if (ResearchManager.I != null)
-                        emGenFactor *= ResearchManager.I.GetEMGenerationFactor();
+            // Máquina / Zona 1: Calibración de Artefactos
+            lePerTick *= GetMachineArtifactProductionMultiplier(def.id);
 
-                    emGenFactor *= GetMetaEMGenerationMultiplier();
-
-                    double emPerTick = def.emPerTickBase * b.level * emGenFactor;
-                    double emGain = emPerTick * ticks;
-
-                    EM += emGain;
-
-                    double ipGain = emGain * 0.5;
-                    IP += ipGain;
-                }
-            }
-            else
+            if (F2UpgradeManager.I != null)
             {
-                // 3B) Edificios clásicos (LE/s continuo)
-                if (def.baseLEps > 0.0)
+                if (def.id == "vacuum_observer")
                 {
-                    double leps = def.baseLEps * b.level;
-                    LE += leps * worldMult * dt;
+                    lePerTick *= (1.0 + F2UpgradeManager.I.GetContainmentTuningBonus());
+                }
+
+                if (def.id == "casimir_panel")
+                {
+                    lePerTick *= (1.0 + F2UpgradeManager.I.GetTetraquarkStabilizationBonus());
                 }
             }
 
+                double leGain = lePerTick * worldMult * GetMachineRoom1GlobalMultiplier() * ticks;
+
+                if (def.id != "fluctuation_antenna")
+                {
+                    LE += leGain;
+                }
+
+            if (def.id == "casimir_panel")
+            {
+                double tracesPerTick = 0.03 * b.level;
+
+                // Máquina / Zona 1: Calibración de Artefactos también afecta al Núcleo Tetraquark
+                tracesPerTick *= GetMachineArtifactProductionMultiplier(def.id);
+
+                if (F2UpgradeManager.I != null)
+                {
+                    tracesPerTick *= (1.0 + F2UpgradeManager.I.GetResidualAnalysisBonus());
+                }
+
+                double machineTracesFactor = 1.0;
+                if (MachineManager.I != null)
+                {
+                    machineTracesFactor += MachineManager.I.GetTotalEffectValue(MachineNodeEffectType.TracesBonus);
+                }
+
+                tracesPerTick *= machineTracesFactor;
+                tracesPerTick *= GetMachineRoom1GlobalMultiplier();
+
+                double tracesGain = tracesPerTick * ticks;
+                Traces += tracesGain;
+            }
+
+            // EM por tick (si aplica)
+            if (def.emPerTickBase > 0.0)
+            {
+                double emGenFactor = 1.0;
+
+                if (ResearchManager.I != null)
+                    emGenFactor *= ResearchManager.I.GetEMGenerationFactor();
+
+                emGenFactor *= GetMetaEMGenerationMultiplier();
+
+                double emPerTick = def.emPerTickBase * b.level * emGenFactor;
+                double emGain = emPerTick * ticks;
+
+                EM += emGain;
+
+            }
+        }
+        else
+        {
+            // 3B) Edificios clásicos (LE/s continuo)
+            if (def.baseLEps > 0.0)
+            {
+                double leps = def.baseLEps * b.level;
+                LE += leps * worldMult * dt;
+            }
         }
     }
+}
 
-    // 4) Bonus plano (LE/s constantes)
-    if (flatBonus > 0.0)
-    {
-        LE += flatBonus * dt;
+        // 4) Bonus plano (LE/s constantes)
+        if (flatBonus > 0.0)
+        {
+            LE += flatBonus * dt;
+        }
+
     }
 }
 
 
-
-}

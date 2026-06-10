@@ -92,11 +92,25 @@ private void SyncLocalizationRevisionIfNeeded()
 {
     if (ResearchManager.I == null || def == null || buyButton == null) return;
 
-    // Coste (se actualiza también al cambiar idioma)
     if (costText != null)
     {
         string prefix = L("ui.cost_prefix", "Coste:");
-        costText.text = $"{prefix} {def.costIP:0} IP";
+
+        bool hasLE = def.costLE > 0.0;
+        bool hasTraces = def.costTraces > 0.0;
+
+        if (hasLE && hasTraces)
+        {
+            costText.text = $"{prefix} {def.costLE:0} LE + {def.costTraces:0} Trazas";
+        }
+        else if (hasLE)
+        {
+            costText.text = $"{prefix} {def.costLE:0} LE";
+        }
+        else
+        {
+            costText.text = $"{prefix} {def.costTraces:0} Trazas";
+        }
     }
 
 
@@ -123,10 +137,15 @@ private void SyncLocalizationRevisionIfNeeded()
         buyButton.interactable = false;
         if (buttonText != null) buttonText.text = L("lab.locked", "Bloqueado");
     }
-    else if (GameState.I.IP < def.costIP)
+     else if (GameState.I.LE < def.costLE)
     {
         buyButton.interactable = false;
-        if (buttonText != null) buttonText.text = L("lab.no_ip", "Sin IP");
+        if (buttonText != null) buttonText.text = "Sin LE";
+    }
+    else if (GameState.I.Traces < def.costTraces)
+    {
+        buyButton.interactable = false;
+        if (buttonText != null) buttonText.text = "Sin Trazas";
     }
     else
     {
@@ -155,8 +174,8 @@ private void SyncLocalizationRevisionIfNeeded()
     // Si cambió idioma, refresca textos + estados
     SyncLocalizationRevisionIfNeeded();
 
-    // Aunque no cambie idioma, refresca estado (IP/prereq) en vivo
+    // Aunque no cambie idioma, refresca estado (Trazas/prereq) en vivo
     RefreshState();
-}
+    }
 
 }

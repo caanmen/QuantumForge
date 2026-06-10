@@ -33,14 +33,6 @@
       "rewardGlobalLEMult": 0.02
     },
     {
-      "id": "ach_ip_grinder",
-      "name": "Ratas de laboratorio",
-      "description": "Alcanza 200 IP.",
-      "conditionType": "ReachIP",
-      "threshold": 200.0,
-      "rewardGlobalLEMult": 0.03
-    },
-        {
       "id": "ach_le_1M",
       "name": "Tormenta cuántica",
       "description": "Alcanza 1.000.000 LE.",

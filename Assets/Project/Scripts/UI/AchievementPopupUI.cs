@@ -59,7 +59,9 @@ public class AchievementPopupUI : MonoBehaviour
             yield break;
 
         // Fade in
+        gameObject.SetActive(true);
         canvasGroup.gameObject.SetActive(true);
+
         float t = 0f;
         while (t < fadeInTime)
         {
@@ -81,7 +83,6 @@ public class AchievementPopupUI : MonoBehaviour
             yield return null;
         }
         canvasGroup.alpha = 0f;
-        canvasGroup.gameObject.SetActive(false);
 
         currentRoutine = null;
     }

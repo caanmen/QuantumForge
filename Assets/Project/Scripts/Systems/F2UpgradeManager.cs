@@ -1,12 +1,32 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public class SavedF2UpgradeTier
+{
+    public string id;
+    public int purchasedTiers;
+}
 public class F2UpgradeManager : MonoBehaviour
 {
     public static F2UpgradeManager I { get; private set; }
 
     private readonly Dictionary<string, F2UpgradeDef> _defsById = new();
     private readonly Dictionary<string, int> _purchasedTiers = new();
+    public int GetTriangleImpulseTuningTier()
+    {
+        return GetPurchasedTierCount("triangle_impulse_tuning");
+    }
+
+    public int GetTriangleSynergyResonanceTier()
+    {
+        return GetPurchasedTierCount("triangle_synergy_resonance");
+    }
+
+    public int GetTrianglePersistenceAnchorTier()
+    {
+        return GetPurchasedTierCount("triangle_persistence_anchor");
+    }
 
     private void Awake()
     {
@@ -125,7 +145,51 @@ public class F2UpgradeManager : MonoBehaviour
         }
 
         _purchasedTiers[id] = GetPurchasedTierCount(id) + 1;
+
+        if (GameState.I != null)
+        {
+            GameState.I.triangleSystemUnlocked = GetPurchasedTierCount("triangle_unlock_1") > 0;
+        }
+
         return true;
+        }
+        public List<SavedF2UpgradeTier> GetPurchasedTiersForSave()
+        {
+            var list = new List<SavedF2UpgradeTier>();
+
+            foreach (var kv in _purchasedTiers)
+            {
+                list.Add(new SavedF2UpgradeTier
+                {
+                    id = kv.Key,
+                    purchasedTiers = kv.Value
+                });
+            }
+
+            return list;
+        }
+
+    public void ApplyLoadedPurchasedTiers(List<SavedF2UpgradeTier> loaded)
+    {
+        foreach (var key in new List<string>(_purchasedTiers.Keys))
+        {
+            _purchasedTiers[key] = 0;
+        }
+
+        if (loaded == null) return;
+
+        foreach (var item in loaded)
+        {
+            if (item == null || string.IsNullOrWhiteSpace(item.id))
+                continue;
+
+            if (_purchasedTiers.ContainsKey(item.id))
+                _purchasedTiers[item.id] = Mathf.Max(0, item.purchasedTiers);
+                
+        }
+            if (GameState.I != null)
+{           GameState.I.triangleSystemUnlocked = GetPurchasedTierCount("triangle_unlock_1") > 0;
+}
     }
 
     [ContextMenu("DEBUG: Buy Emission Focus")]
@@ -152,6 +216,123 @@ public class F2UpgradeManager : MonoBehaviour
             }
         }
 
+        total += GetPatternMappingBonus();
+
         return total;
+    }
+        public double GetContainmentTuningBonus()
+    {
+        var def = GetDef("containment_tuning");
+        if (def == null || def.tiers == null) return 0.0;
+
+        int bought = GetPurchasedTierCount("containment_tuning");
+        double total = 0.0;
+
+        for (int i = 0; i < bought && i < def.tiers.Count; i++)
+        {
+            total += def.tiers[i].effectValue;
+        }
+
+        return total;
+    }
+
+    public double GetTetraquarkStabilizationBonus()
+    {
+        var def = GetDef("tetraquark_stabilization");
+        if (def == null || def.tiers == null) return 0.0;
+
+        int bought = GetPurchasedTierCount("tetraquark_stabilization");
+        double total = 0.0;
+
+        for (int i = 0; i < bought && i < def.tiers.Count; i++)
+        {
+            total += def.tiers[i].effectValue;
+        }
+
+        return total;
+    }
+
+    public double GetCycleCompressionBonus()
+    {
+        var def = GetDef("cycle_compression");
+        if (def == null || def.tiers == null) return 0.0;
+
+        int bought = GetPurchasedTierCount("cycle_compression");
+        double total = 0.0;
+
+        for (int i = 0; i < bought && i < def.tiers.Count; i++)
+        {
+            total += def.tiers[i].effectValue;
+        }
+
+        return total;
+    }
+
+
+    public double GetResidualAnalysisBonus()
+    {
+        var def = GetDef("residual_analysis");
+        if (def == null || def.tiers == null) return 0.0;
+
+        int bought = GetPurchasedTierCount("residual_analysis");
+        double total = 0.0;
+
+        for (int i = 0; i < bought && i < def.tiers.Count; i++)
+        {
+            total += def.tiers[i].effectValue;
+        }
+
+        return total;
+    }
+
+
+    public double GetPatternMappingBonus()
+    {
+        var def = GetDef("pattern_mapping");
+        if (def == null || def.tiers == null) return 0.0;
+
+        int bought = GetPurchasedTierCount("pattern_mapping");
+        double total = 0.0;
+
+        for (int i = 0; i < bought && i < def.tiers.Count; i++)
+        {
+            total += def.tiers[i].effectValue;
+        }
+
+        int ownedArtifacts = 0;
+
+        if (GameState.I != null)
+        {
+            if (GameState.I.GetBuildingLevel("vacuum_observer") > 0) ownedArtifacts++;
+            if (GameState.I.GetBuildingLevel("casimir_panel") > 0) ownedArtifacts++;
+            if (GameState.I.GetBuildingLevel("fluctuation_antenna") > 0) ownedArtifacts++;
+        }
+
+        int varietyFactor = Mathf.Max(ownedArtifacts - 1, 0);
+
+        return total * varietyFactor;
+    }
+
+    
+    public void DebugResetAllPurchases()
+    {
+        var keys = new List<string>(_purchasedTiers.Keys);
+        foreach (var key in keys)
+        {
+            _purchasedTiers[key] = 0;
+        }
+
+        if (GameState.I != null)
+        {
+            GameState.I.triangleSystemUnlocked = false;
+        }
+
+        TabsUI tabsUI = FindFirstObjectByType<TabsUI>(FindObjectsInactive.Include);
+        if (tabsUI != null)
+        {
+            tabsUI.ShowGeneracion();
+        }
+
+        Debug.Log("[F2UpgradeManager] DEBUG: compras F2 reseteadas.");
     }
 }

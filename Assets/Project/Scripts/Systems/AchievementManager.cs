@@ -7,7 +7,6 @@ public enum AchievementConditionType
     None = 0,
     ReachLE = 1,
     ReachEM = 2,
-    ReachIP = 3,
     PurchasedResearchCount = 4
 }
 
@@ -183,7 +182,6 @@ public class AchievementManager : MonoBehaviour
         {
             case "ReachLE": return AchievementConditionType.ReachLE;
             case "ReachEM": return AchievementConditionType.ReachEM;
-            case "ReachIP": return AchievementConditionType.ReachIP;
             case "PurchasedResearchCount": return AchievementConditionType.PurchasedResearchCount;
             default: return AchievementConditionType.None;
         }
@@ -202,9 +200,6 @@ public class AchievementManager : MonoBehaviour
 
             case AchievementConditionType.ReachEM:
                 return gs.EM >= def.threshold;
-
-            case AchievementConditionType.ReachIP:
-                return gs.IP >= def.threshold;
 
             case AchievementConditionType.PurchasedResearchCount:
                 if (ResearchManager.I == null) return false;

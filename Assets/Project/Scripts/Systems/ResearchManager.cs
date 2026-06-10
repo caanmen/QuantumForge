@@ -6,7 +6,8 @@ public enum ResearchEffectType
 {
     None = 0,
     GlobalLEMult = 1,
-    EMGenerationMult = 2
+    EMGenerationMult = 2,
+    TriangleSystemUnlock = 3
 }
 
 [Serializable]
@@ -15,7 +16,8 @@ public class ResearchDef
     public string id;
     public string name;
     public string description;
-    public double costIP;
+    public double costLE;
+    public double costTraces;
     public string prereqId;
     public ResearchEffectType effectType;
     public double effectValue;
@@ -163,11 +165,10 @@ public class ResearchManager : MonoBehaviour
             }
         }
 
-        // Aplicar al GameState
-        if (GameState.I != null)
-        {
-            GameState.I.researchGlobalLEMult = 1.0 + totalGlobalLEBonus;
-        }
+    if (GameState.I != null)
+    {
+        GameState.I.researchGlobalLEMult = 1.0 + totalGlobalLEBonus;
+    }
     }
 
     /// <summary>
@@ -213,12 +214,22 @@ public class ResearchManager : MonoBehaviour
             return false;
         }
 
-        // IP suficiente
-        if (GameState.I.IP < def.costIP)
+        // LE suficiente
+        if (GameState.I.LE < def.costLE)
         {
             DebugLogCanPurchaseReason(
                 id,
-                $"Falta IP (tiene {GameState.I.IP}, requiere {def.costIP})"
+                $"Falta LE (tiene {GameState.I.LE}, requiere {def.costLE})"
+            );
+            return false;
+        }
+
+        // Trazas suficientes
+        if (GameState.I.Traces < def.costTraces)
+        {
+            DebugLogCanPurchaseReason(
+                id,
+                $"Faltan Trazas (tiene {GameState.I.Traces}, requiere {def.costTraces})"
             );
             return false;
         }
@@ -243,8 +254,8 @@ public class ResearchManager : MonoBehaviour
         var def = defs.Find(d => d.id == id);
         if (def == null) return false;
 
-        GameState.I.IP -= def.costIP;
-
+        GameState.I.LE -= def.costLE;
+        GameState.I.Traces -= def.costTraces;
         if (!states.TryGetValue(id, out var st))
         {
             st = new ResearchState { id = id, purchased = true };
@@ -272,20 +283,7 @@ public class ResearchManager : MonoBehaviour
         return result;
     }
 
-#if UNITY_EDITOR
-    [ContextMenu("DEBUG: Dar 500 IP")]
-    private void DebugGiveIP()
-    {
-        if (GameState.I != null)
-        {
-            GameState.I.IP += 500.0;
-            Debug.Log("[ResearchManager] DEBUG: +500 IP");
-        }
-        else
-        {
-            Debug.LogWarning("[ResearchManager] DEBUG: GameState.I es null.");
-        }
-    }
+
 
     [ContextMenu("DEBUG: Comprar 'Estabilización EM I'")]
     private void DebugBuyEmStability1()
@@ -303,9 +301,8 @@ public class ResearchManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[ResearchManager] DEBUG: NO se pudo comprar 'em_stability_1' (falta IP o prereq).");
-        }
+        Debug.LogWarning("[ResearchManager] DEBUG: NO se pudo comprar 'em_stability_1' (faltan Trazas o prereq).");        }
     }
-#endif
+
 }
 

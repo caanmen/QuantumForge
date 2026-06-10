@@ -8,7 +8,7 @@ public class LabExperiment : MonoBehaviour
     [Tooltip("LE que se gasta cada vez que se ejecuta el experimento.")]
     public double leCost = 100000.0;
 
-    [Tooltip("IP que se gana por cada experimento.")]
+    [Tooltip("Campo legado sin uso activo.")]
     public double ipReward = 10.0;
 
     [Header("UI")]
@@ -42,24 +42,10 @@ public class LabExperiment : MonoBehaviour
 
     public void EjecutarExperimento()
     {
-        var gs = GameState.I;
-        if (gs == null) return;
-
-        if (gs.LE < leCost)
-        {
-#if UNITY_EDITOR
-            Debug.Log("[LabExperiment] No hay LE suficiente para el experimento.");
-#endif
-            return;
-        }
-
-        gs.LE -= leCost;
-        gs.IP += ipReward;
-
-        // Si en el futuro cambias leCost/ipReward en runtime,
-        // esto asegura que el texto también se actualice.
-        ActualizarTexto();
+        return;
     }
+
+    
 
     private string L(string key, string fallback)
     {
@@ -85,10 +71,6 @@ public class LabExperiment : MonoBehaviour
     {
         if (infoText == null) return;
 
-        infoText.text = LF(
-            "lab.experiment_template",
-            "Experimento:\nGasta {0:0} LE → Gana {1:0} IP",
-            leCost, ipReward
-        );
+        infoText.text = "Experimento desactivado por ahora.";
     }
 }

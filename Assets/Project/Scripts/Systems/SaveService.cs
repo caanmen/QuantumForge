@@ -6,56 +6,95 @@ using UnityEngine;
 [Serializable]
 public class SaveData
 {
+
+        // F3 / Cuarto 2 - recursos
+    public int fragmentCondensation;
+    public int fragmentConfinement;
+    public int fragmentResidualInterference;
+
+    public int experimentalHallazgos;
+    public int experimentalMuestras;
+    public int experimentalLecturasIncompletas;
+    public int experimentalCompuestosUtiles;
+    public int synthesisCoreFusionCounter;
+    public List<ChronalSeedSlotState> chronalSeedSlots;
+    public int chronalMatureSeedsStored;
+    public ChronalInstantState chronalInstant;
+    public int chronalMaterializedInstants;
+    public int chronalPureInstants;
+    public int chronalStableInstants;
+    public int chronalForcedInstants;
+    public int chronalArchivedInstants;
+    // F3 / Cuarto 2 - log
+    public List<ExperimentalMixLogEntry> experimentalMixLog;
+    public int guidedSynthesisIntent;
+
+        // Cuarto 1 - sistema triangular
+    public bool triangleSystemUnlocked;
+    public string trianglePrimaryBuildingId;
+    public string triangleReinforcementBuildingId;
+    public string triangleAlterationBuildingId;
+    public List<string> machineRepairedNodeIds = new List<string>();
+    public List<string> machineAnalyzedNodeIds = new List<string>();
+    public bool machineIntroSeen;
+    public bool machineUnlocked;
+    public bool machineFusionPanelUnlocked;
+    public bool machineAllZonesUnlocked;
     public double LE;
     public double Traces;
     public double VP;
-
     // Mid-game: recurso EM
     public double EM;
     public double emMult;
+    public int phaseModulatorMode;
+    public float phaseModulatorCalibration;
 
+    // public float trianglePersistenceMaturation; // lógica vieja de Persistencia
+    public double trianglePersistenceReserveSeconds;
     // F6.1: Moneda de prestigio
-    public double ENT;
 
+    // Prestigio 1 - Convergencia
+    public int prestige1Count;
+    public bool hasDonePrestige1;
     // F6.1: Máximo LE alcanzado en el run
     public double maxLEAlcanzado;
-
+    public List<SavedF2UpgradeTier> f2UpgradeTiers = new();
     // F7: Recursos late-game
     public double ADP;
     public double WHF;
-
     // F7: Prestigio 2 (Lambda)
     public double Lambda;
-
     // F7: Estadísticas acumuladas para meta-prestigio
-    public double totalENTAcumulada;
     public double totalADPGenerada;
     public double totalWHFGenerada;
-
-    // Investigación
-    public double IP;
-
     // Lista de investigaciones compradas (ids)
     public List<string> purchasedResearchIds;
-
     // Lista de logros desbloqueados (ids)
     public List<string> unlockedAchievementIds;
-
     public double baseLEps;
     public long lastUnix;
-
-    // F6.4: Upgrades de prestigio
-    public bool prestigeLeMult1Unlocked;
-    public bool prestigeAutoBuyFirstUnlocked;
-    public bool prestigeAutoBuyFirstEnabled;
-
 
     // F7.5: Meta-upgrades comprados con Λ
     public bool metaEntBoost1Bought;
     public bool metaEmBoost1Bought;
-
     // Niveles de edificios
     public List<SavedBuildingLevel> buildingLevels;
+    public bool experimentalChamberUnlocked;
+    public bool experimentalChamberInitialPackGranted;
+
+        // Dimensión 1 - MVP
+    public bool dimension01Unlocked;
+    public List<D1MetalAmount> dimension1Metals;
+    public List<D1PlanetState> dimension1Planets;
+    public List<D1ShipState> dimension1Ships;
+    public List<D1ScannedDestinationState> dimension1ScannedDestinations;
+    public bool dimension1ScanActive;
+    public double dimension1ScanRemainingSeconds;
+    public double dimension1ScanTotalSeconds;
+    public string dimension1LastExplorationDestinationId;
+    public List<D1MetalAmount> dimension1LastExplorationRewards;
+    public int dimension1BlueprintFragments;
+    public int dimension1LastExplorationBlueprintFragments;
 }
 
 public class SaveService : MonoBehaviour
@@ -128,11 +167,16 @@ public class SaveService : MonoBehaviour
         VP = GameState.I.VP,
         EM = GameState.I.EM,
         emMult = GameState.I.emMult,
-        IP = GameState.I.IP,
         baseLEps = GameState.I.baseLEps,
+        phaseModulatorMode = (int)GameState.I.phaseModulatorMode,
+        phaseModulatorCalibration = GameState.I.phaseModulatorCalibration,
+        trianglePersistenceReserveSeconds = GameState.I.trianglePersistenceReserveSeconds,
 
-        // F6.1: prestigio
-        ENT = GameState.I.ENT,
+        // Prestigio 1 - Convergencia
+        prestige1Count = GameState.I.prestige1Count,
+        hasDonePrestige1 = GameState.I.hasDonePrestige1,
+
+        // F6.1: prestigio viejo
         maxLEAlcanzado = GameState.I.maxLEAlcanzado,
 
         // F7: recursos late-game
@@ -141,24 +185,60 @@ public class SaveService : MonoBehaviour
 
         // F7: prestigio 2 (Lambda) + estadísticas
         Lambda = GameState.I.Lambda,
-        totalENTAcumulada = GameState.I.totalENTAcumulada,
         totalADPGenerada = GameState.I.totalADPGenerada,
         totalWHFGenerada = GameState.I.totalWHFGenerada,
 
-        // F6.4: upgrades de prestigio
-        prestigeLeMult1Unlocked = GameState.I.prestigeLeMult1Unlocked,
-        prestigeAutoBuyFirstUnlocked = GameState.I.prestigeAutoBuyFirstUnlocked,
-        prestigeAutoBuyFirstEnabled = GameState.I.prestigeAutoBuyFirstEnabled,
-
 
         // F7.5: meta-upgrades
-        metaEntBoost1Bought = GameState.I.metaEntBoost1Bought,
         metaEmBoost1Bought = GameState.I.metaEmBoost1Bought,
 
          // 🆕 Niveles de edificios
         buildingLevels = GameState.I.GetBuildingLevelsForSave(),
+        experimentalChamberUnlocked = GameState.I.experimentalChamberUnlocked,
+        experimentalChamberInitialPackGranted = GameState.I.experimentalChamberInitialPackGranted,
+        // Dimensión 1 - MVP
+        dimension01Unlocked = GameState.I.dimension01Unlocked,
+        dimension1Metals = GameState.I.dimension1Metals,
+        dimension1Planets = GameState.I.dimension1Planets,
+        dimension1Ships = GameState.I.dimension1Ships,
+        dimension1ScannedDestinations = GameState.I.dimension1ScannedDestinations,
+        dimension1ScanActive = GameState.I.dimension1ScanActive,
+        dimension1ScanRemainingSeconds = GameState.I.dimension1ScanRemainingSeconds,
+        dimension1ScanTotalSeconds = GameState.I.dimension1ScanTotalSeconds,
+        dimension1LastExplorationDestinationId = GameState.I.dimension1LastExplorationDestinationId,
+        dimension1LastExplorationRewards = GameState.I.dimension1LastExplorationRewards,
+        dimension1BlueprintFragments = GameState.I.dimension1BlueprintFragments,
+        dimension1LastExplorationBlueprintFragments = GameState.I.dimension1LastExplorationBlueprintFragments,
 
+        fragmentCondensation = GameState.I.fragmentCondensation,
+        fragmentConfinement = GameState.I.fragmentConfinement,
+        fragmentResidualInterference = GameState.I.fragmentResidualInterference,
 
+        experimentalHallazgos = GameState.I.experimentalHallazgos,
+        experimentalMuestras = GameState.I.experimentalMuestras,
+        experimentalLecturasIncompletas = GameState.I.experimentalLecturasIncompletas,
+        experimentalCompuestosUtiles = GameState.I.experimentalCompuestosUtiles,
+        synthesisCoreFusionCounter = GameState.I.synthesisCoreFusionCounter,
+        chronalSeedSlots = GameState.I.chronalSeedSlots,
+        chronalMatureSeedsStored = GameState.I.chronalMatureSeedsStored,
+        chronalInstant = GameState.I.chronalInstant,
+        chronalMaterializedInstants = GameState.I.chronalMaterializedInstants,
+        chronalPureInstants = GameState.I.chronalPureInstants,
+        chronalStableInstants = GameState.I.chronalStableInstants,
+        chronalForcedInstants = GameState.I.chronalForcedInstants,
+        chronalArchivedInstants = GameState.I.chronalArchivedInstants,
+
+        experimentalMixLog = GameState.I.experimentalMixLog,
+        guidedSynthesisIntent = GameState.I.guidedSynthesisIntent,
+        triangleSystemUnlocked = GameState.I.triangleSystemUnlocked,
+        trianglePrimaryBuildingId = GameState.I.trianglePrimaryBuildingId,
+        triangleReinforcementBuildingId = GameState.I.triangleReinforcementBuildingId,
+        triangleAlterationBuildingId = GameState.I.triangleAlterationBuildingId,
+        
+
+        f2UpgradeTiers = (F2UpgradeManager.I != null)
+            ? F2UpgradeManager.I.GetPurchasedTiersForSave()
+            : new List<SavedF2UpgradeTier>(),
         purchasedResearchIds = (ResearchManager.I != null)
             ? ResearchManager.I.GetPurchasedIds()
             : LastLoadedResearchIds,
@@ -168,7 +248,10 @@ public class SaveService : MonoBehaviour
         lastUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
     };
 
-
+        if (MachineManager.I != null)
+        {
+            MachineManager.I.WriteProgressToSave(data);
+        }
 
         var json = JsonUtility.ToJson(data, prettyPrint: true);
         File.WriteAllText(SavePath, json);
@@ -196,7 +279,7 @@ public class SaveService : MonoBehaviour
         var data = JsonUtility.FromJson<SaveData>(json);
 
         bool noBuildings = (data.buildingLevels == null || data.buildingLevels.Count == 0);
-        bool looksFresh = data.LE <= 0.0 && data.maxLEAlcanzado <= 0.0 && data.ENT <= 0.0 && data.Lambda <= 0.0 && noBuildings;
+        bool looksFresh = data.LE <= 0.0 && data.maxLEAlcanzado <= 0.0 && data.Lambda <= 0.0 && noBuildings;
 
         if (looksFresh)
         {
@@ -210,35 +293,110 @@ public class SaveService : MonoBehaviour
         GameState.I.VP = data.VP;
         GameState.I.EM = data.EM;
         GameState.I.emMult = data.emMult;
-        GameState.I.IP = data.IP;
         GameState.I.baseLEps = data.baseLEps;
+        GameState.I.phaseModulatorMode = (PhaseModulatorMode)data.phaseModulatorMode;
+        GameState.I.phaseModulatorCalibration = data.phaseModulatorCalibration;
+        // GameState.I.trianglePersistenceMaturation = data.trianglePersistenceMaturation;
+        GameState.I.trianglePersistenceReserveSeconds = data.trianglePersistenceReserveSeconds;
+        GameState.I.experimentalChamberUnlocked = data.experimentalChamberUnlocked;
+        GameState.I.experimentalChamberInitialPackGranted = data.experimentalChamberInitialPackGranted;
+        // Dimensión 1 - MVP
+        GameState.I.dimension01Unlocked = data.dimension01Unlocked;
+        GameState.I.dimension1Metals = data.dimension1Metals ?? new List<D1MetalAmount>();
+        GameState.I.dimension1Planets = data.dimension1Planets ?? new List<D1PlanetState>();
+        GameState.I.dimension1Ships = data.dimension1Ships ?? new List<D1ShipState>();
+        GameState.I.dimension1ScannedDestinations = data.dimension1ScannedDestinations ?? new List<D1ScannedDestinationState>();
+        GameState.I.dimension1ScanActive = data.dimension1ScanActive;
+        GameState.I.dimension1ScanRemainingSeconds = data.dimension1ScanRemainingSeconds;
+        GameState.I.dimension1ScanTotalSeconds = data.dimension1ScanTotalSeconds;
+        GameState.I.dimension1LastExplorationDestinationId = data.dimension1LastExplorationDestinationId ?? "";
+        GameState.I.dimension1LastExplorationRewards = data.dimension1LastExplorationRewards ?? new List<D1MetalAmount>();
+        GameState.I.dimension1BlueprintFragments = data.dimension1BlueprintFragments;
+        GameState.I.dimension1LastExplorationBlueprintFragments = data.dimension1LastExplorationBlueprintFragments;
+        GameState.I.EnsureDimension1State();
 
-        // F6.1: prestigio
-        GameState.I.ENT = data.ENT;
+        // Prestigio 1 - Convergencia
+        GameState.I.prestige1Count = data.prestige1Count;
+        GameState.I.hasDonePrestige1 = data.hasDonePrestige1;
+
+        // F6.1: prestigio viejo
         GameState.I.maxLEAlcanzado = data.maxLEAlcanzado;
 
         // F7: recursos late-game y Lambda
         GameState.I.ADP = data.ADP;
         GameState.I.WHF = data.WHF;
         GameState.I.Lambda = data.Lambda;
-        GameState.I.totalENTAcumulada = data.totalENTAcumulada;
         GameState.I.totalADPGenerada = data.totalADPGenerada;
         GameState.I.totalWHFGenerada = data.totalWHFGenerada;
 
-        // F6.4: upgrades de prestigio
-        GameState.I.prestigeLeMult1Unlocked = data.prestigeLeMult1Unlocked;
-        GameState.I.prestigeAutoBuyFirstUnlocked = data.prestigeAutoBuyFirstUnlocked;
-        GameState.I.prestigeAutoBuyFirstEnabled  = data.prestigeAutoBuyFirstEnabled;
-
 
         // F7.5: meta-upgrades
-        GameState.I.metaEntBoost1Bought = data.metaEntBoost1Bought;
         GameState.I.metaEmBoost1Bought = data.metaEmBoost1Bought;
 
         
         // 🆕 Guardar niveles de edificios para aplicarlos después
         SaveService.LastLoadedBuildingLevels = data.buildingLevels ?? new List<SavedBuildingLevel>();
+        GameState.I.fragmentCondensation = data.fragmentCondensation;
+        GameState.I.fragmentConfinement = data.fragmentConfinement;
+        GameState.I.fragmentResidualInterference = data.fragmentResidualInterference;
 
+        GameState.I.experimentalHallazgos = data.experimentalHallazgos;
+        GameState.I.experimentalMuestras = data.experimentalMuestras;
+        GameState.I.experimentalLecturasIncompletas = data.experimentalLecturasIncompletas;
+        GameState.I.experimentalCompuestosUtiles = data.experimentalCompuestosUtiles;
+        GameState.I.synthesisCoreFusionCounter = data.synthesisCoreFusionCounter;
+        GameState.I.chronalSeedSlots = data.chronalSeedSlots ?? new List<ChronalSeedSlotState>();
+        GameState.I.chronalMatureSeedsStored = data.chronalMatureSeedsStored;
+        GameState.I.EnsureChronalSeedSlots();
+        GameState.I.chronalInstant = data.chronalInstant ?? new ChronalInstantState();
+        GameState.I.chronalMaterializedInstants = data.chronalMaterializedInstants;
+        GameState.I.chronalPureInstants = data.chronalPureInstants;
+        GameState.I.chronalStableInstants = data.chronalStableInstants;
+        GameState.I.chronalForcedInstants = data.chronalForcedInstants;
+        GameState.I.chronalArchivedInstants = data.chronalArchivedInstants;
+
+        GameState.I.experimentalMixLog = data.experimentalMixLog ?? new List<ExperimentalMixLogEntry>();
+        GameState.I.guidedSynthesisIntent = Mathf.Clamp(data.guidedSynthesisIntent, 0, 4);
+        GameState.I.triangleSystemUnlocked = data.triangleSystemUnlocked;
+        GameState.I.trianglePrimaryBuildingId = data.trianglePrimaryBuildingId ?? "";
+        GameState.I.triangleReinforcementBuildingId = data.triangleReinforcementBuildingId ?? "";
+        GameState.I.triangleAlterationBuildingId = data.triangleAlterationBuildingId ?? "";
+        GameState.I.SanitizeTriangleConfiguration();
+
+        if (MachineManager.I != null)
+        {
+            MachineManager.I.LoadProgressFromSave(data);
+        }
+
+        
+
+        if (F2UpgradeManager.I != null)
+        {
+            F2UpgradeManager.I.ApplyLoadedPurchasedTiers(data.f2UpgradeTiers);
+        }
+
+        long nowUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        double offlineSeconds = Math.Max(0.0, nowUnix - data.lastUnix);
+
+        GameState.I.ApplyOfflineTrianglePersistenceReserve(offlineSeconds);
+
+        // Dimensión 1 - MVP:
+        // minería offline con cap inicial de 12 horas.
+        double d1OfflineApplied = Dimension1System.ApplyOfflineMining(GameState.I, offlineSeconds);
+
+        #if UNITY_EDITOR
+        if (d1OfflineApplied > 0.0)
+        {
+            Debug.Log("[D1] Offline minería aplicado: " + d1OfflineApplied.ToString("0") + " segundos.");
+        }
+        #endif
+
+        TabsUI tabsUI = FindFirstObjectByType<TabsUI>(FindObjectsInactive.Include);
+        if (tabsUI != null)
+        
+        {
+            tabsUI.RefreshGenerationLayoutFromOutside();
+        }
 
         // Nos aseguramos de que el máximo quede coherente
         GameState.I.ActualizarMaxLE();
@@ -273,10 +431,52 @@ public class SaveService : MonoBehaviour
         GameState.I.EM = 0.0;
         GameState.I.emMult = 0.0;
 
-        GameState.I.IP = 0.0;
         GameState.I.baseLEps = 0.0;
+        GameState.I.phaseModulatorMode = PhaseModulatorMode.None;
+        GameState.I.phaseModulatorCalibration = 0f;
+        GameState.I.trianglePersistenceReserveSeconds = 0.0;
+        GameState.I.experimentalChamberUnlocked = false;
+        GameState.I.experimentalChamberInitialPackGranted = false;
+        // Dimensión 1 - MVP
+        GameState.I.dimension01Unlocked = false;
+        GameState.I.dimension1Metals = new List<D1MetalAmount>();
+        GameState.I.dimension1Planets = new List<D1PlanetState>();
+        GameState.I.dimension1Ships = new List<D1ShipState>();
+        GameState.I.dimension1ScannedDestinations = new List<D1ScannedDestinationState>();
+        GameState.I.dimension1ScanActive = false;
+        GameState.I.dimension1ScanRemainingSeconds = 0.0;
+        GameState.I.dimension1ScanTotalSeconds = 0.0;
+        GameState.I.dimension1LastExplorationDestinationId = "";
+        GameState.I.dimension1LastExplorationRewards = new List<D1MetalAmount>();
+        GameState.I.dimension1BlueprintFragments = 0;
+        GameState.I.dimension1LastExplorationBlueprintFragments = 0;
+        GameState.I.EnsureDimension1State();
 
-        GameState.I.ENT = 0.0;
+        GameState.I.fragmentCondensation = 0;
+        GameState.I.fragmentConfinement = 0;
+        GameState.I.fragmentResidualInterference = 0;
+
+        GameState.I.fragmentCondensationProgress = 0.0;
+        GameState.I.fragmentConfinementProgress = 0.0;
+        GameState.I.fragmentResidualInterferenceProgress = 0.0;
+
+        GameState.I.experimentalHallazgos = 0;
+        GameState.I.experimentalMuestras = 0;
+        GameState.I.experimentalLecturasIncompletas = 0;
+        GameState.I.experimentalCompuestosUtiles = 0;
+        GameState.I.synthesisCoreFusionCounter = 0;
+        GameState.I.chronalArchivedInstants = 0;
+
+        GameState.I.experimentalMixLog = new List<ExperimentalMixLogEntry>();
+        GameState.I.guidedSynthesisIntent = 0;
+        GameState.I.triangleSystemUnlocked = false;
+        GameState.I.trianglePrimaryBuildingId = "";
+        GameState.I.triangleReinforcementBuildingId = "";
+        GameState.I.triangleAlterationBuildingId = "";
+
+        GameState.I.prestige1Count = 0;
+        GameState.I.hasDonePrestige1 = false;
+
         GameState.I.maxLEAlcanzado = 0.0;
 
         GameState.I.ADP = 0.0;
@@ -284,22 +484,20 @@ public class SaveService : MonoBehaviour
 
         // Meta-progreso se mantiene en 0 para un save nuevo
         GameState.I.Lambda = 0.0;
-        GameState.I.totalENTAcumulada = 0.0;
         GameState.I.totalADPGenerada = 0.0;
         GameState.I.totalWHFGenerada = 0.0;
 
-        // Flags prestigio/meta-upgrades por defecto
-        GameState.I.prestigeLeMult1Unlocked = false;
-        GameState.I.prestigeAutoBuyFirstUnlocked = false;
-        GameState.I.prestigeAutoBuyFirstEnabled = true;
-
-        GameState.I.metaEntBoost1Bought = false;
         GameState.I.metaEmBoost1Bought = false;
 
         // Limpiar caches de load para evitar arrastrar algo raro
         LastLoadedResearchIds = new List<string>();
         LastLoadedAchievementIds = new List<string>();
         LastLoadedBuildingLevels = new List<SavedBuildingLevel>();
+
+        if (MachineManager.I != null)
+        {
+            MachineManager.I.ClearProgress();
+        }
 
         // Aplica listas vacías si existen managers
         if (ResearchManager.I != null) ResearchManager.I.ApplyLoadedResearch(LastLoadedResearchIds);
@@ -312,16 +510,51 @@ public class SaveService : MonoBehaviour
         Save();
     }
 
-
     [ContextMenu("Reset Save (simple)")]
     public void ResetSave()
     {
         if (File.Exists(SavePath)) File.Delete(SavePath);
-
         if (GameState.I != null)
         {
             GameState.I.DebugResetRunState();
             GameState.I.Traces = 0.0;
+
+            GameState.I.experimentalChamberUnlocked = false;
+            GameState.I.experimentalChamberInitialPackGranted = false;
+
+            GameState.I.fragmentCondensation = 0;
+            GameState.I.fragmentConfinement = 0;
+            GameState.I.fragmentResidualInterference = 0;
+
+            GameState.I.fragmentCondensationProgress = 0.0;
+            GameState.I.fragmentConfinementProgress = 0.0;
+            GameState.I.fragmentResidualInterferenceProgress = 0.0;
+
+            GameState.I.experimentalHallazgos = 0;
+            GameState.I.experimentalMuestras = 0;
+            GameState.I.experimentalLecturasIncompletas = 0;
+            GameState.I.experimentalCompuestosUtiles = 0;
+            GameState.I.chronalArchivedInstants = 0;
+
+            GameState.I.experimentalMixLog = new List<ExperimentalMixLogEntry>();
+            GameState.I.guidedSynthesisIntent = 0;
+            GameState.I.triangleSystemUnlocked = false;
+            GameState.I.trianglePrimaryBuildingId = "";
+            GameState.I.triangleReinforcementBuildingId = "";
+            GameState.I.triangleAlterationBuildingId = "";
+            // Dimensión 1 - MVP
+            GameState.I.ResetDimension1MvpState();
+        }
+        
+
+        if (F2UpgradeManager.I != null)
+        {
+            F2UpgradeManager.I.DebugResetAllPurchases();
+        }
+
+        if (MachineManager.I != null)
+        {
+            MachineManager.I.ClearProgress();
         }
 
     #if UNITY_EDITOR
@@ -354,31 +587,40 @@ public class SaveService : MonoBehaviour
             // 3) Resetear el GameState en memoria (LE, base, edificios, prestigio, etc.)
             if (GameState.I != null)
             {
-                // Reset del run completo (LE, base, edificios, maxLE, etc.)
                 GameState.I.DebugResetRunState();
-
-                // Reset de monedas de prestigio y late-game
-                GameState.I.ENT  = 0.0;
                 GameState.I.Traces = 0.0;
-                GameState.I.ADP  = 0.0;
-                GameState.I.WHF  = 0.0;
-                GameState.I.Lambda            = 0.0;
-                GameState.I.totalENTAcumulada = 0.0;
-                GameState.I.totalADPGenerada  = 0.0;
-                GameState.I.totalWHFGenerada  = 0.0;
 
-                // Reset de upgrades de prestigio y meta-upgrades
-                GameState.I.prestigeLeMult1Unlocked      = false;
-                GameState.I.prestigeAutoBuyFirstUnlocked = false;
-                GameState.I.prestigeAutoBuyFirstEnabled  = true;
-                GameState.I.metaEntBoost1Bought          = false;
-                GameState.I.metaEmBoost1Bought           = false;
-                
-                // Resetear research en memoria
-                if (ResearchManager.I != null)
-                {
-                    ResearchManager.I.ApplyLoadedResearch(new List<string>());
-                }
+                GameState.I.experimentalChamberUnlocked = false;
+                GameState.I.experimentalChamberInitialPackGranted = false;
+
+                GameState.I.fragmentCondensation = 0;
+                GameState.I.fragmentConfinement = 0;
+                GameState.I.fragmentResidualInterference = 0;
+
+                GameState.I.fragmentCondensationProgress = 0.0;
+                GameState.I.fragmentConfinementProgress = 0.0;
+                GameState.I.fragmentResidualInterferenceProgress = 0.0;
+
+                GameState.I.experimentalHallazgos = 0;
+                GameState.I.experimentalMuestras = 0;
+                GameState.I.experimentalLecturasIncompletas = 0;
+                GameState.I.experimentalCompuestosUtiles = 0;
+                GameState.I.chronalArchivedInstants = 0;
+
+                GameState.I.experimentalMixLog = new List<ExperimentalMixLogEntry>();
+                GameState.I.guidedSynthesisIntent = 0;
+                // Dimensión 1 - MVP
+                GameState.I.ResetDimension1MvpState();
+            }
+
+                if (F2UpgradeManager.I != null)
+            {
+                F2UpgradeManager.I.DebugResetAllPurchases();
+            }
+
+            if (MachineManager.I != null)
+            {
+                MachineManager.I.ClearProgress();
             }
 
             // 4) Resetear logros en memoria
@@ -402,6 +644,14 @@ public class SaveService : MonoBehaviour
                 {
                     listUI.Refresh();
                 }
+            }
+
+            if (TabsUI.Instance != null)
+            {
+                TabsUI.Instance.RefreshRoom2ButtonVisibility();
+                TabsUI.Instance.RefreshDimension1ButtonVisibility();
+                TabsUI.Instance.ShowGeneracion();
+                TabsUI.Instance.RefreshGenerationLayoutFromOutside();
             }
 
             Debug.Log("[SaveService] DEBUG: Reset completo aplicado en memoria.");

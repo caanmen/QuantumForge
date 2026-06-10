@@ -11,8 +11,6 @@ public class HUD : MonoBehaviour
     public TextMeshProUGUI adpText;       // ADP
     public TextMeshProUGUI whfText;       // WHF
     public TextMeshProUGUI becText;       // BEC
-    public TextMeshProUGUI ipText;        // IP
-
     [Header("Rendimiento")]
     [SerializeField] private float uiRefreshInterval = 0.25f;
     private float _uiTimer;
@@ -39,16 +37,22 @@ public class HUD : MonoBehaviour
 
             double emxVisual = emBase * emGenFactor;
             double labFactor = gs.researchGlobalLEMult;
-
             leText.SetText(
-                "LE: {0:0}  (LE/s: {1:0.00}  EMx: {2:0.00}  Labx: {3:0.00})",
-                (float)gs.LE, (float)leps, (float)emxVisual, (float)labFactor
+                "LE {0:0}\n+{1:0.00}/s",
+                (float)gs.LE, (float)leps
             );
         }
 
         // Trazas
         if (tracesText != null)
-            tracesText.text = "Trazas: " + gs.Traces.ToString("0.###");
+        {
+            double tracesPs = gs.CalculateTracesPs();
+            tracesText.SetText(
+                "TRAZAS {0:0}\n+{1:0.00}/s",
+                (float)gs.Traces,
+                (float)tracesPs
+            );  
+        }
 
         // VP
         if (vpText != null)
@@ -70,8 +74,5 @@ public class HUD : MonoBehaviour
         if (becText != null)
             becText.SetText("BEC: {0:0}", (float)gs.BEC);
 
-        // IP
-        if (ipText != null)
-            ipText.SetText("IP: {0:0}", (float)gs.IP);
     }
 }

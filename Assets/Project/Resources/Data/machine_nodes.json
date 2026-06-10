@@ -1,0 +1,1461 @@
+{
+  "nodes": [
+    {
+      "id": "z1_energy_coupling_1",
+      "name": "Acople Energético I",
+      "description": "Repara un acople básico de energía. Aumenta levemente la producción de LE del Cuarto 1.",
+      "zone": 1,
+      "effectType": 1,
+      "effectValue": 0.06,
+      "cost": {
+        "le": 50000.0,
+        "traces": 50.0,
+        "hallazgo": 0,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "z1_energy_coupling",
+      "tierIndex": 1
+    },
+    {
+      "id": "z1_energy_coupling_2",
+      "name": "Acople Energético II",
+      "description": "Refuerza el acople energético. Aumenta la mejora total de LE del Cuarto 1.",
+      "zone": 1,
+      "effectType": 1,
+      "effectValue": 0.04,
+      "cost": {
+        "le": 120000.0,
+        "traces": 110.0,
+        "hallazgo": 0,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z1_energy_coupling_1"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "z1_energy_coupling",
+      "tierIndex": 2
+    },
+    {
+      "id": "z1_energy_coupling_3",
+      "name": "Acople Energético III",
+      "description": "Completa la primera línea de acople energético. Mejora la producción total de LE del Cuarto 1.",
+      "zone": 1,
+      "effectType": 1,
+      "effectValue": 0.05,
+      "cost": {
+        "le": 260000.0,
+        "traces": 220.0,
+        "hallazgo": 0,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z1_energy_coupling_2"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "z1_energy_coupling",
+      "tierIndex": 3
+    },
+    {
+      "id": "z1_traces_channel_1",
+      "name": "Canal de Trazas I",
+      "description": "Repara un canal residual. Aumenta levemente la generación de Trazas.",
+      "zone": 1,
+      "effectType": 2,
+      "effectValue": 0.06,
+      "cost": {
+        "le": 65000.0,
+        "traces": 70.0,
+        "hallazgo": 0,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "z1_traces_channel",
+      "tierIndex": 1
+    },
+    {
+      "id": "z1_traces_channel_2",
+      "name": "Canal de Trazas II",
+      "description": "Canal dañado. Requiere material experimental para estabilizar la generación de Trazas.",
+      "zone": 1,
+      "effectType": 2,
+      "effectValue": 0.04,
+      "cost": {
+        "le": 150000.0,
+        "traces": 140.0,
+        "hallazgo": 1,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z1_traces_channel_1"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "z1_traces_channel",
+      "tierIndex": 2
+    },
+    {
+      "id": "z1_traces_channel_3",
+      "name": "Canal de Trazas III",
+      "description": "Completa la línea inicial de canales residuales. Mejora la producción total de Trazas.",
+      "zone": 1,
+      "effectType": 2,
+      "effectValue": 0.05,
+      "cost": {
+        "le": 300000.0,
+        "traces": 280.0,
+        "hallazgo": 0,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z1_traces_channel_2"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "z1_traces_channel",
+      "tierIndex": 3
+    },
+    {
+      "id": "z1_protocol_reading",
+      "name": "Lectura de Protocolo",
+      "description": "Nodo dañado. Permite que la Máquina lea mejor el protocolo activo del Triángulo.",
+      "zone": 1,
+      "effectType": 3,
+      "effectValue": 0.08,
+      "cost": {
+        "le": 220000.0,
+        "traces": 200.0,
+        "hallazgo": 1,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z1_energy_coupling_2",
+        "z1_traces_channel_2"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z1_triangle_anchor_1",
+      "name": "Anclaje del Triángulo I",
+      "description": "Refuerza la conexión entre la Máquina y el Triángulo.",
+      "zone": 1,
+      "effectType": 3,
+      "effectValue": 0.04,
+      "cost": {
+        "le": 180000.0,
+        "traces": 180.0,
+        "hallazgo": 0,
+        "muestra": 0,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z1_protocol_reading"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "z1_triangle_anchor",
+      "tierIndex": 1
+    },
+    {
+      "id": "z1_triangle_anchor_2",
+      "name": "Anclaje del Triángulo II",
+      "description": "Mejora la estabilidad del enlace entre la Máquina y el Triángulo.",
+      "zone": 1,
+      "effectType": 3,
+      "effectValue": 0.04,
+      "cost": {
+        "le": 360000.0,
+        "traces": 340.0,
+        "hallazgo": 1,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z1_triangle_anchor_1"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "z1_triangle_anchor",
+      "tierIndex": 2
+    },
+    {
+      "id": "z1_triangle_anchor_3",
+      "name": "Anclaje del Triángulo III",
+      "description": "Completa el anclaje inicial del Triángulo dentro de la Máquina.",
+      "zone": 1,
+      "effectType": 3,
+      "effectValue": 0.04,
+      "cost": {
+        "le": 650000.0,
+        "traces": 600.0,
+        "hallazgo": 0,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 1
+      },
+      "requiredNodeIds": [
+        "z1_triangle_anchor_2"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "z1_triangle_anchor",
+      "tierIndex": 3
+    },
+    {
+      "id": "z1_artifact_calibration",
+      "name": "Calibración de Artefactos",
+      "description": "Nodo dañado. Recalibra la lectura de los artefactos principales del Cuarto 1.",
+      "zone": 1,
+      "effectType": 4,
+      "effectValue": 0.1,
+      "cost": {
+        "le": 420000.0,
+        "traces": 400.0,
+        "hallazgo": 0,
+        "muestra": 1,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z1_energy_coupling_3",
+        "z1_traces_channel_3"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z1_flow_distributor",
+      "name": "Distribuidor de Flujo",
+      "description": "Redistribuye energía y trazas entre los sistemas principales del Cuarto 1.",
+      "zone": 1,
+      "effectType": 5,
+      "effectValue": 0.08,
+      "cost": {
+        "le": 800000.0,
+        "traces": 750.0,
+        "hallazgo": 0,
+        "muestra": 1,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z1_artifact_calibration",
+        "z1_triangle_anchor_2"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z1_room1_synchronizer",
+      "name": "Sincronizador del Cuarto 1",
+      "description": "Nodo severamente dañado. Sincroniza los principales sistemas del Cuarto 1 con la Máquina.",
+      "zone": 1,
+      "effectType": 5,
+      "effectValue": 0.18,
+      "cost": {
+        "le": 1500000.0,
+        "traces": 1400.0,
+        "hallazgo": 1,
+        "muestra": 1,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 1
+      },
+      "requiredNodeIds": [
+        "z1_flow_distributor",
+        "z1_triangle_anchor_3"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z1_hidden_energy_echo",
+      "name": "Eco Energético",
+      "description": "Subnodo oculto. Aumenta levemente la producción de LE.",
+      "zone": 1,
+      "effectType": 1,
+      "effectValue": 0.04,
+      "cost": {
+        "le": 260000.0,
+        "traces": 220.0,
+        "hallazgo": 1,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z3_auxiliary_conduits",
+        "z1_energy_coupling_2"
+      ],
+      "hidden": true,
+      "damaged": false,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z1_hidden_residual_adjustment",
+      "name": "Ajuste Residual",
+      "description": "Subnodo oculto. Aumenta levemente la generación de Trazas.",
+      "zone": 1,
+      "effectType": 2,
+      "effectValue": 0.04,
+      "cost": {
+        "le": 280000.0,
+        "traces": 240.0,
+        "hallazgo": 0,
+        "muestra": 1,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z3_auxiliary_conduits",
+        "z1_traces_channel_2"
+      ],
+      "hidden": true,
+      "damaged": false,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z2_fusion_table",
+      "name": "Mesa de Fusión",
+      "description": "Desbloquea la primera ranura base de fusión.",
+      "zone": 2,
+      "effectType": 20,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 60000.0,
+        "traces": 60.0,
+        "hallazgo": 0,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z2_fusion_slot_2",
+      "name": "Ranura de Fusión II",
+      "description": "Permite mantener 2 fusiones paralelas.",
+      "zone": 2,
+      "effectType": 20,
+      "effectValue": 2.0,
+      "cost": {
+        "le": 90000.0,
+        "traces": 90.0,
+        "hallazgo": 0,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z2_fusion_table"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z2_mix_stabilizer_1",
+      "name": "Estabilizador de Mezcla I",
+      "description": "Reduce el riesgo de fallo de las fusiones.",
+      "zone": 2,
+      "effectType": 21,
+      "effectValue": 0.05,
+      "cost": {
+        "le": 120000.0,
+        "traces": 120.0,
+        "hallazgo": 0,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z2_fusion_slot_2"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "z2_mix_stabilizer",
+      "tierIndex": 1
+    },
+    {
+      "id": "z2_mix_stabilizer_2",
+      "name": "Estabilizador de Mezcla II",
+      "description": "Mejora la reducción total del riesgo de fallo.",
+      "zone": 2,
+      "effectType": 21,
+      "effectValue": 0.04,
+      "cost": {
+        "le": 230000.0,
+        "traces": 220.0,
+        "hallazgo": 1,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z2_mix_stabilizer_1"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "z2_mix_stabilizer",
+      "tierIndex": 2
+    },
+    {
+      "id": "z2_mix_stabilizer_3",
+      "name": "Estabilizador de Mezcla III",
+      "description": "Completa la línea inicial de estabilización de mezcla.",
+      "zone": 2,
+      "effectType": 21,
+      "effectValue": 0.03,
+      "cost": {
+        "le": 420000.0,
+        "traces": 380.0,
+        "hallazgo": 0,
+        "muestra": 1,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z2_mix_stabilizer_2"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "z2_mix_stabilizer",
+      "tierIndex": 3
+    },
+    {
+      "id": "z2_composition_reading",
+      "name": "Lectura de Composición",
+      "description": "Muestra riesgo estimado y resultado probable solo si la receta ya fue descubierta.",
+      "zone": 2,
+      "effectType": 24,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 180000.0,
+        "traces": 170.0,
+        "hallazgo": 0,
+        "muestra": 0,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z2_mix_stabilizer_1"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z2_fusion_slot_3",
+      "name": "Ranura de Fusión III",
+      "description": "Permite mantener 3 fusiones paralelas.",
+      "zone": 2,
+      "effectType": 20,
+      "effectValue": 3.0,
+      "cost": {
+        "le": 650000.0,
+        "traces": 600.0,
+        "hallazgo": 1,
+        "muestra": 1,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z2_composition_reading"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z2_residual_catalyst_1",
+      "name": "Catalizador Residual I",
+      "description": "Aumenta la probabilidad de obtener un resultado útil.",
+      "zone": 2,
+      "effectType": 22,
+      "effectValue": 0.04,
+      "cost": {
+        "le": 260000.0,
+        "traces": 240.0,
+        "hallazgo": 1,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z2_composition_reading"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "z2_residual_catalyst",
+      "tierIndex": 1
+    },
+    {
+      "id": "z2_residual_catalyst_2",
+      "name": "Catalizador Residual II",
+      "description": "Mejora la probabilidad total de resultado útil.",
+      "zone": 2,
+      "effectType": 22,
+      "effectValue": 0.03,
+      "cost": {
+        "le": 480000.0,
+        "traces": 430.0,
+        "hallazgo": 0,
+        "muestra": 1,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z2_residual_catalyst_1"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "z2_residual_catalyst",
+      "tierIndex": 2
+    },
+    {
+      "id": "z2_residual_catalyst_3",
+      "name": "Catalizador Residual III",
+      "description": "Completa la línea de catalizador residual.",
+      "zone": 2,
+      "effectType": 22,
+      "effectValue": 0.03,
+      "cost": {
+        "le": 850000.0,
+        "traces": 780.0,
+        "hallazgo": 0,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 1
+      },
+      "requiredNodeIds": [
+        "z2_residual_catalyst_2"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "z2_residual_catalyst",
+      "tierIndex": 3
+    },
+    {
+      "id": "z2_fusion_time_control_1",
+      "name": "Control de Flujo de Fusión I",
+      "description": "Reduce la duración necesaria para completar fusiones.",
+      "zone": 2,
+      "effectType": 23,
+      "effectValue": 0.05,
+      "cost": {
+        "le": 300000.0,
+        "traces": 280.0,
+        "hallazgo": 0,
+        "muestra": 0,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z2_composition_reading"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "z2_fusion_time_control",
+      "tierIndex": 1
+    },
+    {
+      "id": "z2_fusion_time_control_2",
+      "name": "Control de Flujo de Fusión II",
+      "description": "Mejora la reducción total de la duracion de fusión.",
+      "zone": 2,
+      "effectType": 23,
+      "effectValue": 0.05,
+      "cost": {
+        "le": 520000.0,
+        "traces": 500.0,
+        "hallazgo": 1,
+        "muestra": 0,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z2_fusion_time_control_1"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "z2_fusion_time_control",
+      "tierIndex": 2
+    },
+    {
+      "id": "z2_fusion_time_control_3",
+      "name": "Control de Flujo de Fusión III",
+      "description": "Completa la línea de control de flujo de fusión.",
+      "zone": 2,
+      "effectType": 23,
+      "effectValue": 0.05,
+      "cost": {
+        "le": 920000.0,
+        "traces": 850.0,
+        "hallazgo": 0,
+        "muestra": 1,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 1
+      },
+      "requiredNodeIds": [
+        "z2_fusion_time_control_2"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "z2_fusion_time_control",
+      "tierIndex": 3
+    },
+    {
+      "id": "z2_catalyst_tuning",
+      "name": "Afinación de Catalizadores",
+      "description": "Alpha obtiene +5% al resultado principal. Beta reduce -5% el fallo.",
+      "zone": 2,
+      "effectType": 25,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 780000.0,
+        "traces": 720.0,
+        "hallazgo": 1,
+        "muestra": 1,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z2_residual_catalyst_2",
+        "z2_fusion_time_control_2"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z2_stable_reaction_chamber",
+      "name": "Cámara de Reacción Estable",
+      "description": "Reduce fallos fuertes y convierte parte de ellos en resultado menor aprovechable.",
+      "zone": 2,
+      "effectType": 26,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 1150000.0,
+        "traces": 1050.0,
+        "hallazgo": 1,
+        "muestra": 1,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z2_mix_stabilizer_3"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z2_guided_synthesis",
+      "name": "Síntesis Guiada",
+      "description": "Permite orientar ligeramente las fusiones hacia una intención conocida. Solo puede seleccionarse una intención a la vez.",
+      "zone": 2,
+      "effectType": 27,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 1400000.0,
+        "traces": 1300.0,
+        "hallazgo": 1,
+        "muestra": 1,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 1
+      },
+      "requiredNodeIds": [
+        "z2_stable_reaction_chamber",
+        "z2_catalyst_tuning"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z2_synthesis_core",
+      "name": "Núcleo de Síntesis",
+      "description": "Cada 10 fusiones, la siguiente obtiene menos fallo y más resultado útil.",
+      "zone": 2,
+      "effectType": 28,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 2000000.0,
+        "traces": 1800.0,
+        "hallazgo": 2,
+        "muestra": 1,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 1
+      },
+      "requiredNodeIds": [
+        "z2_guided_synthesis",
+        "z2_fusion_slot_3"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z2_hidden_catalyst_filter",
+      "name": "Filtro de Catalizador",
+      "description": "Subnodo oculto: aumenta levemente la probabilidad de resultado útil.",
+      "zone": 2,
+      "effectType": 22,
+      "effectValue": 0.03,
+      "cost": {
+        "le": 500000.0,
+        "traces": 450.0,
+        "hallazgo": 1,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z3_auxiliary_conduits",
+        "z2_composition_reading"
+      ],
+      "hidden": true,
+      "damaged": false,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z2_hidden_chamber_cooling",
+      "name": "Enfriamiento de Cámara",
+      "description": "Subnodo oculto: reduce levemente la duración de fusión.",
+      "zone": 2,
+      "effectType": 23,
+      "effectValue": 0.03,
+      "cost": {
+        "le": 500000.0,
+        "traces": 450.0,
+        "hallazgo": 0,
+        "muestra": 1,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z3_auxiliary_conduits",
+        "z2_composition_reading"
+      ],
+      "hidden": true,
+      "damaged": false,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z3_internal_diagnostics",
+      "name": "Diagnóstico Interno",
+      "description": "Permite analizar nodos dañados para revelar sus requisitos de reparación y muestra una recomendación básica de avance.",
+      "zone": 3,
+      "effectType": 40,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 75000.0,
+        "traces": 75.0,
+        "hallazgo": 0,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z3_auxiliary_conduits",
+      "name": "Conductos Auxiliares",
+      "description": "Revela conductos secundarios ocultos en cada zona de la Máquina.",
+      "zone": 3,
+      "effectType": 41,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 180000.0,
+        "traces": 160.0,
+        "hallazgo": 1,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z3_internal_diagnostics"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z3_compensation_circuit",
+      "name": "Circuito de Compensación",
+      "description": "Prepara una ayuda para la zona menos reparada: reduce parte de sus costes. No afecta nodos finales.",
+      "zone": 3,
+      "effectType": 42,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 320000.0,
+        "traces": 300.0,
+        "hallazgo": 0,
+        "muestra": 1,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z3_internal_diagnostics"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z3_machine_memory",
+      "name": "Memoria de Máquina",
+      "description": "Desbloquea memorias internas relacionadas con los científicos, la máquina y el accidente.",
+      "zone": 3,
+      "effectType": 43,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 420000.0,
+        "traces": 380.0,
+        "hallazgo": 0,
+        "muestra": 0,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z3_auxiliary_conduits"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z3_sync_core",
+      "name": "Núcleo de Sincronización",
+      "description": "Cada zona gana una mejora según su propio avance: 25% = +2%, 50% = +4%, 75% = +6%, 100% = +8%.",
+      "zone": 3,
+      "effectType": 44,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 700000.0,
+        "traces": 650.0,
+        "hallazgo": 1,
+        "muestra": 1,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z3_compensation_circuit"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z3_structural_reinforcement",
+      "name": "Refuerzo Estructural",
+      "description": "Otorga soporte interno según los nodos reparados totales: 10 nodos = +2%, 20 = +4%, 30 = +6%.",
+      "zone": 3,
+      "effectType": 45,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 950000.0,
+        "traces": 850.0,
+        "hallazgo": 0,
+        "muestra": 1,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z3_machine_memory",
+        "z3_sync_core"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z3_convergence_channel",
+      "name": "Canal de Convergencia",
+      "description": "Habilita el aviso de Prestigio 1 y prepara la apertura dimensional. No requiere materiales dimensionales por ahora.",
+      "zone": 3,
+      "effectType": 46,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 1500000.0,
+        "traces": 1400.0,
+        "hallazgo": 1,
+        "muestra": 1,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 1
+      },
+      "requiredNodeIds": [
+        "z3_structural_reinforcement"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z3_hidden_failure_marker",
+      "name": "Marcador de Fallas",
+      "description": "Subnodo oculto. Permite que el diagnóstico explique por qué recomienda un nodo.",
+      "zone": 3,
+      "effectType": 47,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 360000.0,
+        "traces": 320.0,
+        "hallazgo": 0,
+        "muestra": 0,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z3_auxiliary_conduits",
+        "z3_internal_diagnostics"
+      ],
+      "hidden": true,
+      "damaged": false,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z3_hidden_secondary_conduit",
+      "name": "Conducto Secundario",
+      "description": "Subnodo oculto. Aumenta levemente el soporte interno de la Máquina.",
+      "zone": 3,
+      "effectType": 48,
+      "effectValue": 0.01,
+      "cost": {
+        "le": 380000.0,
+        "traces": 340.0,
+        "hallazgo": 0,
+        "muestra": 1,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z3_auxiliary_conduits"
+      ],
+      "hidden": true,
+      "damaged": false,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z4_basic_chamber",
+      "name": "Cámara Básica",
+      "description": "Desbloquea Semillas Dimensionales, Anclajes, Archivo y Fijación básica.",
+      "zone": 4,
+      "effectType": 60,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 250000.0,
+        "traces": 300.0,
+        "hallazgo": 1,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z4_seed_reading_1",
+      "name": "Lectura de Maduración I",
+      "description": "Mejora la lectura del estado de maduración de Semillas Dimensionales.",
+      "zone": 4,
+      "effectType": 61,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 320000.0,
+        "traces": 350.0,
+        "hallazgo": 0,
+        "muestra": 0,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z4_basic_chamber"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "z4_seed_reading",
+      "tierIndex": 1
+    },
+    {
+      "id": "z4_archive_expansion_1",
+      "name": "Archivo Expandido I",
+      "description": "Aumenta el Archivo de 30 a 40 espacios.",
+      "zone": 4,
+      "effectType": 62,
+      "effectValue": 10.0,
+      "cost": {
+        "le": 360000.0,
+        "traces": 380.0,
+        "hallazgo": 0,
+        "muestra": 1,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z4_basic_chamber"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "z4_archive_expansion",
+      "tierIndex": 1
+    },
+    {
+      "id": "z4_initial_stability_1",
+      "name": "Estabilización Inicial I",
+      "description": "Los Anclajes nacen con +4% estabilidad inicial.",
+      "zone": 4,
+      "effectType": 63,
+      "effectValue": 0.04,
+      "cost": {
+        "le": 420000.0,
+        "traces": 430.0,
+        "hallazgo": 1,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z4_basic_chamber"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "z4_initial_stability",
+      "tierIndex": 1
+    },
+    {
+      "id": "z4_controlled_sync_1",
+      "name": "Sincronía Controlada I",
+      "description": "La estabilización gana 1 punto extra de estabilidad.",
+      "zone": 4,
+      "effectType": 64,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 520000.0,
+        "traces": 500.0,
+        "hallazgo": 0,
+        "muestra": 1,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z4_initial_stability_1"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "z4_controlled_sync",
+      "tierIndex": 1
+    },
+    {
+      "id": "z4_tuned_containment_1",
+      "name": "Contención Afinada I",
+      "description": "La estabilización genera 1 punto menos de tensión.",
+      "zone": 4,
+      "effectType": 65,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 540000.0,
+        "traces": 520.0,
+        "hallazgo": 0,
+        "muestra": 0,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z4_initial_stability_1"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "z4_tuned_containment",
+      "tierIndex": 1
+    },
+    {
+      "id": "z4_safe_rewind_1",
+      "name": "Compensación Segura I",
+      "description": "Compensar pierde menos estabilidad.",
+      "zone": 4,
+      "effectType": 66,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 600000.0,
+        "traces": 560.0,
+        "hallazgo": 1,
+        "muestra": 0,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z4_tuned_containment_1"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "z4_safe_rewind",
+      "tierIndex": 1
+    },
+    {
+      "id": "z4_seed_slot_3",
+      "name": "Slot de Semilla Dimensional III",
+      "description": "Desbloquea el tercer slot de Semilla Dimensional.",
+      "zone": 4,
+      "effectType": 67,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 750000.0,
+        "traces": 700.0,
+        "hallazgo": 1,
+        "muestra": 1,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z4_seed_reading_1"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z4_archive_expansion_2",
+      "name": "Archivo Expandido II",
+      "description": "Aumenta el Archivo de 40 a 50 espacios.",
+      "zone": 4,
+      "effectType": 62,
+      "effectValue": 10.0,
+      "cost": {
+        "le": 520000.0,
+        "traces": 500.0,
+        "hallazgo": 0,
+        "muestra": 1,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 0,
+        "stableInstant": 1
+      },
+      "requiredNodeIds": [
+        "z4_archive_expansion_1"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "z4_archive_expansion",
+      "tierIndex": 2
+    },
+    {
+      "id": "z4_initial_stability_2",
+      "name": "Estabilización Inicial II",
+      "description": "Los Anclajes nacen con +8% estabilidad inicial total.",
+      "zone": 4,
+      "effectType": 63,
+      "effectValue": 0.04,
+      "cost": {
+        "le": 900000.0,
+        "traces": 850.0,
+        "hallazgo": 1,
+        "muestra": 1,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z4_initial_stability_1"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "z4_initial_stability",
+      "tierIndex": 2
+    },
+    {
+      "id": "z4_seed_reading_2",
+      "name": "Lectura de Maduración II",
+      "description": "Permite una lectura más precisa del punto de maduración.",
+      "zone": 4,
+      "effectType": 61,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 950000.0,
+        "traces": 900.0,
+        "hallazgo": 1,
+        "muestra": 0,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z4_seed_reading_1"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "z4_seed_reading",
+      "tierIndex": 2
+    },
+    {
+      "id": "z4_pure_materialization_1",
+      "name": "Fijación Pura I",
+      "description": "El umbral para Anclaje puro baja de 70% a 68%.",
+      "zone": 4,
+      "effectType": 68,
+      "effectValue": 0.02,
+      "cost": {
+        "le": 1050000.0,
+        "traces": 980.0,
+        "hallazgo": 1,
+        "muestra": 1,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z4_initial_stability_2"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "z4_pure_materialization",
+      "tierIndex": 1
+    },
+    {
+      "id": "z4_controlled_sync_2",
+      "name": "Sincronía Controlada II",
+      "description": "La estabilización gana 1 punto extra de estabilidad adicional.",
+      "zone": 4,
+      "effectType": 64,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 1100000.0,
+        "traces": 1000.0,
+        "hallazgo": 1,
+        "muestra": 1,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z4_controlled_sync_1"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "z4_controlled_sync",
+      "tierIndex": 2
+    },
+    {
+      "id": "z4_tuned_containment_2",
+      "name": "Contención Afinada II",
+      "description": "La estabilización genera 1 punto menos de tensión adicional.",
+      "zone": 4,
+      "effectType": 65,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 1120000.0,
+        "traces": 1050.0,
+        "hallazgo": 0,
+        "muestra": 1,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z4_tuned_containment_1"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "z4_tuned_containment",
+      "tierIndex": 2
+    },
+    {
+      "id": "z4_safe_rewind_2",
+      "name": "Compensación Seguro II",
+      "description": "Compensar pierde 1 punto menos de estabilidad adicional.",
+      "zone": 4,
+      "effectType": 66,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 1200000.0,
+        "traces": 1120.0,
+        "hallazgo": 1,
+        "muestra": 1,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z4_safe_rewind_1"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "z4_safe_rewind",
+      "tierIndex": 2
+    },
+    {
+      "id": "z4_seed_slot_4",
+      "name": "Slot de Semilla IV",
+      "description": "Desbloquea el cuarto slot de Semilla Dimensional.",
+      "zone": 4,
+      "effectType": 67,
+      "effectValue": 1.0,
+      "cost": {
+        "le": 1500000.0,
+        "traces": 1400.0,
+        "hallazgo": 1,
+        "muestra": 1,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 1
+      },
+      "requiredNodeIds": [
+        "z4_seed_slot_3"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z4_archive_expansion_3",
+      "name": "Archivo Expandido III",
+      "description": "Aumenta el Archivo de 50 a 65 espacios.",
+      "zone": 4,
+      "effectType": 62,
+      "effectValue": 15.0,
+      "cost": {
+        "le": 1550000.0,
+        "traces": 1450.0,
+        "hallazgo": 1,
+        "muestra": 1,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 0,
+        "forcedInstant": 1
+      },
+      "requiredNodeIds": [
+        "z4_archive_expansion_2"
+      ],
+      "hidden": false,
+      "damaged": false,
+      "tierGroup": "z4_archive_expansion",
+      "tierIndex": 3
+    },
+    {
+      "id": "z4_pure_materialization_2",
+      "name": "Fijación Pura II",
+      "description": "El umbral para Anclaje puro baja de 68% a 65%.",
+      "zone": 4,
+      "effectType": 68,
+      "effectValue": 0.03,
+      "cost": {
+        "le": 1800000.0,
+        "traces": 1650.0,
+        "hallazgo": 2,
+        "muestra": 1,
+        "lecturaIncompleta": 1,
+        "compuestoUtil": 1
+      },
+      "requiredNodeIds": [
+        "z4_pure_materialization_1"
+      ],
+      "hidden": false,
+      "damaged": true,
+      "tierGroup": "z4_pure_materialization",
+      "tierIndex": 2
+    },
+    {
+      "id": "z4_hidden_minor_chronal_pulse",
+      "name": "Pulso Dimensional Menor",
+      "description": "Subnodo oculto: los Anclajes nacen con +3% estabilidad inicial.",
+      "zone": 4,
+      "effectType": 63,
+      "effectValue": 0.03,
+      "cost": {
+        "le": 700000.0,
+        "traces": 650.0,
+        "hallazgo": 1,
+        "muestra": 0,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0
+      },
+      "requiredNodeIds": [
+        "z3_auxiliary_conduits",
+        "z4_basic_chamber"
+      ],
+      "hidden": true,
+      "damaged": false,
+      "tierGroup": "",
+      "tierIndex": 0
+    },
+    {
+      "id": "z4_hidden_resonant_archive",
+      "name": "Archivo Resonante",
+      "description": "Subnodo oculto: aumenta el Archivo en 5 espacios.",
+      "zone": 4,
+      "effectType": 62,
+      "effectValue": 5.0,
+      "cost": {
+        "le": 700000.0,
+        "traces": 650.0,
+        "hallazgo": 0,
+        "muestra": 1,
+        "lecturaIncompleta": 0,
+        "compuestoUtil": 0,
+        "pureInstant": 1
+      },
+      "requiredNodeIds": [
+        "z3_auxiliary_conduits",
+        "z4_basic_chamber"
+      ],
+      "hidden": true,
+      "damaged": false,
+      "tierGroup": "",
+      "tierIndex": 0
+    }
+  ]
+}

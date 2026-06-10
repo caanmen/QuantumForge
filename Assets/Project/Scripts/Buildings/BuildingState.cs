@@ -13,6 +13,17 @@ public class BuildingState
 
     // ⏱ F8: timer acumulado para los ticks de este edificio
     public float tickTimer = 0f;
+     
+     
+    private int GetMaxLevel()
+        {
+            if (def == null) return int.MaxValue;
+
+            if (def.id == "fluctuation_antenna")
+                return 1;
+
+            return int.MaxValue;
+        }
 
     
 
@@ -26,6 +37,10 @@ public class BuildingState
 
         if (level < 0)
             level = 0;
+
+        int maxLevel = GetMaxLevel();
+        if (level > maxLevel)
+            level = maxLevel;
 
         // Si no hay coste inicial, recomputar desde baseCost
         if (currentCost <= 0.0)
@@ -54,6 +69,10 @@ public class BuildingState
     public bool CanAfford(double currentLE)
     {
         if (def == null) return false;
+                
+                if (level >= GetMaxLevel())
+                
+                return false;
 
         if (currentCost <= 0.0)
         {
@@ -67,6 +86,12 @@ public class BuildingState
         return currentLE >= currentCost;
     }
 
+        public bool IsAtMaxLevel()
+    {
+        if (def == null) return true;
+        return level >= GetMaxLevel();
+    }
+
     /// <summary>
     /// Llamado cuando se compra un nivel de este edificio.
     /// Actualiza nivel y coste siguiente.
@@ -74,6 +99,10 @@ public class BuildingState
     public void OnPurchased()
     {
         if (def == null) return;
+
+            if (level >= GetMaxLevel())
+            
+            return;
 
         if (currentCost <= 0.0)
         {

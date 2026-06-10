@@ -4,7 +4,7 @@
       "id": "em_stability_1",
       "name": "Estabilización EM I",
       "description": "Mejora la estabilidad de los campos EM, aumentando un 10% la producción global de LE.",
-      "costIP": 50.0,
+      "costTraces": 50.0,
       "prereqId": "",
       "effectType": 1,
       "effectValue": 0.10
@@ -13,8 +13,7 @@
       "id": "em_stability_2",
       "name": "Estabilización EM II",
       "description": "Optimiza el control de campo, sumando otro 10% a la producción global de LE.",
-      "costIP": 150.0,
-
+      "costTraces": 150.0,
       "prereqId": "em_stability_1",  
       "effectType": 1,                
       "effectValue": 0.10
@@ -23,7 +22,7 @@
       "id": "em_harvesting_1",
       "name": "Cosecha EM I",
       "description": "Aumenta en un 25% la generación de EM.",
-      "costIP": 120.0,
+      "costTraces": 120.0,
       "prereqId": "",
       "effectType": 2,
       "effectValue": 0.15
@@ -32,7 +31,7 @@
       "id": "em_harvesting_2",
       "name": "Cosecha EM II",
       "description": "Aumenta en un 25% adicional la generación de EM.",
-      "costIP": 300.0,
+      "costTraces": 300.0,
       "prereqId": "em_harvesting_1",
       "effectType": 2,
       "effectValue": 0.25
@@ -41,7 +40,7 @@
       "id": "em_stability_3",
       "name": "Estabilización EM III",
       "description": "Lleva al límite la estabilidad de los campos EM, añadiendo un 15% extra a la producción global de LE.",
-      "costIP": 400.0,
+      "costTraces": 400.0,
       "prereqId": "em_stability_2",
       "effectType": 1,
       "effectValue": 0.15
@@ -50,7 +49,7 @@
       "id": "em_harvesting_3",
       "name": "Cosecha EM III",
       "description": "La red de colectores EM se optimiza al máximo, aumentando en un 40% adicional la generación de EM.",
-      "costIP": 600.0,
+      "costTraces": 600.0,
       "prereqId": "em_harvesting_2",
       "effectType": 2,
       "effectValue": 0.40
