@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class Dimension1PanelUI : MonoBehaviour
@@ -24,6 +25,9 @@ public class Dimension1PanelUI : MonoBehaviour
     [Header("Hangar")]
     [SerializeField] private Button unlockExtractorDroneButton;
     [SerializeField] private Button unlockAnalyticProbeButton;
+
+    [FormerlySerializedAs("unlockCargoShipButton")]
+    [SerializeField] private Button unlockCargoShipButton;
     [SerializeField] private Button upgradeLightProbeSpeed1Button;
     [SerializeField] private Button upgradeExtractorDroneCargo1Button;
     [SerializeField] private Button upgradeAnalyticProbeSensors1Button;
@@ -85,6 +89,8 @@ public class Dimension1PanelUI : MonoBehaviour
             BuildScannerText(gs) +
             "\n\n" +
             BuildSelectedDestinationText(gs) +
+            "\n\n" +
+            BuildLastExplorationText(gs) +
             "\n\n" +
             BuildBlueprintArchiveText(gs) +
             "\n\n" +
@@ -267,6 +273,68 @@ public class Dimension1PanelUI : MonoBehaviour
             selectedShipName +
             "\nBonus de nave: " +
             GetShipBonusPreview(selectedShip);
+    }
+
+    private string BuildLastExplorationText(GameState gs)
+    {
+        if (gs == null)
+            return "Última exploración:\nNo disponible.";
+
+        if (string.IsNullOrEmpty(gs.dimension1LastExplorationDestinationId))
+            return "Última exploración:\nSin exploraciones completadas.";
+
+        string text =
+            "Última exploración:\n" +
+            "Destino: " +
+            GetDestinationVisualName(gs.dimension1LastExplorationDestinationId);
+
+        if (gs.dimension1LastExplorationRewards == null || gs.dimension1LastExplorationRewards.Count == 0)
+        {
+            text += "\nMetales obtenidos: ninguno";
+            return text;
+        }
+
+        text += "\nMetales obtenidos: ";
+
+        bool hasAnyReward = false;
+
+        foreach (D1MetalAmount reward in gs.dimension1LastExplorationRewards)
+        {
+            if (reward == null)
+                continue;
+
+            if (string.IsNullOrEmpty(reward.metalId))
+                continue;
+
+            if (reward.amount <= 0.0)
+                continue;
+
+            if (hasAnyReward)
+                text += " / ";
+
+            text +=
+                reward.amount.ToString("0.0") +
+                " " +
+                GetMetalVisualName(reward.metalId);
+
+            hasAnyReward = true;
+        }
+
+        if (!hasAnyReward)
+            text += "ninguno";
+
+        if (gs.dimension1LastExplorationBlueprintFragments > 0)
+        {
+            text +=
+                "\nFragmentos de blueprint: +" +
+                gs.dimension1LastExplorationBlueprintFragments;
+        }
+        else
+        {
+            text += "\nFragmentos de blueprint: +0";
+        }
+
+        return text;
     }
 
     private void RefreshDestinationDropdown(GameState gs)
@@ -528,6 +596,10 @@ public class Dimension1PanelUI : MonoBehaviour
 
             case Dimension1System.ShipAnalyticProbe:
                 return "Sonda Analítica";
+
+            case Dimension1System.ShipCargoShip:
+                return "Nave de Carga";  
+
             default:
                 return shipId;
         }
@@ -541,18 +613,36 @@ public class Dimension1PanelUI : MonoBehaviour
         switch (ship.shipId)
         {
             case Dimension1System.ShipExtractorDrone:
+                if (ship.cargoLevel >= 6)
+                    return "Carga VI: x2.00 metales de exploración";
+
+                if (ship.cargoLevel >= 5)
+                    return "Carga V: x1.80 metales de exploración";
+
+                if (ship.cargoLevel >= 4)
+                    return "Carga IV: x1.65 metales de exploración";
+
                 if (ship.cargoLevel >= 3)
-                    return "Carga III: +50% metales de exploración";
+                    return "Carga III: x1.50 metales de exploración";
 
                 if (ship.cargoLevel >= 2)
-                    return "Carga II: +40% metales de exploración";
+                    return "Carga II: x1.40 metales de exploración";
 
                 if (ship.cargoLevel >= 1)
-                    return "Carga I: +30% metales de exploración";
+                    return "Carga I: x1.30 metales de exploración";
 
-                return "+20% metales de exploración";
+                return "Carga base: x1.20 metales de exploración";
 
             case Dimension1System.ShipAnalyticProbe:
+                if (ship.sensorsLevel >= 6)
+                    return "Sensores VI: 3 destinos y barrido 2.1s";
+
+                if (ship.sensorsLevel >= 5)
+                    return "Sensores V: 3 destinos y barrido 2.4s";
+
+                if (ship.sensorsLevel >= 4)
+                    return "Sensores IV: 3 destinos y barrido 2.7s";
+
                 if (ship.sensorsLevel >= 3)
                     return "Sensores III: 3 destinos y barrido 3.0s";
 
@@ -562,19 +652,31 @@ public class Dimension1PanelUI : MonoBehaviour
                 if (ship.sensorsLevel >= 1)
                     return "Sensores I: 3 destinos y barrido 4.0s";
 
-                return "Mejora escaneo: detecta 3 destinos";
+                return "Sensores base: detecta 3 destinos";
 
             case Dimension1System.ShipLightProbe:
+                if (ship.speedLevel >= 6)
+                    return "Velocidad VI: exploración x0.58 tiempo";
+
+                if (ship.speedLevel >= 5)
+                    return "Velocidad V: exploración x0.64 tiempo";
+
+                if (ship.speedLevel >= 4)
+                    return "Velocidad IV: exploración x0.70 tiempo";
+
                 if (ship.speedLevel >= 3)
-                    return "Velocidad III: -24% duración de exploración";
+                    return "Velocidad III: exploración x0.76 tiempo";
 
                 if (ship.speedLevel >= 2)
-                    return "Velocidad II: -18% duración de exploración";
+                    return "Velocidad II: exploración x0.82 tiempo";
 
                 if (ship.speedLevel >= 1)
-                    return "Velocidad I: -10% duración de exploración";
+                    return "Velocidad I: exploración x0.90 tiempo";
 
-                return "Recompensa normal";
+                return "Velocidad base: exploración x1.00 tiempo";
+
+            case Dimension1System.ShipCargoShip:
+                return "Bodega Modular base: x1.10 metales de exploración";
 
             default:
                 return "Ninguno";
@@ -621,10 +723,19 @@ public class Dimension1PanelUI : MonoBehaviour
                 return "Cinturón Mineral";
 
             case Dimension1System.DestinationShipGraveyard:
-                return "Ship Graveyard";
+                return "Cementerio de Naves";
 
             case Dimension1System.DestinationAbandonedProbe:
                 return "Sonda Abandonada";
+
+            case Dimension1System.DestinationCrystalDebris:
+                return "Restos Cristalinos";    
+
+            case Dimension1System.DestinationOrbitalArmorWreckage:
+                return "Restos de Blindaje Orbital"; 
+
+            case Dimension1System.DestinationCollapsedReactor:
+                return "Reactor Colapsado";   
 
             default:
                 return destinationId;
@@ -654,6 +765,21 @@ public class Dimension1PanelUI : MonoBehaviour
                 AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalCopper);
                 AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalAluminum);
                 break;
+
+            case Dimension1System.DestinationCrystalDebris:
+                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalCopper);
+                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalAluminum);
+                break;    
+
+            case Dimension1System.DestinationOrbitalArmorWreckage:
+                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalTitanium);
+                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalNickel);
+                break;    
+
+            case Dimension1System.DestinationCollapsedReactor:
+                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalNickel);
+                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalCobalt);
+                break;
         }
 
         if (rewards.Count == 0)
@@ -677,7 +803,13 @@ public class Dimension1PanelUI : MonoBehaviour
         if (selectedShip != null &&
             selectedShip.shipId == Dimension1System.ShipLightProbe)
         {
-            if (selectedShip.speedLevel >= 3)
+            if (selectedShip.speedLevel >= 6)
+                duration *= 0.58;
+            else if (selectedShip.speedLevel >= 5)
+                duration *= 0.64;
+            else if (selectedShip.speedLevel >= 4)
+                duration *= 0.70;
+            else if (selectedShip.speedLevel >= 3)
                 duration *= 0.76;
             else if (selectedShip.speedLevel >= 2)
                 duration *= 0.82;
@@ -693,9 +825,8 @@ public class Dimension1PanelUI : MonoBehaviour
         if (gs == null)
             return "Archivo de Blueprints:\nNo disponible.";
 
-        int fragments = gs.dimension1BlueprintFragments;
-        int completedBlueprints = fragments / Dimension1System.BlueprintFragmentsPerBlueprint;
-        int currentProgress = fragments % Dimension1System.BlueprintFragmentsPerBlueprint;
+        int completedBlueprints = Dimension1System.GetCompletedBlueprintCount(gs);
+        int currentProgress = Dimension1System.GetBlueprintFragmentProgress(gs);
 
         string text =
             "Archivo de Blueprints:\n" +
@@ -703,16 +834,8 @@ public class Dimension1PanelUI : MonoBehaviour
             currentProgress +
             "/" +
             Dimension1System.BlueprintFragmentsPerBlueprint +
-            "\nBlueprints completos: " +
+            "\nBlueprints: " +
             completedBlueprints;
-
-        if (gs.dimension1LastExplorationBlueprintFragments > 0)
-        {
-            text +=
-                "\nÚltima exploración: +" +
-                gs.dimension1LastExplorationBlueprintFragments +
-                " fragmento(s)";
-        }
 
         return text;
     }
@@ -725,7 +848,9 @@ public class Dimension1PanelUI : MonoBehaviour
             "\n" +
             BuildShipLine(gs, Dimension1System.ShipExtractorDrone, "Dron Extractor") +
             "\n" +
-            BuildShipLine(gs, Dimension1System.ShipAnalyticProbe, "Sonda Analítica");
+            BuildShipLine(gs, Dimension1System.ShipAnalyticProbe, "Sonda Analítica")+
+            "\n" +
+            BuildShipLine(gs, Dimension1System.ShipCargoShip, "Nave de Carga");
     }
 
     private string BuildShipLine(GameState gs, string shipId, string visualName)
@@ -737,16 +862,137 @@ public class Dimension1PanelUI : MonoBehaviour
             return visualName + ": bloqueada";
         }
 
+        string upgradeText = BuildShipUpgradeLevelSummary(ship);
+
         if (ship.explorationActive)
         {
             return visualName +
-                ": desbloqueada | Estado: explorando " +
+                ": desbloqueada | " +
+                upgradeText +
+                " | Estado: explorando " +
                 GetDestinationVisualName(ship.activeDestinationId) +
                 " | Restante: " +
                 FormatSeconds(ship.explorationRemainingSeconds);
         }
 
-        return visualName + ": desbloqueada | Estado: disponible";
+        return visualName +
+            ": desbloqueada | " +
+            upgradeText +
+            " | Estado: disponible";
+    }
+
+    private string BuildShipUpgradeLevelSummary(D1ShipState ship)
+    {
+        if (ship == null)
+            return "Mejora: -";
+
+        switch (ship.shipId)
+        {
+            case Dimension1System.ShipLightProbe:
+                return
+                    "Velocidad: " +
+                    FormatShipUpgradeLevel(ship.speedLevel) +
+                    " | Exploración: x" +
+                    GetLightProbeSpeedMultiplierText(ship.speedLevel) +
+                    " tiempo";
+
+            case Dimension1System.ShipExtractorDrone:
+                return
+                    "Carga: " +
+                    FormatShipUpgradeLevel(ship.cargoLevel) +
+                    " | Metales: x" +
+                    GetExtractorDroneCargoMultiplierText(ship.cargoLevel);
+
+            case Dimension1System.ShipAnalyticProbe:
+                return
+                    "Sensores: " +
+                    FormatShipUpgradeLevel(ship.sensorsLevel) +
+                    " | Barrido: " +
+                    GetAnalyticProbeScanDurationText(ship.sensorsLevel);
+
+            case Dimension1System.ShipCargoShip:
+                return "Bodega Modular: Base | Metales: x1.10";      
+
+            default:
+                return "Mejora: -";
+        }
+    }
+
+    private string FormatShipUpgradeLevel(int level)
+    {
+        if (level <= 0)
+            return "Base";
+
+        return ToRomanNumber(level);
+    }
+
+    private string GetLightProbeSpeedMultiplierText(int level)
+    {
+        if (level >= 6)
+            return "0.58";
+
+        if (level >= 5)
+            return "0.64";
+
+        if (level >= 4)
+            return "0.70";
+
+        if (level >= 3)
+            return "0.76";
+
+        if (level >= 2)
+            return "0.82";
+
+        if (level >= 1)
+            return "0.90";
+
+        return "1.00";
+    }
+
+    private string GetExtractorDroneCargoMultiplierText(int level)
+    {
+        if (level >= 6)
+            return "2.00";
+
+        if (level >= 5)
+            return "1.80";
+
+        if (level >= 4)
+            return "1.65";
+
+        if (level >= 3)
+            return "1.50";
+
+        if (level >= 2)
+            return "1.40";
+
+        if (level >= 1)
+            return "1.30";
+
+        return "1.20";
+    }
+
+    private string GetAnalyticProbeScanDurationText(int level)
+    {
+        if (level >= 6)
+            return "2.1s";
+
+        if (level >= 5)
+            return "2.4s";
+
+        if (level >= 4)
+            return "2.7s";
+
+        if (level >= 3)
+            return "3.0s";
+
+        if (level >= 2)
+            return "3.5s";
+
+        if (level >= 1)
+            return "4.0s";
+
+        return "5.0s";
     }
 
     private string FormatSeconds(double seconds)
@@ -933,6 +1179,21 @@ public class Dimension1PanelUI : MonoBehaviour
         RefreshUI();
     }
 
+    public void OnClickUnlockCargoShip()
+    {
+        GameState gs = GameState.I;
+
+        if (gs == null)
+            return;
+
+        Dimension1System.TryUnlockShip(
+            gs,
+            Dimension1System.ShipCargoShip
+        );
+
+        RefreshUI();
+    }
+
     public void OnClickUpgradeLightProbeSpeed1()
     {
         GameState gs = GameState.I;
@@ -940,7 +1201,7 @@ public class Dimension1PanelUI : MonoBehaviour
         if (gs == null)
             return;
 
-        Dimension1System.TryUpgradeShipPart(
+        TryBuyAnyShipPartUpgrade(
             gs,
             Dimension1System.ShipLightProbe,
             Dimension1System.ShipPartSpeed
@@ -955,7 +1216,7 @@ public class Dimension1PanelUI : MonoBehaviour
         if (gs == null)
             return;
 
-        Dimension1System.TryUpgradeShipPart(
+        TryBuyAnyShipPartUpgrade(
             gs,
             Dimension1System.ShipExtractorDrone,
             Dimension1System.ShipPartCargo
@@ -970,7 +1231,7 @@ public class Dimension1PanelUI : MonoBehaviour
         if (gs == null)
             return;
 
-        Dimension1System.TryUpgradeShipPart(
+        TryBuyAnyShipPartUpgrade(
             gs,
             Dimension1System.ShipAnalyticProbe,
             Dimension1System.ShipPartSensors
@@ -1011,6 +1272,7 @@ public class Dimension1PanelUI : MonoBehaviour
         RefreshExtractorDroneButton(gs);
         RefreshShipUpgradeButtons(gs);
         RefreshAnalyticProbeButton(gs);
+        RefreshCargoShipButton(gs);
 
         if (scanButton != null)
         {
@@ -1039,6 +1301,32 @@ public class Dimension1PanelUI : MonoBehaviour
         }
     }
 
+    private bool HasStartedReceivingShipUnlockMetals(GameState gs, string shipId)
+    {
+        if (gs == null)
+            return false;
+
+        if (shipId == Dimension1System.ShipExtractorDrone)
+        {
+            return Dimension1System.IsMetalUnlockedForDimension1(gs, Dimension1System.MetalIron) &&
+                Dimension1System.IsMetalUnlockedForDimension1(gs, Dimension1System.MetalCopper);
+        }
+
+        if (shipId == Dimension1System.ShipAnalyticProbe)
+        {
+            return Dimension1System.IsMetalUnlockedForDimension1(gs, Dimension1System.MetalCopper) &&
+                Dimension1System.IsMetalUnlockedForDimension1(gs, Dimension1System.MetalAluminum);
+        }
+
+        if (shipId == Dimension1System.ShipCargoShip)
+        {
+            return Dimension1System.IsMetalUnlockedForDimension1(gs, Dimension1System.MetalTitanium) &&
+                Dimension1System.IsMetalUnlockedForDimension1(gs, Dimension1System.MetalNickel);
+        }
+
+        return false;
+    }
+
     private void RefreshExtractorDroneButton(GameState gs)
     {
         if (unlockExtractorDroneButton == null)
@@ -1047,7 +1335,10 @@ public class Dimension1PanelUI : MonoBehaviour
         D1ShipState drone = FindShip(gs, Dimension1System.ShipExtractorDrone);
         bool unlocked = drone != null && drone.unlocked;
 
-        unlockExtractorDroneButton.gameObject.SetActive(!unlocked);
+        bool hasRequiredMetalsStarted =
+        HasStartedReceivingShipUnlockMetals(gs, Dimension1System.ShipExtractorDrone);
+
+        unlockExtractorDroneButton.gameObject.SetActive(!unlocked && hasRequiredMetalsStarted);
         unlockExtractorDroneButton.interactable =
             Dimension1System.CanUnlockShip(gs, Dimension1System.ShipExtractorDrone);
 
@@ -1063,9 +1354,14 @@ public class Dimension1PanelUI : MonoBehaviour
             return;
 
         D1ShipState analyticProbe = FindShip(gs, Dimension1System.ShipAnalyticProbe);
-        bool unlocked = analyticProbe != null && analyticProbe.unlocked;
+        bool analyticUnlocked = analyticProbe != null && analyticProbe.unlocked;
 
-        unlockAnalyticProbeButton.gameObject.SetActive(!unlocked);
+        bool hasRequiredMetalsStarted =
+
+        HasStartedReceivingShipUnlockMetals(gs, Dimension1System.ShipAnalyticProbe);
+
+        unlockAnalyticProbeButton.gameObject.SetActive(!analyticUnlocked && hasRequiredMetalsStarted);
+
         unlockAnalyticProbeButton.interactable =
             Dimension1System.CanUnlockShip(gs, Dimension1System.ShipAnalyticProbe);
 
@@ -1075,12 +1371,41 @@ public class Dimension1PanelUI : MonoBehaviour
         );
     }
 
+    private void RefreshCargoShipButton(GameState gs)
+    {
+        if (unlockCargoShipButton == null)
+            return;
+
+        D1ShipState analyticProbe = FindShip(gs, Dimension1System.ShipAnalyticProbe);
+        bool analyticUnlocked = analyticProbe != null && analyticProbe.unlocked;
+
+        D1ShipState cargoShip = FindShip(gs, Dimension1System.ShipCargoShip);
+        bool cargoShipUnlocked = cargoShip != null && cargoShip.unlocked;
+
+        bool hasRequiredMetalsStarted =
+        
+        HasStartedReceivingShipUnlockMetals(gs, Dimension1System.ShipCargoShip);
+
+        unlockCargoShipButton.gameObject.SetActive(
+            !cargoShipUnlocked &&
+            hasRequiredMetalsStarted
+        );
+
+        unlockCargoShipButton.interactable =
+            Dimension1System.CanUnlockShip(gs, Dimension1System.ShipCargoShip);
+
+        SetButtonText(
+            unlockCargoShipButton,
+            "Desbloquear Nave de Carga\n800 Titanio + 450 Níquel + 3 Blueprints"
+        );
+    }
+
     private string BuildShipUpgradeButtonText(
-    GameState gs,
-    string shipId,
-    string partId,
-    string partVisualName,
-    string shipShortName
+        GameState gs,
+        string shipId,
+        string partId,
+        string partVisualName,
+        string shipShortName
     )
     {
         bool hasNextUpgrade = Dimension1System.TryGetNextShipPartUpgradeCost(
@@ -1094,17 +1419,57 @@ public class Dimension1PanelUI : MonoBehaviour
             out double amount2
         );
 
-        if (!hasNextUpgrade)
+        if (hasNextUpgrade)
+        {
+            string normalText =
+                partVisualName +
+                " " +
+                ToRomanNumber(nextLevel) +
+                " " +
+                shipShortName +
+                "\n" +
+                BuildShipUpgradeCostText(metal1, amount1, metal2, amount2);
+
+            if (!Dimension1System.CanUpgradeShipPart(gs, shipId, partId))
+                normalText += "\nRecursos insuficientes";
+
+            return normalText;
+        }
+
+        bool hasAdvancedUpgrade = Dimension1System.TryGetNextAdvancedShipPartUpgradeCost(
+            gs,
+            shipId,
+            partId,
+            out int advancedNextLevel,
+            out string advancedMetal1,
+            out double advancedAmount1,
+            out string advancedMetal2,
+            out double advancedAmount2,
+            out int blueprintCost
+        );
+
+        if (!hasAdvancedUpgrade)
             return partVisualName + " " + shipShortName + "\nMáximo";
 
-        return
+        string advancedText =
             partVisualName +
             " " +
-            ToRomanNumber(nextLevel) +
+            ToRomanNumber(advancedNextLevel) +
             " " +
             shipShortName +
             "\n" +
-            BuildShipUpgradeCostText(metal1, amount1, metal2, amount2);
+            BuildShipAdvancedUpgradeCostText(
+                advancedMetal1,
+                advancedAmount1,
+                advancedMetal2,
+                advancedAmount2,
+                blueprintCost
+            );
+
+        if (!Dimension1System.CanUpgradeAdvancedShipPart(gs, shipId, partId))
+            advancedText += "\nRecursos insuficientes";
+
+        return advancedText;
     }
 
     private string BuildShipUpgradeCostText(
@@ -1122,6 +1487,75 @@ public class Dimension1PanelUI : MonoBehaviour
         }
 
         return text;
+    }
+
+    private string BuildShipAdvancedUpgradeCostText(
+        string metal1,
+        double amount1,
+        string metal2,
+        double amount2,
+        int blueprintCost
+    )
+    {
+        string text = BuildShipUpgradeCostText(metal1, amount1, metal2, amount2);
+
+        if (blueprintCost > 0)
+        {
+            text +=
+                " + " +
+                blueprintCost +
+                " blueprint";
+
+            if (blueprintCost > 1)
+                text += "s";
+        }
+
+        return text;
+    }
+
+    private bool HasAnyShipPartUpgrade(GameState gs, string shipId, string partId)
+    {
+        bool hasNormalUpgrade = Dimension1System.TryGetNextShipPartUpgradeCost(
+            gs,
+            shipId,
+            partId,
+            out _,
+            out _,
+            out _,
+            out _,
+            out _
+        );
+
+        if (hasNormalUpgrade)
+            return true;
+
+        return Dimension1System.TryGetNextAdvancedShipPartUpgradeCost(
+            gs,
+            shipId,
+            partId,
+            out _,
+            out _,
+            out _,
+            out _,
+            out _,
+            out _
+        );
+    }
+
+    private bool CanBuyAnyShipPartUpgrade(GameState gs, string shipId, string partId)
+    {
+        if (Dimension1System.CanUpgradeShipPart(gs, shipId, partId))
+            return true;
+
+        return Dimension1System.CanUpgradeAdvancedShipPart(gs, shipId, partId);
+    }
+
+    private void TryBuyAnyShipPartUpgrade(GameState gs, string shipId, string partId)
+    {
+        if (Dimension1System.TryUpgradeShipPart(gs, shipId, partId))
+            return;
+
+        Dimension1System.TryUpgradeAdvancedShipPart(gs, shipId, partId);
     }
 
     private string ToRomanNumber(int value)
@@ -1166,20 +1600,16 @@ public class Dimension1PanelUI : MonoBehaviour
         D1ShipState ship = FindShip(gs, Dimension1System.ShipLightProbe);
         bool unlocked = ship != null && ship.unlocked;
 
-        bool hasNextUpgrade = Dimension1System.TryGetNextShipPartUpgradeCost(
+        bool hasNextUpgrade = HasAnyShipPartUpgrade(
             gs,
             Dimension1System.ShipLightProbe,
-            Dimension1System.ShipPartSpeed,
-            out _,
-            out _,
-            out _,
-            out _,
-            out _
+            Dimension1System.ShipPartSpeed
         );
 
         upgradeLightProbeSpeed1Button.gameObject.SetActive(unlocked && hasNextUpgrade);
+
         upgradeLightProbeSpeed1Button.interactable =
-            Dimension1System.CanUpgradeShipPart(
+            CanBuyAnyShipPartUpgrade(
                 gs,
                 Dimension1System.ShipLightProbe,
                 Dimension1System.ShipPartSpeed
@@ -1205,20 +1635,16 @@ public class Dimension1PanelUI : MonoBehaviour
         D1ShipState ship = FindShip(gs, Dimension1System.ShipExtractorDrone);
         bool unlocked = ship != null && ship.unlocked;
 
-        bool hasNextUpgrade = Dimension1System.TryGetNextShipPartUpgradeCost(
+        bool hasNextUpgrade = HasAnyShipPartUpgrade(
             gs,
             Dimension1System.ShipExtractorDrone,
-            Dimension1System.ShipPartCargo,
-            out _,
-            out _,
-            out _,
-            out _,
-            out _
+            Dimension1System.ShipPartCargo
         );
 
         upgradeExtractorDroneCargo1Button.gameObject.SetActive(unlocked && hasNextUpgrade);
+
         upgradeExtractorDroneCargo1Button.interactable =
-            Dimension1System.CanUpgradeShipPart(
+            CanBuyAnyShipPartUpgrade(
                 gs,
                 Dimension1System.ShipExtractorDrone,
                 Dimension1System.ShipPartCargo
@@ -1244,20 +1670,16 @@ public class Dimension1PanelUI : MonoBehaviour
         D1ShipState ship = FindShip(gs, Dimension1System.ShipAnalyticProbe);
         bool unlocked = ship != null && ship.unlocked;
 
-        bool hasNextUpgrade = Dimension1System.TryGetNextShipPartUpgradeCost(
+        bool hasNextUpgrade = HasAnyShipPartUpgrade(
             gs,
             Dimension1System.ShipAnalyticProbe,
-            Dimension1System.ShipPartSensors,
-            out _,
-            out _,
-            out _,
-            out _,
-            out _
+            Dimension1System.ShipPartSensors
         );
 
         upgradeAnalyticProbeSensors1Button.gameObject.SetActive(unlocked && hasNextUpgrade);
+
         upgradeAnalyticProbeSensors1Button.interactable =
-            Dimension1System.CanUpgradeShipPart(
+            CanBuyAnyShipPartUpgrade(
                 gs,
                 Dimension1System.ShipAnalyticProbe,
                 Dimension1System.ShipPartSensors
@@ -1359,9 +1781,17 @@ public class Dimension1PanelUI : MonoBehaviour
         if (button == null)
             return;
 
-        TextMeshProUGUI label = button.GetComponentInChildren<TextMeshProUGUI>();
+        TextMeshProUGUI tmpLabel = button.GetComponentInChildren<TextMeshProUGUI>(true);
 
-        if (label != null)
-            label.text = text;
+        if (tmpLabel != null)
+        {
+            tmpLabel.text = text;
+            return;
+        }
+
+        UnityEngine.UI.Text legacyLabel = button.GetComponentInChildren<UnityEngine.UI.Text>(true);
+
+        if (legacyLabel != null)
+            legacyLabel.text = text;
     }
 }

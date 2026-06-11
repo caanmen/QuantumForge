@@ -63,6 +63,10 @@ public static class Dimension1System
     public const string ShipLightProbe = "ship_light_probe";
     public const string ShipExtractorDrone = "ship_extractor_drone";
     public const string ShipAnalyticProbe = "ship_analytic_probe";
+    public const string ShipCargoShip = "ship_cargo_ship";
+
+    // ID antiguo usado solo para migrar partidas viejas.
+    public const string LegacyCargoShipId = "ship_survey_corvette";
 
     // Partes de nave MVP
     public const string ShipPartCargo = "cargo";
@@ -74,6 +78,9 @@ public static class Dimension1System
     public const string DestinationMineralBelt = "destination_mineral_belt";
     public const string DestinationShipGraveyard = "destination_ship_graveyard";
     public const string DestinationAbandonedProbe = "destination_abandoned_probe";
+    public const string DestinationCrystalDebris = "destination_crystal_debris";
+    public const string DestinationOrbitalArmorWreckage = "destination_orbital_armor_wreckage";
+    public const string DestinationCollapsedReactor = "destination_collapsed_reactor";
 
     // Offline inicial: 12 horas
     public const double DefaultOfflineCapSeconds = 43200.0;
@@ -81,6 +88,66 @@ public static class Dimension1System
     // Barrido temporal del escáner para pruebas MVP.
     public const double SimpleScanDurationSeconds = 5.0;
     public const int BlueprintFragmentsPerBlueprint = 10;
+
+    public static int GetCompletedBlueprintCount(GameState state)
+    {
+        if (state == null)
+            return 0;
+
+        int fragments = Mathf.Max(state.dimension1BlueprintFragments, 0);
+        return fragments / BlueprintFragmentsPerBlueprint;
+    }
+
+    public static int GetBlueprintFragmentProgress(GameState state)
+    {
+        if (state == null)
+            return 0;
+
+        int fragments = Mathf.Max(state.dimension1BlueprintFragments, 0);
+        return fragments % BlueprintFragmentsPerBlueprint;
+    }
+
+    
+
+    public static int GetBlueprintFragmentCostForBlueprints(int blueprintCount)
+    {
+        if (blueprintCount <= 0)
+            return 0;
+
+        return blueprintCount * BlueprintFragmentsPerBlueprint;
+    }
+
+    public static bool CanSpendCompletedBlueprints(GameState state, int blueprintCount)
+    {
+        if (state == null)
+            return false;
+
+        if (blueprintCount <= 0)
+            return true;
+
+        int requiredFragments = GetBlueprintFragmentCostForBlueprints(blueprintCount);
+        int currentFragments = Mathf.Max(state.dimension1BlueprintFragments, 0);
+
+        return currentFragments >= requiredFragments;
+    }
+
+    public static bool TrySpendCompletedBlueprints(GameState state, int blueprintCount)
+    {
+        if (!CanSpendCompletedBlueprints(state, blueprintCount))
+            return false;
+
+        if (blueprintCount <= 0)
+            return true;
+
+        int requiredFragments = GetBlueprintFragmentCostForBlueprints(blueprintCount);
+
+        state.dimension1BlueprintFragments = Mathf.Max(
+            0,
+            state.dimension1BlueprintFragments - requiredFragments
+        );
+
+        return true;
+    }
 
     public static readonly string[] StarterMetals =
     {
@@ -99,11 +166,12 @@ public static class Dimension1System
         Planet03
     };
 
-    public static readonly string[] StarterShips =
+    public static readonly string[] Dimension1ShipIds =
     {
         ShipLightProbe,
         ShipExtractorDrone,
-        ShipAnalyticProbe
+        ShipAnalyticProbe,
+        ShipCargoShip
     };
 
     public static void Tick(GameState state, double dt)
@@ -609,6 +677,13 @@ public static class Dimension1System
                 state.GetD1MetalAmount(MetalAluminum) >= 120.0;
         }
 
+        if (shipId == ShipCargoShip)
+        {
+            return state.GetD1MetalAmount(MetalTitanium) >= 800.0 &&
+                state.GetD1MetalAmount(MetalNickel) >= 450.0 &&
+                CanSpendCompletedBlueprints(state, 3);
+        }
+
         return false;
     }
 
@@ -640,6 +715,21 @@ public static class Dimension1System
                 return false;
 
             if (!state.SpendD1Metal(MetalAluminum, 120.0))
+                return false;
+
+            ship.unlocked = true;
+            return true;
+        }
+
+        if (shipId == ShipCargoShip)
+        {
+            if (!state.SpendD1Metal(MetalTitanium, 800.0))
+                return false;
+
+            if (!state.SpendD1Metal(MetalNickel, 450.0))
+                return false;
+
+            if (!TrySpendCompletedBlueprints(state, 3))
                 return false;
 
             ship.unlocked = true;
@@ -727,14 +817,181 @@ public static class Dimension1System
     }
 
     public static bool TryGetNextShipPartUpgradeCost(
-    GameState state,
-    string shipId,
-    string partId,
-    out int nextLevel,
-    out string metal1,
-    out double amount1,
-    out string metal2,
-    out double amount2
+        GameState state,
+        string shipId,
+        string partId,
+        out int nextLevel,
+        out string metal1,
+        out double amount1,
+        out string metal2,
+        out double amount2
+        )
+        {
+            nextLevel = 0;
+            metal1 = "";
+            amount1 = 0.0;
+            metal2 = "";
+            amount2 = 0.0;
+
+            if (state == null || !state.dimension01Unlocked)
+                return false;
+
+            if (string.IsNullOrEmpty(shipId) || string.IsNullOrEmpty(partId))
+                return false;
+
+            state.EnsureDimension1State();
+
+            D1ShipState ship = FindShipState(state, shipId);
+
+            if (ship == null || !ship.unlocked)
+                return false;
+
+            int currentLevel = GetShipPartLevel(ship, partId);
+            nextLevel = currentLevel + 1;
+
+            return TryGetShipPartUpgradeCost(
+                shipId,
+                partId,
+                nextLevel,
+                out metal1,
+                out amount1,
+                out metal2,
+                out amount2
+            );
+        }
+
+        public static bool TryGetAdvancedShipPartUpgradeCost(
+        string shipId,
+        string partId,
+        int targetLevel,
+        out string metal1,
+        out double amount1,
+        out string metal2,
+        out double amount2,
+        out int blueprintCost
+    )
+    {
+        metal1 = "";
+        amount1 = 0.0;
+        metal2 = "";
+        amount2 = 0.0;
+        blueprintCost = 0;
+
+        if (targetLevel < 4 || targetLevel > 6)
+            return false;
+
+        if (shipId == ShipLightProbe && partId == ShipPartSpeed)
+        {
+            if (targetLevel == 4)
+            {
+                metal1 = MetalCopper;
+                amount1 = 700.0;
+                metal2 = MetalAluminum;
+                amount2 = 450.0;
+                blueprintCost = 1;
+                return true;
+            }
+
+            if (targetLevel == 5)
+            {
+                metal1 = MetalAluminum;
+                amount1 = 950.0;
+                metal2 = MetalTitanium;
+                amount2 = 350.0;
+                blueprintCost = 2;
+                return true;
+            }
+
+            if (targetLevel == 6)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 850.0;
+                metal2 = MetalNickel;
+                amount2 = 400.0;
+                blueprintCost = 3;
+                return true;
+            }
+        }
+
+        if (shipId == ShipExtractorDrone && partId == ShipPartCargo)
+        {
+            if (targetLevel == 4)
+            {
+                metal1 = MetalCopper;
+                amount1 = 900.0;
+                metal2 = MetalAluminum;
+                amount2 = 550.0;
+                blueprintCost = 1;
+                return true;
+            }
+
+            if (targetLevel == 5)
+            {
+                metal1 = MetalAluminum;
+                amount1 = 1200.0;
+                metal2 = MetalTitanium;
+                amount2 = 500.0;
+                blueprintCost = 2;
+                return true;
+            }
+
+            if (targetLevel == 6)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 1100.0;
+                metal2 = MetalNickel;
+                amount2 = 550.0;
+                blueprintCost = 3;
+                return true;
+            }
+        }
+
+        if (shipId == ShipAnalyticProbe && partId == ShipPartSensors)
+        {
+            if (targetLevel == 4)
+            {
+                metal1 = MetalAluminum;
+                amount1 = 800.0;
+                metal2 = MetalTitanium;
+                amount2 = 350.0;
+                blueprintCost = 1;
+                return true;
+            }
+
+            if (targetLevel == 5)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 850.0;
+                metal2 = MetalNickel;
+                amount2 = 450.0;
+                blueprintCost = 2;
+                return true;
+            }
+
+            if (targetLevel == 6)
+            {
+                metal1 = MetalNickel;
+                amount1 = 950.0;
+                metal2 = MetalCobalt;
+                amount2 = 420.0;
+                blueprintCost = 3;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool TryGetNextAdvancedShipPartUpgradeCost(
+        GameState state,
+        string shipId,
+        string partId,
+        out int nextLevel,
+        out string metal1,
+        out double amount1,
+        out string metal2,
+        out double amount2,
+        out int blueprintCost
     )
     {
         nextLevel = 0;
@@ -742,6 +999,7 @@ public static class Dimension1System
         amount1 = 0.0;
         metal2 = "";
         amount2 = 0.0;
+        blueprintCost = 0;
 
         if (state == null || !state.dimension01Unlocked)
             return false;
@@ -759,15 +1017,94 @@ public static class Dimension1System
         int currentLevel = GetShipPartLevel(ship, partId);
         nextLevel = currentLevel + 1;
 
-        return TryGetShipPartUpgradeCost(
+        return TryGetAdvancedShipPartUpgradeCost(
             shipId,
             partId,
             nextLevel,
             out metal1,
             out amount1,
             out metal2,
-            out amount2
+            out amount2,
+            out blueprintCost
         );
+    }
+
+    public static bool CanUpgradeAdvancedShipPart(
+        GameState state,
+        string shipId,
+        string partId
+    )
+    {
+        if (!TryGetNextAdvancedShipPartUpgradeCost(
+            state,
+            shipId,
+            partId,
+            out int nextLevel,
+            out string metal1,
+            out double amount1,
+            out string metal2,
+            out double amount2,
+            out int blueprintCost
+        ))
+        {
+            return false;
+        }
+
+        if (state.GetD1MetalAmount(metal1) < amount1)
+            return false;
+
+        if (!string.IsNullOrEmpty(metal2) && state.GetD1MetalAmount(metal2) < amount2)
+            return false;
+
+        if (!CanSpendCompletedBlueprints(state, blueprintCost))
+            return false;
+
+        return true;
+    }
+
+    public static bool TryUpgradeAdvancedShipPart(
+        GameState state,
+        string shipId,
+        string partId
+    )
+    {
+        if (!CanUpgradeAdvancedShipPart(state, shipId, partId))
+            return false;
+
+        D1ShipState ship = FindShipState(state, shipId);
+
+        if (ship == null)
+            return false;
+
+        int currentLevel = GetShipPartLevel(ship, partId);
+        int targetLevel = currentLevel + 1;
+
+        if (!TryGetAdvancedShipPartUpgradeCost(
+            shipId,
+            partId,
+            targetLevel,
+            out string metal1,
+            out double amount1,
+            out string metal2,
+            out double amount2,
+            out int blueprintCost
+        ))
+        {
+            return false;
+        }
+
+        if (!state.SpendD1Metal(metal1, amount1))
+            return false;
+
+        if (!string.IsNullOrEmpty(metal2) && !state.SpendD1Metal(metal2, amount2))
+            return false;
+
+        if (!TrySpendCompletedBlueprints(state, blueprintCost))
+            return false;
+
+        SetShipPartLevel(ship, partId, targetLevel);
+
+        return true;
     }
 
     private static bool TryGetShipPartUpgradeCost(
@@ -1183,6 +1520,21 @@ public static class Dimension1System
                 AddExplorationReward(state, rewards, MetalCopper, Random.Range(12f, 26f) * materialMultiplier);
                 AddExplorationReward(state, rewards, MetalAluminum, Random.Range(8f, 18f) * materialMultiplier);
                 break;
+
+            case DestinationCrystalDebris:
+                AddExplorationReward(state, rewards, MetalCopper, Random.Range(18f, 34f) * materialMultiplier);
+                AddExplorationReward(state, rewards, MetalAluminum, Random.Range(6f, 16f) * materialMultiplier);
+                break;
+
+            case DestinationOrbitalArmorWreckage:
+                AddExplorationReward(state, rewards, MetalTitanium, Random.Range(10f, 22f) * materialMultiplier);
+                AddExplorationReward(state, rewards, MetalNickel, Random.Range(6f, 14f) * materialMultiplier);
+                break;
+
+            case DestinationCollapsedReactor:
+                AddExplorationReward(state, rewards, MetalNickel, Random.Range(10f, 20f) * materialMultiplier);
+                AddExplorationReward(state, rewards, MetalCobalt, Random.Range(5f, 12f) * materialMultiplier);
+                break;
         }
 
         int blueprintFragments = RollSimpleBlueprintFragments(destinationId, ship);
@@ -1215,6 +1567,18 @@ public static class Dimension1System
                 chance = 0.22f;
                 break;
 
+            case DestinationCrystalDebris:
+                chance = 0.14f;
+                break;    
+
+            case DestinationOrbitalArmorWreckage:
+                chance = 0.18f;
+                break;    
+
+            case DestinationCollapsedReactor:
+                chance = 0.22f;
+                break;
+
             default:
                 chance = 0.05f;
                 break;
@@ -1239,11 +1603,6 @@ public static class Dimension1System
         return 1;
     }
 
-    private static double GetShipMaterialRewardMultiplier(string shipId)
-    {
-        return 1.0;
-    }
-
     private static double GetShipMaterialRewardMultiplier(D1ShipState ship)
     {
         if (ship == null)
@@ -1251,6 +1610,15 @@ public static class Dimension1System
 
         if (ship.shipId == ShipExtractorDrone)
         {
+            if (ship.cargoLevel >= 6)
+                return 2.00;
+
+            if (ship.cargoLevel >= 5)
+                return 1.80;
+
+            if (ship.cargoLevel >= 4)
+                return 1.65;
+
             if (ship.cargoLevel >= 3)
                 return 1.50;
 
@@ -1261,6 +1629,11 @@ public static class Dimension1System
                 return 1.30;
 
             return 1.20;
+        }
+
+        if (ship.shipId == ShipCargoShip)
+        {
+            return 1.10;
         }
 
         return 1.0;
@@ -1298,6 +1671,15 @@ public static class Dimension1System
 
         if (ship != null && ship.shipId == ShipLightProbe)
         {
+            if (ship.speedLevel >= 6)
+                return baseDuration * 0.58;
+
+            if (ship.speedLevel >= 5)
+                return baseDuration * 0.64;
+
+            if (ship.speedLevel >= 4)
+                return baseDuration * 0.70;
+
             if (ship.speedLevel >= 3)
                 return baseDuration * 0.76;
 
@@ -1317,6 +1699,15 @@ public static class Dimension1System
 
         if (analyticProbe != null && analyticProbe.unlocked)
         {
+            if (analyticProbe.sensorsLevel >= 6)
+                return 2.1;
+
+            if (analyticProbe.sensorsLevel >= 5)
+                return 2.4;
+
+            if (analyticProbe.sensorsLevel >= 4)
+                return 2.7;
+
             if (analyticProbe.sensorsLevel >= 3)
                 return 3.0;
 
@@ -1422,7 +1813,10 @@ public static class Dimension1System
         {
             DestinationMineralBelt,
             DestinationShipGraveyard,
-            DestinationAbandonedProbe
+            DestinationAbandonedProbe,
+            DestinationCrystalDebris,
+            DestinationOrbitalArmorWreckage,
+            DestinationCollapsedReactor
         };
 
         List<string> validPool = new List<string>();
@@ -1476,6 +1870,21 @@ public static class Dimension1System
                 return
                     IsMetalUnlockedForDimension1(state, MetalCopper) ||
                     IsMetalUnlockedForDimension1(state, MetalAluminum);
+            
+            case DestinationCrystalDebris:
+                return
+                    IsMetalUnlockedForDimension1(state, MetalCopper) ||
+                    IsMetalUnlockedForDimension1(state, MetalAluminum);
+
+            case DestinationOrbitalArmorWreckage:
+                return
+                    IsMetalUnlockedForDimension1(state, MetalTitanium) ||
+                    IsMetalUnlockedForDimension1(state, MetalNickel);   
+
+            case DestinationCollapsedReactor:
+                return
+                    IsMetalUnlockedForDimension1(state, MetalNickel) ||
+                    IsMetalUnlockedForDimension1(state, MetalCobalt);     
 
             default:
                 return false;

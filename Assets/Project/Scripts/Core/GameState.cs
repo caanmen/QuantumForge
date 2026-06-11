@@ -1120,6 +1120,8 @@ public class GameState : MonoBehaviour
         if (dimension1LastExplorationRewards == null)
             dimension1LastExplorationRewards = new List<D1MetalAmount>();
 
+        MigrateDimension1LegacyShipIds();
+
         foreach (string metalId in Dimension1System.StarterMetals)
         {
             GetOrCreateD1Metal(metalId);
@@ -1130,10 +1132,57 @@ public class GameState : MonoBehaviour
             GetOrCreateD1Planet(planetId);
         }
 
-        foreach (string shipId in Dimension1System.StarterShips)
+        foreach (string shipId in Dimension1System.Dimension1ShipIds)
         {
             GetOrCreateD1Ship(shipId);
         }
+    }
+
+    private void MigrateDimension1LegacyShipIds()
+    {
+        if (dimension1Ships == null)
+            return;
+
+        D1ShipState legacyCargoShip = null;
+        D1ShipState cargoShip = null;
+
+        foreach (D1ShipState ship in dimension1Ships)
+        {
+            if (ship == null)
+                continue;
+
+            if (ship.shipId == Dimension1System.LegacyCargoShipId)
+                legacyCargoShip = ship;
+
+            if (ship.shipId == Dimension1System.ShipCargoShip)
+                cargoShip = ship;
+        }
+
+        if (legacyCargoShip == null)
+            return;
+
+        if (cargoShip == null)
+        {
+            legacyCargoShip.shipId = Dimension1System.ShipCargoShip;
+            return;
+        }
+
+        cargoShip.unlocked = cargoShip.unlocked || legacyCargoShip.unlocked;
+
+        if (!cargoShip.explorationActive && legacyCargoShip.explorationActive)
+        {
+            cargoShip.explorationActive = true;
+            cargoShip.activeDestinationId = legacyCargoShip.activeDestinationId;
+            cargoShip.explorationRemainingSeconds = legacyCargoShip.explorationRemainingSeconds;
+            cargoShip.explorationTotalSeconds = legacyCargoShip.explorationTotalSeconds;
+        }
+
+        cargoShip.cargoLevel = Mathf.Max(cargoShip.cargoLevel, legacyCargoShip.cargoLevel);
+        cargoShip.speedLevel = Mathf.Max(cargoShip.speedLevel, legacyCargoShip.speedLevel);
+        cargoShip.armorLevel = Mathf.Max(cargoShip.armorLevel, legacyCargoShip.armorLevel);
+        cargoShip.sensorsLevel = Mathf.Max(cargoShip.sensorsLevel, legacyCargoShip.sensorsLevel);
+
+        dimension1Ships.Remove(legacyCargoShip);
     }
 
     private D1MetalAmount GetOrCreateD1Metal(string metalId)
