@@ -201,6 +201,9 @@ public class GameState : MonoBehaviour
     [Tooltip("Fragmentos de blueprint obtenidos en la última exploración.")]
     public int dimension1LastExplorationBlueprintFragments = 0;
 
+    [Tooltip("Contador interno para detectar nuevas exploraciones completadas en la UI.")]
+    public int dimension1LastExplorationResultId = 0;
+
     [Header("Recursos avanzados (placeholder)")]
     [Tooltip("Recurso para el futuro sistema de BEC (aún sin implementar).")]
     public double BEC = 0.0;  // condensado de Bose-Einstein (futuro)
@@ -1306,6 +1309,7 @@ public class GameState : MonoBehaviour
         dimension1LastExplorationRewards = new List<D1MetalAmount>();
         dimension1BlueprintFragments = 0;
         dimension1LastExplorationBlueprintFragments = 0;
+        dimension1LastExplorationResultId = 0;
 
         EnsureDimension1State();
     }
