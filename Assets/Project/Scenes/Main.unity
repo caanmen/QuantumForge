@@ -1800,15 +1800,15 @@ MonoBehaviour:
   upgradeRescueShipSpeed1Button: {fileID: 1626138816}
   upgradeConvergenceShipSpeed1Button: {fileID: 823584503}
   dimension1MainContentRoot: {fileID: 1054796351}
-  shipUpgradePanel: {fileID: 302588391}
-  openShipUpgradePanelButton: {fileID: 357414609}
-  closeShipUpgradePanelButton: {fileID: 637229729}
-  shipUpgradeDropdown: {fileID: 1255440235}
-  shipUpgradeInfoText: {fileID: 891387373}
-  upgradeSelectedCargoButton: {fileID: 2130351654}
-  upgradeSelectedSpeedButton: {fileID: 2085843941}
-  upgradeSelectedArmorButton: {fileID: 1123149955}
-  upgradeSelectedSensorsButton: {fileID: 1410485938}
+  hangarPanel: {fileID: 302588391}
+  openHangarPanelButton: {fileID: 357414609}
+  closeHangarPanelButton: {fileID: 637229729}
+  hangarShipDropdown: {fileID: 1255440235}
+  hangarInfoText: {fileID: 891387373}
+  hangarUpgradeCargoButton: {fileID: 2130351654}
+  hangarUpgradeSpeedButton: {fileID: 2085843941}
+  hangarUpgradeArmorButton: {fileID: 1123149955}
+  hangarUpgradeSensorsButton: {fileID: 1410485938}
   refreshInterval: 0.25
 --- !u!1 &92141626
 GameObject:
@@ -11010,7 +11010,7 @@ GameObject:
   - component: {fileID: 357414610}
   - component: {fileID: 357414609}
   m_Layer: 5
-  m_Name: OpenShipUpgradePanelButton
+  m_Name: OpenHangarPanelButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11082,7 +11082,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 84537974}
         m_TargetAssemblyTypeName: Dimension1PanelUI, Assembly-CSharp
-        m_MethodName: OnClickOpenShipUpgradePanel
+        m_MethodName: OnClickOpenHangarPanel
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -17913,7 +17913,7 @@ GameObject:
   - component: {fileID: 637229730}
   - component: {fileID: 637229729}
   m_Layer: 5
-  m_Name: CloseShipUpgradePanelButton
+  m_Name: CloseHangarPanelButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -17965,7 +17965,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 84537974}
         m_TargetAssemblyTypeName: Dimension1PanelUI, Assembly-CSharp
-        m_MethodName: OnClickCloseShipUpgradePanel
+        m_MethodName: OnClickCloseHangarPanel
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -24310,7 +24310,7 @@ GameObject:
   - component: {fileID: 891387374}
   - component: {fileID: 891387373}
   m_Layer: 5
-  m_Name: ShipUpgradeInfoText
+  m_Name: HangarInfoText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -30223,7 +30223,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 84537974}
         m_TargetAssemblyTypeName: Dimension1PanelUI, Assembly-CSharp
-        m_MethodName: OnClickUpgradeSelectedShipArmor
+        m_MethodName: OnClickUpgradeHangarShipArmor
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -33796,7 +33796,7 @@ GameObject:
   - component: {fileID: 1255440237}
   - component: {fileID: 1255440235}
   m_Layer: 5
-  m_Name: ShipUpgradeDropdown
+  m_Name: HangarShipDropdown
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -33867,7 +33867,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 84537974}
         m_TargetAssemblyTypeName: Dimension1PanelUI, Assembly-CSharp
-        m_MethodName: OnShipUpgradeDropdownChanged
+        m_MethodName: OnHangarShipDropdownChanged
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -37448,7 +37448,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 84537974}
         m_TargetAssemblyTypeName: Dimension1PanelUI, Assembly-CSharp
-        m_MethodName: OnClickUpgradeSelectedShipSensors
+        m_MethodName: OnClickUpgradeHangarShipSensors
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -51837,7 +51837,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 84537974}
         m_TargetAssemblyTypeName: Dimension1PanelUI, Assembly-CSharp
-        m_MethodName: OnClickUpgradeSelectedShipSpeed
+        m_MethodName: OnClickUpgradeHangarShipSpeed
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -52369,7 +52369,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 84537974}
         m_TargetAssemblyTypeName: Dimension1PanelUI, Assembly-CSharp
-        m_MethodName: OnClickUpgradeSelectedShipCargo
+        m_MethodName: OnClickUpgradeHangarShipCargo
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

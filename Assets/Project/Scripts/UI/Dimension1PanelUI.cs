@@ -53,17 +53,35 @@ public class Dimension1PanelUI : MonoBehaviour
     [SerializeField] private Button upgradeRescueShipSpeed1Button;
     [SerializeField] private Button upgradeConvergenceShipSpeed1Button;
 
-    [Header("Taller de naves provisional")]
+    [Header("Hangar provisional")]
     [SerializeField] private GameObject dimension1MainContentRoot;
-    [SerializeField] private GameObject shipUpgradePanel;
-    [SerializeField] private Button openShipUpgradePanelButton;
-    [SerializeField] private Button closeShipUpgradePanelButton;
-    [SerializeField] private TMP_Dropdown shipUpgradeDropdown;
-    [SerializeField] private TextMeshProUGUI shipUpgradeInfoText;
-    [SerializeField] private Button upgradeSelectedCargoButton;
-    [SerializeField] private Button upgradeSelectedSpeedButton;
-    [SerializeField] private Button upgradeSelectedArmorButton;
-    [SerializeField] private Button upgradeSelectedSensorsButton;
+
+    [FormerlySerializedAs("shipUpgradePanel")]
+    [SerializeField] private GameObject hangarPanel;
+
+    [FormerlySerializedAs("openShipUpgradePanelButton")]
+    [SerializeField] private Button openHangarPanelButton;
+
+    [FormerlySerializedAs("closeShipUpgradePanelButton")]
+    [SerializeField] private Button closeHangarPanelButton;
+
+    [FormerlySerializedAs("shipUpgradeDropdown")]
+    [SerializeField] private TMP_Dropdown hangarShipDropdown;
+
+    [FormerlySerializedAs("shipUpgradeInfoText")]
+    [SerializeField] private TextMeshProUGUI hangarInfoText;
+
+    [FormerlySerializedAs("upgradeSelectedCargoButton")]
+    [SerializeField] private Button hangarUpgradeCargoButton;
+
+    [FormerlySerializedAs("upgradeSelectedSpeedButton")]
+    [SerializeField] private Button hangarUpgradeSpeedButton;
+
+    [FormerlySerializedAs("upgradeSelectedArmorButton")]
+    [SerializeField] private Button hangarUpgradeArmorButton;
+
+    [FormerlySerializedAs("upgradeSelectedSensorsButton")]
+    [SerializeField] private Button hangarUpgradeSensorsButton;
 
     [Header("Rendimiento")]
     [SerializeField] private float refreshInterval = 0.25f;
@@ -75,14 +93,14 @@ public class Dimension1PanelUI : MonoBehaviour
     private int selectedShipIndex;
     private string shipDropdownSignature = "";
     private bool isRefreshingShipDropdown;
-    private int selectedShipUpgradeIndex;
-    private string shipUpgradeDropdownSignature = "";
-    private bool isRefreshingShipUpgradeDropdown;
-    private bool shipUpgradePanelOpen;
+    private int selectedHangarShipIndex;
+    private string hangarShipDropdownSignature = "";
+    private bool isRefreshingHangarShipDropdown;
+    private bool hangarPanelOpen;
     private int lastHandledExplorationResultId;
     private bool showingExplorationResultPanel;
 
-        private static readonly string[] ShipUpgradePanelShipIds =
+        private static readonly string[] HangarShipIds =
     {
         Dimension1System.ShipLightProbe,
         Dimension1System.ShipExtractorDrone,
@@ -162,7 +180,7 @@ public class Dimension1PanelUI : MonoBehaviour
             RefreshButtons(gs);
             UpdateExplorationResultPanelState(gs);
             RefreshExplorationRewardsPanel(gs);
-            RefreshShipUpgradePanel(gs);
+            RefreshHangarPanel(gs);
 
         }
 
@@ -3001,55 +3019,55 @@ public class Dimension1PanelUI : MonoBehaviour
         );
     }
 
-        public void OnClickOpenShipUpgradePanel()
+        public void OnClickOpenHangarPanel()
     {
-        shipUpgradePanelOpen = true;
+        hangarPanelOpen = true;
         RefreshUI();
     }
 
-    public void OnClickCloseShipUpgradePanel()
+    public void OnClickCloseHangarPanel()
     {
-        shipUpgradePanelOpen = false;
+        hangarPanelOpen = false;
         RefreshUI();
     }
 
-    public void OnShipUpgradeDropdownChanged(int index)
+    public void OnHangarShipDropdownChanged(int index)
     {
-        if (isRefreshingShipUpgradeDropdown)
+        if (isRefreshingHangarShipDropdown)
             return;
 
-        selectedShipUpgradeIndex = index;
+        selectedHangarShipIndex = index;
         RefreshUI();
     }
 
-    public void OnClickUpgradeSelectedShipCargo()
+    public void OnClickUpgradeHangarShipCargo()
     {
-        TryUpgradeSelectedShipPart(Dimension1System.ShipPartCargo);
+        TryUpgradeSelectedHangarShipPart(Dimension1System.ShipPartCargo);
     }
 
-    public void OnClickUpgradeSelectedShipSpeed()
+    public void OnClickUpgradeHangarShipSpeed()
     {
-        TryUpgradeSelectedShipPart(Dimension1System.ShipPartSpeed);
+        TryUpgradeSelectedHangarShipPart(Dimension1System.ShipPartSpeed);
     }
 
-    public void OnClickUpgradeSelectedShipArmor()
+    public void OnClickUpgradeHangarShipArmor()
     {
-        TryUpgradeSelectedShipPart(Dimension1System.ShipPartArmor);
+        TryUpgradeSelectedHangarShipPart(Dimension1System.ShipPartArmor);
     }
 
-    public void OnClickUpgradeSelectedShipSensors()
+    public void OnClickUpgradeHangarShipSensors()
     {
-        TryUpgradeSelectedShipPart(Dimension1System.ShipPartSensors);
+        TryUpgradeSelectedHangarShipPart(Dimension1System.ShipPartSensors);
     }
 
-    private void TryUpgradeSelectedShipPart(string partId)
+    private void TryUpgradeSelectedHangarShipPart(string partId)
     {
         GameState gs = GameState.I;
 
         if (gs == null)
             return;
 
-        string shipId = GetSelectedShipUpgradePanelShipId();
+        string shipId = GetSelectedHangarShipId();
 
         if (string.IsNullOrEmpty(shipId))
             return;
@@ -3058,78 +3076,78 @@ public class Dimension1PanelUI : MonoBehaviour
         RefreshUI();
     }
 
-    private void RefreshShipUpgradePanel(GameState gs)
+    private void RefreshHangarPanel(GameState gs)
     {
         if (dimension1MainContentRoot != null)
-            dimension1MainContentRoot.SetActive(!shipUpgradePanelOpen);
+            dimension1MainContentRoot.SetActive(!hangarPanelOpen);
 
-        if (openShipUpgradePanelButton != null)
+        if (openHangarPanelButton != null)
         {
-            openShipUpgradePanelButton.gameObject.SetActive(!shipUpgradePanelOpen);
-            SetButtonText(openShipUpgradePanelButton, "Hangar");
+            openHangarPanelButton.gameObject.SetActive(!hangarPanelOpen);
+            SetButtonText(openHangarPanelButton, "Hangar");
         }
 
-        if (shipUpgradePanel == null)
+        if (hangarPanel == null)
             return;
 
-        shipUpgradePanel.SetActive(shipUpgradePanelOpen);
+        hangarPanel.SetActive(hangarPanelOpen);
 
-        if (!shipUpgradePanelOpen)
+        if (!hangarPanelOpen)
             return;
 
-        RefreshShipUpgradeDropdown(gs);
+        RefreshHangarShipDropdown(gs);
 
-        string shipId = GetSelectedShipUpgradePanelShipId();
+        string shipId = GetSelectedHangarShipId();
 
-        if (shipUpgradeInfoText != null)
-            shipUpgradeInfoText.text = BuildShipUpgradePanelInfoText(gs, shipId);
+        if (hangarInfoText != null)
+            hangarInfoText.text = BuildHangarInfoText(gs, shipId);
 
-        RefreshSelectedShipPartUpgradeButton(
-            upgradeSelectedCargoButton,
+        RefreshHangarPartUpgradeButton(
+            hangarUpgradeCargoButton,
             gs,
             shipId,
             Dimension1System.ShipPartCargo,
             "Carga"
         );
 
-        RefreshSelectedShipPartUpgradeButton(
-            upgradeSelectedSpeedButton,
+        RefreshHangarPartUpgradeButton(
+            hangarUpgradeSpeedButton,
             gs,
             shipId,
             Dimension1System.ShipPartSpeed,
             "Velocidad"
         );
 
-        RefreshSelectedShipPartUpgradeButton(
-            upgradeSelectedArmorButton,
+        RefreshHangarPartUpgradeButton(
+            hangarUpgradeArmorButton,
             gs,
             shipId,
             Dimension1System.ShipPartArmor,
             "Blindaje"
         );
 
-        RefreshSelectedShipPartUpgradeButton(
-            upgradeSelectedSensorsButton,
+        RefreshHangarPartUpgradeButton(
+            hangarUpgradeSensorsButton,
             gs,
             shipId,
             Dimension1System.ShipPartSensors,
             "Sensores"
         );
 
-        if (closeShipUpgradePanelButton != null)
-            SetButtonText(closeShipUpgradePanelButton, "Cerrar");
+        if (closeHangarPanelButton != null)
+            SetButtonText(closeHangarPanelButton, "Cerrar");
     }
 
-    private void RefreshShipUpgradeDropdown(GameState gs)
+    private void RefreshHangarShipDropdown(GameState gs)
     {
-        if (shipUpgradeDropdown == null)
+        if (hangarShipDropdown == null)
             return;
 
         List<string> options = new List<string>();
 
-        for (int i = 0; i < ShipUpgradePanelShipIds.Length; i++)
+        for (int i = 0; i < HangarShipIds.Length; i++)
         {
-            string shipId = ShipUpgradePanelShipIds[i];
+            string shipId = HangarShipIds[i];
             D1ShipState ship = FindShip(gs, shipId);
 
             string optionText = GetShipVisualName(shipId);
@@ -3150,41 +3168,41 @@ public class Dimension1PanelUI : MonoBehaviour
             newSignature += options[i];
         }
 
-        isRefreshingShipUpgradeDropdown = true;
+        isRefreshingHangarShipDropdown = true;
 
-        if (newSignature != shipUpgradeDropdownSignature)
+        if (newSignature != hangarShipDropdownSignature)
         {
-            shipUpgradeDropdown.ClearOptions();
-            shipUpgradeDropdown.AddOptions(options);
-            shipUpgradeDropdownSignature = newSignature;
+            hangarShipDropdown.ClearOptions();
+            hangarShipDropdown.AddOptions(options);
+            hangarShipDropdownSignature = newSignature;
         }
 
-        if (selectedShipUpgradeIndex < 0 || selectedShipUpgradeIndex >= options.Count)
-            selectedShipUpgradeIndex = 0;
+        if (selectedHangarShipIndex < 0 || selectedHangarShipIndex >= options.Count)
+            selectedHangarShipIndex = 0;
 
-        shipUpgradeDropdown.SetValueWithoutNotify(selectedShipUpgradeIndex);
-        shipUpgradeDropdown.RefreshShownValue();
+        hangarShipDropdown.SetValueWithoutNotify(selectedHangarShipIndex);
+        hangarShipDropdown.RefreshShownValue();
 
-        isRefreshingShipUpgradeDropdown = false;
+        isRefreshingHangarShipDropdown = false;
     }
 
-    private string GetSelectedShipUpgradePanelShipId()
+    private string GetSelectedHangarShipId()
     {
-        int index = selectedShipUpgradeIndex;
+        int index = selectedHangarShipIndex;
 
-        if (shipUpgradeDropdown != null)
-            index = shipUpgradeDropdown.value;
+        if (hangarShipDropdown != null)
+            index = hangarShipDropdown.value;
 
-        if (index < 0 || index >= ShipUpgradePanelShipIds.Length)
-            return ShipUpgradePanelShipIds[0];
+        if (index < 0 || index >= HangarShipIds.Length)
+            return HangarShipIds[0];
 
-        return ShipUpgradePanelShipIds[index];
+        return HangarShipIds[index];
     }
 
-    private string BuildShipUpgradePanelInfoText(GameState gs, string shipId)
+    private string BuildHangarInfoText(GameState gs, string shipId)
     {
         if (gs == null || string.IsNullOrEmpty(shipId))
-            return "Taller de Naves\nNo disponible.";
+            return "Hangar\nNo disponible.";
 
         D1ShipState ship = FindShip(gs, shipId);
 
@@ -3220,7 +3238,7 @@ public class Dimension1PanelUI : MonoBehaviour
             "/VI";
     }
 
-    private void RefreshSelectedShipPartUpgradeButton(
+    private void RefreshHangarPartUpgradeButton(
         Button button,
         GameState gs,
         string shipId,
