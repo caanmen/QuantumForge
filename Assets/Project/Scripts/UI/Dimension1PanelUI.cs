@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
+
 public class Dimension1PanelUI : MonoBehaviour
 {
     [Header("Texto principal")]
@@ -46,10 +47,23 @@ public class Dimension1PanelUI : MonoBehaviour
     [SerializeField] private Button unlockConvergenceShipButton;
     [SerializeField] private Button upgradeLightProbeSpeed1Button;
     [SerializeField] private Button upgradeExtractorDroneCargo1Button;
+    [SerializeField] private Button upgradeExtractorDroneSpeed1Button;
     [SerializeField] private Button upgradeAnalyticProbeSensors1Button;
     [SerializeField] private Button upgradeCargoShipCargo1Button;
     [SerializeField] private Button upgradeRescueShipSpeed1Button;
     [SerializeField] private Button upgradeConvergenceShipSpeed1Button;
+
+    [Header("Taller de naves provisional")]
+    [SerializeField] private GameObject dimension1MainContentRoot;
+    [SerializeField] private GameObject shipUpgradePanel;
+    [SerializeField] private Button openShipUpgradePanelButton;
+    [SerializeField] private Button closeShipUpgradePanelButton;
+    [SerializeField] private TMP_Dropdown shipUpgradeDropdown;
+    [SerializeField] private TextMeshProUGUI shipUpgradeInfoText;
+    [SerializeField] private Button upgradeSelectedCargoButton;
+    [SerializeField] private Button upgradeSelectedSpeedButton;
+    [SerializeField] private Button upgradeSelectedArmorButton;
+    [SerializeField] private Button upgradeSelectedSensorsButton;
 
     [Header("Rendimiento")]
     [SerializeField] private float refreshInterval = 0.25f;
@@ -61,8 +75,22 @@ public class Dimension1PanelUI : MonoBehaviour
     private int selectedShipIndex;
     private string shipDropdownSignature = "";
     private bool isRefreshingShipDropdown;
+    private int selectedShipUpgradeIndex;
+    private string shipUpgradeDropdownSignature = "";
+    private bool isRefreshingShipUpgradeDropdown;
+    private bool shipUpgradePanelOpen;
     private int lastHandledExplorationResultId;
     private bool showingExplorationResultPanel;
+
+        private static readonly string[] ShipUpgradePanelShipIds =
+    {
+        Dimension1System.ShipLightProbe,
+        Dimension1System.ShipExtractorDrone,
+        Dimension1System.ShipAnalyticProbe,
+        Dimension1System.ShipCargoShip,
+        Dimension1System.ShipRescueShip,
+        Dimension1System.ShipConvergenceShip
+    };
 
     private void OnEnable()
     {
@@ -134,6 +162,7 @@ public class Dimension1PanelUI : MonoBehaviour
             RefreshButtons(gs);
             UpdateExplorationResultPanelState(gs);
             RefreshExplorationRewardsPanel(gs);
+            RefreshShipUpgradePanel(gs);
 
         }
 
@@ -1877,6 +1906,22 @@ public class Dimension1PanelUI : MonoBehaviour
         RefreshUI();
     }
 
+        public void OnClickUpgradeExtractorDroneSpeed1()
+    {
+        GameState gs = GameState.I;
+
+        if (gs == null)
+            return;
+
+        TryBuyAnyShipPartUpgrade(
+            gs,
+            Dimension1System.ShipExtractorDrone,
+            Dimension1System.ShipPartSpeed
+        );
+
+        RefreshUI();
+    }
+
     public void OnClickUpgradeAnalyticProbeSensors1()
     {
         GameState gs = GameState.I;
@@ -2454,12 +2499,25 @@ public class Dimension1PanelUI : MonoBehaviour
 
     private void RefreshShipUpgradeButtons(GameState gs)
     {
-        RefreshLightProbeSpeed1Button(gs);
-        RefreshExtractorDroneCargo1Button(gs);
-        RefreshAnalyticProbeSensors1Button(gs);
-        RefreshCargoShipCargo1Button(gs);
-        RefreshRescueShipSpeed1Button(gs);
-        RefreshConvergenceShipSpeed1Button(gs);
+        HideLegacyShipUpgradeButtons();
+    }
+
+    private void HideLegacyShipUpgradeButtons()
+    {
+        SetButtonActive(upgradeLightProbeSpeed1Button, false);
+        SetButtonActive(upgradeExtractorDroneCargo1Button, false);
+        SetButtonActive(upgradeAnalyticProbeSensors1Button, false);
+        SetButtonActive(upgradeCargoShipCargo1Button, false);
+        SetButtonActive(upgradeRescueShipSpeed1Button, false);
+        SetButtonActive(upgradeConvergenceShipSpeed1Button, false);
+    }
+
+    private void SetButtonActive(Button button, bool active)
+    {
+        if (button == null)
+            return;
+
+        button.gameObject.SetActive(active);
     }
 
     private void RefreshLightProbeSpeed1Button(GameState gs)
@@ -2527,6 +2585,41 @@ public class Dimension1PanelUI : MonoBehaviour
                 Dimension1System.ShipExtractorDrone,
                 Dimension1System.ShipPartCargo,
                 "Carga",
+                "Dron"
+            )
+        );
+    }
+
+        private void RefreshExtractorDroneSpeed1Button(GameState gs)
+    {
+        if (upgradeExtractorDroneSpeed1Button == null)
+            return;
+
+        D1ShipState ship = FindShip(gs, Dimension1System.ShipExtractorDrone);
+        bool unlocked = ship != null && ship.unlocked;
+
+        bool hasNextUpgrade = HasAnyShipPartUpgrade(
+            gs,
+            Dimension1System.ShipExtractorDrone,
+            Dimension1System.ShipPartSpeed
+        );
+
+        upgradeExtractorDroneSpeed1Button.gameObject.SetActive(unlocked && hasNextUpgrade);
+
+        upgradeExtractorDroneSpeed1Button.interactable =
+            CanBuyAnyShipPartUpgrade(
+                gs,
+                Dimension1System.ShipExtractorDrone,
+                Dimension1System.ShipPartSpeed
+            );
+
+        SetButtonText(
+            upgradeExtractorDroneSpeed1Button,
+            BuildShipUpgradeButtonText(
+                gs,
+                Dimension1System.ShipExtractorDrone,
+                Dimension1System.ShipPartSpeed,
+                "Velocidad",
                 "Dron"
             )
         );
@@ -2906,6 +2999,357 @@ public class Dimension1PanelUI : MonoBehaviour
             button,
             baseText + "\n" + cost.ToString("0") + " " + metalName
         );
+    }
+
+        public void OnClickOpenShipUpgradePanel()
+    {
+        shipUpgradePanelOpen = true;
+        RefreshUI();
+    }
+
+    public void OnClickCloseShipUpgradePanel()
+    {
+        shipUpgradePanelOpen = false;
+        RefreshUI();
+    }
+
+    public void OnShipUpgradeDropdownChanged(int index)
+    {
+        if (isRefreshingShipUpgradeDropdown)
+            return;
+
+        selectedShipUpgradeIndex = index;
+        RefreshUI();
+    }
+
+    public void OnClickUpgradeSelectedShipCargo()
+    {
+        TryUpgradeSelectedShipPart(Dimension1System.ShipPartCargo);
+    }
+
+    public void OnClickUpgradeSelectedShipSpeed()
+    {
+        TryUpgradeSelectedShipPart(Dimension1System.ShipPartSpeed);
+    }
+
+    public void OnClickUpgradeSelectedShipArmor()
+    {
+        TryUpgradeSelectedShipPart(Dimension1System.ShipPartArmor);
+    }
+
+    public void OnClickUpgradeSelectedShipSensors()
+    {
+        TryUpgradeSelectedShipPart(Dimension1System.ShipPartSensors);
+    }
+
+    private void TryUpgradeSelectedShipPart(string partId)
+    {
+        GameState gs = GameState.I;
+
+        if (gs == null)
+            return;
+
+        string shipId = GetSelectedShipUpgradePanelShipId();
+
+        if (string.IsNullOrEmpty(shipId))
+            return;
+
+        TryBuyAnyShipPartUpgrade(gs, shipId, partId);
+        RefreshUI();
+    }
+
+    private void RefreshShipUpgradePanel(GameState gs)
+    {
+        if (dimension1MainContentRoot != null)
+            dimension1MainContentRoot.SetActive(!shipUpgradePanelOpen);
+
+        if (openShipUpgradePanelButton != null)
+        {
+            openShipUpgradePanelButton.gameObject.SetActive(!shipUpgradePanelOpen);
+            SetButtonText(openShipUpgradePanelButton, "Hangar");
+        }
+
+        if (shipUpgradePanel == null)
+            return;
+
+        shipUpgradePanel.SetActive(shipUpgradePanelOpen);
+
+        if (!shipUpgradePanelOpen)
+            return;
+
+        RefreshShipUpgradeDropdown(gs);
+
+        string shipId = GetSelectedShipUpgradePanelShipId();
+
+        if (shipUpgradeInfoText != null)
+            shipUpgradeInfoText.text = BuildShipUpgradePanelInfoText(gs, shipId);
+
+        RefreshSelectedShipPartUpgradeButton(
+            upgradeSelectedCargoButton,
+            gs,
+            shipId,
+            Dimension1System.ShipPartCargo,
+            "Carga"
+        );
+
+        RefreshSelectedShipPartUpgradeButton(
+            upgradeSelectedSpeedButton,
+            gs,
+            shipId,
+            Dimension1System.ShipPartSpeed,
+            "Velocidad"
+        );
+
+        RefreshSelectedShipPartUpgradeButton(
+            upgradeSelectedArmorButton,
+            gs,
+            shipId,
+            Dimension1System.ShipPartArmor,
+            "Blindaje"
+        );
+
+        RefreshSelectedShipPartUpgradeButton(
+            upgradeSelectedSensorsButton,
+            gs,
+            shipId,
+            Dimension1System.ShipPartSensors,
+            "Sensores"
+        );
+
+        if (closeShipUpgradePanelButton != null)
+            SetButtonText(closeShipUpgradePanelButton, "Cerrar");
+    }
+
+    private void RefreshShipUpgradeDropdown(GameState gs)
+    {
+        if (shipUpgradeDropdown == null)
+            return;
+
+        List<string> options = new List<string>();
+
+        for (int i = 0; i < ShipUpgradePanelShipIds.Length; i++)
+        {
+            string shipId = ShipUpgradePanelShipIds[i];
+            D1ShipState ship = FindShip(gs, shipId);
+
+            string optionText = GetShipVisualName(shipId);
+
+            if (ship == null || !ship.unlocked)
+                optionText += " (bloqueada)";
+
+            options.Add(optionText);
+        }
+
+        string newSignature = "";
+
+        for (int i = 0; i < options.Count; i++)
+        {
+            if (i > 0)
+                newSignature += "|";
+
+            newSignature += options[i];
+        }
+
+        isRefreshingShipUpgradeDropdown = true;
+
+        if (newSignature != shipUpgradeDropdownSignature)
+        {
+            shipUpgradeDropdown.ClearOptions();
+            shipUpgradeDropdown.AddOptions(options);
+            shipUpgradeDropdownSignature = newSignature;
+        }
+
+        if (selectedShipUpgradeIndex < 0 || selectedShipUpgradeIndex >= options.Count)
+            selectedShipUpgradeIndex = 0;
+
+        shipUpgradeDropdown.SetValueWithoutNotify(selectedShipUpgradeIndex);
+        shipUpgradeDropdown.RefreshShownValue();
+
+        isRefreshingShipUpgradeDropdown = false;
+    }
+
+    private string GetSelectedShipUpgradePanelShipId()
+    {
+        int index = selectedShipUpgradeIndex;
+
+        if (shipUpgradeDropdown != null)
+            index = shipUpgradeDropdown.value;
+
+        if (index < 0 || index >= ShipUpgradePanelShipIds.Length)
+            return ShipUpgradePanelShipIds[0];
+
+        return ShipUpgradePanelShipIds[index];
+    }
+
+    private string BuildShipUpgradePanelInfoText(GameState gs, string shipId)
+    {
+        if (gs == null || string.IsNullOrEmpty(shipId))
+            return "Taller de Naves\nNo disponible.";
+
+        D1ShipState ship = FindShip(gs, shipId);
+
+        string status = "Bloqueada";
+
+        if (ship != null && ship.unlocked)
+        {
+            status = ship.explorationActive
+                ? "Explorando"
+                : "Disponible";
+        }
+
+        return
+            "Hangar\n\n" +
+            "Nave: " +
+            GetShipVisualName(shipId) +
+            "\nEstado: " +
+            status +
+            "\nRol: " +
+            GetShipRoleText(shipId) +
+            "\n\nStats:\n" +
+            "Carga: " +
+            FormatShipUpgradeLevel(GetShipPartLevelForUI(ship, Dimension1System.ShipPartCargo)) +
+            "/VI\n" +
+            "Velocidad: " +
+            FormatShipUpgradeLevel(GetShipPartLevelForUI(ship, Dimension1System.ShipPartSpeed)) +
+            "/VI\n" +
+            "Blindaje: " +
+            FormatShipUpgradeLevel(GetShipPartLevelForUI(ship, Dimension1System.ShipPartArmor)) +
+            "/VI\n" +
+            "Sensores: " +
+            FormatShipUpgradeLevel(GetShipPartLevelForUI(ship, Dimension1System.ShipPartSensors)) +
+            "/VI";
+    }
+
+    private void RefreshSelectedShipPartUpgradeButton(
+        Button button,
+        GameState gs,
+        string shipId,
+        string partId,
+        string partVisualName
+    )
+    {
+        if (button == null)
+            return;
+
+        button.gameObject.SetActive(true);
+
+        D1ShipState ship = FindShip(gs, shipId);
+
+        if (ship == null || !ship.unlocked)
+        {
+            button.interactable = false;
+            SetButtonText(button, partVisualName + "\nNave bloqueada");
+            return;
+        }
+
+        int currentLevel = GetShipPartLevelForUI(ship, partId);
+
+        if (currentLevel >= 6)
+        {
+            button.interactable = false;
+            SetButtonText(button, partVisualName + "\nMáximo");
+            return;
+        }
+
+        bool hasNextUpgrade = HasAnyShipPartUpgrade(gs, shipId, partId);
+
+        if (!hasNextUpgrade)
+        {
+            button.interactable = false;
+            SetButtonText(button, partVisualName + "\nNo disponible todavía");
+            return;
+        }
+
+        button.interactable = CanBuyAnyShipPartUpgrade(gs, shipId, partId);
+
+        SetButtonText(
+            button,
+            BuildShipUpgradeButtonText(
+                gs,
+                shipId,
+                partId,
+                partVisualName,
+                GetShipShortName(shipId)
+            )
+        );
+    }
+
+    private int GetShipPartLevelForUI(D1ShipState ship, string partId)
+    {
+        if (ship == null || string.IsNullOrEmpty(partId))
+            return 0;
+
+        switch (partId)
+        {
+            case Dimension1System.ShipPartCargo:
+                return ship.cargoLevel;
+
+            case Dimension1System.ShipPartSpeed:
+                return ship.speedLevel;
+
+            case Dimension1System.ShipPartArmor:
+                return ship.armorLevel;
+
+            case Dimension1System.ShipPartSensors:
+                return ship.sensorsLevel;
+
+            default:
+                return 0;
+        }
+    }
+
+    private string GetShipShortName(string shipId)
+    {
+        switch (shipId)
+        {
+            case Dimension1System.ShipLightProbe:
+                return "Sonda";
+
+            case Dimension1System.ShipExtractorDrone:
+                return "Dron";
+
+            case Dimension1System.ShipAnalyticProbe:
+                return "Analítica";
+
+            case Dimension1System.ShipCargoShip:
+                return "Carga";
+
+            case Dimension1System.ShipRescueShip:
+                return "Rescate";
+
+            case Dimension1System.ShipConvergenceShip:
+                return "Convergencia";
+
+            default:
+                return "Nave";
+        }
+    }
+
+    private string GetShipRoleText(string shipId)
+    {
+        switch (shipId)
+        {
+            case Dimension1System.ShipLightProbe:
+                return "Nave inicial equilibrada.";
+
+            case Dimension1System.ShipExtractorDrone:
+                return "Especialista en recolección de materiales.";
+
+            case Dimension1System.ShipAnalyticProbe:
+                return "Especialista en análisis, blueprints y hallazgos.";
+
+            case Dimension1System.ShipCargoShip:
+                return "Transporte pesado y recompensas grandes.";
+
+            case Dimension1System.ShipRescueShip:
+                return "Recuperación segura y protección de hallazgos.";
+
+            case Dimension1System.ShipConvergenceShip:
+                return "Anomalías, destinos especiales y late game.";
+
+            default:
+                return "Sin rol definido.";
+        }
     }
 
     private void SetButtonText(Button button, string text)

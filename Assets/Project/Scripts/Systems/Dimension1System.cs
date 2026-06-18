@@ -1516,6 +1516,39 @@ public static class Dimension1System
             }
         }
 
+            if (shipId == ShipExtractorDrone && partId == ShipPartSpeed)
+        {
+            if (targetLevel == 4)
+            {
+                metal1 = MetalAluminum;
+                amount1 = 700.0;
+                metal2 = MetalLithium;
+                amount2 = 350.0;
+                blueprintCost = 1;
+                return true;
+            }
+
+            if (targetLevel == 5)
+            {
+                metal1 = MetalLithium;
+                amount1 = 600.0;
+                metal2 = MetalCobalt;
+                amount2 = 400.0;
+                blueprintCost = 2;
+                return true;
+            }
+
+            if (targetLevel == 6)
+            {
+                metal1 = MetalLithium;
+                amount1 = 900.0;
+                metal2 = MetalCobalt;
+                amount2 = 650.0;
+                blueprintCost = 3;
+                return true;
+            }
+        }
+
         if (shipId == ShipAnalyticProbe && partId == ShipPartSensors)
         {
             if (targetLevel == 4)
@@ -1850,6 +1883,36 @@ public static class Dimension1System
                 amount1 = 750.0;
                 metal2 = MetalCopper;
                 amount2 = 280.0;
+                return true;
+            }
+        }
+
+            if (shipId == ShipExtractorDrone && partId == ShipPartSpeed)
+        {
+            if (targetLevel == 1)
+            {
+                metal1 = MetalCopper;
+                amount1 = 120.0;
+                metal2 = MetalAluminum;
+                amount2 = 70.0;
+                return true;
+            }
+
+            if (targetLevel == 2)
+            {
+                metal1 = MetalAluminum;
+                amount1 = 280.0;
+                metal2 = MetalTitanium;
+                amount2 = 110.0;
+                return true;
+            }
+
+            if (targetLevel == 3)
+            {
+                metal1 = MetalAluminum;
+                amount1 = 620.0;
+                metal2 = MetalTitanium;
+                amount2 = 260.0;
                 return true;
             }
         }
@@ -2569,6 +2632,9 @@ public static class Dimension1System
         if (ship.shipId == ShipLightProbe)
             return baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);
 
+        if (ship.shipId == ShipExtractorDrone && IsExtractorDroneSpeedCompatibleDestination(destinationId))
+            return baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);    
+
         if (ship.shipId == ShipRescueShip && IsRescueSpeedCompatibleDestination(destinationId))
             return baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);
 
@@ -2648,6 +2714,19 @@ public static class Dimension1System
             return 0.90;
 
         return 1.0;
+    }
+
+        private static bool IsExtractorDroneSpeedCompatibleDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationMineralBelt:
+            case DestinationShipGraveyard:
+                return true;
+
+            default:
+                return false;
+        }
     }
 
     private static bool IsRescueSpeedCompatibleDestination(string destinationId)
