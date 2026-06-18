@@ -170,9 +170,7 @@ public class Dimension1PanelUI : MonoBehaviour
             "\n\n" +
             BuildSelectedDestinationText(gs) +
             "\n\n" +
-            BuildBlueprintArchiveText(gs) +
-            "\n\n" +
-            BuildHangarText(gs);
+            BuildBlueprintArchiveText(gs);
 
 
             RefreshDestinationDropdown(gs);
@@ -1250,7 +1248,7 @@ public class Dimension1PanelUI : MonoBehaviour
     private string BuildHangarText(GameState gs)
     {
         return
-            "Hangar:\n" +
+            "Resumen de flota:\n" +
             BuildShipLine(gs, Dimension1System.ShipLightProbe, "Sonda Ligera") +
             "\n" +
             BuildShipLine(gs, Dimension1System.ShipExtractorDrone, "Dron Extractor") +
@@ -3235,7 +3233,8 @@ public class Dimension1PanelUI : MonoBehaviour
             "/VI\n" +
             "Sensores: " +
             FormatShipUpgradeLevel(GetShipPartLevelForUI(ship, Dimension1System.ShipPartSensors)) +
-            "/VI";
+            "/VI\n\n" +
+            BuildHangarText(gs);
     }
 
     private void RefreshHangarPartUpgradeButton(
