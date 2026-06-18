@@ -29,6 +29,7 @@ public class Dimension1PanelUI : MonoBehaviour
     [SerializeField] private TMP_Dropdown destinationDropdown;
     [SerializeField] private TMP_Dropdown shipDropdown;
     [SerializeField] private Button exploreButton;
+    [SerializeField] private Button upgradeScannerButton;
 
     [Header("Recompensas de exploración")]
     [SerializeField] private GameObject explorationRewardsPanel;
@@ -278,10 +279,22 @@ public class Dimension1PanelUI : MonoBehaviour
         if (gs == null)
             return "Galaxia / Escáner:\nNo disponible.";
 
+        string scannerHeader =
+            "Galaxia / Escáner:\n" +
+            "Escáner: Nivel " +
+            Dimension1System.GetSimpleScannerLevel(gs) +
+            "/" +
+            Dimension1System.SimpleScannerMaxLevel +
+            "\nCapacidad actual: " +
+            Dimension1System.GetCurrentSimpleScanDestinationCount(gs) +
+            "/" +
+            Dimension1System.GetSimpleScanMaxDestinationCount() +
+            " destinos\n";
+
         if (gs.dimension1ScanActive)
         {
             return
-                "Galaxia / Escáner:\n" +
+                scannerHeader +
                 "Escaneando galaxia...\n" +
                 "Barrido restante: " +
                 FormatSeconds(gs.dimension1ScanRemainingSeconds);
@@ -292,23 +305,13 @@ public class Dimension1PanelUI : MonoBehaviour
         if (destinationCount <= 0)
         {
             return
-                "Galaxia / Escáner:\n" +
-                "Capacidad actual: " +
-                Dimension1System.GetCurrentSimpleScanDestinationCount(gs) +
-                "/" +
-                Dimension1System.GetSimpleScanMaxDestinationCount() +
-                " destinos\n" +
+                scannerHeader +
                 "Ningún destino detectado.\n" +
                 "Pulsa Escanear para hacer un barrido.";
         }
 
         return
-            "Galaxia / Escáner:\n" +
-            "Capacidad actual: " +
-            Dimension1System.GetCurrentSimpleScanDestinationCount(gs) +
-            "/" +
-            Dimension1System.GetSimpleScanMaxDestinationCount() +
-            " destinos\n" +
+            scannerHeader +
             "Destinos detectados: " +
             destinationCount +
             "\nSelecciona un destino en la lista para ver sus detalles.";
@@ -1701,6 +1704,18 @@ public class Dimension1PanelUI : MonoBehaviour
         RefreshUI();
     }
 
+    public void OnClickUpgradeScanner()
+    {
+        GameState gs = GameState.I;
+
+        if (gs == null)
+            return;
+
+        Dimension1System.TryUpgradeSimpleScanner(gs);
+
+        RefreshUI();
+    }
+
     public void OnClickStartLightProbeExploration()
     {
         GameState gs = GameState.I;
@@ -1971,6 +1986,7 @@ public class Dimension1PanelUI : MonoBehaviour
         RefreshCargoShipButton(gs);
         RefreshRescueShipButton(gs);
         RefreshConvergenceShipButton(gs);
+        RefreshScannerUpgradeButton(gs);
 
         if (scanButton != null)
         {
@@ -1994,6 +2010,57 @@ public class Dimension1PanelUI : MonoBehaviour
 
             SetButtonText(exploreButton, "Explorar");
         }
+    }
+
+    private void RefreshScannerUpgradeButton(GameState gs)
+    {
+        if (upgradeScannerButton == null)
+            return;
+
+        bool hasUpgrade =
+            Dimension1System.TryGetNextSimpleScannerUpgradeCost(
+                gs,
+                out int nextLevel,
+                out string metal1,
+                out double amount1,
+                out string metal2,
+                out double amount2,
+                out string metal3,
+                out double amount3,
+                out string metal4,
+                out double amount4
+            );
+
+        upgradeScannerButton.gameObject.SetActive(true);
+
+        if (!hasUpgrade)
+        {
+            SetButtonText(
+                upgradeScannerButton,
+                "Escáner máximo\n5/5 destinos"
+            );
+
+            upgradeScannerButton.interactable = false;
+            return;
+        }
+
+        upgradeScannerButton.interactable =
+            Dimension1System.CanUpgradeSimpleScanner(gs);
+
+        SetButtonText(
+            upgradeScannerButton,
+            BuildScannerUpgradeButtonText(
+                nextLevel,
+                metal1,
+                amount1,
+                metal2,
+                amount2,
+                metal3,
+                amount3,
+                metal4,
+                amount4
+            )
+        );
     }
 
     private bool HasStartedReceivingShipUnlockMetals(GameState gs, string shipId)
@@ -2317,6 +2384,45 @@ public class Dimension1PanelUI : MonoBehaviour
             return;
 
         Dimension1System.TryUpgradeAdvancedShipPart(gs, shipId, partId);
+    }
+
+    private string BuildScannerUpgradeButtonText(
+    int nextLevel,
+    string metal1,
+    double amount1,
+    string metal2,
+    double amount2,
+    string metal3,
+    double amount3,
+    string metal4,
+    double amount4
+    )
+    {
+        string text =
+            "Mejorar Escáner " +
+            ToRomanNumber(nextLevel) +
+            "\n";
+
+        text += BuildMetalCostText(metal1, amount1);
+
+        if (!string.IsNullOrEmpty(metal2) && amount2 > 0.0)
+            text += " + " + BuildMetalCostText(metal2, amount2);
+
+        if (!string.IsNullOrEmpty(metal3) && amount3 > 0.0)
+            text += " + " + BuildMetalCostText(metal3, amount3);
+
+        if (!string.IsNullOrEmpty(metal4) && amount4 > 0.0)
+            text += " + " + BuildMetalCostText(metal4, amount4);
+
+        return text;
+    }
+
+    private string BuildMetalCostText(string metalId, double amount)
+    {
+        if (string.IsNullOrEmpty(metalId) || amount <= 0.0)
+            return "";
+
+        return amount.ToString("0") + " " + GetMetalVisualName(metalId);
     }
 
     private string ToRomanNumber(int value)

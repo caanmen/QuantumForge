@@ -109,6 +109,7 @@ public static class Dimension1System
     public const double SimpleScanDurationSeconds = 5.0;
     public const int SimpleScanBaseDestinationCount = 2;
     public const int SimpleScanMaxDestinationCount = 5;
+    public const int SimpleScannerMaxLevel = 3;
     public const int BlueprintFragmentsPerBlueprint = 10;
 
     public static int GetCompletedBlueprintCount(GameState state)
@@ -132,6 +133,191 @@ public static class Dimension1System
     public static int GetCurrentSimpleScanDestinationCount(GameState state)
     {
         return GetSimpleScanDestinationCount(state);
+    }
+
+    public static int GetSimpleScannerLevel(GameState state)
+    {
+        if (state == null)
+            return 0;
+
+        return Mathf.Clamp(
+            state.dimension1ScannerLevel,
+            0,
+            SimpleScannerMaxLevel
+        );
+    }
+
+    public static bool IsSimpleScannerMaxed(GameState state)
+    {
+        return GetSimpleScannerLevel(state) >= SimpleScannerMaxLevel;
+    }
+
+    public static bool TryGetNextSimpleScannerUpgradeCost(
+    GameState state,
+    out int nextLevel,
+    out string metal1,
+    out double amount1,
+    out string metal2,
+    out double amount2,
+    out string metal3,
+    out double amount3,
+    out string metal4,
+    out double amount4
+    )
+    {
+        nextLevel = 0;
+        metal1 = "";
+        amount1 = 0.0;
+        metal2 = "";
+        amount2 = 0.0;
+        metal3 = "";
+        amount3 = 0.0;
+        metal4 = "";
+        amount4 = 0.0;
+
+        if (state == null || !state.dimension01Unlocked)
+            return false;
+
+        int currentLevel = GetSimpleScannerLevel(state);
+        nextLevel = currentLevel + 1;
+
+        if (nextLevel > SimpleScannerMaxLevel)
+            return false;
+
+        if (nextLevel == 1)
+        {
+            metal1 = MetalCopper;
+            amount1 = 300.0;
+            metal2 = MetalAluminum;
+            amount2 = 180.0;
+            return true;
+        }
+
+        if (nextLevel == 2)
+        {
+            metal1 = MetalCopper;
+            amount1 = 900.0;
+            metal2 = MetalAluminum;
+            amount2 = 500.0;
+            metal3 = MetalTitanium;
+            amount3 = 250.0;
+            return true;
+        }
+
+        if (nextLevel == 3)
+        {
+            metal1 = MetalCopper;
+            amount1 = 1800.0;
+            metal2 = MetalAluminum;
+            amount2 = 900.0;
+            metal3 = MetalTitanium;
+            amount3 = 600.0;
+            metal4 = MetalNickel;
+            amount4 = 300.0;
+            return true;
+        }
+
+        return false;
+    }
+
+    public static bool CanUpgradeSimpleScanner(GameState state)
+    {
+
+        if (state == null)
+            return false;
+
+        if (state.dimension1ScanActive)
+            return false;
+
+        if (IsAnyShipExploring(state))
+            return false;
+
+        if (!TryGetNextSimpleScannerUpgradeCost(
+            state,
+            out _,
+            out string metal1,
+            out double amount1,
+            out string metal2,
+            out double amount2,
+            out string metal3,
+            out double amount3,
+            out string metal4,
+            out double amount4
+        ))
+        {
+            return false;
+        }
+
+        if (!CanSpendD1MetalAmount(state, metal1, amount1))
+            return false;
+
+        if (!CanSpendD1MetalAmount(state, metal2, amount2))
+            return false;
+
+        if (!CanSpendD1MetalAmount(state, metal3, amount3))
+            return false;
+
+        if (!CanSpendD1MetalAmount(state, metal4, amount4))
+            return false;
+
+        return true;
+    }
+
+    public static bool TryUpgradeSimpleScanner(GameState state)
+    {
+        if (!CanUpgradeSimpleScanner(state))
+            return false;
+
+        if (!TryGetNextSimpleScannerUpgradeCost(
+            state,
+            out int nextLevel,
+            out string metal1,
+            out double amount1,
+            out string metal2,
+            out double amount2,
+            out string metal3,
+            out double amount3,
+            out string metal4,
+            out double amount4
+        ))
+        {
+            return false;
+        }
+
+        SpendD1MetalAmount(state, metal1, amount1);
+        SpendD1MetalAmount(state, metal2, amount2);
+        SpendD1MetalAmount(state, metal3, amount3);
+        SpendD1MetalAmount(state, metal4, amount4);
+
+        state.dimension1ScannerLevel = Mathf.Clamp(
+            nextLevel,
+            0,
+            SimpleScannerMaxLevel
+        );
+
+        return true;
+    }
+
+    private static bool CanSpendD1MetalAmount(GameState state, string metalId, double amount)
+    {
+        if (state == null)
+            return false;
+
+        if (string.IsNullOrEmpty(metalId) || amount <= 0.0)
+            return true;
+
+        return state.GetD1MetalAmount(metalId) >= amount;
+    }
+
+    private static void SpendD1MetalAmount(GameState state, string metalId, double amount)
+    {
+        if (state == null)
+            return;
+
+        if (string.IsNullOrEmpty(metalId) || amount <= 0.0)
+            return;
+
+        state.SpendD1Metal(metalId, amount);
     }
 
     public static int GetSimpleScanMaxDestinationCount()
@@ -2008,9 +2194,13 @@ public static class Dimension1System
 
     private static int GetSimpleScanDestinationCount(GameState state)
     {
-        // Por ahora el escaneo normal siempre muestra 2 destinos.
-        // Más adelante este valor subirá con escáner, estación, árbol o reliquias.
-        return SimpleScanBaseDestinationCount;
+        int scannerLevel = GetSimpleScannerLevel(state);
+
+        return Mathf.Clamp(
+            SimpleScanBaseDestinationCount + scannerLevel,
+            SimpleScanBaseDestinationCount,
+            SimpleScanMaxDestinationCount
+        );
     }
 
     private static void UpdateActiveExplorations(GameState state, double dt)

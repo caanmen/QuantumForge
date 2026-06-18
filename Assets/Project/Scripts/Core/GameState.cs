@@ -187,6 +187,9 @@ public class GameState : MonoBehaviour
     [Tooltip("Tiempo total del barrido de escáner de Dimensión 1.")]
     public double dimension1ScanTotalSeconds;
 
+    [Tooltip("Nivel del escáner de Dimensión 1. 0 = básico, 1-3 = mejoras.")]
+    public int dimension1ScannerLevel = 0;
+
     [Tooltip("Último destino completado por exploración en Dimensión 1.")]
     public string dimension1LastExplorationDestinationId = "";
 
@@ -1305,6 +1308,7 @@ public class GameState : MonoBehaviour
         dimension1ScanActive = false;
         dimension1ScanRemainingSeconds = 0.0;
         dimension1ScanTotalSeconds = 0.0;
+        dimension1ScannerLevel = 0;
         dimension1LastExplorationDestinationId = "";
         dimension1LastExplorationRewards = new List<D1MetalAmount>();
         dimension1BlueprintFragments = 0;
