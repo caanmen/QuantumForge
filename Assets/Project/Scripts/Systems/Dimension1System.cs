@@ -1582,6 +1582,39 @@ public static class Dimension1System
             }
         }
 
+                if (shipId == ShipAnalyticProbe && partId == ShipPartSpeed)
+        {
+            if (targetLevel == 4)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 750.0;
+                metal2 = MetalLithium;
+                amount2 = 350.0;
+                blueprintCost = 1;
+                return true;
+            }
+
+            if (targetLevel == 5)
+            {
+                metal1 = MetalLithium;
+                amount1 = 650.0;
+                metal2 = MetalCobalt;
+                amount2 = 420.0;
+                blueprintCost = 2;
+                return true;
+            }
+
+            if (targetLevel == 6)
+            {
+                metal1 = MetalLithium;
+                amount1 = 950.0;
+                metal2 = MetalCobalt;
+                amount2 = 700.0;
+                blueprintCost = 3;
+                return true;
+            }
+        }
+
         if (shipId == ShipCargoShip && partId == ShipPartCargo)
         {
             if (targetLevel == 4)
@@ -1610,6 +1643,39 @@ public static class Dimension1System
                 amount1 = 2200.0;
                 metal2 = MetalCobalt;
                 amount2 = 1400.0;
+                blueprintCost = 3;
+                return true;
+            }
+        }
+
+                if (shipId == ShipCargoShip && partId == ShipPartSpeed)
+        {
+            if (targetLevel == 4)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 900.0;
+                metal2 = MetalLithium;
+                amount2 = 450.0;
+                blueprintCost = 1;
+                return true;
+            }
+
+            if (targetLevel == 5)
+            {
+                metal1 = MetalLithium;
+                amount1 = 800.0;
+                metal2 = MetalCobalt;
+                amount2 = 550.0;
+                blueprintCost = 2;
+                return true;
+            }
+
+            if (targetLevel == 6)
+            {
+                metal1 = MetalLithium;
+                amount1 = 1200.0;
+                metal2 = MetalCobalt;
+                amount2 = 850.0;
                 blueprintCost = 3;
                 return true;
             }
@@ -1942,6 +2008,36 @@ public static class Dimension1System
                 metal1 = MetalCopper;
                 amount1 = 520.0;
                 metal2 = MetalAluminum;
+                amount2 = 320.0;
+                return true;
+            }
+        }
+
+                if (shipId == ShipAnalyticProbe && partId == ShipPartSpeed)
+        {
+            if (targetLevel == 1)
+            {
+                metal1 = MetalCopper;
+                amount1 = 160.0;
+                metal2 = MetalAluminum;
+                amount2 = 90.0;
+                return true;
+            }
+
+            if (targetLevel == 2)
+            {
+                metal1 = MetalAluminum;
+                amount1 = 320.0;
+                metal2 = MetalTitanium;
+                amount2 = 140.0;
+                return true;
+            }
+
+            if (targetLevel == 3)
+            {
+                metal1 = MetalAluminum;
+                amount1 = 700.0;
+                metal2 = MetalTitanium;
                 amount2 = 320.0;
                 return true;
             }
@@ -2635,6 +2731,12 @@ public static class Dimension1System
         if (ship.shipId == ShipExtractorDrone && IsExtractorDroneSpeedCompatibleDestination(destinationId))
             return baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);    
 
+        if (ship.shipId == ShipAnalyticProbe && IsAnalyticProbeSpeedCompatibleDestination(destinationId))
+            return baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);
+
+        if (ship.shipId == ShipCargoShip && IsCargoShipSpeedCompatibleDestination(destinationId))
+            return baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);
+
         if (ship.shipId == ShipRescueShip && IsRescueSpeedCompatibleDestination(destinationId))
             return baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);
 
@@ -2722,6 +2824,36 @@ public static class Dimension1System
         {
             case DestinationMineralBelt:
             case DestinationShipGraveyard:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+        private static bool IsAnalyticProbeSpeedCompatibleDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationOrbitalRuin:
+            case DestinationDriftingProbes:
+            case DestinationLaboratory:
+            case DestinationMinorAnomaly:
+            case DestinationAncientStructure:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+        private static bool IsCargoShipSpeedCompatibleDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationMineralBelt:
+            case DestinationShipGraveyard:
+            case DestinationAbandonedStation:
                 return true;
 
             default:
