@@ -91,8 +91,10 @@ public class SaveData
     public bool dimension1ScanActive;
     public double dimension1ScanRemainingSeconds;
     public double dimension1ScanTotalSeconds;
+    public int dimension1ScannerLevel;
     public string dimension1LastExplorationDestinationId;
     public List<D1MetalAmount> dimension1LastExplorationRewards;
+    public List<D1ExplorationRecordEntry> dimension1RecentExplorationRecords;
     public int dimension1BlueprintFragments;
     public int dimension1LastExplorationBlueprintFragments;
 }
@@ -205,8 +207,10 @@ public class SaveService : MonoBehaviour
         dimension1ScanActive = GameState.I.dimension1ScanActive,
         dimension1ScanRemainingSeconds = GameState.I.dimension1ScanRemainingSeconds,
         dimension1ScanTotalSeconds = GameState.I.dimension1ScanTotalSeconds,
+        dimension1ScannerLevel = GameState.I.dimension1ScannerLevel,
         dimension1LastExplorationDestinationId = GameState.I.dimension1LastExplorationDestinationId,
         dimension1LastExplorationRewards = GameState.I.dimension1LastExplorationRewards,
+        dimension1RecentExplorationRecords = GameState.I.dimension1RecentExplorationRecords,
         dimension1BlueprintFragments = GameState.I.dimension1BlueprintFragments,
         dimension1LastExplorationBlueprintFragments = GameState.I.dimension1LastExplorationBlueprintFragments,
 
@@ -309,8 +313,10 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension1ScanActive = data.dimension1ScanActive;
         GameState.I.dimension1ScanRemainingSeconds = data.dimension1ScanRemainingSeconds;
         GameState.I.dimension1ScanTotalSeconds = data.dimension1ScanTotalSeconds;
+        GameState.I.dimension1ScannerLevel = data.dimension1ScannerLevel;
         GameState.I.dimension1LastExplorationDestinationId = data.dimension1LastExplorationDestinationId ?? "";
         GameState.I.dimension1LastExplorationRewards = data.dimension1LastExplorationRewards ?? new List<D1MetalAmount>();
+        GameState.I.dimension1RecentExplorationRecords = data.dimension1RecentExplorationRecords ?? new List<D1ExplorationRecordEntry>();
         GameState.I.dimension1BlueprintFragments = data.dimension1BlueprintFragments;
         GameState.I.dimension1LastExplorationBlueprintFragments = data.dimension1LastExplorationBlueprintFragments;
         GameState.I.EnsureDimension1State();
@@ -446,8 +452,10 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension1ScanActive = false;
         GameState.I.dimension1ScanRemainingSeconds = 0.0;
         GameState.I.dimension1ScanTotalSeconds = 0.0;
+        GameState.I.dimension1ScannerLevel = 0;
         GameState.I.dimension1LastExplorationDestinationId = "";
         GameState.I.dimension1LastExplorationRewards = new List<D1MetalAmount>();
+        GameState.I.dimension1RecentExplorationRecords = new List<D1ExplorationRecordEntry>();
         GameState.I.dimension1BlueprintFragments = 0;
         GameState.I.dimension1LastExplorationBlueprintFragments = 0;
         GameState.I.EnsureDimension1State();

@@ -32,7 +32,7 @@ public class D1ShipState
     public int speedLevel;
     public int armorLevel;
     public int sensorsLevel;
-    
+
 }
 
 [System.Serializable]
@@ -40,6 +40,16 @@ public class D1ScannedDestinationState
 {
     public string destinationId;
     public bool available;
+}
+
+[System.Serializable]
+public class D1ExplorationRecordEntry
+{
+    public int resultId;
+    public string shipId;
+    public string destinationId;
+    public List<D1MetalAmount> rewards = new List<D1MetalAmount>();
+    public int blueprintFragments;
 }
 
 public static class Dimension1System
@@ -57,6 +67,7 @@ public static class Dimension1System
     public const string MetalTungsten = "metal_tungsten";
     public const string MetalPlatinum = "metal_platinum";
     public const string MetalIridium = "metal_iridium";
+    private const int MaxRecentExplorationRecords = 20;
 
     // Planetas MVP
     public const string Planet01 = "planet_01";
@@ -334,7 +345,7 @@ public static class Dimension1System
     {
         return GetSimpleExplorationDurationSeconds(destinationId, ship);
     }
-    
+
 
     public static int GetBlueprintFragmentCostForBlueprints(int blueprintCount)
     {
@@ -473,7 +484,7 @@ public static class Dimension1System
 
             case Planet07:
                 ProducePlanet07(state, planet.extractorTier, dt);
-                break;    
+                break;
         }
     }
 
@@ -657,7 +668,7 @@ public static class Dimension1System
             case MetalIridium:
                 return
                     planet06 != null && planet06.unlocked && planet06.extractorTier >= 1 ||
-                    planet07 != null && planet07.unlocked && planet07.extractorTier >= 20;    
+                    planet07 != null && planet07.unlocked && planet07.extractorTier >= 20;
 
             default:
                 return false;
@@ -767,7 +778,7 @@ public static class Dimension1System
                 if (metalId == MetalIridium && planet.extractorTier >= 20)
                     return 0.004 * planet.extractorTier;
 
-                break;    
+                break;
         }
 
         return 0.0;
@@ -921,7 +932,7 @@ public static class Dimension1System
         return false;
     }
 
-    
+
 
     public static bool TryUpgradeExtractor(GameState state, string planetId)
     {
@@ -1067,89 +1078,89 @@ public static class Dimension1System
         }
 
         if (planetId == Planet04)
-    {
-        double nickelCost = 1200.0;
-        double cobaltCost = 350.0;
+        {
+            double nickelCost = 1200.0;
+            double cobaltCost = 350.0;
 
-        if (state.GetD1MetalAmount(MetalNickel) < nickelCost)
-            return false;
+            if (state.GetD1MetalAmount(MetalNickel) < nickelCost)
+                return false;
 
-        if (state.GetD1MetalAmount(MetalCobalt) < cobaltCost)
-            return false;
+            if (state.GetD1MetalAmount(MetalCobalt) < cobaltCost)
+                return false;
 
-        state.SpendD1Metal(MetalNickel, nickelCost);
-        state.SpendD1Metal(MetalCobalt, cobaltCost);
+            state.SpendD1Metal(MetalNickel, nickelCost);
+            state.SpendD1Metal(MetalCobalt, cobaltCost);
 
-        planet.unlocked = true;
-        planet.extractorTier = 1;
+            planet.unlocked = true;
+            planet.extractorTier = 1;
 
-        return true;
-    }
+            return true;
+        }
 
-    if (planetId == Planet05)
-    {
-        double lithiumCost = 1400.0;
-        double tungstenCost = 320.0;
+        if (planetId == Planet05)
+        {
+            double lithiumCost = 1400.0;
+            double tungstenCost = 320.0;
 
-        if (state.GetD1MetalAmount(MetalLithium) < lithiumCost)
-            return false;
+            if (state.GetD1MetalAmount(MetalLithium) < lithiumCost)
+                return false;
 
-        if (state.GetD1MetalAmount(MetalTungsten) < tungstenCost)
-            return false;
+            if (state.GetD1MetalAmount(MetalTungsten) < tungstenCost)
+                return false;
 
-        state.SpendD1Metal(MetalLithium, lithiumCost);
-        state.SpendD1Metal(MetalTungsten, tungstenCost);
+            state.SpendD1Metal(MetalLithium, lithiumCost);
+            state.SpendD1Metal(MetalTungsten, tungstenCost);
 
-        planet.unlocked = true;
-        planet.extractorTier = 1;
+            planet.unlocked = true;
+            planet.extractorTier = 1;
 
-        return true;
-    }
+            return true;
+        }
 
-    if (planetId == Planet06)
-    {
-        double platinumCost = 1100.0;
-        double nickelCost = 1800.0;
+        if (planetId == Planet06)
+        {
+            double platinumCost = 1100.0;
+            double nickelCost = 1800.0;
 
-        if (state.GetD1MetalAmount(MetalPlatinum) < platinumCost)
-            return false;
+            if (state.GetD1MetalAmount(MetalPlatinum) < platinumCost)
+                return false;
 
-        if (state.GetD1MetalAmount(MetalNickel) < nickelCost)
-            return false;
+            if (state.GetD1MetalAmount(MetalNickel) < nickelCost)
+                return false;
 
-        state.SpendD1Metal(MetalPlatinum, platinumCost);
-        state.SpendD1Metal(MetalNickel, nickelCost);
+            state.SpendD1Metal(MetalPlatinum, platinumCost);
+            state.SpendD1Metal(MetalNickel, nickelCost);
 
-        planet.unlocked = true;
-        planet.extractorTier = 1;
+            planet.unlocked = true;
+            planet.extractorTier = 1;
 
-        return true;
-    }
+            return true;
+        }
 
-    if (planetId == Planet07)
-    {
-        double iridiumCost = 800.0;
-        double cobaltCost = 1500.0;
-        double tungstenCost = 900.0;
+        if (planetId == Planet07)
+        {
+            double iridiumCost = 800.0;
+            double cobaltCost = 1500.0;
+            double tungstenCost = 900.0;
 
-        if (state.GetD1MetalAmount(MetalIridium) < iridiumCost)
-            return false;
+            if (state.GetD1MetalAmount(MetalIridium) < iridiumCost)
+                return false;
 
-        if (state.GetD1MetalAmount(MetalCobalt) < cobaltCost)
-            return false;
+            if (state.GetD1MetalAmount(MetalCobalt) < cobaltCost)
+                return false;
 
-        if (state.GetD1MetalAmount(MetalTungsten) < tungstenCost)
-            return false;
+            if (state.GetD1MetalAmount(MetalTungsten) < tungstenCost)
+                return false;
 
-        state.SpendD1Metal(MetalIridium, iridiumCost);
-        state.SpendD1Metal(MetalCobalt, cobaltCost);
-        state.SpendD1Metal(MetalTungsten, tungstenCost);
+            state.SpendD1Metal(MetalIridium, iridiumCost);
+            state.SpendD1Metal(MetalCobalt, cobaltCost);
+            state.SpendD1Metal(MetalTungsten, tungstenCost);
 
-        planet.unlocked = true;
-        planet.extractorTier = 1;
+            planet.unlocked = true;
+            planet.extractorTier = 1;
 
-        return true;
-    }
+            return true;
+        }
 
         return false;
     }
@@ -1285,7 +1296,7 @@ public static class Dimension1System
             return true;
         }
 
-                if (shipId == ShipConvergenceShip)
+        if (shipId == ShipConvergenceShip)
         {
             if (!state.SpendD1Metal(MetalPlatinum, 900.0))
                 return false;
@@ -1396,50 +1407,50 @@ public static class Dimension1System
         out string metal2,
         out double amount2
         )
-        {
-            nextLevel = 0;
-            metal1 = "";
-            amount1 = 0.0;
-            metal2 = "";
-            amount2 = 0.0;
+    {
+        nextLevel = 0;
+        metal1 = "";
+        amount1 = 0.0;
+        metal2 = "";
+        amount2 = 0.0;
 
-            if (state == null || !state.dimension01Unlocked)
-                return false;
+        if (state == null || !state.dimension01Unlocked)
+            return false;
 
-            if (string.IsNullOrEmpty(shipId) || string.IsNullOrEmpty(partId))
-                return false;
+        if (string.IsNullOrEmpty(shipId) || string.IsNullOrEmpty(partId))
+            return false;
 
-            state.EnsureDimension1State();
+        state.EnsureDimension1State();
 
-            D1ShipState ship = FindShipState(state, shipId);
+        D1ShipState ship = FindShipState(state, shipId);
 
-            if (ship == null || !ship.unlocked)
-                return false;
+        if (ship == null || !ship.unlocked)
+            return false;
 
-            int currentLevel = GetShipPartLevel(ship, partId);
-            nextLevel = currentLevel + 1;
+        int currentLevel = GetShipPartLevel(ship, partId);
+        nextLevel = currentLevel + 1;
 
-            return TryGetShipPartUpgradeCost(
-                shipId,
-                partId,
-                nextLevel,
-                out metal1,
-                out amount1,
-                out metal2,
-                out amount2
-            );
-        }
+        return TryGetShipPartUpgradeCost(
+            shipId,
+            partId,
+            nextLevel,
+            out metal1,
+            out amount1,
+            out metal2,
+            out amount2
+        );
+    }
 
-        public static bool TryGetAdvancedShipPartUpgradeCost(
-        string shipId,
-        string partId,
-        int targetLevel,
-        out string metal1,
-        out double amount1,
-        out string metal2,
-        out double amount2,
-        out int blueprintCost
-    )
+    public static bool TryGetAdvancedShipPartUpgradeCost(
+    string shipId,
+    string partId,
+    int targetLevel,
+    out string metal1,
+    out double amount1,
+    out string metal2,
+    out double amount2,
+    out int blueprintCost
+)
     {
         metal1 = "";
         amount1 = 0.0;
@@ -1449,6 +1460,501 @@ public static class Dimension1System
 
         if (targetLevel < 4 || targetLevel > 6)
             return false;
+
+        if (shipId == ShipLightProbe && partId == ShipPartArmor)
+        {
+            if (targetLevel == 4)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 520.0;
+                metal2 = MetalNickel;
+                amount2 = 260.0;
+                blueprintCost = 1;
+                return true;
+            }
+
+            if (targetLevel == 5)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 760.0;
+                metal2 = MetalTungsten;
+                amount2 = 220.0;
+                blueprintCost = 2;
+                return true;
+            }
+
+            if (targetLevel == 6)
+            {
+                metal1 = MetalTungsten;
+                amount1 = 520.0;
+                metal2 = MetalIridium;
+                amount2 = 180.0;
+                blueprintCost = 3;
+                return true;
+            }
+        }
+
+        if (shipId == ShipExtractorDrone && partId == ShipPartArmor)
+        {
+            if (targetLevel == 4)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 820.0;
+                metal2 = MetalTungsten;
+                amount2 = 320.0;
+                blueprintCost = 1;
+                return true;
+            }
+
+            if (targetLevel == 5)
+            {
+                metal1 = MetalTungsten;
+                amount1 = 680.0;
+                metal2 = MetalCobalt;
+                amount2 = 520.0;
+                blueprintCost = 2;
+                return true;
+            }
+
+            if (targetLevel == 6)
+            {
+                metal1 = MetalTungsten;
+                amount1 = 1050.0;
+                metal2 = MetalIridium;
+                amount2 = 380.0;
+                blueprintCost = 3;
+                return true;
+            }
+        }
+
+        if (shipId == ShipAnalyticProbe && partId == ShipPartArmor)
+        {
+            if (targetLevel == 4)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 760.0;
+                metal2 = MetalCobalt;
+                amount2 = 420.0;
+                blueprintCost = 1;
+                return true;
+            }
+
+            if (targetLevel == 5)
+            {
+                metal1 = MetalCobalt;
+                amount1 = 760.0;
+                metal2 = MetalPlatinum;
+                amount2 = 300.0;
+                blueprintCost = 2;
+                return true;
+            }
+
+            if (targetLevel == 6)
+            {
+                metal1 = MetalTungsten;
+                amount1 = 900.0;
+                metal2 = MetalIridium;
+                amount2 = 320.0;
+                blueprintCost = 3;
+                return true;
+            }
+        }
+
+        if (shipId == ShipCargoShip && partId == ShipPartArmor)
+        {
+            if (targetLevel == 4)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 1600.0;
+                metal2 = MetalTungsten;
+                amount2 = 760.0;
+                blueprintCost = 1;
+                return true;
+            }
+
+            if (targetLevel == 5)
+            {
+                metal1 = MetalTungsten;
+                amount1 = 1300.0;
+                metal2 = MetalPlatinum;
+                amount2 = 680.0;
+                blueprintCost = 2;
+                return true;
+            }
+
+            if (targetLevel == 6)
+            {
+                metal1 = MetalTungsten;
+                amount1 = 1900.0;
+                metal2 = MetalIridium;
+                amount2 = 760.0;
+                blueprintCost = 3;
+                return true;
+            }
+        }
+
+        if (shipId == ShipRescueShip && partId == ShipPartArmor)
+        {
+            if (targetLevel == 4)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 1800.0;
+                metal2 = MetalPlatinum;
+                amount2 = 760.0;
+                blueprintCost = 1;
+                return true;
+            }
+
+            if (targetLevel == 5)
+            {
+                metal1 = MetalTungsten;
+                amount1 = 1500.0;
+                metal2 = MetalPlatinum;
+                amount2 = 1050.0;
+                blueprintCost = 2;
+                return true;
+            }
+
+            if (targetLevel == 6)
+            {
+                metal1 = MetalTungsten;
+                amount1 = 2300.0;
+                metal2 = MetalIridium;
+                amount2 = 1100.0;
+                blueprintCost = 3;
+                return true;
+            }
+        }
+
+        if (shipId == ShipConvergenceShip && partId == ShipPartArmor)
+        {
+            if (targetLevel == 4)
+            {
+                metal1 = MetalTungsten;
+                amount1 = 2100.0;
+                metal2 = MetalIridium;
+                amount2 = 900.0;
+                blueprintCost = 1;
+                return true;
+            }
+
+            if (targetLevel == 5)
+            {
+                metal1 = MetalPlatinum;
+                amount1 = 1900.0;
+                metal2 = MetalIridium;
+                amount2 = 1250.0;
+                blueprintCost = 2;
+                return true;
+            }
+
+            if (targetLevel == 6)
+            {
+                metal1 = MetalTungsten;
+                amount1 = 2800.0;
+                metal2 = MetalIridium;
+                amount2 = 1800.0;
+                blueprintCost = 3;
+                return true;
+            }
+        }
+
+        if (shipId == ShipLightProbe && partId == ShipPartSensors)
+        {
+            if (targetLevel == 4)
+            {
+                metal1 = MetalCopper;
+                amount1 = 620.0;
+                metal2 = MetalAluminum;
+                amount2 = 340.0;
+                blueprintCost = 1;
+                return true;
+            }
+
+            if (targetLevel == 5)
+            {
+                metal1 = MetalAluminum;
+                amount1 = 820.0;
+                metal2 = MetalTitanium;
+                amount2 = 300.0;
+                blueprintCost = 2;
+                return true;
+            }
+
+            if (targetLevel == 6)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 740.0;
+                metal2 = MetalNickel;
+                amount2 = 360.0;
+                blueprintCost = 3;
+                return true;
+            }
+        }
+
+        if (shipId == ShipExtractorDrone && partId == ShipPartSensors)
+        {
+            if (targetLevel == 4)
+            {
+                metal1 = MetalCopper;
+                amount1 = 820.0;
+                metal2 = MetalAluminum;
+                amount2 = 500.0;
+                blueprintCost = 1;
+                return true;
+            }
+
+            if (targetLevel == 5)
+            {
+                metal1 = MetalAluminum;
+                amount1 = 1050.0;
+                metal2 = MetalTitanium;
+                amount2 = 450.0;
+                blueprintCost = 2;
+                return true;
+            }
+
+            if (targetLevel == 6)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 980.0;
+                metal2 = MetalNickel;
+                amount2 = 520.0;
+                blueprintCost = 3;
+                return true;
+            }
+        }
+
+        if (shipId == ShipCargoShip && partId == ShipPartSensors)
+        {
+            if (targetLevel == 4)
+            {
+                metal1 = MetalCopper;
+                amount1 = 1200.0;
+                metal2 = MetalNickel;
+                amount2 = 950.0;
+                blueprintCost = 1;
+                return true;
+            }
+
+            if (targetLevel == 5)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 1350.0;
+                metal2 = MetalCobalt;
+                amount2 = 760.0;
+                blueprintCost = 2;
+                return true;
+            }
+
+            if (targetLevel == 6)
+            {
+                metal1 = MetalNickel;
+                amount1 = 1500.0;
+                metal2 = MetalPlatinum;
+                amount2 = 680.0;
+                blueprintCost = 3;
+                return true;
+            }
+        }
+
+        if (shipId == ShipRescueShip && partId == ShipPartSensors)
+        {
+            if (targetLevel == 4)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 1350.0;
+                metal2 = MetalPlatinum;
+                amount2 = 540.0;
+                blueprintCost = 1;
+                return true;
+            }
+
+            if (targetLevel == 5)
+            {
+                metal1 = MetalCobalt;
+                amount1 = 1300.0;
+                metal2 = MetalPlatinum;
+                amount2 = 820.0;
+                blueprintCost = 2;
+                return true;
+            }
+
+            if (targetLevel == 6)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 1850.0;
+                metal2 = MetalPlatinum;
+                amount2 = 1200.0;
+                blueprintCost = 3;
+                return true;
+            }
+        }
+
+        if (shipId == ShipConvergenceShip && partId == ShipPartSensors)
+        {
+            if (targetLevel == 4)
+            {
+                metal1 = MetalPlatinum;
+                amount1 = 1500.0;
+                metal2 = MetalIridium;
+                amount2 = 780.0;
+                blueprintCost = 1;
+                return true;
+            }
+
+            if (targetLevel == 5)
+            {
+                metal1 = MetalTungsten;
+                amount1 = 1850.0;
+                metal2 = MetalIridium;
+                amount2 = 1100.0;
+                blueprintCost = 2;
+                return true;
+            }
+
+            if (targetLevel == 6)
+            {
+                metal1 = MetalPlatinum;
+                amount1 = 2200.0;
+                metal2 = MetalIridium;
+                amount2 = 1550.0;
+                blueprintCost = 3;
+                return true;
+            }
+        }
+
+        if (shipId == ShipLightProbe && partId == ShipPartCargo)
+        {
+            if (targetLevel == 4)
+            {
+                metal1 = MetalCopper;
+                amount1 = 620.0;
+                metal2 = MetalAluminum;
+                amount2 = 320.0;
+                blueprintCost = 1;
+                return true;
+            }
+
+            if (targetLevel == 5)
+            {
+                metal1 = MetalAluminum;
+                amount1 = 820.0;
+                metal2 = MetalTitanium;
+                amount2 = 260.0;
+                blueprintCost = 2;
+                return true;
+            }
+
+            if (targetLevel == 6)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 720.0;
+                metal2 = MetalNickel;
+                amount2 = 320.0;
+                blueprintCost = 3;
+                return true;
+            }
+        }
+
+        if (shipId == ShipAnalyticProbe && partId == ShipPartCargo)
+        {
+            if (targetLevel == 4)
+            {
+                metal1 = MetalAluminum;
+                amount1 = 700.0;
+                metal2 = MetalTitanium;
+                amount2 = 300.0;
+                blueprintCost = 1;
+                return true;
+            }
+
+            if (targetLevel == 5)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 760.0;
+                metal2 = MetalNickel;
+                amount2 = 390.0;
+                blueprintCost = 2;
+                return true;
+            }
+
+            if (targetLevel == 6)
+            {
+                metal1 = MetalNickel;
+                amount1 = 850.0;
+                metal2 = MetalCobalt;
+                amount2 = 380.0;
+                blueprintCost = 3;
+                return true;
+            }
+        }
+
+        if (shipId == ShipRescueShip && partId == ShipPartCargo)
+        {
+            if (targetLevel == 4)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 1450.0;
+                metal2 = MetalPlatinum;
+                amount2 = 520.0;
+                blueprintCost = 1;
+                return true;
+            }
+
+            if (targetLevel == 5)
+            {
+                metal1 = MetalCobalt;
+                amount1 = 1350.0;
+                metal2 = MetalPlatinum;
+                amount2 = 760.0;
+                blueprintCost = 2;
+                return true;
+            }
+
+            if (targetLevel == 6)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 1900.0;
+                metal2 = MetalPlatinum;
+                amount2 = 1100.0;
+                blueprintCost = 3;
+                return true;
+            }
+        }
+
+        if (shipId == ShipConvergenceShip && partId == ShipPartCargo)
+        {
+            if (targetLevel == 4)
+            {
+                metal1 = MetalTungsten;
+                amount1 = 1700.0;
+                metal2 = MetalIridium;
+                amount2 = 760.0;
+                blueprintCost = 1;
+                return true;
+            }
+
+            if (targetLevel == 5)
+            {
+                metal1 = MetalPlatinum;
+                amount1 = 1600.0;
+                metal2 = MetalIridium;
+                amount2 = 1050.0;
+                blueprintCost = 2;
+                return true;
+            }
+
+            if (targetLevel == 6)
+            {
+                metal1 = MetalTungsten;
+                amount1 = 2300.0;
+                metal2 = MetalIridium;
+                amount2 = 1450.0;
+                blueprintCost = 3;
+                return true;
+            }
+        }
 
         if (shipId == ShipLightProbe && partId == ShipPartSpeed)
         {
@@ -1516,7 +2022,7 @@ public static class Dimension1System
             }
         }
 
-            if (shipId == ShipExtractorDrone && partId == ShipPartSpeed)
+        if (shipId == ShipExtractorDrone && partId == ShipPartSpeed)
         {
             if (targetLevel == 4)
             {
@@ -1582,7 +2088,7 @@ public static class Dimension1System
             }
         }
 
-                if (shipId == ShipAnalyticProbe && partId == ShipPartSpeed)
+        if (shipId == ShipAnalyticProbe && partId == ShipPartSpeed)
         {
             if (targetLevel == 4)
             {
@@ -1648,7 +2154,7 @@ public static class Dimension1System
             }
         }
 
-                if (shipId == ShipCargoShip && partId == ShipPartSpeed)
+        if (shipId == ShipCargoShip && partId == ShipPartSpeed)
         {
             if (targetLevel == 4)
             {
@@ -1677,6 +2183,36 @@ public static class Dimension1System
                 metal2 = MetalCobalt;
                 amount2 = 850.0;
                 blueprintCost = 3;
+                return true;
+            }
+        }
+
+        if (shipId == ShipCargoShip && partId == ShipPartSpeed)
+        {
+            if (targetLevel == 1)
+            {
+                metal1 = MetalAluminum;
+                amount1 = 520.0;
+                metal2 = MetalTitanium;
+                amount2 = 260.0;
+                return true;
+            }
+
+            if (targetLevel == 2)
+            {
+                metal1 = MetalAluminum;
+                amount1 = 900.0;
+                metal2 = MetalLithium;
+                amount2 = 360.0;
+                return true;
+            }
+
+            if (targetLevel == 3)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 1050.0;
+                metal2 = MetalLithium;
+                amount2 = 620.0;
                 return true;
             }
         }
@@ -1893,6 +2429,456 @@ public static class Dimension1System
         if (targetLevel < 1 || targetLevel > 3)
             return false;
 
+        if (shipId == ShipLightProbe && partId == ShipPartArmor)
+        {
+            if (targetLevel == 1)
+            {
+                metal1 = MetalIron;
+                amount1 = 120.0;
+                metal2 = MetalTitanium;
+                amount2 = 45.0;
+                return true;
+            }
+
+            if (targetLevel == 2)
+            {
+                metal1 = MetalIron;
+                amount1 = 280.0;
+                metal2 = MetalTitanium;
+                amount2 = 110.0;
+                return true;
+            }
+
+            if (targetLevel == 3)
+            {
+                metal1 = MetalAluminum;
+                amount1 = 420.0;
+                metal2 = MetalTitanium;
+                amount2 = 260.0;
+                return true;
+            }
+        }
+
+        if (shipId == ShipExtractorDrone && partId == ShipPartArmor)
+        {
+            if (targetLevel == 1)
+            {
+                metal1 = MetalIron;
+                amount1 = 180.0;
+                metal2 = MetalTitanium;
+                amount2 = 90.0;
+                return true;
+            }
+
+            if (targetLevel == 2)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 260.0;
+                metal2 = MetalNickel;
+                amount2 = 140.0;
+                return true;
+            }
+
+            if (targetLevel == 3)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 520.0;
+                metal2 = MetalNickel;
+                amount2 = 320.0;
+                return true;
+            }
+        }
+
+        if (shipId == ShipAnalyticProbe && partId == ShipPartArmor)
+        {
+            if (targetLevel == 1)
+            {
+                metal1 = MetalAluminum;
+                amount1 = 180.0;
+                metal2 = MetalTitanium;
+                amount2 = 90.0;
+                return true;
+            }
+
+            if (targetLevel == 2)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 280.0;
+                metal2 = MetalNickel;
+                amount2 = 150.0;
+                return true;
+            }
+
+            if (targetLevel == 3)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 560.0;
+                metal2 = MetalCobalt;
+                amount2 = 260.0;
+                return true;
+            }
+        }
+
+        if (shipId == ShipCargoShip && partId == ShipPartArmor)
+        {
+            if (targetLevel == 1)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 650.0;
+                metal2 = MetalNickel;
+                amount2 = 360.0;
+                return true;
+            }
+
+            if (targetLevel == 2)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 1050.0;
+                metal2 = MetalCobalt;
+                amount2 = 520.0;
+                return true;
+            }
+
+            if (targetLevel == 3)
+            {
+                metal1 = MetalNickel;
+                amount1 = 1250.0;
+                metal2 = MetalTungsten;
+                amount2 = 520.0;
+                return true;
+            }
+        }
+
+        if (shipId == ShipRescueShip && partId == ShipPartArmor)
+        {
+            if (targetLevel == 1)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 850.0;
+                metal2 = MetalNickel;
+                amount2 = 520.0;
+                return true;
+            }
+
+            if (targetLevel == 2)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 1300.0;
+                metal2 = MetalCobalt;
+                amount2 = 760.0;
+                return true;
+            }
+
+            if (targetLevel == 3)
+            {
+                metal1 = MetalTungsten;
+                amount1 = 900.0;
+                metal2 = MetalPlatinum;
+                amount2 = 480.0;
+                return true;
+            }
+        }
+
+        if (shipId == ShipConvergenceShip && partId == ShipPartArmor)
+        {
+            if (targetLevel == 1)
+            {
+                metal1 = MetalTungsten;
+                amount1 = 900.0;
+                metal2 = MetalCobalt;
+                amount2 = 760.0;
+                return true;
+            }
+
+            if (targetLevel == 2)
+            {
+                metal1 = MetalTungsten;
+                amount1 = 1350.0;
+                metal2 = MetalPlatinum;
+                amount2 = 760.0;
+                return true;
+            }
+
+            if (targetLevel == 3)
+            {
+                metal1 = MetalTungsten;
+                amount1 = 1800.0;
+                metal2 = MetalIridium;
+                amount2 = 720.0;
+                return true;
+            }
+        }
+
+        if (shipId == ShipLightProbe && partId == ShipPartSensors)
+        {
+            if (targetLevel == 1)
+            {
+                metal1 = MetalCopper;
+                amount1 = 70.0;
+                metal2 = MetalAluminum;
+                amount2 = 35.0;
+                return true;
+            }
+
+            if (targetLevel == 2)
+            {
+                metal1 = MetalCopper;
+                amount1 = 170.0;
+                metal2 = MetalAluminum;
+                amount2 = 90.0;
+                return true;
+            }
+
+            if (targetLevel == 3)
+            {
+                metal1 = MetalCopper;
+                amount1 = 360.0;
+                metal2 = MetalAluminum;
+                amount2 = 210.0;
+                return true;
+            }
+        }
+
+        if (shipId == ShipExtractorDrone && partId == ShipPartSensors)
+        {
+            if (targetLevel == 1)
+            {
+                metal1 = MetalCopper;
+                amount1 = 100.0;
+                metal2 = MetalAluminum;
+                amount2 = 50.0;
+                return true;
+            }
+
+            if (targetLevel == 2)
+            {
+                metal1 = MetalCopper;
+                amount1 = 240.0;
+                metal2 = MetalAluminum;
+                amount2 = 120.0;
+                return true;
+            }
+
+            if (targetLevel == 3)
+            {
+                metal1 = MetalCopper;
+                amount1 = 500.0;
+                metal2 = MetalAluminum;
+                amount2 = 280.0;
+                return true;
+            }
+        }
+
+        if (shipId == ShipCargoShip && partId == ShipPartSensors)
+        {
+            if (targetLevel == 1)
+            {
+                metal1 = MetalCopper;
+                amount1 = 420.0;
+                metal2 = MetalNickel;
+                amount2 = 260.0;
+                return true;
+            }
+
+            if (targetLevel == 2)
+            {
+                metal1 = MetalCopper;
+                amount1 = 760.0;
+                metal2 = MetalNickel;
+                amount2 = 520.0;
+                return true;
+            }
+
+            if (targetLevel == 3)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 820.0;
+                metal2 = MetalNickel;
+                amount2 = 900.0;
+                return true;
+            }
+        }
+
+        if (shipId == ShipRescueShip && partId == ShipPartSensors)
+        {
+            if (targetLevel == 1)
+            {
+                metal1 = MetalCopper;
+                amount1 = 520.0;
+                metal2 = MetalNickel;
+                amount2 = 320.0;
+                return true;
+            }
+
+            if (targetLevel == 2)
+            {
+                metal1 = MetalNickel;
+                amount1 = 760.0;
+                metal2 = MetalCobalt;
+                amount2 = 430.0;
+                return true;
+            }
+
+            if (targetLevel == 3)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 1050.0;
+                metal2 = MetalCobalt;
+                amount2 = 720.0;
+                return true;
+            }
+        }
+
+        if (shipId == ShipConvergenceShip && partId == ShipPartSensors)
+        {
+            if (targetLevel == 1)
+            {
+                metal1 = MetalCobalt;
+                amount1 = 760.0;
+                metal2 = MetalPlatinum;
+                amount2 = 500.0;
+                return true;
+            }
+
+            if (targetLevel == 2)
+            {
+                metal1 = MetalPlatinum;
+                amount1 = 880.0;
+                metal2 = MetalTungsten;
+                amount2 = 900.0;
+                return true;
+            }
+
+            if (targetLevel == 3)
+            {
+                metal1 = MetalPlatinum;
+                amount1 = 1250.0;
+                metal2 = MetalIridium;
+                amount2 = 700.0;
+                return true;
+            }
+        }
+
+        if (shipId == ShipLightProbe && partId == ShipPartCargo)
+        {
+            if (targetLevel == 1)
+            {
+                metal1 = MetalIron;
+                amount1 = 80.0;
+                metal2 = MetalCopper;
+                amount2 = 25.0;
+                return true;
+            }
+
+            if (targetLevel == 2)
+            {
+                metal1 = MetalIron;
+                amount1 = 220.0;
+                metal2 = MetalCopper;
+                amount2 = 75.0;
+                return true;
+            }
+
+            if (targetLevel == 3)
+            {
+                metal1 = MetalIron;
+                amount1 = 480.0;
+                metal2 = MetalCopper;
+                amount2 = 180.0;
+                return true;
+            }
+        }
+
+        if (shipId == ShipAnalyticProbe && partId == ShipPartCargo)
+        {
+            if (targetLevel == 1)
+            {
+                metal1 = MetalIron;
+                amount1 = 120.0;
+                metal2 = MetalCopper;
+                amount2 = 80.0;
+                return true;
+            }
+
+            if (targetLevel == 2)
+            {
+                metal1 = MetalIron;
+                amount1 = 280.0;
+                metal2 = MetalCopper;
+                amount2 = 180.0;
+                return true;
+            }
+
+            if (targetLevel == 3)
+            {
+                metal1 = MetalIron;
+                amount1 = 620.0;
+                metal2 = MetalAluminum;
+                amount2 = 260.0;
+                return true;
+            }
+        }
+
+        if (shipId == ShipRescueShip && partId == ShipPartCargo)
+        {
+            if (targetLevel == 1)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 520.0;
+                metal2 = MetalNickel;
+                amount2 = 260.0;
+                return true;
+            }
+
+            if (targetLevel == 2)
+            {
+                metal1 = MetalNickel;
+                amount1 = 760.0;
+                metal2 = MetalCobalt;
+                amount2 = 420.0;
+                return true;
+            }
+
+            if (targetLevel == 3)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 1100.0;
+                metal2 = MetalCobalt;
+                amount2 = 700.0;
+                return true;
+            }
+        }
+
+        if (shipId == ShipConvergenceShip && partId == ShipPartCargo)
+        {
+            if (targetLevel == 1)
+            {
+                metal1 = MetalCobalt;
+                amount1 = 780.0;
+                metal2 = MetalPlatinum;
+                amount2 = 420.0;
+                return true;
+            }
+
+            if (targetLevel == 2)
+            {
+                metal1 = MetalTungsten;
+                amount1 = 1050.0;
+                metal2 = MetalPlatinum;
+                amount2 = 720.0;
+                return true;
+            }
+
+            if (targetLevel == 3)
+            {
+                metal1 = MetalTungsten;
+                amount1 = 1450.0;
+                metal2 = MetalIridium;
+                amount2 = 580.0;
+                return true;
+            }
+        }
+
         if (shipId == ShipLightProbe && partId == ShipPartSpeed)
         {
             if (targetLevel == 1)
@@ -1953,7 +2939,7 @@ public static class Dimension1System
             }
         }
 
-            if (shipId == ShipExtractorDrone && partId == ShipPartSpeed)
+        if (shipId == ShipExtractorDrone && partId == ShipPartSpeed)
         {
             if (targetLevel == 1)
             {
@@ -2013,7 +2999,7 @@ public static class Dimension1System
             }
         }
 
-                if (shipId == ShipAnalyticProbe && partId == ShipPartSpeed)
+        if (shipId == ShipAnalyticProbe && partId == ShipPartSpeed)
         {
             if (targetLevel == 1)
             {
@@ -2069,6 +3055,36 @@ public static class Dimension1System
                 amount1 = 850.0;
                 metal2 = MetalNickel;
                 amount2 = 1100.0;
+                return true;
+            }
+        }
+
+        if (shipId == ShipCargoShip && partId == ShipPartSpeed)
+        {
+            if (targetLevel == 1)
+            {
+                metal1 = MetalAluminum;
+                amount1 = 520.0;
+                metal2 = MetalTitanium;
+                amount2 = 260.0;
+                return true;
+            }
+
+            if (targetLevel == 2)
+            {
+                metal1 = MetalAluminum;
+                amount1 = 900.0;
+                metal2 = MetalLithium;
+                amount2 = 360.0;
+                return true;
+            }
+
+            if (targetLevel == 3)
+            {
+                metal1 = MetalTitanium;
+                amount1 = 1050.0;
+                metal2 = MetalLithium;
+                amount2 = 620.0;
                 return true;
             }
         }
@@ -2198,9 +3214,6 @@ public static class Dimension1System
         if (state.dimension1ScanActive)
             return false;
 
-        if (IsAnyShipExploring(state))
-            return false;
-
         return true;
     }
 
@@ -2292,7 +3305,6 @@ public static class Dimension1System
         ship.explorationRemainingSeconds = duration;
 
         destination.available = false;
-        state.dimension1ScannedDestinations.Clear();
 
         return true;
     }
@@ -2418,7 +3430,8 @@ public static class Dimension1System
             return;
 
         List<D1MetalAmount> rewards = new List<D1MetalAmount>();
-        double materialMultiplier = GetShipMaterialRewardMultiplier(ship);
+        double materialMultiplier = GetShipMaterialRewardMultiplier(destinationId, ship);
+        materialMultiplier *= GetShipArmorRewardPreservationMultiplier(destinationId, ship);
 
         state.dimension1LastExplorationBlueprintFragments = 0;
 
@@ -2500,14 +3513,67 @@ public static class Dimension1System
         state.dimension1LastExplorationDestinationId = destinationId;
         state.dimension1LastExplorationRewards = rewards;
         state.dimension1LastExplorationResultId += 1;
+
+        AddRecentExplorationRecord(
+            state,
+            ship != null ? ship.shipId : "",
+            destinationId,
+            rewards,
+            blueprintFragments
+        );
+    }
+
+    private static void AddRecentExplorationRecord(
+    GameState state,
+    string shipId,
+    string destinationId,
+    List<D1MetalAmount> rewards,
+    int blueprintFragments
+)
+    {
+        if (state == null)
+            return;
+
+        if (state.dimension1RecentExplorationRecords == null)
+            state.dimension1RecentExplorationRecords = new List<D1ExplorationRecordEntry>();
+
+        D1ExplorationRecordEntry entry = new D1ExplorationRecordEntry
+        {
+            resultId = state.dimension1LastExplorationResultId,
+            shipId = shipId,
+            destinationId = destinationId,
+            rewards = new List<D1MetalAmount>(),
+            blueprintFragments = blueprintFragments
+        };
+
+        if (rewards != null)
+        {
+            foreach (D1MetalAmount reward in rewards)
+            {
+                if (reward == null)
+                    continue;
+
+                entry.rewards.Add(new D1MetalAmount
+                {
+                    metalId = reward.metalId,
+                    amount = reward.amount
+                });
+            }
+        }
+
+        state.dimension1RecentExplorationRecords.Add(entry);
+
+        while (state.dimension1RecentExplorationRecords.Count > MaxRecentExplorationRecords)
+        {
+            state.dimension1RecentExplorationRecords.RemoveAt(0);
+        }
     }
 
     public static float GetSimpleBlueprintFragmentChance(string destinationId, D1ShipState ship)
     {
         float chance = GetBaseSimpleBlueprintFragmentChance(destinationId);
 
-        if (ship != null && ship.shipId == ShipAnalyticProbe)
-            chance += GetAnalyticProbeBlueprintFragmentBonus(ship);
+        chance += GetShipSensorBlueprintFragmentBonus(destinationId, ship);
 
         return Mathf.Clamp(chance, 0.0f, 0.60f);
     }
@@ -2589,92 +3655,640 @@ public static class Dimension1System
         }
     }
 
-    private static float GetAnalyticProbeBlueprintFragmentBonus(D1ShipState ship)
+    private static float GetShipSensorBlueprintFragmentBonus(string destinationId, D1ShipState ship)
     {
         if (ship == null)
             return 0.0f;
 
-        if (ship.sensorsLevel >= 6)
-            return 0.10f;
+        int sensorsLevel = Mathf.Clamp(ship.sensorsLevel, 0, 6);
 
-        if (ship.sensorsLevel >= 5)
-            return 0.09f;
+        switch (ship.shipId)
+        {
+            case ShipLightProbe:
+                return GetLightProbeSensorBlueprintBonus(destinationId, sensorsLevel);
 
-        if (ship.sensorsLevel >= 4)
-            return 0.07f;
+            case ShipExtractorDrone:
+                return GetExtractorDroneSensorBlueprintBonus(destinationId, sensorsLevel);
 
-        if (ship.sensorsLevel >= 3)
-            return 0.06f;
+            case ShipAnalyticProbe:
+                return GetAnalyticProbeSensorBlueprintBonus(destinationId, sensorsLevel);
 
-        if (ship.sensorsLevel >= 2)
-            return 0.04f;
+            case ShipCargoShip:
+                return GetCargoShipSensorBlueprintBonus(destinationId, sensorsLevel);
 
-        if (ship.sensorsLevel >= 1)
-            return 0.03f;
+            case ShipRescueShip:
+                return GetRescueShipSensorBlueprintBonus(destinationId, sensorsLevel);
 
-        return 0.02f;
+            case ShipConvergenceShip:
+                return GetConvergenceShipSensorBlueprintBonus(destinationId, sensorsLevel);
+
+            default:
+                return 0.0f;
+        }
     }
 
-    private static double GetShipMaterialRewardMultiplier(D1ShipState ship)
+    private static float GetLightProbeSensorBlueprintBonus(string destinationId, int sensorsLevel)
+    {
+        if (!IsLightProbeSensorDestination(destinationId))
+            return GetSensorCurveBonus(sensorsLevel, 0.0f, 0.005f, 0.008f, 0.012f, 0.016f, 0.020f, 0.025f);
+
+        return GetSensorCurveBonus(sensorsLevel, 0.0f, 0.010f, 0.015f, 0.020f, 0.026f, 0.032f, 0.040f);
+    }
+
+    private static float GetExtractorDroneSensorBlueprintBonus(string destinationId, int sensorsLevel)
+    {
+        if (!IsExtractorDroneSensorDestination(destinationId))
+            return GetSensorCurveBonus(sensorsLevel, 0.0f, 0.003f, 0.006f, 0.009f, 0.012f, 0.015f, 0.020f);
+
+        return GetSensorCurveBonus(sensorsLevel, 0.0f, 0.006f, 0.010f, 0.015f, 0.020f, 0.026f, 0.032f);
+    }
+
+    private static float GetAnalyticProbeSensorBlueprintBonus(string destinationId, int sensorsLevel)
+    {
+        if (!IsAnalyticProbeSensorDestination(destinationId))
+            return GetSensorCurveBonus(sensorsLevel, 0.020f, 0.030f, 0.040f, 0.050f, 0.060f, 0.075f, 0.090f);
+
+        return GetSensorCurveBonus(sensorsLevel, 0.020f, 0.040f, 0.055f, 0.070f, 0.085f, 0.100f, 0.120f);
+    }
+
+    private static float GetCargoShipSensorBlueprintBonus(string destinationId, int sensorsLevel)
+    {
+        if (!IsCargoShipSensorDestination(destinationId))
+            return GetSensorCurveBonus(sensorsLevel, 0.0f, 0.004f, 0.008f, 0.012f, 0.016f, 0.020f, 0.025f);
+
+        return GetSensorCurveBonus(sensorsLevel, 0.0f, 0.008f, 0.014f, 0.020f, 0.026f, 0.033f, 0.040f);
+    }
+
+    private static float GetRescueShipSensorBlueprintBonus(string destinationId, int sensorsLevel)
+    {
+        if (!IsRescueShipSensorDestination(destinationId))
+            return GetSensorCurveBonus(sensorsLevel, 0.0f, 0.005f, 0.010f, 0.015f, 0.020f, 0.026f, 0.032f);
+
+        return GetSensorCurveBonus(sensorsLevel, 0.0f, 0.012f, 0.020f, 0.028f, 0.038f, 0.050f, 0.060f);
+    }
+
+    private static float GetConvergenceShipSensorBlueprintBonus(string destinationId, int sensorsLevel)
+    {
+        if (!IsConvergenceShipSensorDestination(destinationId))
+            return GetSensorCurveBonus(sensorsLevel, 0.0f, 0.004f, 0.008f, 0.012f, 0.018f, 0.024f, 0.030f);
+
+        return GetSensorCurveBonus(sensorsLevel, 0.0f, 0.015f, 0.026f, 0.038f, 0.052f, 0.066f, 0.080f);
+    }
+
+    private static float GetSensorCurveBonus(
+        int sensorsLevel,
+        float level0,
+        float level1,
+        float level2,
+        float level3,
+        float level4,
+        float level5,
+        float level6
+    )
+    {
+        if (sensorsLevel >= 6)
+            return level6;
+
+        if (sensorsLevel >= 5)
+            return level5;
+
+        if (sensorsLevel >= 4)
+            return level4;
+
+        if (sensorsLevel >= 3)
+            return level3;
+
+        if (sensorsLevel >= 2)
+            return level2;
+
+        if (sensorsLevel >= 1)
+            return level1;
+
+        return level0;
+    }
+
+    private static bool IsLightProbeSensorDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationMineralBelt:
+            case DestinationShipGraveyard:
+            case DestinationAbandonedProbe:
+            case DestinationAbandonedShip:
+            case DestinationDriftingProbes:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsExtractorDroneSensorDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationMineralBelt:
+            case DestinationShipGraveyard:
+            case DestinationAbandonedStation:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsAnalyticProbeSensorDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationOrbitalRuin:
+            case DestinationDriftingProbes:
+            case DestinationLaboratory:
+            case DestinationMinorAnomaly:
+            case DestinationAncientStructure:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsCargoShipSensorDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationShipGraveyard:
+            case DestinationAbandonedShip:
+            case DestinationAbandonedStation:
+            case DestinationUnstableZone:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsRescueShipSensorDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationAbandonedShip:
+            case DestinationAbandonedStation:
+            case DestinationMinorAnomaly:
+            case DestinationAncientStructure:
+            case DestinationUnstableZone:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsConvergenceShipSensorDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationMinorAnomaly:
+            case DestinationAncientStructure:
+            case DestinationUnstableZone:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static double GetShipMaterialRewardMultiplier(string destinationId, D1ShipState ship)
     {
         if (ship == null)
             return 1.0;
 
-        if (ship.shipId == ShipExtractorDrone)
+        int cargoLevel = Mathf.Clamp(ship.cargoLevel, 0, 6);
+
+        switch (ship.shipId)
         {
-            if (ship.cargoLevel >= 6)
-                return 2.00;
+            case ShipLightProbe:
+                return GetLightProbeCargoRewardMultiplier(destinationId, cargoLevel);
 
-            if (ship.cargoLevel >= 5)
-                return 1.80;
+            case ShipExtractorDrone:
+                return GetExtractorDroneCargoRewardMultiplier(destinationId, cargoLevel);
 
-            if (ship.cargoLevel >= 4)
-                return 1.65;
+            case ShipAnalyticProbe:
+                return GetAnalyticProbeCargoRewardMultiplier(destinationId, cargoLevel);
 
-            if (ship.cargoLevel >= 3)
-                return 1.50;
+            case ShipCargoShip:
+                return GetCargoShipCargoRewardMultiplier(destinationId, cargoLevel);
 
-            if (ship.cargoLevel >= 2)
-                return 1.40;
+            case ShipRescueShip:
+                return GetRescueShipCargoRewardMultiplier(destinationId, cargoLevel);
 
-            if (ship.cargoLevel >= 1)
-                return 1.30;
+            case ShipConvergenceShip:
+                return GetConvergenceShipCargoRewardMultiplier(destinationId, cargoLevel);
 
-            return 1.20;
+            default:
+                return 1.0;
         }
-
-        if (ship.shipId == ShipCargoShip)
-        {
-            if (ship.cargoLevel >= 6)
-                return 1.75;
-
-            if (ship.cargoLevel >= 5)
-                return 1.60;
-
-            if (ship.cargoLevel >= 4)
-                return 1.47;
-
-            if (ship.cargoLevel >= 3)
-                return 1.35;
-
-            if (ship.cargoLevel >= 2)
-                return 1.26;
-
-            if (ship.cargoLevel >= 1)
-                return 1.18;
-
-            return 1.10;
-        }
-
-        return 1.0;
     }
 
-        private static void AddExplorationTimedReward(
-        GameState state,
-        List<D1MetalAmount> rewards,
-        string metalId,
-        double materialMultiplier
+    private static double GetShipArmorRewardPreservationMultiplier(string destinationId, D1ShipState ship)
+    {
+        if (ship == null)
+            return 1.0;
+
+        int armorLevel = Mathf.Clamp(ship.armorLevel, 0, 6);
+
+        if (armorLevel <= 0)
+            return 1.0;
+
+        switch (ship.shipId)
+        {
+            case ShipLightProbe:
+                return GetLightProbeArmorMultiplier(destinationId, armorLevel);
+
+            case ShipExtractorDrone:
+                return GetExtractorDroneArmorMultiplier(destinationId, armorLevel);
+
+            case ShipAnalyticProbe:
+                return GetAnalyticProbeArmorMultiplier(destinationId, armorLevel);
+
+            case ShipCargoShip:
+                return GetCargoShipArmorMultiplier(destinationId, armorLevel);
+
+            case ShipRescueShip:
+                return GetRescueShipArmorMultiplier(destinationId, armorLevel);
+
+            case ShipConvergenceShip:
+                return GetConvergenceShipArmorMultiplier(destinationId, armorLevel);
+
+            default:
+                return 1.0;
+        }
+    }
+
+    private static double GetLightProbeArmorMultiplier(string destinationId, int armorLevel)
+    {
+        if (!IsBasicArmorDestination(destinationId))
+            return 1.0;
+
+        return GetArmorCurveMultiplier(armorLevel, 1.0, 1.015, 1.030, 1.045, 1.065, 1.085, 1.10);
+    }
+
+    private static double GetExtractorDroneArmorMultiplier(string destinationId, int armorLevel)
+    {
+        if (!IsMaterialArmorDestination(destinationId))
+            return 1.0;
+
+        return GetArmorCurveMultiplier(armorLevel, 1.0, 1.020, 1.040, 1.065, 1.090, 1.120, 1.15);
+    }
+
+    private static double GetAnalyticProbeArmorMultiplier(string destinationId, int armorLevel)
+    {
+        if (!IsResearchArmorDestination(destinationId))
+            return 1.0;
+
+        return GetArmorCurveMultiplier(armorLevel, 1.0, 1.015, 1.030, 1.045, 1.065, 1.085, 1.10);
+    }
+
+    private static double GetCargoShipArmorMultiplier(string destinationId, int armorLevel)
+    {
+        if (!IsHeavyCargoArmorDestination(destinationId))
+            return 1.0;
+
+        return GetArmorCurveMultiplier(armorLevel, 1.0, 1.025, 1.050, 1.080, 1.110, 1.150, 1.20);
+    }
+
+    private static double GetRescueShipArmorMultiplier(string destinationId, int armorLevel)
+    {
+        if (!IsRecoveryArmorDestination(destinationId))
+            return 1.0;
+
+        return GetArmorCurveMultiplier(armorLevel, 1.0, 1.035, 1.070, 1.110, 1.160, 1.220, 1.30);
+    }
+
+    private static double GetConvergenceShipArmorMultiplier(string destinationId, int armorLevel)
+    {
+        if (!IsConvergenceArmorDestination(destinationId))
+            return 1.0;
+
+        return GetArmorCurveMultiplier(armorLevel, 1.0, 1.030, 1.060, 1.095, 1.140, 1.190, 1.25);
+    }
+
+    private static double GetArmorCurveMultiplier(
+        int armorLevel,
+        double level0,
+        double level1,
+        double level2,
+        double level3,
+        double level4,
+        double level5,
+        double level6
     )
+    {
+        if (armorLevel >= 6)
+            return level6;
+
+        if (armorLevel >= 5)
+            return level5;
+
+        if (armorLevel >= 4)
+            return level4;
+
+        if (armorLevel >= 3)
+            return level3;
+
+        if (armorLevel >= 2)
+            return level2;
+
+        if (armorLevel >= 1)
+            return level1;
+
+        return level0;
+    }
+
+    private static bool IsBasicArmorDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationAbandonedProbe:
+            case DestinationAbandonedShip:
+            case DestinationShipGraveyard:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsMaterialArmorDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationMineralBelt:
+            case DestinationShipGraveyard:
+            case DestinationAbandonedStation:
+            case DestinationUnstableZone:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsResearchArmorDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationOrbitalRuin:
+            case DestinationLaboratory:
+            case DestinationMinorAnomaly:
+            case DestinationAncientStructure:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsHeavyCargoArmorDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationShipGraveyard:
+            case DestinationAbandonedShip:
+            case DestinationAbandonedStation:
+            case DestinationUnstableZone:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsRecoveryArmorDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationAbandonedProbe:
+            case DestinationAbandonedShip:
+            case DestinationAbandonedStation:
+            case DestinationMinorAnomaly:
+            case DestinationAncientStructure:
+            case DestinationUnstableZone:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsConvergenceArmorDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationMinorAnomaly:
+            case DestinationAncientStructure:
+            case DestinationUnstableZone:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static double GetLightProbeCargoRewardMultiplier(string destinationId, int cargoLevel)
+    {
+        double bonusPerLevel = IsBasicExplorationDestination(destinationId) ? 0.05 : 0.025;
+        return 1.0 + cargoLevel * bonusPerLevel;
+    }
+
+    private static double GetExtractorDroneCargoRewardMultiplier(string destinationId, int cargoLevel)
+    {
+        if (IsPrimaryMaterialDestination(destinationId))
+            return GetCargoCurveMultiplier(cargoLevel, 1.20, 1.30, 1.40, 1.50, 1.65, 1.80, 2.00);
+
+        if (IsSecondaryMaterialDestination(destinationId))
+            return GetCargoCurveMultiplier(cargoLevel, 1.05, 1.12, 1.20, 1.28, 1.37, 1.47, 1.60);
+
+        return GetCargoCurveMultiplier(cargoLevel, 1.0, 1.05, 1.09, 1.14, 1.20, 1.26, 1.33);
+    }
+
+    private static double GetAnalyticProbeCargoRewardMultiplier(string destinationId, int cargoLevel)
+    {
+        double bonusPerLevel = IsResearchDestination(destinationId) ? 0.03 : 0.015;
+        return 1.0 + cargoLevel * bonusPerLevel;
+    }
+
+    private static double GetCargoShipCargoRewardMultiplier(string destinationId, int cargoLevel)
+    {
+        if (IsHeavyCargoDestination(destinationId))
+            return GetCargoCurveMultiplier(cargoLevel, 1.10, 1.18, 1.26, 1.35, 1.47, 1.60, 1.75);
+
+        if (IsSecondaryMaterialDestination(destinationId))
+            return GetCargoCurveMultiplier(cargoLevel, 1.05, 1.12, 1.19, 1.27, 1.36, 1.46, 1.58);
+
+        return GetCargoCurveMultiplier(cargoLevel, 1.0, 1.06, 1.12, 1.18, 1.25, 1.32, 1.40);
+    }
+
+    private static double GetRescueShipCargoRewardMultiplier(string destinationId, int cargoLevel)
+    {
+        if (IsRecoveryDestination(destinationId))
+            return GetCargoCurveMultiplier(cargoLevel, 1.0, 1.08, 1.16, 1.25, 1.35, 1.46, 1.58);
+
+        return GetCargoCurveMultiplier(cargoLevel, 1.0, 1.04, 1.08, 1.13, 1.18, 1.24, 1.30);
+    }
+
+    private static double GetConvergenceShipCargoRewardMultiplier(string destinationId, int cargoLevel)
+    {
+        if (IsConvergenceDestination(destinationId))
+            return GetCargoCurveMultiplier(cargoLevel, 1.0, 1.08, 1.16, 1.25, 1.35, 1.46, 1.58);
+
+        return GetCargoCurveMultiplier(cargoLevel, 1.0, 1.03, 1.06, 1.10, 1.15, 1.20, 1.25);
+    }
+
+    private static double GetCargoCurveMultiplier(
+        int cargoLevel,
+        double level0,
+        double level1,
+        double level2,
+        double level3,
+        double level4,
+        double level5,
+        double level6
+    )
+    {
+        if (cargoLevel >= 6)
+            return level6;
+
+        if (cargoLevel >= 5)
+            return level5;
+
+        if (cargoLevel >= 4)
+            return level4;
+
+        if (cargoLevel >= 3)
+            return level3;
+
+        if (cargoLevel >= 2)
+            return level2;
+
+        if (cargoLevel >= 1)
+            return level1;
+
+        return level0;
+    }
+
+    private static bool IsBasicExplorationDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationMineralBelt:
+            case DestinationShipGraveyard:
+            case DestinationAbandonedShip:
+            case DestinationAbandonedProbe:
+            case DestinationDriftingProbes:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsPrimaryMaterialDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationMineralBelt:
+            case DestinationShipGraveyard:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsSecondaryMaterialDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationAbandonedShip:
+            case DestinationAbandonedProbe:
+            case DestinationAbandonedStation:
+            case DestinationUnstableZone:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsResearchDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationOrbitalRuin:
+            case DestinationDriftingProbes:
+            case DestinationLaboratory:
+            case DestinationMinorAnomaly:
+            case DestinationAncientStructure:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsHeavyCargoDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationMineralBelt:
+            case DestinationShipGraveyard:
+            case DestinationAbandonedStation:
+            case DestinationUnstableZone:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsRecoveryDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationAbandonedShip:
+            case DestinationAbandonedProbe:
+            case DestinationAbandonedStation:
+            case DestinationMinorAnomaly:
+            case DestinationAncientStructure:
+            case DestinationUnstableZone:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsConvergenceDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationMinorAnomaly:
+            case DestinationAncientStructure:
+            case DestinationUnstableZone:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static void AddExplorationTimedReward(
+    GameState state,
+    List<D1MetalAmount> rewards,
+    string metalId,
+    double materialMultiplier
+)
     {
         if (state == null || rewards == null)
             return;
@@ -2729,7 +4343,7 @@ public static class Dimension1System
             return baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);
 
         if (ship.shipId == ShipExtractorDrone && IsExtractorDroneSpeedCompatibleDestination(destinationId))
-            return baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);    
+            return baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);
 
         if (ship.shipId == ShipAnalyticProbe && IsAnalyticProbeSpeedCompatibleDestination(destinationId))
             return baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);
@@ -2818,7 +4432,7 @@ public static class Dimension1System
         return 1.0;
     }
 
-        private static bool IsExtractorDroneSpeedCompatibleDestination(string destinationId)
+    private static bool IsExtractorDroneSpeedCompatibleDestination(string destinationId)
     {
         switch (destinationId)
         {
@@ -2831,7 +4445,7 @@ public static class Dimension1System
         }
     }
 
-        private static bool IsAnalyticProbeSpeedCompatibleDestination(string destinationId)
+    private static bool IsAnalyticProbeSpeedCompatibleDestination(string destinationId)
     {
         switch (destinationId)
         {
@@ -2847,7 +4461,7 @@ public static class Dimension1System
         }
     }
 
-        private static bool IsCargoShipSpeedCompatibleDestination(string destinationId)
+    private static bool IsCargoShipSpeedCompatibleDestination(string destinationId)
     {
         switch (destinationId)
         {
@@ -3053,7 +4667,7 @@ public static class Dimension1System
             DestinationHasUnlockedMetalReward(state, destinationId);
     }
 
-        private static bool HasDestinationAccessMetalUnlocked(GameState state, string destinationId)
+    private static bool HasDestinationAccessMetalUnlocked(GameState state, string destinationId)
     {
         if (state == null)
             return false;

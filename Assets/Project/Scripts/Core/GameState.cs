@@ -196,7 +196,10 @@ public class GameState : MonoBehaviour
     [Tooltip("Últimas recompensas obtenidas por exploración en Dimensión 1.")]
     public List<D1MetalAmount> dimension1LastExplorationRewards = new List<D1MetalAmount>();
 
-    
+    [Tooltip("Registro reciente de exploraciones completadas en Dimensión 1.")]
+    public List<D1ExplorationRecordEntry> dimension1RecentExplorationRecords = new List<D1ExplorationRecordEntry>();
+
+
 
     [Tooltip("Fragmentos de blueprint acumulados en Dimensión 1.")]
     public int dimension1BlueprintFragments = 0;
@@ -1126,6 +1129,9 @@ public class GameState : MonoBehaviour
         if (dimension1LastExplorationRewards == null)
             dimension1LastExplorationRewards = new List<D1MetalAmount>();
 
+        if (dimension1RecentExplorationRecords == null)
+            dimension1RecentExplorationRecords = new List<D1ExplorationRecordEntry>();
+
         MigrateDimension1LegacyShipIds();
 
         foreach (string metalId in Dimension1System.StarterMetals)
@@ -1311,6 +1317,7 @@ public class GameState : MonoBehaviour
         dimension1ScannerLevel = 0;
         dimension1LastExplorationDestinationId = "";
         dimension1LastExplorationRewards = new List<D1MetalAmount>();
+        dimension1RecentExplorationRecords = new List<D1ExplorationRecordEntry>();
         dimension1BlueprintFragments = 0;
         dimension1LastExplorationBlueprintFragments = 0;
         dimension1LastExplorationResultId = 0;

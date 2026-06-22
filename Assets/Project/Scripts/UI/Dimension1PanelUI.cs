@@ -36,6 +36,12 @@ public class Dimension1PanelUI : MonoBehaviour
     [SerializeField] private GameObject explorationRewardsPanel;
     [SerializeField] private TextMeshProUGUI explorationRewardsText;
 
+    [Header("Registro de exploración")]
+    [SerializeField] private Button openExplorationRecordButton;
+    [SerializeField] private GameObject explorationRecordPanel;
+    [SerializeField] private TextMeshProUGUI explorationRecordText;
+    [SerializeField] private Button closeExplorationRecordButton;
+
     [Header("Hangar")]
     [SerializeField] private Button unlockExtractorDroneButton;
     [SerializeField] private Button unlockAnalyticProbeButton;
@@ -93,9 +99,10 @@ public class Dimension1PanelUI : MonoBehaviour
     private bool hangarPanelOpen;
     private int lastHandledExplorationResultId;
     private bool showingExplorationResultPanel;
+    private bool explorationRecordPanelOpen;
 
-        private static readonly string[] HangarShipIds =
-    {
+    private static readonly string[] HangarShipIds =
+{
         Dimension1System.ShipLightProbe,
         Dimension1System.ShipExtractorDrone,
         Dimension1System.ShipAnalyticProbe,
@@ -162,60 +169,62 @@ public class Dimension1PanelUI : MonoBehaviour
             "\n\n" +
             BuildScannerText(gs) +
             "\n\n" +
+            BuildActiveExplorationsText(gs) +
+            "\n\n" +
             BuildSelectedDestinationText(gs) +
             "\n\n" +
             BuildBlueprintArchiveText(gs);
 
 
-            RefreshDestinationDropdown(gs);
-            RefreshShipDropdown(gs);
-            RefreshButtons(gs);
-            UpdateExplorationResultPanelState(gs);
-            RefreshExplorationRewardsPanel(gs);
-            RefreshHangarPanel(gs);
+        RefreshDestinationDropdown(gs);
+        RefreshShipDropdown(gs);
+        RefreshButtons(gs);
+        UpdateExplorationResultPanelState(gs);
+        RefreshExplorationRewardsPanel(gs);
+        RefreshExplorationRecordPanel(gs);
+        RefreshHangarPanel(gs);
 
-        }
+    }
 
-        private void UpdateExplorationResultPanelState(GameState gs)
-        {
-            if (gs == null)
-                return;
+    private void UpdateExplorationResultPanelState(GameState gs)
+    {
+        if (gs == null)
+            return;
 
-            if (gs.dimension1LastExplorationResultId <= lastHandledExplorationResultId)
-                return;
+        if (gs.dimension1LastExplorationResultId <= lastHandledExplorationResultId)
+            return;
 
-            lastHandledExplorationResultId = gs.dimension1LastExplorationResultId;
-            showingExplorationResultPanel = true;
-        }
+        lastHandledExplorationResultId = gs.dimension1LastExplorationResultId;
+    }
 
-        private string BuildMetalsText(GameState gs)
-        {
-            return
-                "Metales:\n" +
-                BuildMetalLine(gs, Dimension1System.MetalIron, "Hierro") + "\n" +
-                BuildMetalLine(gs, Dimension1System.MetalCopper, "Cobre") + "\n" +
-                BuildMetalLine(gs, Dimension1System.MetalAluminum, "Aluminio") + "\n" +
-                BuildMetalLine(gs, Dimension1System.MetalTitanium, "Titanio") + "\n" +
-                BuildMetalLine(gs, Dimension1System.MetalNickel, "Níquel") + "\n" +
-                BuildMetalLine(gs, Dimension1System.MetalCobalt, "Cobalto") + "\n" +
-                BuildMetalLine(gs, Dimension1System.MetalLithium, "Litio") + "\n" +
-                BuildMetalLine(gs, Dimension1System.MetalTungsten, "Tungsteno") + "\n" +
-                BuildMetalLine(gs, Dimension1System.MetalPlatinum, "Platino") + "\n" +
-                BuildMetalLine(gs, Dimension1System.MetalIridium, "Iridio");
-        }
+    private string BuildMetalsText(GameState gs)
+    {
+        return
+            "Metales:\n" +
+            BuildMetalLine(gs, Dimension1System.MetalIron, "Hierro") + "\n" +
+            BuildMetalLine(gs, Dimension1System.MetalCopper, "Cobre") + "\n" +
+            BuildMetalLine(gs, Dimension1System.MetalAluminum, "Aluminio") + "\n" +
+            BuildMetalLine(gs, Dimension1System.MetalTitanium, "Titanio") + "\n" +
+            BuildMetalLine(gs, Dimension1System.MetalNickel, "Níquel") + "\n" +
+            BuildMetalLine(gs, Dimension1System.MetalCobalt, "Cobalto") + "\n" +
+            BuildMetalLine(gs, Dimension1System.MetalLithium, "Litio") + "\n" +
+            BuildMetalLine(gs, Dimension1System.MetalTungsten, "Tungsteno") + "\n" +
+            BuildMetalLine(gs, Dimension1System.MetalPlatinum, "Platino") + "\n" +
+            BuildMetalLine(gs, Dimension1System.MetalIridium, "Iridio");
+    }
 
-        private string BuildMetalLine(GameState gs, string metalId, string visualName)
-        {
-            double amount = gs.GetD1MetalAmount(metalId);
-            double perSecond = Dimension1System.GetMetalProductionPerSecond(gs, metalId);
+    private string BuildMetalLine(GameState gs, string metalId, string visualName)
+    {
+        double amount = gs.GetD1MetalAmount(metalId);
+        double perSecond = Dimension1System.GetMetalProductionPerSecond(gs, metalId);
 
-            return visualName +
-                ": " +
-                amount.ToString("0.00") +
-                " (+" +
-                perSecond.ToString("0.00") +
-                "/s)";
-        }
+        return visualName +
+            ": " +
+            amount.ToString("0.00") +
+            " (+" +
+            perSecond.ToString("0.00") +
+            "/s)";
+    }
 
 
     private string BuildPlanetsText(GameState gs)
@@ -306,7 +315,7 @@ public class Dimension1PanelUI : MonoBehaviour
                 return "Platino";
 
             case Dimension1System.MetalIridium:
-                return "Iridio";    
+                return "Iridio";
 
             default:
                 return metalId;
@@ -355,6 +364,120 @@ public class Dimension1PanelUI : MonoBehaviour
             destinationCount +
             "\nSelecciona un destino en la lista para ver sus detalles.";
     }
+
+    private string BuildActiveExplorationsText(GameState gs)
+    {
+        if (gs == null || gs.dimension1Ships == null)
+            return "Exploraciones activas:\nNo disponible.";
+
+        string text = "Exploraciones activas:\n";
+        bool hasAny = false;
+
+        foreach (D1ShipState ship in gs.dimension1Ships)
+        {
+            if (ship == null)
+                continue;
+
+            if (!ship.unlocked)
+                continue;
+
+            if (!ship.explorationActive)
+                continue;
+
+            if (hasAny)
+                text += "\n";
+
+            string destinationName = !string.IsNullOrEmpty(ship.activeDestinationId)
+                ? GetDestinationVisualName(ship.activeDestinationId)
+                : "Destino desconocido";
+
+            text +=
+                GetShipVisualName(ship.shipId) +
+                " → " +
+                destinationName +
+                " (" +
+                FormatSeconds(ship.explorationRemainingSeconds) +
+                ")";
+
+            hasAny = true;
+        }
+
+        if (!hasAny)
+            return "Exploraciones activas:\nNinguna nave explorando.";
+
+        return text;
+    }
+
+    private string BuildExplorationRecordText(GameState gs)
+    {
+        if (gs == null)
+            return "Registro de exploración:\nNo disponible.";
+
+        if (gs.dimension1RecentExplorationRecords == null || gs.dimension1RecentExplorationRecords.Count == 0)
+            return "Registro de exploración:\nSin exploraciones completadas.";
+
+        string text = "Registro de exploración:";
+
+        int startIndex = Mathf.Max(0, gs.dimension1RecentExplorationRecords.Count - 20);
+
+        for (int i = gs.dimension1RecentExplorationRecords.Count - 1; i >= startIndex; i--)
+        {
+            D1ExplorationRecordEntry entry = gs.dimension1RecentExplorationRecords[i];
+
+            if (entry == null)
+                continue;
+
+            text +=
+                "\n" +
+                GetShipVisualName(entry.shipId) +
+                " → " +
+                GetDestinationVisualName(entry.destinationId) +
+                ": ";
+
+            bool hasAnyReward = false;
+
+            if (entry.rewards != null)
+            {
+                foreach (D1MetalAmount reward in entry.rewards)
+                {
+                    if (reward == null)
+                        continue;
+
+                    if (string.IsNullOrEmpty(reward.metalId))
+                        continue;
+
+                    if (reward.amount <= 0.0)
+                        continue;
+
+                    if (hasAnyReward)
+                        text += " / ";
+
+                    text +=
+                        "+" +
+                        reward.amount.ToString("0.0") +
+                        " " +
+                        GetMetalVisualName(reward.metalId);
+
+                    hasAnyReward = true;
+                }
+            }
+
+            if (!hasAnyReward)
+                text += "sin metales";
+
+            if (entry.blueprintFragments > 0)
+            {
+                text +=
+                    " / +" +
+                    entry.blueprintFragments +
+                    " fragmentos blueprint";
+            }
+        }
+
+        return text;
+    }
+
+
 
     private string BuildSelectedDestinationText(GameState gs)
     {
@@ -434,6 +557,26 @@ public class Dimension1PanelUI : MonoBehaviour
         }
 
         explorationRewardsText.text = BuildExplorationRewardsText(gs);
+    }
+
+    private void RefreshExplorationRecordPanel(GameState gs)
+    {
+        if (explorationRecordPanel != null)
+            explorationRecordPanel.SetActive(explorationRecordPanelOpen);
+
+        if (explorationRecordText != null)
+            explorationRecordText.gameObject.SetActive(explorationRecordPanelOpen);
+
+        if (explorationRecordText == null)
+            return;
+
+        if (!explorationRecordPanelOpen)
+        {
+            explorationRecordText.text = "";
+            return;
+        }
+
+        explorationRecordText.text = BuildExplorationRecordText(gs);
     }
 
     private string BuildExplorationRewardsText(GameState gs)
@@ -581,25 +724,43 @@ public class Dimension1PanelUI : MonoBehaviour
         if (destinationDropdown == null)
             return;
 
+        bool scanActive = gs != null && gs.dimension1ScanActive;
         int destinationCount = GetAvailableDestinationCount(gs);
         bool hasDestinations = destinationCount > 0;
 
-        if (gs != null && gs.dimension1ScanActive)
+        destinationDropdown.gameObject.SetActive(true);
+
+        if (scanActive)
         {
-            destinationDropdown.gameObject.SetActive(false);
+            isRefreshingDestinationDropdown = true;
+
+            destinationDropdown.ClearOptions();
+            destinationDropdown.AddOptions(new List<string> { "Escaneando..." });
+            destinationDropdown.SetValueWithoutNotify(0);
+            destinationDropdown.RefreshShownValue();
+
+            selectedDestinationIndex = 0;
+            destinationDropdownSignature = "Escaneando...";
+
+            destinationDropdown.interactable = false;
+
+            isRefreshingDestinationDropdown = false;
             return;
         }
-
-        destinationDropdown.gameObject.SetActive(hasDestinations);
-        destinationDropdown.interactable = hasDestinations && !IsLightProbeExploring(gs);
 
         if (!hasDestinations)
         {
             isRefreshingDestinationDropdown = true;
 
             destinationDropdown.ClearOptions();
+            destinationDropdown.AddOptions(new List<string> { "Sin destinos disponibles" });
+            destinationDropdown.SetValueWithoutNotify(0);
+            destinationDropdown.RefreshShownValue();
+
             selectedDestinationIndex = 0;
-            destinationDropdownSignature = "";
+            destinationDropdownSignature = "Sin destinos disponibles";
+
+            destinationDropdown.interactable = false;
 
             isRefreshingDestinationDropdown = false;
             return;
@@ -655,6 +816,8 @@ public class Dimension1PanelUI : MonoBehaviour
         destinationDropdown.SetValueWithoutNotify(selectedDestinationIndex);
         destinationDropdown.RefreshShownValue();
 
+        destinationDropdown.interactable = true;
+
         isRefreshingDestinationDropdown = false;
     }
 
@@ -668,18 +831,57 @@ public class Dimension1PanelUI : MonoBehaviour
         int shipCount = GetAvailableShipCount(gs);
         bool hasShips = shipCount > 0;
 
-        bool shouldShow = !scanActive && hasDestinations && hasShips;
+        shipDropdown.gameObject.SetActive(true);
 
-        shipDropdown.gameObject.SetActive(shouldShow);
-        shipDropdown.interactable = shouldShow && !IsSelectedShipExploring(gs);
-
-        if (!shouldShow)
+        if (scanActive)
         {
             isRefreshingShipDropdown = true;
 
             shipDropdown.ClearOptions();
+            shipDropdown.AddOptions(new List<string> { "Escaneando..." });
+            shipDropdown.SetValueWithoutNotify(0);
+            shipDropdown.RefreshShownValue();
+
             selectedShipIndex = 0;
-            shipDropdownSignature = "";
+            shipDropdownSignature = "Escaneando...";
+
+            shipDropdown.interactable = false;
+
+            isRefreshingShipDropdown = false;
+            return;
+        }
+
+        if (!hasDestinations)
+        {
+            isRefreshingShipDropdown = true;
+
+            shipDropdown.ClearOptions();
+            shipDropdown.AddOptions(new List<string> { "Sin destino disponible" });
+            shipDropdown.SetValueWithoutNotify(0);
+            shipDropdown.RefreshShownValue();
+
+            selectedShipIndex = 0;
+            shipDropdownSignature = "Sin destino disponible";
+
+            shipDropdown.interactable = false;
+
+            isRefreshingShipDropdown = false;
+            return;
+        }
+
+        if (!hasShips)
+        {
+            isRefreshingShipDropdown = true;
+
+            shipDropdown.ClearOptions();
+            shipDropdown.AddOptions(new List<string> { "Sin naves disponibles" });
+            shipDropdown.SetValueWithoutNotify(0);
+            shipDropdown.RefreshShownValue();
+
+            selectedShipIndex = 0;
+            shipDropdownSignature = "Sin naves disponibles";
+
+            shipDropdown.interactable = false;
 
             isRefreshingShipDropdown = false;
             return;
@@ -690,7 +892,7 @@ public class Dimension1PanelUI : MonoBehaviour
 
         foreach (D1ShipState ship in gs.dimension1Ships)
         {
-            if (ship == null || !ship.unlocked)
+            if (ship == null || !ship.unlocked || ship.explorationActive)
                 continue;
 
             options.Add(GetShipVisualName(ship.shipId));
@@ -725,6 +927,8 @@ public class Dimension1PanelUI : MonoBehaviour
 
         shipDropdown.SetValueWithoutNotify(selectedShipIndex);
         shipDropdown.RefreshShownValue();
+
+        shipDropdown.interactable = true;
 
         isRefreshingShipDropdown = false;
     }
@@ -775,7 +979,7 @@ public class Dimension1PanelUI : MonoBehaviour
         return null;
     }
 
-        private int GetSelectedAvailableDestinationRealIndex(GameState gs)
+    private int GetSelectedAvailableDestinationRealIndex(GameState gs)
     {
         if (gs == null || gs.dimension1ScannedDestinations == null)
             return -1;
@@ -800,7 +1004,7 @@ public class Dimension1PanelUI : MonoBehaviour
 
         foreach (D1ShipState ship in gs.dimension1Ships)
         {
-            if (ship != null && ship.unlocked)
+            if (ship != null && ship.unlocked && !ship.explorationActive)
                 count++;
         }
 
@@ -825,7 +1029,7 @@ public class Dimension1PanelUI : MonoBehaviour
 
         foreach (D1ShipState ship in gs.dimension1Ships)
         {
-            if (ship == null || !ship.unlocked)
+            if (ship == null || !ship.unlocked || ship.explorationActive)
                 continue;
 
             if (currentIndex == targetIndex)
@@ -851,19 +1055,19 @@ public class Dimension1PanelUI : MonoBehaviour
                 return "Sonda Ligera";
 
             case Dimension1System.ShipExtractorDrone:
-                return "Dron Extractor"; 
+                return "Dron Extractor";
 
             case Dimension1System.ShipAnalyticProbe:
                 return "Sonda Analítica";
 
             case Dimension1System.ShipCargoShip:
-                return "Nave de Carga";  
+                return "Nave de Carga";
 
             case Dimension1System.ShipRescueShip:
-                return "Nave de Rescate";   
+                return "Nave de Rescate";
 
             case Dimension1System.ShipConvergenceShip:
-                return "Nave de Convergencia"; 
+                return "Nave de Convergencia";
 
             default:
                 return shipId;
@@ -940,42 +1144,42 @@ public class Dimension1PanelUI : MonoBehaviour
 
                 return "Velocidad base: exploración x1.00 tiempo";
 
-                case Dimension1System.ShipCargoShip:
-                    if (ship.cargoLevel >= 6)
-                        return "Bodega Modular VI: x1.75 metales de exploración";
+            case Dimension1System.ShipCargoShip:
+                if (ship.cargoLevel >= 6)
+                    return "Bodega Modular VI: x1.75 metales de exploración";
 
-                    if (ship.cargoLevel >= 5)
-                        return "Bodega Modular V: x1.60 metales de exploración";
+                if (ship.cargoLevel >= 5)
+                    return "Bodega Modular V: x1.60 metales de exploración";
 
-                    if (ship.cargoLevel >= 4)
-                        return "Bodega Modular IV: x1.47 metales de exploración";
+                if (ship.cargoLevel >= 4)
+                    return "Bodega Modular IV: x1.47 metales de exploración";
 
-                    if (ship.cargoLevel >= 3)
-                        return "Bodega Modular III: x1.35 metales de exploración";
+                if (ship.cargoLevel >= 3)
+                    return "Bodega Modular III: x1.35 metales de exploración";
 
-                    if (ship.cargoLevel >= 2)
-                        return "Bodega Modular II: x1.26 metales de exploración";
+                if (ship.cargoLevel >= 2)
+                    return "Bodega Modular II: x1.26 metales de exploración";
 
-                    if (ship.cargoLevel >= 1)
-                        return "Bodega Modular I: x1.18 metales de exploración";
+                if (ship.cargoLevel >= 1)
+                    return "Bodega Modular I: x1.18 metales de exploración";
 
-                        return "Bodega Modular base: x1.10 metales de exploración";
+                return "Bodega Modular base: x1.10 metales de exploración";
 
-                    case Dimension1System.ShipRescueShip:
-                        return
-                            "Velocidad " +
-                            FormatShipUpgradeLevel(ship.speedLevel) +
-                            ": x" +
-                            GetSpeedMultiplierText(ship.speedLevel) +
-                            " tiempo en destinos de rescate/peligro";
+            case Dimension1System.ShipRescueShip:
+                return
+                    "Velocidad " +
+                    FormatShipUpgradeLevel(ship.speedLevel) +
+                    ": x" +
+                    GetSpeedMultiplierText(ship.speedLevel) +
+                    " tiempo en destinos de rescate/peligro";
 
-                    case Dimension1System.ShipConvergenceShip:
-                        return
-                            "Velocidad " +
-                            FormatShipUpgradeLevel(ship.speedLevel) +
-                            ": x" +
-                            GetSpeedMultiplierText(ship.speedLevel) +
-                            " tiempo en anomalías y destinos avanzados";
+            case Dimension1System.ShipConvergenceShip:
+                return
+                    "Velocidad " +
+                    FormatShipUpgradeLevel(ship.speedLevel) +
+                    ": x" +
+                    GetSpeedMultiplierText(ship.speedLevel) +
+                    " tiempo en anomalías y destinos avanzados";
 
             default:
                 return "Ninguno";
@@ -1247,12 +1451,12 @@ public class Dimension1PanelUI : MonoBehaviour
             "\n" +
             BuildShipLine(gs, Dimension1System.ShipExtractorDrone, "Dron Extractor") +
             "\n" +
-            BuildShipLine(gs, Dimension1System.ShipAnalyticProbe, "Sonda Analítica")+
+            BuildShipLine(gs, Dimension1System.ShipAnalyticProbe, "Sonda Analítica") +
             "\n" +
-            BuildShipLine(gs, Dimension1System.ShipCargoShip, "Nave de Carga")+
-            "\n"+
-            BuildShipLine(gs, Dimension1System.ShipRescueShip, "Nave de Rescate")+
-            "\n"+
+            BuildShipLine(gs, Dimension1System.ShipCargoShip, "Nave de Carga") +
+            "\n" +
+            BuildShipLine(gs, Dimension1System.ShipRescueShip, "Nave de Rescate") +
+            "\n" +
             BuildShipLine(gs, Dimension1System.ShipConvergenceShip, "Nave de Convergencia");
     }
 
@@ -1353,7 +1557,7 @@ public class Dimension1PanelUI : MonoBehaviour
                     "Carga: " +
                     FormatShipUpgradeLevel(ship.cargoLevel) +
                     " | Bodega Modular: x" +
-                    GetCargoShipCargoMultiplierText(ship.cargoLevel);   
+                    GetCargoShipCargoMultiplierText(ship.cargoLevel);
 
 
             case Dimension1System.ShipRescueShip:
@@ -1542,6 +1746,18 @@ public class Dimension1PanelUI : MonoBehaviour
         return null;
     }
 
+    public void OnClickOpenExplorationRecord()
+    {
+        explorationRecordPanelOpen = true;
+        RefreshUI();
+    }
+
+    public void OnClickCloseExplorationRecord()
+    {
+        explorationRecordPanelOpen = false;
+        RefreshUI();
+    }
+
     public void OnClickUpgradePlanet1()
     {
         GameState gs = GameState.I;
@@ -1557,7 +1773,7 @@ public class Dimension1PanelUI : MonoBehaviour
         RefreshUI();
     }
 
-        public void OnClickUnlockPlanet2()
+    public void OnClickUnlockPlanet2()
     {
         GameState gs = GameState.I;
 
@@ -1790,7 +2006,7 @@ public class Dimension1PanelUI : MonoBehaviour
         RefreshUI();
     }
 
-        public void OnClickCloseExplorationRewards()
+    public void OnClickCloseExplorationRewards()
     {
         showingExplorationResultPanel = false;
         selectedDestinationIndex = 0;
@@ -1856,7 +2072,7 @@ public class Dimension1PanelUI : MonoBehaviour
         RefreshUI();
     }
 
-        public void OnClickUnlockRescueShip()
+    public void OnClickUnlockRescueShip()
     {
         GameState gs = GameState.I;
 
@@ -1871,7 +2087,7 @@ public class Dimension1PanelUI : MonoBehaviour
         RefreshUI();
     }
 
-        public void OnClickUnlockConvergenceShip()
+    public void OnClickUnlockConvergenceShip()
     {
         GameState gs = GameState.I;
 
@@ -2059,16 +2275,16 @@ public class Dimension1PanelUI : MonoBehaviour
         D1ShipState drone = FindShip(gs, Dimension1System.ShipExtractorDrone);
         bool unlocked = drone != null && drone.unlocked;
 
-        bool hasRequiredMetalsStarted =
-        HasStartedReceivingShipUnlockMetals(gs, Dimension1System.ShipExtractorDrone);
-
-        unlockExtractorDroneButton.gameObject.SetActive(!unlocked && hasRequiredMetalsStarted);
+        unlockExtractorDroneButton.gameObject.SetActive(!unlocked);
         unlockExtractorDroneButton.interactable =
             Dimension1System.CanUnlockShip(gs, Dimension1System.ShipExtractorDrone);
 
         SetButtonText(
             unlockExtractorDroneButton,
-            "Desbloquear Dron\n300 Hierro + 80 Cobre"
+            "Desbloquear Dron\n" +
+            BuildRequiredMetalButtonText(gs, Dimension1System.MetalIron, 300.0) +
+            " + " +
+            BuildRequiredMetalButtonText(gs, Dimension1System.MetalCopper, 80.0)
         );
     }
 
@@ -2080,18 +2296,16 @@ public class Dimension1PanelUI : MonoBehaviour
         D1ShipState analyticProbe = FindShip(gs, Dimension1System.ShipAnalyticProbe);
         bool analyticUnlocked = analyticProbe != null && analyticProbe.unlocked;
 
-        bool hasRequiredMetalsStarted =
-
-        HasStartedReceivingShipUnlockMetals(gs, Dimension1System.ShipAnalyticProbe);
-
-        unlockAnalyticProbeButton.gameObject.SetActive(!analyticUnlocked && hasRequiredMetalsStarted);
-
+        unlockAnalyticProbeButton.gameObject.SetActive(!analyticUnlocked);
         unlockAnalyticProbeButton.interactable =
             Dimension1System.CanUnlockShip(gs, Dimension1System.ShipAnalyticProbe);
 
         SetButtonText(
             unlockAnalyticProbeButton,
-            "Desbloquear Sonda Analítica\n250 Cobre + 120 Aluminio"
+            "Desbloquear Sonda Analítica\n" +
+            BuildRequiredMetalButtonText(gs, Dimension1System.MetalCopper, 250.0) +
+            " + " +
+            BuildRequiredMetalButtonText(gs, Dimension1System.MetalAluminum, 120.0)
         );
     }
 
@@ -2100,31 +2314,25 @@ public class Dimension1PanelUI : MonoBehaviour
         if (unlockCargoShipButton == null)
             return;
 
-        D1ShipState analyticProbe = FindShip(gs, Dimension1System.ShipAnalyticProbe);
-        bool analyticUnlocked = analyticProbe != null && analyticProbe.unlocked;
-
         D1ShipState cargoShip = FindShip(gs, Dimension1System.ShipCargoShip);
         bool cargoShipUnlocked = cargoShip != null && cargoShip.unlocked;
 
-        bool hasRequiredMetalsStarted =
-        
-        HasStartedReceivingShipUnlockMetals(gs, Dimension1System.ShipCargoShip);
-
-        unlockCargoShipButton.gameObject.SetActive(
-            !cargoShipUnlocked &&
-            hasRequiredMetalsStarted
-        );
-
+        unlockCargoShipButton.gameObject.SetActive(!cargoShipUnlocked);
         unlockCargoShipButton.interactable =
             Dimension1System.CanUnlockShip(gs, Dimension1System.ShipCargoShip);
 
         SetButtonText(
             unlockCargoShipButton,
-            "Construir Nave de Carga\n800 Titanio + 450 Níquel + 3 blueprints genéricos"
+            "Construir Nave de Carga\n" +
+            BuildRequiredMetalButtonText(gs, Dimension1System.MetalTitanium, 800.0) +
+            " + " +
+            BuildRequiredMetalButtonText(gs, Dimension1System.MetalNickel, 450.0) +
+            " + " +
+            BuildRequiredBlueprintButtonText(gs, 3)
         );
     }
 
-        private void RefreshRescueShipButton(GameState gs)
+    private void RefreshRescueShipButton(GameState gs)
     {
         if (unlockRescueShipButton == null)
             return;
@@ -2132,24 +2340,26 @@ public class Dimension1PanelUI : MonoBehaviour
         D1ShipState rescueShip = FindShip(gs, Dimension1System.ShipRescueShip);
         bool rescueShipUnlocked = rescueShip != null && rescueShip.unlocked;
 
-        bool hasRequiredMetalsStarted =
-            HasStartedReceivingShipUnlockMetals(gs, Dimension1System.ShipRescueShip);
-
-        unlockRescueShipButton.gameObject.SetActive(
-            !rescueShipUnlocked &&
-            hasRequiredMetalsStarted
-        );
-
+        unlockRescueShipButton.gameObject.SetActive(!rescueShipUnlocked);
         unlockRescueShipButton.interactable =
             Dimension1System.CanUnlockShip(gs, Dimension1System.ShipRescueShip);
 
         SetButtonText(
             unlockRescueShipButton,
-            "Construir Nave de Rescate\n1200 Titanio + 900 Níquel + 500 Cobalto + 250 Platino + 4 blueprints genéricos"
+            "Construir Nave de Rescate\n" +
+            BuildRequiredMetalButtonText(gs, Dimension1System.MetalTitanium, 1200.0) +
+            " + " +
+            BuildRequiredMetalButtonText(gs, Dimension1System.MetalNickel, 900.0) +
+            " + " +
+            BuildRequiredMetalButtonText(gs, Dimension1System.MetalCobalt, 500.0) +
+            " + " +
+            BuildRequiredMetalButtonText(gs, Dimension1System.MetalPlatinum, 250.0) +
+            " + " +
+            BuildRequiredBlueprintButtonText(gs, 4)
         );
     }
 
-        private void RefreshConvergenceShipButton(GameState gs)
+    private void RefreshConvergenceShipButton(GameState gs)
     {
         if (unlockConvergenceShipButton == null)
             return;
@@ -2157,20 +2367,22 @@ public class Dimension1PanelUI : MonoBehaviour
         D1ShipState convergenceShip = FindShip(gs, Dimension1System.ShipConvergenceShip);
         bool convergenceShipUnlocked = convergenceShip != null && convergenceShip.unlocked;
 
-        bool hasRequiredMetalsStarted =
-            HasStartedReceivingShipUnlockMetals(gs, Dimension1System.ShipConvergenceShip);
-
-        unlockConvergenceShipButton.gameObject.SetActive(
-            !convergenceShipUnlocked &&
-            hasRequiredMetalsStarted
-        );
-
+        unlockConvergenceShipButton.gameObject.SetActive(!convergenceShipUnlocked);
         unlockConvergenceShipButton.interactable =
             Dimension1System.CanUnlockShip(gs, Dimension1System.ShipConvergenceShip);
 
         SetButtonText(
             unlockConvergenceShipButton,
-            "Construir Nave de Convergencia\n900 Platino + 550 Iridio + 900 Cobalto + 1200 Tungsteno + 4 blueprints genéricos"
+            "Construir Nave de Convergencia\n" +
+            BuildRequiredMetalButtonText(gs, Dimension1System.MetalPlatinum, 900.0) +
+            " + " +
+            BuildRequiredMetalButtonText(gs, Dimension1System.MetalIridium, 550.0) +
+            " + " +
+            BuildRequiredMetalButtonText(gs, Dimension1System.MetalCobalt, 900.0) +
+            " + " +
+            BuildRequiredMetalButtonText(gs, Dimension1System.MetalTungsten, 1200.0) +
+            " + " +
+            BuildRequiredBlueprintButtonText(gs, 4)
         );
     }
 
@@ -2202,7 +2414,7 @@ public class Dimension1PanelUI : MonoBehaviour
                 " " +
                 shipShortName +
                 "\n" +
-                BuildShipUpgradeCostText(metal1, amount1, metal2, amount2);
+                BuildShipUpgradeCostText(gs, metal1, amount1, metal2, amount2);
 
             if (!Dimension1System.CanUpgradeShipPart(gs, shipId, partId))
                 normalText += "\nRecursos insuficientes";
@@ -2233,6 +2445,7 @@ public class Dimension1PanelUI : MonoBehaviour
             shipShortName +
             "\n" +
             BuildShipAdvancedUpgradeCostText(
+                gs,
                 advancedMetal1,
                 advancedAmount1,
                 advancedMetal2,
@@ -2247,23 +2460,25 @@ public class Dimension1PanelUI : MonoBehaviour
     }
 
     private string BuildShipUpgradeCostText(
+        GameState gs,
         string metal1,
         double amount1,
         string metal2,
         double amount2
     )
     {
-        string text = amount1.ToString("0") + " " + GetMetalVisualName(metal1);
+        string text = BuildRequiredMetalButtonText(gs, metal1, amount1);
 
         if (!string.IsNullOrEmpty(metal2) && amount2 > 0.0)
         {
-            text += " + " + amount2.ToString("0") + " " + GetMetalVisualName(metal2);
+            text += " + " + BuildRequiredMetalButtonText(gs, metal2, amount2);
         }
 
         return text;
     }
 
     private string BuildShipAdvancedUpgradeCostText(
+        GameState gs,
         string metal1,
         double amount1,
         string metal2,
@@ -2271,17 +2486,11 @@ public class Dimension1PanelUI : MonoBehaviour
         int blueprintCost
     )
     {
-        string text = BuildShipUpgradeCostText(metal1, amount1, metal2, amount2);
+        string text = BuildShipUpgradeCostText(gs, metal1, amount1, metal2, amount2);
 
         if (blueprintCost > 0)
         {
-            text +=
-                " + " +
-                blueprintCost +
-                " blueprint";
-
-            if (blueprintCost > 1)
-                text += "s";
+            text += " + " + BuildRequiredBlueprintButtonText(gs, blueprintCost);
         }
 
         return text;
@@ -2397,7 +2606,7 @@ public class Dimension1PanelUI : MonoBehaviour
                 return value.ToString();
         }
     }
-    
+
     private bool HasStartedReceivingPlanetUnlockMetals(GameState gs, string planetId)
     {
         if (gs == null)
@@ -2634,7 +2843,7 @@ public class Dimension1PanelUI : MonoBehaviour
         );
     }
 
-        public void OnClickOpenHangarPanel()
+    public void OnClickOpenHangarPanel()
     {
         hangarPanelOpen = true;
         RefreshUI();
@@ -2830,14 +3039,26 @@ public class Dimension1PanelUI : MonoBehaviour
                 : "Disponible";
         }
 
-        return
+        string baseText =
             "Hangar\n\n" +
             "Nave: " +
             GetShipVisualName(shipId) +
             "\nEstado: " +
             status +
             "\nRol: " +
-            GetShipRoleText(shipId) +
+            GetShipRoleText(shipId);
+
+        if (ship == null || !ship.unlocked)
+        {
+            return
+                baseText +
+                BuildSelectedHangarShipUnlockText(gs, shipId, ship) +
+                "\n\n" +
+                BuildHangarText(gs);
+        }
+
+        return
+            baseText +
             "\n\nStats:\n" +
             "Carga: " +
             FormatShipUpgradeLevel(GetShipPartLevelForUI(ship, Dimension1System.ShipPartCargo)) +
@@ -2854,6 +3075,147 @@ public class Dimension1PanelUI : MonoBehaviour
             BuildHangarText(gs);
     }
 
+    private string BuildSelectedHangarShipUnlockText(GameState gs, string shipId, D1ShipState ship)
+    {
+        if (ship != null && ship.unlocked)
+            return "";
+
+        return
+            "\n\nRequisitos para construir:\n" +
+            BuildHangarShipUnlockRequirementDetails(gs, shipId);
+    }
+
+    private string BuildHangarShipUnlockRequirementDetails(GameState gs, string shipId)
+    {
+        if (shipId == Dimension1System.ShipLightProbe)
+            return "Nave inicial.";
+
+        if (shipId == Dimension1System.ShipExtractorDrone)
+        {
+            return
+                BuildRequiredMetalLine(gs, Dimension1System.MetalIron, 300.0) +
+                "\n" +
+                BuildRequiredMetalLine(gs, Dimension1System.MetalCopper, 80.0);
+        }
+
+        if (shipId == Dimension1System.ShipAnalyticProbe)
+        {
+            return
+                BuildRequiredMetalLine(gs, Dimension1System.MetalCopper, 250.0) +
+                "\n" +
+                BuildRequiredMetalLine(gs, Dimension1System.MetalAluminum, 120.0);
+        }
+
+        if (shipId == Dimension1System.ShipCargoShip)
+        {
+            return
+                BuildRequiredMetalLine(gs, Dimension1System.MetalTitanium, 800.0) +
+                "\n" +
+                BuildRequiredMetalLine(gs, Dimension1System.MetalNickel, 450.0) +
+                "\n" +
+                BuildRequiredBlueprintLine(gs, 3);
+        }
+
+        if (shipId == Dimension1System.ShipRescueShip)
+        {
+            return
+                BuildRequiredMetalLine(gs, Dimension1System.MetalTitanium, 1200.0) +
+                "\n" +
+                BuildRequiredMetalLine(gs, Dimension1System.MetalNickel, 900.0) +
+                "\n" +
+                BuildRequiredMetalLine(gs, Dimension1System.MetalCobalt, 500.0) +
+                "\n" +
+                BuildRequiredMetalLine(gs, Dimension1System.MetalPlatinum, 250.0) +
+                "\n" +
+                BuildRequiredBlueprintLine(gs, 4);
+        }
+
+        if (shipId == Dimension1System.ShipConvergenceShip)
+        {
+            return
+                BuildRequiredMetalLine(gs, Dimension1System.MetalPlatinum, 900.0) +
+                "\n" +
+                BuildRequiredMetalLine(gs, Dimension1System.MetalIridium, 550.0) +
+                "\n" +
+                BuildRequiredMetalLine(gs, Dimension1System.MetalCobalt, 900.0) +
+                "\n" +
+                BuildRequiredMetalLine(gs, Dimension1System.MetalTungsten, 1200.0) +
+                "\n" +
+                BuildRequiredBlueprintLine(gs, 4);
+        }
+
+        return "Requisitos no definidos.";
+    }
+
+    private string BuildRequiredMetalButtonText(GameState gs, string metalId, double requiredAmount)
+    {
+        double currentAmount = gs != null
+            ? gs.GetD1MetalAmount(metalId)
+            : 0.0;
+
+        double displayedAmount = currentAmount > requiredAmount
+            ? requiredAmount
+            : currentAmount;
+
+        return
+            GetMetalVisualName(metalId) +
+            " " +
+            displayedAmount.ToString("0") +
+            "/" +
+            requiredAmount.ToString("0");
+    }
+
+    private string BuildRequiredBlueprintButtonText(GameState gs, int requiredBlueprints)
+    {
+        int currentBlueprints = Dimension1System.GetCompletedBlueprintCount(gs);
+
+        int displayedBlueprints = currentBlueprints > requiredBlueprints
+            ? requiredBlueprints
+            : currentBlueprints;
+
+        return
+            "Blueprints " +
+            displayedBlueprints +
+            "/" +
+            requiredBlueprints;
+    }
+
+
+
+    private string BuildRequiredMetalLine(GameState gs, string metalId, double requiredAmount)
+    {
+        double currentAmount = gs != null
+            ? gs.GetD1MetalAmount(metalId)
+            : 0.0;
+
+        double displayedAmount = currentAmount > requiredAmount
+            ? requiredAmount
+            : currentAmount;
+
+        return
+            "- " +
+            GetMetalVisualName(metalId) +
+            ": " +
+            displayedAmount.ToString("0") +
+            "/" +
+            requiredAmount.ToString("0");
+    }
+
+    private string BuildRequiredBlueprintLine(GameState gs, int requiredBlueprints)
+    {
+        int currentBlueprints = Dimension1System.GetCompletedBlueprintCount(gs);
+
+        int displayedBlueprints = currentBlueprints > requiredBlueprints
+            ? requiredBlueprints
+            : currentBlueprints;
+
+        return
+            "- Blueprints genéricos: " +
+            displayedBlueprints +
+            "/" +
+            requiredBlueprints;
+    }
+
     private void RefreshHangarPartUpgradeButton(
         Button button,
         GameState gs,
@@ -2865,16 +3227,15 @@ public class Dimension1PanelUI : MonoBehaviour
         if (button == null)
             return;
 
-        button.gameObject.SetActive(true);
-
         D1ShipState ship = FindShip(gs, shipId);
 
         if (ship == null || !ship.unlocked)
         {
-            button.interactable = false;
-            SetButtonText(button, partVisualName + "\nNave bloqueada");
+            button.gameObject.SetActive(false);
             return;
         }
+
+        button.gameObject.SetActive(true);
 
         int currentLevel = GetShipPartLevelForUI(ship, partId);
 
