@@ -208,6 +208,9 @@ public class GameState : MonoBehaviour
     [Tooltip("Blueprints específicos acumulados en Dimensión 1.")]
     public List<D1BlueprintAmount> dimension1Blueprints = new List<D1BlueprintAmount>();
 
+    [Tooltip("Reliquias desbloqueadas y niveles de Dimensión 1.")]
+    public List<D1RelicState> dimension1Relics = new List<D1RelicState>();
+
     [Tooltip("Fragmentos de blueprint acumulados en Dimensión 1.")]
     public int dimension1BlueprintFragments = 0;
 
@@ -1148,6 +1151,9 @@ public class GameState : MonoBehaviour
         if (dimension1Blueprints == null)
             dimension1Blueprints = new List<D1BlueprintAmount>();
 
+        if (dimension1Relics == null)
+            dimension1Relics = new List<D1RelicState>();
+
         MigrateDimension1LegacyShipIds();
 
         foreach (string metalId in Dimension1System.StarterMetals)
@@ -1168,6 +1174,11 @@ public class GameState : MonoBehaviour
         foreach (string blueprintId in Dimension1System.Dimension1BlueprintIds)
         {
             GetOrCreateD1Blueprint(blueprintId);
+        }
+
+        foreach (string relicId in Dimension1System.Dimension1RelicIds)
+        {
+            GetOrCreateD1Relic(relicId);
         }
     }
 
@@ -1295,6 +1306,25 @@ public class GameState : MonoBehaviour
         return newBlueprint;
     }
 
+    private D1RelicState GetOrCreateD1Relic(string relicId)
+    {
+        foreach (D1RelicState relic in dimension1Relics)
+        {
+            if (relic != null && relic.relicId == relicId)
+                return relic;
+        }
+
+        D1RelicState newRelic = new D1RelicState
+        {
+            relicId = relicId,
+            unlocked = false,
+            level = 0
+        };
+
+        dimension1Relics.Add(newRelic);
+        return newRelic;
+    }
+
     public double GetD1MetalAmount(string metalId)
     {
         EnsureDimension1State();
@@ -1372,6 +1402,74 @@ public class GameState : MonoBehaviour
         return true;
     }
 
+    public bool IsD1RelicUnlocked(string relicId)
+    {
+        if (!Dimension1System.IsDimension1RelicId(relicId))
+            return false;
+
+        EnsureDimension1State();
+
+        D1RelicState relic = GetOrCreateD1Relic(relicId);
+        return relic.unlocked;
+    }
+
+    public int GetD1RelicLevel(string relicId)
+    {
+        if (!Dimension1System.IsDimension1RelicId(relicId))
+            return 0;
+
+        EnsureDimension1State();
+
+        D1RelicState relic = GetOrCreateD1Relic(relicId);
+        return Dimension1System.ClampDimension1RelicLevel(relic.level);
+    }
+
+    public bool UnlockD1Relic(string relicId)
+    {
+        if (!Dimension1System.IsDimension1RelicId(relicId))
+            return false;
+
+        EnsureDimension1State();
+
+        D1RelicState relic = GetOrCreateD1Relic(relicId);
+        relic.unlocked = true;
+
+        if (relic.level <= 0)
+            relic.level = 1;
+
+        relic.level = Dimension1System.ClampDimension1RelicLevel(relic.level);
+
+        return true;
+    }
+
+    public bool SetD1RelicLevel(string relicId, int level)
+    {
+        if (!Dimension1System.IsDimension1RelicId(relicId))
+            return false;
+
+        EnsureDimension1State();
+
+        D1RelicState relic = GetOrCreateD1Relic(relicId);
+        int clampedLevel = Dimension1System.ClampDimension1RelicLevel(level);
+
+        relic.level = clampedLevel;
+        relic.unlocked = clampedLevel > 0;
+
+        return true;
+    }
+
+    public bool TryAddD1RelicLevel(string relicId, int levelsToAdd)
+    {
+        if (levelsToAdd <= 0)
+            return false;
+
+        if (!UnlockD1Relic(relicId))
+            return false;
+
+        int currentLevel = GetD1RelicLevel(relicId);
+        return SetD1RelicLevel(relicId, currentLevel + levelsToAdd);
+    }
+
     public void UnlockDimensionSystemAfterPrestige1()
     {
         dimension01Unlocked = true;
@@ -1414,6 +1512,7 @@ public class GameState : MonoBehaviour
         dimension1LastExplorationRewards = new List<D1MetalAmount>();
         dimension1RecentExplorationRecords = new List<D1ExplorationRecordEntry>();
         dimension1Blueprints = new List<D1BlueprintAmount>();
+        dimension1Relics = new List<D1RelicState>();
         dimension1LastExplorationSpecificBlueprints = new List<D1BlueprintAmount>();
         dimension1BlueprintFragments = 0;
         dimension1LastExplorationBlueprintFragments = 0;
@@ -1771,6 +1870,92 @@ public class GameState : MonoBehaviour
             " | Núcleo=" + GetD1BlueprintAmount(Dimension1System.BlueprintConvergenceCore) +
             " | Lectura=" + GetD1BlueprintAmount(Dimension1System.BlueprintConvergenceMatrix) +
             " | Blindaje=" + GetD1BlueprintAmount(Dimension1System.BlueprintAnomalousArmor)
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Unlock Drift Compass Relic")]
+    private void DebugUnlockD1DriftCompassRelic()
+    {
+        EnsureDimension1State();
+
+        UnlockD1Relic(Dimension1System.RelicDriftCompass);
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1] Reliquia desbloqueada: Brújula de Deriva | Nivel: " +
+            GetD1RelicLevel(Dimension1System.RelicDriftCompass)
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Add +1 Level Drift Compass Relic")]
+    private void DebugAddLevelD1DriftCompassRelic()
+    {
+        EnsureDimension1State();
+
+        TryAddD1RelicLevel(Dimension1System.RelicDriftCompass, 1);
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1] Brújula de Deriva nivel: " +
+            GetD1RelicLevel(Dimension1System.RelicDriftCompass) +
+            " | Hito: " +
+            Dimension1System.GetDimension1RelicMilestone(
+                GetD1RelicLevel(Dimension1System.RelicDriftCompass)
+            )
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Add Relic Upgrade Test Resources")]
+    private void DebugAddD1RelicUpgradeTestResources()
+    {
+        EnsureDimension1State();
+
+        LE += 1000000.0;
+        Traces += 100000.0;
+
+        AddD1Metal(Dimension1System.MetalIron, 1000000.0);
+        AddD1Metal(Dimension1System.MetalCopper, 1000000.0);
+        AddD1Metal(Dimension1System.MetalAluminum, 1000000.0);
+        AddD1Metal(Dimension1System.MetalTitanium, 1000000.0);
+        AddD1Metal(Dimension1System.MetalNickel, 1000000.0);
+        AddD1Metal(Dimension1System.MetalCobalt, 1000000.0);
+        AddD1Metal(Dimension1System.MetalLithium, 1000000.0);
+        AddD1Metal(Dimension1System.MetalTungsten, 1000000.0);
+        AddD1Metal(Dimension1System.MetalPlatinum, 1000000.0);
+        AddD1Metal(Dimension1System.MetalIridium, 1000000.0);
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log("[D1] DEBUG: recursos de prueba agregados para subir Reliquias.");
+    }
+
+    [ContextMenu("D1 DEBUG: Upgrade Drift Compass Relic With Cost")]
+    private void DebugUpgradeD1DriftCompassRelicWithCost()
+    {
+        EnsureDimension1State();
+
+        string relicId = Dimension1System.RelicDriftCompass;
+
+        if (!IsD1RelicUnlocked(relicId))
+            UnlockD1Relic(relicId);
+
+        bool upgraded = Dimension1System.TryUpgradeDimension1Relic(this, relicId);
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1] Mejorar Brújula de Deriva con costo => " +
+            upgraded +
+            " | Nivel: " +
+            GetD1RelicLevel(relicId) +
+            " | Hito: " +
+            Dimension1System.GetDimension1RelicMilestone(GetD1RelicLevel(relicId))
         );
     }
 

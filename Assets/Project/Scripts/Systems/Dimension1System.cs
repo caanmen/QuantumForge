@@ -60,6 +60,14 @@ public class D1BlueprintAmount
     public int amount;
 }
 
+[System.Serializable]
+public class D1RelicState
+{
+    public string relicId;
+    public bool unlocked;
+    public int level;
+}
+
 public static class Dimension1System
 {
     public const string DimensionId = "dimension_01";
@@ -130,6 +138,82 @@ public static class Dimension1System
     public const int SimpleScanMaxDestinationCount = 5;
     public const int SimpleScannerMaxLevel = 3;
     public const int BlueprintFragmentsPerBlueprint = 10;
+
+    public const int Dimension1RelicMaxLevel = 150;
+    public const int Dimension1RelicMilestoneStep = 25;
+
+    // Reliquias de Exploración
+    public const string RelicDriftCompass = "relic_drift_compass";
+    public const string RelicAncientCargoCore = "relic_ancient_cargo_core";
+    public const string RelicLostNavigationRecord = "relic_lost_navigation_record";
+    public const string RelicExpeditionSeal = "relic_expedition_seal";
+    public const string RelicDormantEcho = "relic_dormant_echo";
+
+    // Reliquias de Naves
+    public const string RelicExplorerPlate = "relic_explorer_plate";
+    public const string RelicExtractionHook = "relic_extraction_hook";
+    public const string RelicAnalyticCrystal = "relic_analytic_crystal";
+    public const string RelicModularContainer = "relic_modular_container";
+    public const string RelicRescueBeacon = "relic_rescue_beacon";
+
+    // Reliquias de Minería
+    public const string RelicAncientDrill = "relic_ancient_drill";
+    public const string RelicRememberedAlloy = "relic_remembered_alloy";
+    public const string RelicProspectingCore = "relic_prospecting_core";
+    public const string RelicExtractionSeal = "relic_extraction_seal";
+
+    // Reliquias de Escáner / Estación
+    public const string RelicFracturedAntenna = "relic_fractured_antenna";
+    public const string RelicIncompleteStarMap = "relic_incomplete_starmap";
+    public const string RelicRareFrequencySensor = "relic_rare_frequency_sensor";
+    public const string RelicMatrixArchive = "relic_matrix_archive";
+
+    // Reliquias de Cuarto 1
+    public const string RelicRoom1Echo = "relic_room1_echo";
+    public const string RelicTracesResonator = "relic_traces_resonator";
+    public const string RelicCalibrationFragment = "relic_calibration_fragment";
+    public const string RelicTriangularSeal = "relic_triangular_seal";
+
+    // Reliquias de Cuarto 2
+    public const string RelicBrokenMachineKey = "relic_broken_machine_key";
+    public const string RelicSealedCatalyst = "relic_sealed_catalyst";
+    public const string RelicChamberFragment = "relic_chamber_fragment";
+    public const string RelicMachineMemory = "relic_machine_memory";
+
+    public static readonly string[] Dimension1RelicIds =
+    {
+    RelicDriftCompass,
+    RelicAncientCargoCore,
+    RelicLostNavigationRecord,
+    RelicExpeditionSeal,
+    RelicDormantEcho,
+
+    RelicExplorerPlate,
+    RelicExtractionHook,
+    RelicAnalyticCrystal,
+    RelicModularContainer,
+    RelicRescueBeacon,
+
+    RelicAncientDrill,
+    RelicRememberedAlloy,
+    RelicProspectingCore,
+    RelicExtractionSeal,
+
+    RelicFracturedAntenna,
+    RelicIncompleteStarMap,
+    RelicRareFrequencySensor,
+    RelicMatrixArchive,
+
+    RelicRoom1Echo,
+    RelicTracesResonator,
+    RelicCalibrationFragment,
+    RelicTriangularSeal,
+
+    RelicBrokenMachineKey,
+    RelicSealedCatalyst,
+    RelicChamberFragment,
+    RelicMachineMemory
+};
 
     // Blueprints específicos de naves
     public const string BlueprintCargoFrame = "blueprint_cargo_frame";
@@ -206,6 +290,326 @@ public static class Dimension1System
         }
 
         return false;
+    }
+
+    public static bool IsDimension1RelicId(string relicId)
+    {
+        if (string.IsNullOrEmpty(relicId))
+            return false;
+
+        foreach (string currentId in Dimension1RelicIds)
+        {
+            if (currentId == relicId)
+                return true;
+        }
+
+        return false;
+    }
+
+    public static int ClampDimension1RelicLevel(int level)
+    {
+        return Mathf.Clamp(level, 0, Dimension1RelicMaxLevel);
+    }
+
+    public static int GetDimension1RelicMilestone(int level)
+    {
+        level = ClampDimension1RelicLevel(level);
+
+        if (level <= 0)
+            return 0;
+
+        int milestone = level / Dimension1RelicMilestoneStep;
+        return Mathf.Clamp(
+            milestone * Dimension1RelicMilestoneStep,
+            0,
+            Dimension1RelicMaxLevel
+        );
+    }
+
+    public static double GetDimension1RelicUpgradeCostMultiplier(int targetLevel)
+    {
+        targetLevel = ClampDimension1RelicLevel(targetLevel);
+
+        if (targetLevel <= 1)
+            return 1.0;
+
+        double multiplier = 1.0;
+
+        for (int level = 2; level <= targetLevel; level++)
+        {
+            if (level <= 25)
+            {
+                multiplier *= 1.01;
+            }
+            else if (level <= 100)
+            {
+                multiplier *= 1.015;
+            }
+            else
+            {
+                multiplier *= 1.02;
+            }
+        }
+
+        return multiplier;
+    }
+
+    public static bool TryGetDimension1RelicUpgradeBaseCost(
+        string relicId,
+        out double baseLeCost,
+        out double baseTraceCost,
+        out string metal1,
+        out double baseMetalAmount1,
+        out string metal2,
+        out double baseMetalAmount2
+    )
+    {
+        baseLeCost = 0.0;
+        baseTraceCost = 0.0;
+        metal1 = "";
+        baseMetalAmount1 = 0.0;
+        metal2 = "";
+        baseMetalAmount2 = 0.0;
+
+        if (!IsDimension1RelicId(relicId))
+            return false;
+
+        // Exploración
+        if (
+            relicId == RelicDriftCompass ||
+            relicId == RelicAncientCargoCore ||
+            relicId == RelicLostNavigationRecord ||
+            relicId == RelicExpeditionSeal ||
+            relicId == RelicDormantEcho
+        )
+        {
+            baseLeCost = 2500.0;
+            baseTraceCost = 12.0;
+            metal1 = MetalIron;
+            baseMetalAmount1 = 80.0;
+            metal2 = MetalCopper;
+            baseMetalAmount2 = 40.0;
+            return true;
+        }
+
+        // Naves
+        if (
+            relicId == RelicExplorerPlate ||
+            relicId == RelicExtractionHook ||
+            relicId == RelicAnalyticCrystal ||
+            relicId == RelicModularContainer ||
+            relicId == RelicRescueBeacon
+        )
+        {
+            baseLeCost = 3500.0;
+            baseTraceCost = 16.0;
+            metal1 = MetalIron;
+            baseMetalAmount1 = 100.0;
+            metal2 = MetalTitanium;
+            baseMetalAmount2 = 45.0;
+            return true;
+        }
+
+        // Minería planetaria
+        if (
+            relicId == RelicAncientDrill ||
+            relicId == RelicRememberedAlloy ||
+            relicId == RelicProspectingCore ||
+            relicId == RelicExtractionSeal
+        )
+        {
+            baseLeCost = 2200.0;
+            baseTraceCost = 10.0;
+            metal1 = MetalIron;
+            baseMetalAmount1 = 120.0;
+            metal2 = MetalNickel;
+            baseMetalAmount2 = 35.0;
+            return true;
+        }
+
+        // Escáner / Estación
+        if (
+            relicId == RelicFracturedAntenna ||
+            relicId == RelicIncompleteStarMap ||
+            relicId == RelicRareFrequencySensor ||
+            relicId == RelicMatrixArchive
+        )
+        {
+            baseLeCost = 4000.0;
+            baseTraceCost = 18.0;
+            metal1 = MetalCopper;
+            baseMetalAmount1 = 90.0;
+            metal2 = MetalAluminum;
+            baseMetalAmount2 = 60.0;
+            return true;
+        }
+
+        // Cuarto 1
+        if (
+            relicId == RelicRoom1Echo ||
+            relicId == RelicTracesResonator ||
+            relicId == RelicCalibrationFragment ||
+            relicId == RelicTriangularSeal
+        )
+        {
+            baseLeCost = 6000.0;
+            baseTraceCost = 25.0;
+            return true;
+        }
+
+        // Cuarto 2
+        if (
+            relicId == RelicBrokenMachineKey ||
+            relicId == RelicSealedCatalyst ||
+            relicId == RelicChamberFragment ||
+            relicId == RelicMachineMemory
+        )
+        {
+            baseLeCost = 7000.0;
+            baseTraceCost = 30.0;
+            metal1 = MetalNickel;
+            baseMetalAmount1 = 100.0;
+            metal2 = MetalCobalt;
+            baseMetalAmount2 = 60.0;
+            return true;
+        }
+
+        return false;
+    }
+
+    public static bool TryGetNextDimension1RelicUpgradeCost(
+        GameState state,
+        string relicId,
+        out int targetLevel,
+        out double leCost,
+        out double traceCost,
+        out string metal1,
+        out double metalAmount1,
+        out string metal2,
+        out double metalAmount2
+    )
+    {
+        targetLevel = 0;
+        leCost = 0.0;
+        traceCost = 0.0;
+        metal1 = "";
+        metalAmount1 = 0.0;
+        metal2 = "";
+        metalAmount2 = 0.0;
+
+        if (state == null)
+            return false;
+
+        if (!IsDimension1RelicId(relicId))
+            return false;
+
+        state.EnsureDimension1State();
+
+        if (!state.IsD1RelicUnlocked(relicId))
+            return false;
+
+        int currentLevel = state.GetD1RelicLevel(relicId);
+
+        if (currentLevel >= Dimension1RelicMaxLevel)
+            return false;
+
+        targetLevel = currentLevel + 1;
+
+        if (!TryGetDimension1RelicUpgradeBaseCost(
+            relicId,
+            out double baseLeCost,
+            out double baseTraceCost,
+            out metal1,
+            out double baseMetalAmount1,
+            out metal2,
+            out double baseMetalAmount2
+        ))
+        {
+            return false;
+        }
+
+        double multiplier = GetDimension1RelicUpgradeCostMultiplier(targetLevel);
+
+        leCost = System.Math.Ceiling(baseLeCost * multiplier);
+        traceCost = System.Math.Ceiling(baseTraceCost * multiplier);
+
+        if (!string.IsNullOrEmpty(metal1))
+            metalAmount1 = System.Math.Ceiling(baseMetalAmount1 * multiplier);
+
+        if (!string.IsNullOrEmpty(metal2))
+            metalAmount2 = System.Math.Ceiling(baseMetalAmount2 * multiplier);
+
+        return true;
+    }
+
+    public static bool CanUpgradeDimension1Relic(
+        GameState state,
+        string relicId
+    )
+    {
+        if (!TryGetNextDimension1RelicUpgradeCost(
+            state,
+            relicId,
+            out _,
+            out double leCost,
+            out double traceCost,
+            out string metal1,
+            out double metalAmount1,
+            out string metal2,
+            out double metalAmount2
+        ))
+        {
+            return false;
+        }
+
+        if (state.LE < leCost)
+            return false;
+
+        if (state.Traces < traceCost)
+            return false;
+
+        if (!string.IsNullOrEmpty(metal1) && state.GetD1MetalAmount(metal1) < metalAmount1)
+            return false;
+
+        if (!string.IsNullOrEmpty(metal2) && state.GetD1MetalAmount(metal2) < metalAmount2)
+            return false;
+
+        return true;
+    }
+
+    public static bool TryUpgradeDimension1Relic(
+        GameState state,
+        string relicId
+    )
+    {
+        if (!CanUpgradeDimension1Relic(state, relicId))
+            return false;
+
+        if (!TryGetNextDimension1RelicUpgradeCost(
+            state,
+            relicId,
+            out int targetLevel,
+            out double leCost,
+            out double traceCost,
+            out string metal1,
+            out double metalAmount1,
+            out string metal2,
+            out double metalAmount2
+        ))
+        {
+            return false;
+        }
+
+        state.LE -= leCost;
+        state.Traces -= traceCost;
+
+        if (!string.IsNullOrEmpty(metal1) && !state.SpendD1Metal(metal1, metalAmount1))
+            return false;
+
+        if (!string.IsNullOrEmpty(metal2) && !state.SpendD1Metal(metal2, metalAmount2))
+            return false;
+
+        return state.SetD1RelicLevel(relicId, targetLevel);
     }
 
     public static bool UsesSpecificShipMatricesForUnlock(string shipId)

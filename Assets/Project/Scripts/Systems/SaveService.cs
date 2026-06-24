@@ -99,6 +99,7 @@ public class SaveData
     public List<D1BlueprintAmount> dimension1LastExplorationSpecificBlueprints;
     public List<D1ExplorationRecordEntry> dimension1RecentExplorationRecords;
     public List<D1BlueprintAmount> dimension1Blueprints;
+    public List<D1RelicState> dimension1Relics;
     public int dimension1BlueprintFragments;
     public int dimension1LastExplorationBlueprintFragments;
     public int dimension1LastExplorationResultId;
@@ -220,6 +221,7 @@ public class SaveService : MonoBehaviour
         dimension1LastExplorationSpecificBlueprints = GameState.I.dimension1LastExplorationSpecificBlueprints,
         dimension1RecentExplorationRecords = GameState.I.dimension1RecentExplorationRecords,
         dimension1Blueprints = GameState.I.dimension1Blueprints,
+        dimension1Relics = GameState.I.dimension1Relics,
         dimension1BlueprintFragments = GameState.I.dimension1BlueprintFragments,
         dimension1LastExplorationBlueprintFragments = GameState.I.dimension1LastExplorationBlueprintFragments,
         dimension1LastExplorationResultId = GameState.I.dimension1LastExplorationResultId,
@@ -331,6 +333,7 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension1LastExplorationSpecificBlueprints = data.dimension1LastExplorationSpecificBlueprints ?? new List<D1BlueprintAmount>();
         GameState.I.dimension1RecentExplorationRecords = data.dimension1RecentExplorationRecords ?? new List<D1ExplorationRecordEntry>();
         GameState.I.dimension1Blueprints = data.dimension1Blueprints ?? new List<D1BlueprintAmount>();
+        GameState.I.dimension1Relics = data.dimension1Relics ?? new List<D1RelicState>();
         GameState.I.dimension1BlueprintFragments = data.dimension1BlueprintFragments;
         GameState.I.dimension1LastExplorationBlueprintFragments = data.dimension1LastExplorationBlueprintFragments;
         GameState.I.dimension1LastExplorationResultId = data.dimension1LastExplorationResultId;
@@ -482,6 +485,7 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension1LastExplorationSpecificBlueprints = new List<D1BlueprintAmount>();
         GameState.I.dimension1RecentExplorationRecords = new List<D1ExplorationRecordEntry>();
         GameState.I.dimension1Blueprints = new List<D1BlueprintAmount>();
+        GameState.I.dimension1Relics = new List<D1RelicState>();
         GameState.I.dimension1BlueprintFragments = 0;
         GameState.I.dimension1LastExplorationBlueprintFragments = 0;
         GameState.I.dimension1LastExplorationResultId = 0;
