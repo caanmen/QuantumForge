@@ -161,10 +161,16 @@ public class GameState : MonoBehaviour
     // Se conserva porque todavía sirve como estadística interna del run.
     public double maxLEAlcanzado = 0.0;
 
-    [Header("Dimensión 1 - MVP")]
+    [Header("Sistema de Dimensiones")]
 
     [Tooltip("Indica si la Dimensión 1 está desbloqueada después de Prestigio 1.")]
     public bool dimension01Unlocked = false;
+
+    [Tooltip("Indica si la Dimensión 2 está preparada después de Prestigio 1. No tiene UI activa todavía.")]
+    public bool dimension02Unlocked = false;
+
+    [Tooltip("Indica si la Dimensión 3 está preparada después de Prestigio 1. No tiene UI activa todavía.")]
+    public bool dimension03Unlocked = false;
 
     [Tooltip("Metales acumulados de Dimensión 1.")]
     public List<D1MetalAmount> dimension1Metals = new List<D1MetalAmount>();
@@ -199,13 +205,17 @@ public class GameState : MonoBehaviour
     [Tooltip("Registro reciente de exploraciones completadas en Dimensión 1.")]
     public List<D1ExplorationRecordEntry> dimension1RecentExplorationRecords = new List<D1ExplorationRecordEntry>();
 
-
+    [Tooltip("Blueprints específicos acumulados en Dimensión 1.")]
+    public List<D1BlueprintAmount> dimension1Blueprints = new List<D1BlueprintAmount>();
 
     [Tooltip("Fragmentos de blueprint acumulados en Dimensión 1.")]
     public int dimension1BlueprintFragments = 0;
 
     [Tooltip("Fragmentos de blueprint obtenidos en la última exploración.")]
     public int dimension1LastExplorationBlueprintFragments = 0;
+
+    [Tooltip("Blueprints específicos obtenidos en la última exploración.")]
+    public List<D1BlueprintAmount> dimension1LastExplorationSpecificBlueprints = new List<D1BlueprintAmount>();
 
     [Tooltip("Contador interno para detectar nuevas exploraciones completadas en la UI.")]
     public int dimension1LastExplorationResultId = 0;
@@ -1129,8 +1139,14 @@ public class GameState : MonoBehaviour
         if (dimension1LastExplorationRewards == null)
             dimension1LastExplorationRewards = new List<D1MetalAmount>();
 
+        if (dimension1LastExplorationSpecificBlueprints == null)
+            dimension1LastExplorationSpecificBlueprints = new List<D1BlueprintAmount>();
+
         if (dimension1RecentExplorationRecords == null)
             dimension1RecentExplorationRecords = new List<D1ExplorationRecordEntry>();
+
+        if (dimension1Blueprints == null)
+            dimension1Blueprints = new List<D1BlueprintAmount>();
 
         MigrateDimension1LegacyShipIds();
 
@@ -1147,6 +1163,11 @@ public class GameState : MonoBehaviour
         foreach (string shipId in Dimension1System.Dimension1ShipIds)
         {
             GetOrCreateD1Ship(shipId);
+        }
+
+        foreach (string blueprintId in Dimension1System.Dimension1BlueprintIds)
+        {
+            GetOrCreateD1Blueprint(blueprintId);
         }
     }
 
@@ -1256,6 +1277,24 @@ public class GameState : MonoBehaviour
         return newShip;
     }
 
+    private D1BlueprintAmount GetOrCreateD1Blueprint(string blueprintId)
+    {
+        foreach (D1BlueprintAmount blueprint in dimension1Blueprints)
+        {
+            if (blueprint != null && blueprint.blueprintId == blueprintId)
+                return blueprint;
+        }
+
+        D1BlueprintAmount newBlueprint = new D1BlueprintAmount
+        {
+            blueprintId = blueprintId,
+            amount = 0
+        };
+
+        dimension1Blueprints.Add(newBlueprint);
+        return newBlueprint;
+    }
+
     public double GetD1MetalAmount(string metalId)
     {
         EnsureDimension1State();
@@ -1287,9 +1326,57 @@ public class GameState : MonoBehaviour
         return true;
     }
 
-    public void UnlockDimension1Mvp()
+    public int GetD1BlueprintAmount(string blueprintId)
+    {
+        if (string.IsNullOrEmpty(blueprintId))
+            return 0;
+
+        EnsureDimension1State();
+        return GetOrCreateD1Blueprint(blueprintId).amount;
+    }
+
+    public void AddD1Blueprint(string blueprintId, int amount)
+    {
+        if (string.IsNullOrEmpty(blueprintId))
+            return;
+
+        if (amount <= 0)
+            return;
+
+        if (!Dimension1System.IsDimension1BlueprintId(blueprintId))
+            return;
+
+        EnsureDimension1State();
+        GetOrCreateD1Blueprint(blueprintId).amount += amount;
+    }
+
+    public bool SpendD1Blueprint(string blueprintId, int amount)
+    {
+        if (string.IsNullOrEmpty(blueprintId))
+            return false;
+
+        if (amount <= 0)
+            return true;
+
+        if (!Dimension1System.IsDimension1BlueprintId(blueprintId))
+            return false;
+
+        EnsureDimension1State();
+
+        D1BlueprintAmount blueprint = GetOrCreateD1Blueprint(blueprintId);
+
+        if (blueprint.amount < amount)
+            return false;
+
+        blueprint.amount -= amount;
+        return true;
+    }
+
+    public void UnlockDimensionSystemAfterPrestige1()
     {
         dimension01Unlocked = true;
+        dimension02Unlocked = true;
+        dimension03Unlocked = true;
 
         EnsureDimension1State();
 
@@ -1303,9 +1390,17 @@ public class GameState : MonoBehaviour
         lightProbe.unlocked = true;
     }
 
-    public void ResetDimension1MvpState()
+    // Método temporal de compatibilidad. Borrar cuando no queden referencias antiguas.
+    public void UnlockDimension1Mvp()
+    {
+        UnlockDimensionSystemAfterPrestige1();
+    }
+
+    public void ResetDimensionSystemState()
     {
         dimension01Unlocked = false;
+        dimension02Unlocked = false;
+        dimension03Unlocked = false;
 
         dimension1Metals = new List<D1MetalAmount>();
         dimension1Planets = new List<D1PlanetState>();
@@ -1318,6 +1413,8 @@ public class GameState : MonoBehaviour
         dimension1LastExplorationDestinationId = "";
         dimension1LastExplorationRewards = new List<D1MetalAmount>();
         dimension1RecentExplorationRecords = new List<D1ExplorationRecordEntry>();
+        dimension1Blueprints = new List<D1BlueprintAmount>();
+        dimension1LastExplorationSpecificBlueprints = new List<D1BlueprintAmount>();
         dimension1BlueprintFragments = 0;
         dimension1LastExplorationBlueprintFragments = 0;
         dimension1LastExplorationResultId = 0;
@@ -1325,7 +1422,13 @@ public class GameState : MonoBehaviour
         EnsureDimension1State();
     }
 
-    #if UNITY_EDITOR
+    // Método temporal de compatibilidad. Borrar cuando no queden referencias antiguas.
+    public void ResetDimension1MvpState()
+    {
+        ResetDimensionSystemState();
+    }
+
+#if UNITY_EDITOR
     [ContextMenu("D1 DEBUG: Ensure State")]
     private void DebugEnsureDimension1State()
     {
@@ -1333,10 +1436,10 @@ public class GameState : MonoBehaviour
         Debug.Log("[D1] Estado base inicializado.");
     }
 
-    [ContextMenu("D1 DEBUG: Unlock MVP")]
-    private void DebugUnlockDimension1Mvp()
+    [ContextMenu("D1 DEBUG: Unlock Dimension System")]
+    private void DebugUnlockDimensionSystem()
     {
-        UnlockDimension1Mvp();
+        UnlockDimensionSystemAfterPrestige1();
 
         if (TabsUI.Instance != null)
         {
@@ -1358,8 +1461,10 @@ public class GameState : MonoBehaviour
         bool unlocked = planet != null && planet.unlocked;
 
         Debug.Log(
-            "[D1] Dimensión 1 MVP desbloqueada. " +
+            "[D1] Sistema de dimensiones preparado. " +
             "dimension01Unlocked: " + dimension01Unlocked +
+            " | dimension02Unlocked: " + dimension02Unlocked +
+            " | dimension03Unlocked: " + dimension03Unlocked +
             " | Planeta 1 unlocked: " + unlocked +
             " | Tier: " + tier
         );
@@ -1598,11 +1703,80 @@ public class GameState : MonoBehaviour
         {
             Debug.Log("[D1] No se pudo mejorar el extractor de Planeta 3. Revisa si tienes suficiente Níquel.");
         }
-    }   
+    }
 
-    #endif
+    [ContextMenu("D1 DEBUG: Add 1 Adaptive Matrix")]
+    private void DebugAddOneD1AdaptiveMatrix()
+    {
+        EnsureDimension1State();
 
-    
+        dimension1BlueprintFragments += Dimension1System.BlueprintFragmentsPerBlueprint;
+
+        Debug.Log(
+            "[D1] +1 Matriz Adaptativa de Nave. " +
+            "Fragmentos totales: " + dimension1BlueprintFragments +
+            " | Adaptativas disponibles: " + Dimension1System.GetCompletedBlueprintCount(this)
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Add Cargo Specific Matrices")]
+    private void DebugAddCargoSpecificMatrices()
+    {
+        EnsureDimension1State();
+
+        AddD1Blueprint(Dimension1System.BlueprintCargoFrame, 1);
+        AddD1Blueprint(Dimension1System.BlueprintCargoHold, 1);
+        AddD1Blueprint(Dimension1System.BlueprintCargoStabilizer, 1);
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1] Matrices específicas de Nave de Carga agregadas. " +
+            "Chasis=" + GetD1BlueprintAmount(Dimension1System.BlueprintCargoFrame) +
+            " | Bodega=" + GetD1BlueprintAmount(Dimension1System.BlueprintCargoHold) +
+            " | Estabilizador=" + GetD1BlueprintAmount(Dimension1System.BlueprintCargoStabilizer)
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Add Rescue Specific Matrices")]
+    private void DebugAddRescueSpecificMatrices()
+    {
+        EnsureDimension1State();
+
+        AddD1Blueprint(Dimension1System.BlueprintRescueFrame, 1);
+        AddD1Blueprint(Dimension1System.BlueprintRescueBeacon, 1);
+        AddD1Blueprint(Dimension1System.BlueprintRescueRecoveryBay, 1);
+        AddD1Blueprint(Dimension1System.BlueprintRescueProtectionMatrix, 1);
+
+        Debug.Log("[D1] Matrices específicas de Nave de Rescate agregadas.");
+    }
+
+    [ContextMenu("D1 DEBUG: Add Convergence Specific Matrices")]
+    private void DebugAddConvergenceSpecificMatrices()
+    {
+        EnsureDimension1State();
+
+        AddD1Blueprint(Dimension1System.BlueprintConvergenceChassis, 1);
+        AddD1Blueprint(Dimension1System.BlueprintConvergenceCore, 1);
+        AddD1Blueprint(Dimension1System.BlueprintConvergenceMatrix, 1);
+        AddD1Blueprint(Dimension1System.BlueprintAnomalousArmor, 1);
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1] Matrices específicas de Nave de Convergencia agregadas. " +
+            "Chasis=" + GetD1BlueprintAmount(Dimension1System.BlueprintConvergenceChassis) +
+            " | Núcleo=" + GetD1BlueprintAmount(Dimension1System.BlueprintConvergenceCore) +
+            " | Lectura=" + GetD1BlueprintAmount(Dimension1System.BlueprintConvergenceMatrix) +
+            " | Blindaje=" + GetD1BlueprintAmount(Dimension1System.BlueprintAnomalousArmor)
+        );
+    }
+
+#endif
+
+
     /// <summary>
     /// Avanza el juego dt segundos (lógica principal de producción).
     /// </summary>
@@ -1628,7 +1802,7 @@ public class GameState : MonoBehaviour
     GenerateExperimentalFragments(dt);
     UpdateChronalSeeds(dt);
 
-    // Dimensión 1 - MVP: minería planetaria por segundo
+    // Dimensión 1: minería planetaria y exploración por segundo.
     Dimension1System.Tick(this, dt);
 
     // 🔹 F7.3: Producir ADP
@@ -2700,10 +2874,9 @@ private double CalculateEMMultiplier()
 
         ResetGameBaseForPrestige1();
 
-        // Dimensión 1 - MVP:
-        // Al hacer Prestigio 1, se desbloquea la Dimensión 1.
-        // Este método no reinicia tiers si ya existen, porque solo pone tier 1 si estaba en 0.
-        UnlockDimension1Mvp();
+        // Al hacer Prestigio 1, se prepara el sistema de dimensiones.
+        // Por ahora solo Dimensión 1 tiene contenido jugable.
+        UnlockDimensionSystemAfterPrestige1();
 
         if (SaveService.I != null)
             SaveService.I.Save();

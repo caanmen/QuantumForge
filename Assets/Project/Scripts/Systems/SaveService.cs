@@ -82,8 +82,10 @@ public class SaveData
     public bool experimentalChamberUnlocked;
     public bool experimentalChamberInitialPackGranted;
 
-        // Dimensión 1 - MVP
+    // Sistema de dimensiones
     public bool dimension01Unlocked;
+    public bool dimension02Unlocked;
+    public bool dimension03Unlocked;
     public List<D1MetalAmount> dimension1Metals;
     public List<D1PlanetState> dimension1Planets;
     public List<D1ShipState> dimension1Ships;
@@ -94,9 +96,12 @@ public class SaveData
     public int dimension1ScannerLevel;
     public string dimension1LastExplorationDestinationId;
     public List<D1MetalAmount> dimension1LastExplorationRewards;
+    public List<D1BlueprintAmount> dimension1LastExplorationSpecificBlueprints;
     public List<D1ExplorationRecordEntry> dimension1RecentExplorationRecords;
+    public List<D1BlueprintAmount> dimension1Blueprints;
     public int dimension1BlueprintFragments;
     public int dimension1LastExplorationBlueprintFragments;
+    public int dimension1LastExplorationResultId;
 }
 
 public class SaveService : MonoBehaviour
@@ -198,8 +203,10 @@ public class SaveService : MonoBehaviour
         buildingLevels = GameState.I.GetBuildingLevelsForSave(),
         experimentalChamberUnlocked = GameState.I.experimentalChamberUnlocked,
         experimentalChamberInitialPackGranted = GameState.I.experimentalChamberInitialPackGranted,
-        // Dimensión 1 - MVP
+        // Sistema de dimensiones
         dimension01Unlocked = GameState.I.dimension01Unlocked,
+        dimension02Unlocked = GameState.I.dimension02Unlocked,
+        dimension03Unlocked = GameState.I.dimension03Unlocked,
         dimension1Metals = GameState.I.dimension1Metals,
         dimension1Planets = GameState.I.dimension1Planets,
         dimension1Ships = GameState.I.dimension1Ships,
@@ -210,9 +217,12 @@ public class SaveService : MonoBehaviour
         dimension1ScannerLevel = GameState.I.dimension1ScannerLevel,
         dimension1LastExplorationDestinationId = GameState.I.dimension1LastExplorationDestinationId,
         dimension1LastExplorationRewards = GameState.I.dimension1LastExplorationRewards,
+        dimension1LastExplorationSpecificBlueprints = GameState.I.dimension1LastExplorationSpecificBlueprints,
         dimension1RecentExplorationRecords = GameState.I.dimension1RecentExplorationRecords,
+        dimension1Blueprints = GameState.I.dimension1Blueprints,
         dimension1BlueprintFragments = GameState.I.dimension1BlueprintFragments,
         dimension1LastExplorationBlueprintFragments = GameState.I.dimension1LastExplorationBlueprintFragments,
+        dimension1LastExplorationResultId = GameState.I.dimension1LastExplorationResultId,
 
         fragmentCondensation = GameState.I.fragmentCondensation,
         fragmentConfinement = GameState.I.fragmentConfinement,
@@ -304,8 +314,10 @@ public class SaveService : MonoBehaviour
         GameState.I.trianglePersistenceReserveSeconds = data.trianglePersistenceReserveSeconds;
         GameState.I.experimentalChamberUnlocked = data.experimentalChamberUnlocked;
         GameState.I.experimentalChamberInitialPackGranted = data.experimentalChamberInitialPackGranted;
-        // Dimensión 1 - MVP
+        // Sistema de dimensiones
         GameState.I.dimension01Unlocked = data.dimension01Unlocked;
+        GameState.I.dimension02Unlocked = data.dimension02Unlocked;
+        GameState.I.dimension03Unlocked = data.dimension03Unlocked;
         GameState.I.dimension1Metals = data.dimension1Metals ?? new List<D1MetalAmount>();
         GameState.I.dimension1Planets = data.dimension1Planets ?? new List<D1PlanetState>();
         GameState.I.dimension1Ships = data.dimension1Ships ?? new List<D1ShipState>();
@@ -316,14 +328,24 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension1ScannerLevel = data.dimension1ScannerLevel;
         GameState.I.dimension1LastExplorationDestinationId = data.dimension1LastExplorationDestinationId ?? "";
         GameState.I.dimension1LastExplorationRewards = data.dimension1LastExplorationRewards ?? new List<D1MetalAmount>();
+        GameState.I.dimension1LastExplorationSpecificBlueprints = data.dimension1LastExplorationSpecificBlueprints ?? new List<D1BlueprintAmount>();
         GameState.I.dimension1RecentExplorationRecords = data.dimension1RecentExplorationRecords ?? new List<D1ExplorationRecordEntry>();
+        GameState.I.dimension1Blueprints = data.dimension1Blueprints ?? new List<D1BlueprintAmount>();
         GameState.I.dimension1BlueprintFragments = data.dimension1BlueprintFragments;
         GameState.I.dimension1LastExplorationBlueprintFragments = data.dimension1LastExplorationBlueprintFragments;
+        GameState.I.dimension1LastExplorationResultId = data.dimension1LastExplorationResultId;
         GameState.I.EnsureDimension1State();
 
         // Prestigio 1 - Convergencia
         GameState.I.prestige1Count = data.prestige1Count;
         GameState.I.hasDonePrestige1 = data.hasDonePrestige1;
+
+        // Migración para partidas viejas:
+        // si el jugador ya hizo Prestigio 1, el sistema de dimensiones debe quedar preparado.
+        if (GameState.I.hasDonePrestige1)
+        {
+            GameState.I.UnlockDimensionSystemAfterPrestige1();
+        }
 
         // F6.1: prestigio viejo
         GameState.I.maxLEAlcanzado = data.maxLEAlcanzado;
@@ -386,7 +408,7 @@ public class SaveService : MonoBehaviour
 
         GameState.I.ApplyOfflineTrianglePersistenceReserve(offlineSeconds);
 
-        // Dimensión 1 - MVP:
+        // Sistema de dimensiones
         // minería offline con cap inicial de 12 horas.
         double d1OfflineApplied = Dimension1System.ApplyOfflineMining(GameState.I, offlineSeconds);
 
@@ -443,8 +465,10 @@ public class SaveService : MonoBehaviour
         GameState.I.trianglePersistenceReserveSeconds = 0.0;
         GameState.I.experimentalChamberUnlocked = false;
         GameState.I.experimentalChamberInitialPackGranted = false;
-        // Dimensión 1 - MVP
+        // Sistema de dimensiones
         GameState.I.dimension01Unlocked = false;
+        GameState.I.dimension02Unlocked = false;
+        GameState.I.dimension03Unlocked = false;
         GameState.I.dimension1Metals = new List<D1MetalAmount>();
         GameState.I.dimension1Planets = new List<D1PlanetState>();
         GameState.I.dimension1Ships = new List<D1ShipState>();
@@ -455,9 +479,12 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension1ScannerLevel = 0;
         GameState.I.dimension1LastExplorationDestinationId = "";
         GameState.I.dimension1LastExplorationRewards = new List<D1MetalAmount>();
+        GameState.I.dimension1LastExplorationSpecificBlueprints = new List<D1BlueprintAmount>();
         GameState.I.dimension1RecentExplorationRecords = new List<D1ExplorationRecordEntry>();
+        GameState.I.dimension1Blueprints = new List<D1BlueprintAmount>();
         GameState.I.dimension1BlueprintFragments = 0;
         GameState.I.dimension1LastExplorationBlueprintFragments = 0;
+        GameState.I.dimension1LastExplorationResultId = 0;
         GameState.I.EnsureDimension1State();
 
         GameState.I.fragmentCondensation = 0;
@@ -550,8 +577,8 @@ public class SaveService : MonoBehaviour
             GameState.I.trianglePrimaryBuildingId = "";
             GameState.I.triangleReinforcementBuildingId = "";
             GameState.I.triangleAlterationBuildingId = "";
-            // Dimensión 1 - MVP
-            GameState.I.ResetDimension1MvpState();
+            // Sistema de dimensiones
+            GameState.I.ResetDimensionSystemState();
         }
         
 
@@ -617,8 +644,8 @@ public class SaveService : MonoBehaviour
 
                 GameState.I.experimentalMixLog = new List<ExperimentalMixLogEntry>();
                 GameState.I.guidedSynthesisIntent = 0;
-                // Dimensión 1 - MVP
-                GameState.I.ResetDimension1MvpState();
+                // Sistema de dimensiones
+                GameState.I.ResetDimensionSystemState();
             }
 
                 if (F2UpgradeManager.I != null)

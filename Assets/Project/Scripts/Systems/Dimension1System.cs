@@ -50,13 +50,21 @@ public class D1ExplorationRecordEntry
     public string destinationId;
     public List<D1MetalAmount> rewards = new List<D1MetalAmount>();
     public int blueprintFragments;
+    public List<D1BlueprintAmount> specificBlueprintRewards = new List<D1BlueprintAmount>();
+}
+
+[System.Serializable]
+public class D1BlueprintAmount
+{
+    public string blueprintId;
+    public int amount;
 }
 
 public static class Dimension1System
 {
     public const string DimensionId = "dimension_01";
 
-    // Metales MVP
+    // Metales de Dimensión 1
     public const string MetalIron = "metal_iron";
     public const string MetalCopper = "metal_copper";
     public const string MetalAluminum = "metal_aluminum";
@@ -69,7 +77,7 @@ public static class Dimension1System
     public const string MetalIridium = "metal_iridium";
     private const int MaxRecentExplorationRecords = 20;
 
-    // Planetas MVP
+    // Planetas de Dimensión 1
     public const string Planet01 = "planet_01";
     public const string Planet02 = "planet_02";
     public const string Planet03 = "planet_03";
@@ -78,7 +86,7 @@ public static class Dimension1System
     public const string Planet06 = "planet_06";
     public const string Planet07 = "planet_07";
 
-    // Nave MVP
+    // Naves de Dimensión 1
     public const string ShipLightProbe = "ship_light_probe";
     public const string ShipExtractorDrone = "ship_extractor_drone";
     public const string ShipAnalyticProbe = "ship_analytic_probe";
@@ -89,7 +97,7 @@ public static class Dimension1System
     // ID antiguo usado solo para migrar partidas viejas.
     public const string LegacyCargoShipId = "ship_survey_corvette";
 
-    // Partes de nave MVP
+    // Partes de nave
     public const string ShipPartCargo = "cargo";
     public const string ShipPartSpeed = "speed";
     public const string ShipPartArmor = "armor";
@@ -116,12 +124,260 @@ public static class Dimension1System
     // Offline inicial: 12 horas
     public const double DefaultOfflineCapSeconds = 43200.0;
 
-    // Barrido temporal del escáner para pruebas MVP.
+    // Barrido base del escáner de Dimensión 1.
     public const double SimpleScanDurationSeconds = 5.0;
     public const int SimpleScanBaseDestinationCount = 2;
     public const int SimpleScanMaxDestinationCount = 5;
     public const int SimpleScannerMaxLevel = 3;
     public const int BlueprintFragmentsPerBlueprint = 10;
+
+    // Blueprints específicos de naves
+    public const string BlueprintCargoFrame = "blueprint_cargo_frame";
+    public const string BlueprintCargoHold = "blueprint_cargo_hold";
+    public const string BlueprintCargoStabilizer = "blueprint_cargo_stabilizer";
+
+    public const string BlueprintRescueFrame = "blueprint_rescue_frame";
+    public const string BlueprintRescueBeacon = "blueprint_rescue_beacon";
+    public const string BlueprintRescueRecoveryBay = "blueprint_rescue_recovery_bay";
+    public const string BlueprintRescueProtectionMatrix = "blueprint_rescue_protection_matrix";
+
+    public const string BlueprintConvergenceChassis = "blueprint_convergence_chassis";
+    public const string BlueprintConvergenceCore = "blueprint_convergence_core";
+    public const string BlueprintConvergenceMatrix = "blueprint_convergence_matrix";
+    public const string BlueprintAnomalousArmor = "blueprint_anomalous_armor";
+
+    public static bool TryGetRequiredShipBlueprintIds(
+    string shipId,
+    out string[] blueprintIds
+)
+    {
+        blueprintIds = new string[0];
+
+        if (shipId == ShipCargoShip)
+        {
+            blueprintIds = new string[]
+            {
+            BlueprintCargoFrame,
+            BlueprintCargoHold,
+            BlueprintCargoStabilizer
+            };
+
+            return true;
+        }
+
+        if (shipId == ShipRescueShip)
+        {
+            blueprintIds = new string[]
+            {
+            BlueprintRescueFrame,
+            BlueprintRescueBeacon,
+            BlueprintRescueRecoveryBay,
+            BlueprintRescueProtectionMatrix
+            };
+
+            return true;
+        }
+
+        if (shipId == ShipConvergenceShip)
+        {
+            blueprintIds = new string[]
+            {
+            BlueprintConvergenceChassis,
+            BlueprintConvergenceCore,
+            BlueprintConvergenceMatrix,
+            BlueprintAnomalousArmor
+            };
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public static bool IsDimension1BlueprintId(string blueprintId)
+    {
+        if (string.IsNullOrEmpty(blueprintId))
+            return false;
+
+        foreach (string currentId in Dimension1BlueprintIds)
+        {
+            if (currentId == blueprintId)
+                return true;
+        }
+
+        return false;
+    }
+
+    public static bool UsesSpecificShipMatricesForUnlock(string shipId)
+    {
+        return
+            shipId == ShipCargoShip ||
+            shipId == ShipRescueShip ||
+            shipId == ShipConvergenceShip;
+    }
+
+    public static int GetOwnedRequiredSpecificShipMatrixCount(GameState state, string shipId)
+    {
+        if (state == null)
+            return 0;
+
+        if (!TryGetRequiredShipBlueprintIds(shipId, out string[] blueprintIds))
+            return 0;
+
+        int owned = 0;
+
+        foreach (string blueprintId in blueprintIds)
+        {
+            if (state.GetD1BlueprintAmount(blueprintId) > 0)
+                owned++;
+        }
+
+        return owned;
+    }
+
+    public static int GetMissingRequiredSpecificShipMatrixCount(GameState state, string shipId)
+    {
+        if (state == null)
+            return 0;
+
+        if (!TryGetRequiredShipBlueprintIds(shipId, out string[] blueprintIds))
+            return 0;
+
+        int owned = GetOwnedRequiredSpecificShipMatrixCount(state, shipId);
+        int missing = blueprintIds.Length - owned;
+
+        return missing > 0 ? missing : 0;
+    }
+
+    public static bool CanCoverRequiredShipMatrices(GameState state, string shipId)
+    {
+        if (state == null)
+            return false;
+
+        if (!TryGetRequiredShipBlueprintIds(shipId, out string[] blueprintIds))
+            return true;
+
+        int missing = GetMissingRequiredSpecificShipMatrixCount(state, shipId);
+        int adaptiveMatrices = GetCompletedBlueprintCount(state);
+
+        return adaptiveMatrices >= missing;
+    }
+
+    public static bool TrySpendRequiredShipMatrices(GameState state, string shipId)
+    {
+        if (state == null)
+            return false;
+
+        if (!TryGetRequiredShipBlueprintIds(shipId, out string[] blueprintIds))
+            return true;
+
+        if (!CanCoverRequiredShipMatrices(state, shipId))
+            return false;
+
+        int adaptiveMatricesNeeded = 0;
+
+        foreach (string blueprintId in blueprintIds)
+        {
+            if (state.GetD1BlueprintAmount(blueprintId) > 0)
+            {
+                if (!state.SpendD1Blueprint(blueprintId, 1))
+                    return false;
+            }
+            else
+            {
+                adaptiveMatricesNeeded++;
+            }
+        }
+
+        if (adaptiveMatricesNeeded > 0)
+            return TrySpendCompletedBlueprints(state, adaptiveMatricesNeeded);
+
+        return true;
+    }
+
+    public static int GetRequiredSpecificShipUpgradeMatrixCost(string shipId, int targetLevel)
+    {
+        if (!UsesSpecificShipMatricesForUnlock(shipId))
+            return 0;
+
+        if (targetLevel < 4 || targetLevel > 6)
+            return 0;
+
+        return 1;
+    }
+
+    public static int GetAvailableSpecificShipUpgradeMatrixCount(GameState state, string shipId)
+    {
+        if (state == null)
+            return 0;
+
+        if (!TryGetRequiredShipBlueprintIds(shipId, out string[] matrixIds))
+            return 0;
+
+        int total = 0;
+
+        foreach (string matrixId in matrixIds)
+        {
+            total += state.GetD1BlueprintAmount(matrixId);
+        }
+
+        return total;
+    }
+
+    public static bool CanSpendSpecificShipUpgradeMatrices(GameState state, string shipId, int matrixCost)
+    {
+        if (matrixCost <= 0)
+            return true;
+
+        return GetAvailableSpecificShipUpgradeMatrixCount(state, shipId) >= matrixCost;
+    }
+
+    public static bool TrySpendSpecificShipUpgradeMatrices(GameState state, string shipId, int matrixCost)
+    {
+        if (!CanSpendSpecificShipUpgradeMatrices(state, shipId, matrixCost))
+            return false;
+
+        if (matrixCost <= 0)
+            return true;
+
+        if (!TryGetRequiredShipBlueprintIds(shipId, out string[] matrixIds))
+            return false;
+
+        int remaining = matrixCost;
+
+        foreach (string matrixId in matrixIds)
+        {
+            while (remaining > 0 && state.GetD1BlueprintAmount(matrixId) > 0)
+            {
+                if (!state.SpendD1Blueprint(matrixId, 1))
+                    return false;
+
+                remaining--;
+            }
+
+            if (remaining <= 0)
+                return true;
+        }
+
+        return remaining <= 0;
+    }
+
+    public static readonly string[] Dimension1BlueprintIds =
+    {
+    BlueprintCargoFrame,
+    BlueprintCargoHold,
+    BlueprintCargoStabilizer,
+
+    BlueprintRescueFrame,
+    BlueprintRescueBeacon,
+    BlueprintRescueRecoveryBay,
+    BlueprintRescueProtectionMatrix,
+
+    BlueprintConvergenceChassis,
+    BlueprintConvergenceCore,
+    BlueprintConvergenceMatrix,
+    BlueprintAnomalousArmor
+};
 
     public static int GetCompletedBlueprintCount(GameState state)
     {
@@ -852,6 +1108,96 @@ public static class Dimension1System
         }
     }
 
+    public static bool TryGetPlanetUnlockCost(
+    string planetId,
+    out string metal1,
+    out double amount1,
+    out string metal2,
+    out double amount2,
+    out string metal3,
+    out double amount3
+)
+    {
+        metal1 = "";
+        amount1 = 0.0;
+        metal2 = "";
+        amount2 = 0.0;
+        metal3 = "";
+        amount3 = 0.0;
+
+        if (planetId == Planet02)
+        {
+            metal1 = MetalIron;
+            amount1 = 500.0;
+            metal2 = MetalCopper;
+            amount2 = 120.0;
+            return true;
+        }
+
+        if (planetId == Planet03)
+        {
+            metal1 = MetalAluminum;
+            amount1 = 1500.0;
+            metal2 = MetalTitanium;
+            amount2 = 300.0;
+            return true;
+        }
+
+        if (planetId == Planet04)
+        {
+            metal1 = MetalNickel;
+            amount1 = 1200.0;
+            metal2 = MetalCobalt;
+            amount2 = 350.0;
+            return true;
+        }
+
+        if (planetId == Planet05)
+        {
+            metal1 = MetalLithium;
+            amount1 = 1400.0;
+            metal2 = MetalTungsten;
+            amount2 = 320.0;
+            return true;
+        }
+
+        if (planetId == Planet06)
+        {
+            metal1 = MetalPlatinum;
+            amount1 = 1100.0;
+            metal2 = MetalNickel;
+            amount2 = 1800.0;
+            return true;
+        }
+
+        if (planetId == Planet07)
+        {
+            metal1 = MetalIridium;
+            amount1 = 800.0;
+            metal2 = MetalCobalt;
+            amount2 = 1500.0;
+            metal3 = MetalTungsten;
+            amount3 = 900.0;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool HasRequiredD1Metal(GameState state, string metalId, double requiredAmount)
+    {
+        if (state == null)
+            return false;
+
+        if (string.IsNullOrEmpty(metalId))
+            return true;
+
+        if (requiredAmount <= 0.0)
+            return true;
+
+        return state.GetD1MetalAmount(metalId) >= requiredAmount;
+    }
+
     public static bool CanUpgradeExtractor(GameState state, string planetId)
     {
         if (state == null)
@@ -892,44 +1238,31 @@ public static class Dimension1System
 
         state.EnsureDimension1State();
 
-        if (planetId == Planet02)
+        D1PlanetState planet = FindPlanetState(state, planetId);
+
+        if (planet == null)
+            return false;
+
+        if (planet.unlocked)
+            return false;
+
+        if (!TryGetPlanetUnlockCost(
+            planetId,
+            out string metal1,
+            out double amount1,
+            out string metal2,
+            out double amount2,
+            out string metal3,
+            out double amount3
+        ))
         {
-            return state.GetD1MetalAmount(MetalIron) >= 500.0 &&
-                state.GetD1MetalAmount(MetalCopper) >= 120.0;
+            return false;
         }
 
-        if (planetId == Planet03)
-        {
-            return state.GetD1MetalAmount(MetalAluminum) >= 1500.0 &&
-                state.GetD1MetalAmount(MetalTitanium) >= 300.0;
-        }
-
-        if (planetId == Planet04)
-        {
-            return state.GetD1MetalAmount(MetalNickel) >= 1200.0 &&
-                state.GetD1MetalAmount(MetalCobalt) >= 350.0;
-        }
-
-        if (planetId == Planet05)
-        {
-            return state.GetD1MetalAmount(MetalLithium) >= 1400.0 &&
-                state.GetD1MetalAmount(MetalTungsten) >= 320.0;
-        }
-
-        if (planetId == Planet06)
-        {
-            return state.GetD1MetalAmount(MetalPlatinum) >= 1100.0 &&
-                state.GetD1MetalAmount(MetalNickel) >= 1800.0;
-        }
-
-        if (planetId == Planet07)
-        {
-            return state.GetD1MetalAmount(MetalIridium) >= 800.0 &&
-                state.GetD1MetalAmount(MetalCobalt) >= 1500.0 &&
-                state.GetD1MetalAmount(MetalTungsten) >= 900.0;
-        }
-
-        return false;
+        return
+            HasRequiredD1Metal(state, metal1, amount1) &&
+            HasRequiredD1Metal(state, metal2, amount2) &&
+            HasRequiredD1Metal(state, metal3, amount3);
     }
 
 
@@ -1016,16 +1349,7 @@ public static class Dimension1System
 
         state.EnsureDimension1State();
 
-        D1PlanetState planet = null;
-
-        foreach (D1PlanetState candidate in state.dimension1Planets)
-        {
-            if (candidate != null && candidate.planetId == planetId)
-            {
-                planet = candidate;
-                break;
-            }
-        }
+        D1PlanetState planet = FindPlanetState(state, planetId);
 
         if (planet == null)
             return false;
@@ -1033,132 +1357,113 @@ public static class Dimension1System
         if (planet.unlocked)
             return true;
 
-        if (planetId == Planet02)
+        if (!CanUnlockPlanet(state, planetId))
+            return false;
+
+        if (!TryGetPlanetUnlockCost(
+            planetId,
+            out string metal1,
+            out double amount1,
+            out string metal2,
+            out double amount2,
+            out string metal3,
+            out double amount3
+        ))
         {
-            // Costos provisionales para probar el MVP.
-            double ironCost = 500.0;
-            double copperCost = 120.0;
+            return false;
+        }
 
-            if (state.GetD1MetalAmount(MetalIron) < ironCost)
-                return false;
+        if (!string.IsNullOrEmpty(metal1) && !state.SpendD1Metal(metal1, amount1))
+            return false;
 
-            if (state.GetD1MetalAmount(MetalCopper) < copperCost)
-                return false;
+        if (!string.IsNullOrEmpty(metal2) && !state.SpendD1Metal(metal2, amount2))
+            return false;
 
-            state.SpendD1Metal(MetalIron, ironCost);
-            state.SpendD1Metal(MetalCopper, copperCost);
+        if (!string.IsNullOrEmpty(metal3) && !state.SpendD1Metal(metal3, amount3))
+            return false;
 
-            planet.unlocked = true;
-            planet.extractorTier = 1;
+        planet.unlocked = true;
+        planet.extractorTier = 1;
 
+        return true;
+    }
+
+    public static bool TryGetShipUnlockCost(
+    string shipId,
+    out string metal1,
+    out double amount1,
+    out string metal2,
+    out double amount2,
+    out string metal3,
+    out double amount3,
+    out string metal4,
+    out double amount4,
+    out int blueprintCost
+)
+    {
+        metal1 = "";
+        amount1 = 0.0;
+        metal2 = "";
+        amount2 = 0.0;
+        metal3 = "";
+        amount3 = 0.0;
+        metal4 = "";
+        amount4 = 0.0;
+        blueprintCost = 0;
+
+        if (shipId == ShipExtractorDrone)
+        {
+            metal1 = MetalIron;
+            amount1 = 300.0;
+            metal2 = MetalCopper;
+            amount2 = 80.0;
             return true;
         }
 
-        if (planetId == Planet03)
+        if (shipId == ShipAnalyticProbe)
         {
-            // Costos provisionales para probar el MVP.
-            // La idea es que Planeta 3 requiera haber avanzado en Planeta 2
-            // y haber desbloqueado Titanio.
-            double aluminumCost = 1500.0;
-            double titaniumCost = 300.0;
-
-            if (state.GetD1MetalAmount(MetalAluminum) < aluminumCost)
-                return false;
-
-            if (state.GetD1MetalAmount(MetalTitanium) < titaniumCost)
-                return false;
-
-            state.SpendD1Metal(MetalAluminum, aluminumCost);
-            state.SpendD1Metal(MetalTitanium, titaniumCost);
-
-            planet.unlocked = true;
-            planet.extractorTier = 1;
-
+            metal1 = MetalCopper;
+            amount1 = 250.0;
+            metal2 = MetalAluminum;
+            amount2 = 120.0;
             return true;
         }
 
-        if (planetId == Planet04)
+        if (shipId == ShipCargoShip)
         {
-            double nickelCost = 1200.0;
-            double cobaltCost = 350.0;
-
-            if (state.GetD1MetalAmount(MetalNickel) < nickelCost)
-                return false;
-
-            if (state.GetD1MetalAmount(MetalCobalt) < cobaltCost)
-                return false;
-
-            state.SpendD1Metal(MetalNickel, nickelCost);
-            state.SpendD1Metal(MetalCobalt, cobaltCost);
-
-            planet.unlocked = true;
-            planet.extractorTier = 1;
-
+            metal1 = MetalTitanium;
+            amount1 = 800.0;
+            metal2 = MetalNickel;
+            amount2 = 450.0;
+            blueprintCost = 3;
             return true;
         }
 
-        if (planetId == Planet05)
+        if (shipId == ShipRescueShip)
         {
-            double lithiumCost = 1400.0;
-            double tungstenCost = 320.0;
-
-            if (state.GetD1MetalAmount(MetalLithium) < lithiumCost)
-                return false;
-
-            if (state.GetD1MetalAmount(MetalTungsten) < tungstenCost)
-                return false;
-
-            state.SpendD1Metal(MetalLithium, lithiumCost);
-            state.SpendD1Metal(MetalTungsten, tungstenCost);
-
-            planet.unlocked = true;
-            planet.extractorTier = 1;
-
+            metal1 = MetalTitanium;
+            amount1 = 1200.0;
+            metal2 = MetalNickel;
+            amount2 = 900.0;
+            metal3 = MetalCobalt;
+            amount3 = 500.0;
+            metal4 = MetalPlatinum;
+            amount4 = 250.0;
+            blueprintCost = 4;
             return true;
         }
 
-        if (planetId == Planet06)
+        if (shipId == ShipConvergenceShip)
         {
-            double platinumCost = 1100.0;
-            double nickelCost = 1800.0;
-
-            if (state.GetD1MetalAmount(MetalPlatinum) < platinumCost)
-                return false;
-
-            if (state.GetD1MetalAmount(MetalNickel) < nickelCost)
-                return false;
-
-            state.SpendD1Metal(MetalPlatinum, platinumCost);
-            state.SpendD1Metal(MetalNickel, nickelCost);
-
-            planet.unlocked = true;
-            planet.extractorTier = 1;
-
-            return true;
-        }
-
-        if (planetId == Planet07)
-        {
-            double iridiumCost = 800.0;
-            double cobaltCost = 1500.0;
-            double tungstenCost = 900.0;
-
-            if (state.GetD1MetalAmount(MetalIridium) < iridiumCost)
-                return false;
-
-            if (state.GetD1MetalAmount(MetalCobalt) < cobaltCost)
-                return false;
-
-            if (state.GetD1MetalAmount(MetalTungsten) < tungstenCost)
-                return false;
-
-            state.SpendD1Metal(MetalIridium, iridiumCost);
-            state.SpendD1Metal(MetalCobalt, cobaltCost);
-            state.SpendD1Metal(MetalTungsten, tungstenCost);
-
-            planet.unlocked = true;
-            planet.extractorTier = 1;
-
+            metal1 = MetalPlatinum;
+            amount1 = 900.0;
+            metal2 = MetalIridium;
+            amount2 = 550.0;
+            metal3 = MetalCobalt;
+            amount3 = 900.0;
+            metal4 = MetalTungsten;
+            amount4 = 1200.0;
+            blueprintCost = 4;
             return true;
         }
 
@@ -1186,44 +1491,32 @@ public static class Dimension1System
         if (ship.unlocked)
             return false;
 
-        if (shipId == ShipExtractorDrone)
+        if (!TryGetShipUnlockCost(
+            shipId,
+            out string metal1,
+            out double amount1,
+            out string metal2,
+            out double amount2,
+            out string metal3,
+            out double amount3,
+            out string metal4,
+            out double amount4,
+            out int blueprintCost
+        ))
         {
-            return state.GetD1MetalAmount(MetalIron) >= 300.0 &&
-                state.GetD1MetalAmount(MetalCopper) >= 80.0;
+            return false;
         }
 
-        if (shipId == ShipAnalyticProbe)
-        {
-            return state.GetD1MetalAmount(MetalCopper) >= 250.0 &&
-                state.GetD1MetalAmount(MetalAluminum) >= 120.0;
-        }
+        bool hasRequiredMatrices = UsesSpecificShipMatricesForUnlock(shipId)
+            ? CanCoverRequiredShipMatrices(state, shipId)
+            : CanSpendCompletedBlueprints(state, blueprintCost);
 
-        if (shipId == ShipCargoShip)
-        {
-            return state.GetD1MetalAmount(MetalTitanium) >= 800.0 &&
-                state.GetD1MetalAmount(MetalNickel) >= 450.0 &&
-                CanSpendCompletedBlueprints(state, 3);
-        }
-
-        if (shipId == ShipRescueShip)
-        {
-            return state.GetD1MetalAmount(MetalTitanium) >= 1200.0 &&
-                state.GetD1MetalAmount(MetalNickel) >= 900.0 &&
-                state.GetD1MetalAmount(MetalCobalt) >= 500.0 &&
-                state.GetD1MetalAmount(MetalPlatinum) >= 250.0 &&
-                CanSpendCompletedBlueprints(state, 4);
-        }
-
-        if (shipId == ShipConvergenceShip)
-        {
-            return state.GetD1MetalAmount(MetalPlatinum) >= 900.0 &&
-                state.GetD1MetalAmount(MetalIridium) >= 550.0 &&
-                state.GetD1MetalAmount(MetalCobalt) >= 900.0 &&
-                state.GetD1MetalAmount(MetalTungsten) >= 1200.0 &&
-                CanSpendCompletedBlueprints(state, 4);
-        }
-
-        return false;
+        return
+            HasRequiredD1Metal(state, metal1, amount1) &&
+            HasRequiredD1Metal(state, metal2, amount2) &&
+            HasRequiredD1Metal(state, metal3, amount3) &&
+            HasRequiredD1Metal(state, metal4, amount4) &&
+            hasRequiredMatrices;
     }
 
     public static bool TryUnlockShip(GameState state, string shipId)
@@ -1236,88 +1529,43 @@ public static class Dimension1System
         if (ship == null)
             return false;
 
-        if (shipId == ShipExtractorDrone)
+        if (!TryGetShipUnlockCost(
+            shipId,
+            out string metal1,
+            out double amount1,
+            out string metal2,
+            out double amount2,
+            out string metal3,
+            out double amount3,
+            out string metal4,
+            out double amount4,
+            out int blueprintCost
+        ))
         {
-            if (!state.SpendD1Metal(MetalIron, 300.0))
-                return false;
-
-            if (!state.SpendD1Metal(MetalCopper, 80.0))
-                return false;
-
-            ship.unlocked = true;
-            return true;
+            return false;
         }
 
-        if (shipId == ShipAnalyticProbe)
-        {
-            if (!state.SpendD1Metal(MetalCopper, 250.0))
-                return false;
+        if (!string.IsNullOrEmpty(metal1) && !state.SpendD1Metal(metal1, amount1))
+            return false;
 
-            if (!state.SpendD1Metal(MetalAluminum, 120.0))
-                return false;
+        if (!string.IsNullOrEmpty(metal2) && !state.SpendD1Metal(metal2, amount2))
+            return false;
 
-            ship.unlocked = true;
-            return true;
-        }
+        if (!string.IsNullOrEmpty(metal3) && !state.SpendD1Metal(metal3, amount3))
+            return false;
 
-        if (shipId == ShipCargoShip)
-        {
-            if (!state.SpendD1Metal(MetalTitanium, 800.0))
-                return false;
+        if (!string.IsNullOrEmpty(metal4) && !state.SpendD1Metal(metal4, amount4))
+            return false;
+            
+        bool spentMatrices = UsesSpecificShipMatricesForUnlock(shipId)
+            ? TrySpendRequiredShipMatrices(state, shipId)
+            : TrySpendCompletedBlueprints(state, blueprintCost);
 
-            if (!state.SpendD1Metal(MetalNickel, 450.0))
-                return false;
+        if (!spentMatrices)
+            return false;
 
-            if (!TrySpendCompletedBlueprints(state, 3))
-                return false;
-
-            ship.unlocked = true;
-            return true;
-        }
-
-        if (shipId == ShipRescueShip)
-        {
-            if (!state.SpendD1Metal(MetalTitanium, 1200.0))
-                return false;
-
-            if (!state.SpendD1Metal(MetalNickel, 900.0))
-                return false;
-
-            if (!state.SpendD1Metal(MetalCobalt, 500.0))
-                return false;
-
-            if (!state.SpendD1Metal(MetalPlatinum, 250.0))
-                return false;
-
-            if (!TrySpendCompletedBlueprints(state, 4))
-                return false;
-
-            ship.unlocked = true;
-            return true;
-        }
-
-        if (shipId == ShipConvergenceShip)
-        {
-            if (!state.SpendD1Metal(MetalPlatinum, 900.0))
-                return false;
-
-            if (!state.SpendD1Metal(MetalIridium, 550.0))
-                return false;
-
-            if (!state.SpendD1Metal(MetalCobalt, 900.0))
-                return false;
-
-            if (!state.SpendD1Metal(MetalTungsten, 1200.0))
-                return false;
-
-            if (!TrySpendCompletedBlueprints(state, 4))
-                return false;
-
-            ship.unlocked = true;
-            return true;
-        }
-
-        return false;
+        ship.unlocked = true;
+        return true;
     }
 
     public static bool CanUpgradeShipPart(GameState state, string shipId, string partId)
@@ -2363,6 +2611,11 @@ public static class Dimension1System
         if (!CanSpendCompletedBlueprints(state, blueprintCost))
             return false;
 
+        int specificMatrixCost = GetRequiredSpecificShipUpgradeMatrixCost(shipId, nextLevel);
+
+        if (!CanSpendSpecificShipUpgradeMatrices(state, shipId, specificMatrixCost))
+            return false;
+
         return true;
     }
 
@@ -2404,6 +2657,11 @@ public static class Dimension1System
             return false;
 
         if (!TrySpendCompletedBlueprints(state, blueprintCost))
+            return false;
+
+        int specificMatrixCost = GetRequiredSpecificShipUpgradeMatrixCost(shipId, targetLevel);
+
+        if (!TrySpendSpecificShipUpgradeMatrices(state, shipId, specificMatrixCost))
             return false;
 
         SetShipPartLevel(ship, partId, targetLevel);
@@ -3434,6 +3692,7 @@ public static class Dimension1System
         materialMultiplier *= GetShipArmorRewardPreservationMultiplier(destinationId, ship);
 
         state.dimension1LastExplorationBlueprintFragments = 0;
+        state.dimension1LastExplorationSpecificBlueprints = new List<D1BlueprintAmount>();
 
         switch (destinationId)
         {
@@ -3510,6 +3769,8 @@ public static class Dimension1System
             state.dimension1LastExplorationBlueprintFragments = blueprintFragments;
         }
 
+        TryGrantSpecificBlueprintReward(state, destinationId);
+
         state.dimension1LastExplorationDestinationId = destinationId;
         state.dimension1LastExplorationRewards = rewards;
         state.dimension1LastExplorationResultId += 1;
@@ -3519,17 +3780,19 @@ public static class Dimension1System
             ship != null ? ship.shipId : "",
             destinationId,
             rewards,
-            blueprintFragments
+            blueprintFragments,
+            state.dimension1LastExplorationSpecificBlueprints
         );
     }
 
     private static void AddRecentExplorationRecord(
-    GameState state,
-    string shipId,
-    string destinationId,
-    List<D1MetalAmount> rewards,
-    int blueprintFragments
-)
+        GameState state,
+        string shipId,
+        string destinationId,
+        List<D1MetalAmount> rewards,
+        int blueprintFragments,
+        List<D1BlueprintAmount> specificBlueprintRewards
+    )
     {
         if (state == null)
             return;
@@ -3543,7 +3806,8 @@ public static class Dimension1System
             shipId = shipId,
             destinationId = destinationId,
             rewards = new List<D1MetalAmount>(),
-            blueprintFragments = blueprintFragments
+            blueprintFragments = blueprintFragments,
+            specificBlueprintRewards = CloneBlueprintRewards(specificBlueprintRewards)
         };
 
         if (rewards != null)
@@ -3567,6 +3831,34 @@ public static class Dimension1System
         {
             state.dimension1RecentExplorationRecords.RemoveAt(0);
         }
+    }
+
+    private static List<D1BlueprintAmount> CloneBlueprintRewards(List<D1BlueprintAmount> rewards)
+    {
+        List<D1BlueprintAmount> result = new List<D1BlueprintAmount>();
+
+        if (rewards == null)
+            return result;
+
+        foreach (D1BlueprintAmount reward in rewards)
+        {
+            if (reward == null)
+                continue;
+
+            if (string.IsNullOrEmpty(reward.blueprintId))
+                continue;
+
+            if (reward.amount <= 0)
+                continue;
+
+            result.Add(new D1BlueprintAmount
+            {
+                blueprintId = reward.blueprintId,
+                amount = reward.amount
+            });
+        }
+
+        return result;
     }
 
     public static float GetSimpleBlueprintFragmentChance(string destinationId, D1ShipState ship)
@@ -3604,6 +3896,146 @@ public static class Dimension1System
         }
 
         return 1;
+    }
+
+    private static bool TryGrantSpecificBlueprintReward(GameState state, string destinationId)
+    {
+        if (state == null)
+            return false;
+
+        float chance = GetBaseSpecificBlueprintChance(destinationId);
+
+        if (chance <= 0.0f)
+            return false;
+
+        if (Random.value > chance)
+            return false;
+
+        string blueprintId = GetRandomSpecificBlueprintForDestination(destinationId);
+
+        if (string.IsNullOrEmpty(blueprintId))
+            return false;
+
+        state.AddD1Blueprint(blueprintId, 1);
+
+        if (state.dimension1LastExplorationSpecificBlueprints == null)
+            state.dimension1LastExplorationSpecificBlueprints = new List<D1BlueprintAmount>();
+
+        state.dimension1LastExplorationSpecificBlueprints.Add(new D1BlueprintAmount
+        {
+            blueprintId = blueprintId,
+            amount = 1
+        });
+
+        return true;
+    }
+
+    private static float GetBaseSpecificBlueprintChance(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationShipGraveyard:
+                return 0.06f;
+
+            case DestinationAbandonedShip:
+                return 0.08f;
+
+            case DestinationAbandonedStation:
+                return 0.07f;
+
+            case DestinationLaboratory:
+                return 0.05f;
+
+            case DestinationAncientStructure:
+                return 0.06f;
+
+            case DestinationUnstableZone:
+                return 0.08f;
+
+            default:
+                return 0.0f;
+        }
+    }
+
+    private static string GetRandomSpecificBlueprintForDestination(string destinationId)
+    {
+        if (destinationId == DestinationShipGraveyard)
+        {
+            string[] pool =
+            {
+            BlueprintCargoFrame,
+            BlueprintCargoHold,
+            BlueprintCargoStabilizer
+        };
+
+            return pool[Random.Range(0, pool.Length)];
+        }
+
+        if (destinationId == DestinationAbandonedShip)
+        {
+            string[] pool =
+            {
+            BlueprintCargoFrame,
+            BlueprintCargoHold,
+            BlueprintCargoStabilizer,
+            BlueprintRescueFrame,
+            BlueprintRescueBeacon
+        };
+
+            return pool[Random.Range(0, pool.Length)];
+        }
+
+        if (destinationId == DestinationAbandonedStation)
+        {
+            string[] pool =
+            {
+            BlueprintRescueFrame,
+            BlueprintRescueBeacon,
+            BlueprintRescueRecoveryBay,
+            BlueprintRescueProtectionMatrix
+        };
+
+            return pool[Random.Range(0, pool.Length)];
+        }
+
+        if (destinationId == DestinationLaboratory)
+        {
+            string[] pool =
+            {
+            BlueprintRescueRecoveryBay,
+            BlueprintRescueProtectionMatrix,
+            BlueprintConvergenceMatrix
+        };
+
+            return pool[Random.Range(0, pool.Length)];
+        }
+
+        if (destinationId == DestinationAncientStructure)
+        {
+            string[] pool =
+            {
+            BlueprintConvergenceChassis,
+            BlueprintConvergenceMatrix,
+            BlueprintAnomalousArmor
+        };
+
+            return pool[Random.Range(0, pool.Length)];
+        }
+
+        if (destinationId == DestinationUnstableZone)
+        {
+            string[] pool =
+            {
+            BlueprintConvergenceChassis,
+            BlueprintConvergenceCore,
+            BlueprintConvergenceMatrix,
+            BlueprintAnomalousArmor
+        };
+
+            return pool[Random.Range(0, pool.Length)];
+        }
+
+        return "";
     }
 
     private static float GetBaseSimpleBlueprintFragmentChance(string destinationId)

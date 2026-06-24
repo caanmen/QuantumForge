@@ -32295,8 +32295,6 @@ MonoBehaviour:
   hasDonePrestige1: 0
   maxLEAlcanzado: 0
   dimension01Unlocked: 0
-  dimension02Unlocked: 0
-  dimension03Unlocked: 0
   dimension1Metals: []
   dimension1Planets: []
   dimension1Ships: []
@@ -32308,10 +32306,8 @@ MonoBehaviour:
   dimension1LastExplorationDestinationId: 
   dimension1LastExplorationRewards: []
   dimension1RecentExplorationRecords: []
-  dimension1Blueprints: []
   dimension1BlueprintFragments: 0
   dimension1LastExplorationBlueprintFragments: 0
-  dimension1LastExplorationSpecificBlueprints: []
   dimension1LastExplorationResultId: 0
   BEC: 0
   ADP: 0
