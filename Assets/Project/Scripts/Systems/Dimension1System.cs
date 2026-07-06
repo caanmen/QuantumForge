@@ -5407,7 +5407,6 @@ public static class Dimension1System
             return;
 
         string destinationId = ship.activeDestinationId;
-        string shipId = ship.shipId;
 
         if (!string.IsNullOrEmpty(destinationId))
         {
@@ -5418,6 +5417,9 @@ public static class Dimension1System
         ship.activeDestinationId = "";
         ship.explorationRemainingSeconds = 0.0;
         ship.explorationTotalSeconds = 0.0;
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
     }
 
     private static void GrantSimpleExplorationRewards(GameState state, string destinationId, D1ShipState ship)

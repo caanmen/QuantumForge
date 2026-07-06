@@ -684,6 +684,18 @@ public class Dimension1PanelUI : MonoBehaviour
             (fragmentChance * 100f).ToString("0") +
             "%";
 
+        float specificMatrixChance =
+            Dimension1System.GetSpecificBlueprintChancePreview(
+                gs,
+                destination.destinationId,
+                selectedShip
+            );
+
+        text +=
+            "\n\nMatriz específica posible:\n" +
+            (specificMatrixChance * 100f).ToString("0.#") +
+            "%";
+
         return text;
     }
 
@@ -2362,6 +2374,9 @@ public class Dimension1PanelUI : MonoBehaviour
         {
             CloseExplorationOverlayPanels();
             ResetMainExplorationSelection();
+
+            if (SaveService.I != null)
+                SaveService.I.Save();
         }
 
         RefreshUI();
@@ -2397,8 +2412,7 @@ public class Dimension1PanelUI : MonoBehaviour
             return;
 
         bool explorationStarted =
-
-        Dimension1System.TryStartExploration(gs, selectedShip.shipId, destinationIndex);
+            Dimension1System.TryStartExploration(gs, selectedShip.shipId, destinationIndex);
 
         if (!explorationStarted)
         {
@@ -2408,6 +2422,9 @@ public class Dimension1PanelUI : MonoBehaviour
 
         CloseExplorationOverlayPanels();
         ResetMainExplorationSelection();
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
 
         RefreshUI();
     }
