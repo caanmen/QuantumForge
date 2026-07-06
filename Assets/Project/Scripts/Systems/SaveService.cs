@@ -56,6 +56,7 @@ public class SaveData
     // Prestigio 1 - Convergencia
     public int prestige1Count;
     public bool hasDonePrestige1;
+    public int prestige1Points;
     // F6.1: Máximo LE alcanzado en el run
     public double maxLEAlcanzado;
     public List<SavedF2UpgradeTier> f2UpgradeTiers = new();
@@ -100,6 +101,7 @@ public class SaveData
     public List<D1ExplorationRecordEntry> dimension1RecentExplorationRecords;
     public List<D1BlueprintAmount> dimension1Blueprints;
     public List<D1RelicState> dimension1Relics;
+    public List<D1TreeNodeState> dimension1TreeNodes;
     public int dimension1BlueprintFragments;
     public int dimension1LastExplorationBlueprintFragments;
     public int dimension1LastExplorationResultId;
@@ -183,8 +185,9 @@ public class SaveService : MonoBehaviour
         // Prestigio 1 - Convergencia
         prestige1Count = GameState.I.prestige1Count,
         hasDonePrestige1 = GameState.I.hasDonePrestige1,
+        prestige1Points = GameState.I.prestige1Points,
 
-        // F6.1: prestigio viejo
+            // F6.1: prestigio viejo
         maxLEAlcanzado = GameState.I.maxLEAlcanzado,
 
         // F7: recursos late-game
@@ -222,6 +225,7 @@ public class SaveService : MonoBehaviour
         dimension1RecentExplorationRecords = GameState.I.dimension1RecentExplorationRecords,
         dimension1Blueprints = GameState.I.dimension1Blueprints,
         dimension1Relics = GameState.I.dimension1Relics,
+        dimension1TreeNodes = GameState.I.dimension1TreeNodes,
         dimension1BlueprintFragments = GameState.I.dimension1BlueprintFragments,
         dimension1LastExplorationBlueprintFragments = GameState.I.dimension1LastExplorationBlueprintFragments,
         dimension1LastExplorationResultId = GameState.I.dimension1LastExplorationResultId,
@@ -334,6 +338,7 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension1RecentExplorationRecords = data.dimension1RecentExplorationRecords ?? new List<D1ExplorationRecordEntry>();
         GameState.I.dimension1Blueprints = data.dimension1Blueprints ?? new List<D1BlueprintAmount>();
         GameState.I.dimension1Relics = data.dimension1Relics ?? new List<D1RelicState>();
+        GameState.I.dimension1TreeNodes = data.dimension1TreeNodes ?? new List<D1TreeNodeState>();
         GameState.I.dimension1BlueprintFragments = data.dimension1BlueprintFragments;
         GameState.I.dimension1LastExplorationBlueprintFragments = data.dimension1LastExplorationBlueprintFragments;
         GameState.I.dimension1LastExplorationResultId = data.dimension1LastExplorationResultId;
@@ -342,6 +347,7 @@ public class SaveService : MonoBehaviour
         // Prestigio 1 - Convergencia
         GameState.I.prestige1Count = data.prestige1Count;
         GameState.I.hasDonePrestige1 = data.hasDonePrestige1;
+        GameState.I.prestige1Points = data.prestige1Points;
 
         // Migración para partidas viejas:
         // si el jugador ya hizo Prestigio 1, el sistema de dimensiones debe quedar preparado.
@@ -486,6 +492,8 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension1RecentExplorationRecords = new List<D1ExplorationRecordEntry>();
         GameState.I.dimension1Blueprints = new List<D1BlueprintAmount>();
         GameState.I.dimension1Relics = new List<D1RelicState>();
+        GameState.I.dimension1TreeNodes = new List<D1TreeNodeState>();
+        GameState.I.prestige1Points = 0;
         GameState.I.dimension1BlueprintFragments = 0;
         GameState.I.dimension1LastExplorationBlueprintFragments = 0;
         GameState.I.dimension1LastExplorationResultId = 0;

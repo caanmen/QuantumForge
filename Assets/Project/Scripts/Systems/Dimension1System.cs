@@ -68,6 +68,13 @@ public class D1RelicState
     public int level;
 }
 
+[System.Serializable]
+public class D1TreeNodeState
+{
+    public string nodeId;
+    public int tier;
+}
+
 public static class Dimension1System
 {
     public const string DimensionId = "dimension_01";
@@ -213,6 +220,71 @@ public static class Dimension1System
     RelicSealedCatalyst,
     RelicChamberFragment,
     RelicMachineMemory
+};
+
+    public const int Dimension1TreeTieredNodeMaxTier = 3;
+
+    // Árbol D1 - Rama Exploración
+    public const string D1TreeExplorationDestinationReading = "d1_tree_exploration_destination_reading";
+    public const string D1TreeExplorationFilter = "d1_tree_exploration_filter";
+    public const string D1TreeExplorationHiddenFindTracking = "d1_tree_exploration_hidden_find_tracking";
+    public const string D1TreeExplorationContinuationDetected = "d1_tree_exploration_continuation_detected";
+    public const string D1TreeExplorationScanMemory = "d1_tree_exploration_scan_memory";
+    public const string D1TreeExplorationAdvancedCartography = "d1_tree_exploration_advanced_cartography";
+
+    // Árbol D1 - Rama Flota
+    public const string D1TreeFleetHangarPreparation = "d1_tree_fleet_hangar_preparation";
+    public const string D1TreeFleetCoordination = "d1_tree_fleet_coordination";
+    public const string D1TreeFleetSupportFormation = "d1_tree_fleet_support_formation";
+    public const string D1TreeFleetSupportProtocols = "d1_tree_fleet_support_protocols";
+    public const string D1TreeFleetRescueOperations = "d1_tree_fleet_rescue_operations";
+    public const string D1TreeFleetConvergenceLink = "d1_tree_fleet_convergence_link";
+
+    // Árbol D1 - Rama Recuperación
+    public const string D1TreeRecoveryCopyRegistry = "d1_tree_recovery_copy_registry";
+    public const string D1TreeRecoveryPartialRecovery = "d1_tree_recovery_partial_recovery";
+    public const string D1TreeRecoveryBlueprintPriority = "d1_tree_recovery_blueprint_priority";
+    public const string D1TreeRecoveryCargoConservation = "d1_tree_recovery_cargo_conservation";
+    public const string D1TreeRecoveryFindProtection = "d1_tree_recovery_find_protection";
+    public const string D1TreeRecoveryExpeditionArchive = "d1_tree_recovery_expedition_archive";
+
+    // Árbol D1 - Rama Convergencia
+    public const string D1TreeConvergenceAnomalousReading = "d1_tree_convergence_anomalous_reading";
+    public const string D1TreeConvergenceSpecialDestinationReading = "d1_tree_convergence_special_destination_reading";
+    public const string D1TreeConvergenceUnstableZoneStabilization = "d1_tree_convergence_unstable_zone_stabilization";
+    public const string D1TreeConvergenceChain = "d1_tree_convergence_chain";
+    public const string D1TreeConvergenceAdvancedBlueprintSignal = "d1_tree_convergence_advanced_blueprint_signal";
+    public const string D1TreeConvergenceDimensionalCore = "d1_tree_convergence_dimensional_core";
+
+    public static readonly string[] Dimension1TreeNodeIds =
+    {
+    D1TreeExplorationDestinationReading,
+    D1TreeExplorationFilter,
+    D1TreeExplorationHiddenFindTracking,
+    D1TreeExplorationContinuationDetected,
+    D1TreeExplorationScanMemory,
+    D1TreeExplorationAdvancedCartography,
+
+    D1TreeFleetHangarPreparation,
+    D1TreeFleetCoordination,
+    D1TreeFleetSupportFormation,
+    D1TreeFleetSupportProtocols,
+    D1TreeFleetRescueOperations,
+    D1TreeFleetConvergenceLink,
+
+    D1TreeRecoveryCopyRegistry,
+    D1TreeRecoveryPartialRecovery,
+    D1TreeRecoveryBlueprintPriority,
+    D1TreeRecoveryCargoConservation,
+    D1TreeRecoveryFindProtection,
+    D1TreeRecoveryExpeditionArchive,
+
+    D1TreeConvergenceAnomalousReading,
+    D1TreeConvergenceSpecialDestinationReading,
+    D1TreeConvergenceUnstableZoneStabilization,
+    D1TreeConvergenceChain,
+    D1TreeConvergenceAdvancedBlueprintSignal,
+    D1TreeConvergenceDimensionalCore
 };
 
     // Blueprints específicos de naves
@@ -610,6 +682,404 @@ public static class Dimension1System
             return false;
 
         return state.SetD1RelicLevel(relicId, targetLevel);
+    }
+
+    public static bool IsDimension1TreeNodeId(string nodeId)
+    {
+        if (string.IsNullOrEmpty(nodeId))
+            return false;
+
+        foreach (string currentId in Dimension1TreeNodeIds)
+        {
+            if (currentId == nodeId)
+                return true;
+        }
+
+        return false;
+    }
+
+    public static int GetDimension1TreeNodeMaxTier(string nodeId)
+    {
+        switch (nodeId)
+        {
+            case D1TreeExplorationHiddenFindTracking:
+            case D1TreeExplorationScanMemory:
+            case D1TreeFleetSupportFormation:
+            case D1TreeFleetSupportProtocols:
+            case D1TreeRecoveryCopyRegistry:
+            case D1TreeRecoveryPartialRecovery:
+            case D1TreeConvergenceSpecialDestinationReading:
+            case D1TreeConvergenceAdvancedBlueprintSignal:
+                return Dimension1TreeTieredNodeMaxTier;
+
+            default:
+                return IsDimension1TreeNodeId(nodeId) ? 1 : 0;
+        }
+    }
+
+    public static int ClampDimension1TreeNodeTier(string nodeId, int tier)
+    {
+        int maxTier = GetDimension1TreeNodeMaxTier(nodeId);
+
+        if (maxTier <= 0)
+            return 0;
+
+        return Mathf.Clamp(tier, 0, maxTier);
+    }
+
+    public static int GetDimension1TreeNodeCost(string nodeId, int targetTier)
+    {
+        targetTier = ClampDimension1TreeNodeTier(nodeId, targetTier);
+
+        if (targetTier <= 0)
+            return 999999;
+
+        switch (nodeId)
+        {
+            // Exploración
+            case D1TreeExplorationDestinationReading:
+                return 2;
+            case D1TreeExplorationFilter:
+                return 3;
+            case D1TreeExplorationHiddenFindTracking:
+                return targetTier == 1 ? 3 : targetTier == 2 ? 5 : 7;
+            case D1TreeExplorationContinuationDetected:
+                return 6;
+            case D1TreeExplorationScanMemory:
+                return targetTier == 1 ? 4 : targetTier == 2 ? 6 : 8;
+            case D1TreeExplorationAdvancedCartography:
+                return 10;
+
+            // Flota
+            case D1TreeFleetHangarPreparation:
+                return 2;
+            case D1TreeFleetCoordination:
+                return 6;
+            case D1TreeFleetSupportFormation:
+                return targetTier == 1 ? 4 : targetTier == 2 ? 6 : 8;
+            case D1TreeFleetSupportProtocols:
+                return targetTier == 1 ? 5 : targetTier == 2 ? 8 : 10;
+            case D1TreeFleetRescueOperations:
+                return 12;
+            case D1TreeFleetConvergenceLink:
+                return 15;
+
+            // Recuperación
+            case D1TreeRecoveryCopyRegistry:
+                return targetTier == 1 ? 4 : targetTier == 2 ? 6 : 8;
+            case D1TreeRecoveryPartialRecovery:
+                return targetTier == 1 ? 5 : targetTier == 2 ? 8 : 10;
+            case D1TreeRecoveryBlueprintPriority:
+                return 8;
+            case D1TreeRecoveryCargoConservation:
+                return 10;
+            case D1TreeRecoveryFindProtection:
+                return 12;
+            case D1TreeRecoveryExpeditionArchive:
+                return 15;
+
+            // Convergencia
+            case D1TreeConvergenceAnomalousReading:
+                return 10;
+            case D1TreeConvergenceSpecialDestinationReading:
+                return targetTier == 1 ? 8 : targetTier == 2 ? 12 : 15;
+            case D1TreeConvergenceUnstableZoneStabilization:
+                return 14;
+            case D1TreeConvergenceChain:
+                return 18;
+            case D1TreeConvergenceAdvancedBlueprintSignal:
+                return targetTier == 1 ? 10 : targetTier == 2 ? 15 : 20;
+            case D1TreeConvergenceDimensionalCore:
+                return 25;
+
+            default:
+                return 999999;
+        }
+    }
+
+    private static bool HasDimension1TreeNodePrerequisite(GameState state, string nodeId)
+    {
+        if (state == null)
+            return false;
+
+        switch (nodeId)
+        {
+            // Exploración
+            case D1TreeExplorationDestinationReading:
+                return true;
+            case D1TreeExplorationFilter:
+                return state.IsD1TreeNodeUnlocked(D1TreeExplorationDestinationReading);
+            case D1TreeExplorationHiddenFindTracking:
+                return state.IsD1TreeNodeUnlocked(D1TreeExplorationFilter);
+            case D1TreeExplorationContinuationDetected:
+                return state.IsD1TreeNodeUnlocked(D1TreeExplorationHiddenFindTracking);
+            case D1TreeExplorationScanMemory:
+                return state.IsD1TreeNodeUnlocked(D1TreeExplorationContinuationDetected);
+            case D1TreeExplorationAdvancedCartography:
+                return state.IsD1TreeNodeUnlocked(D1TreeExplorationScanMemory);
+
+            // Flota
+            case D1TreeFleetHangarPreparation:
+                return true;
+            case D1TreeFleetCoordination:
+                return state.IsD1TreeNodeUnlocked(D1TreeFleetHangarPreparation);
+            case D1TreeFleetSupportFormation:
+                return state.IsD1TreeNodeUnlocked(D1TreeFleetCoordination);
+            case D1TreeFleetSupportProtocols:
+                return state.IsD1TreeNodeUnlocked(D1TreeFleetSupportFormation);
+            case D1TreeFleetRescueOperations:
+                return state.IsD1TreeNodeUnlocked(D1TreeFleetSupportProtocols);
+            case D1TreeFleetConvergenceLink:
+                return state.IsD1TreeNodeUnlocked(D1TreeFleetRescueOperations);
+
+            // Recuperación
+            case D1TreeRecoveryCopyRegistry:
+                return true;
+            case D1TreeRecoveryPartialRecovery:
+                return state.IsD1TreeNodeUnlocked(D1TreeRecoveryCopyRegistry);
+            case D1TreeRecoveryBlueprintPriority:
+                return state.IsD1TreeNodeUnlocked(D1TreeRecoveryPartialRecovery);
+            case D1TreeRecoveryCargoConservation:
+                return state.IsD1TreeNodeUnlocked(D1TreeRecoveryBlueprintPriority);
+            case D1TreeRecoveryFindProtection:
+                return state.IsD1TreeNodeUnlocked(D1TreeRecoveryCargoConservation);
+            case D1TreeRecoveryExpeditionArchive:
+                return state.IsD1TreeNodeUnlocked(D1TreeRecoveryFindProtection);
+
+            // Convergencia
+            case D1TreeConvergenceAnomalousReading:
+                return true;
+            case D1TreeConvergenceSpecialDestinationReading:
+                return state.IsD1TreeNodeUnlocked(D1TreeConvergenceAnomalousReading);
+            case D1TreeConvergenceUnstableZoneStabilization:
+                return state.IsD1TreeNodeUnlocked(D1TreeConvergenceSpecialDestinationReading);
+            case D1TreeConvergenceChain:
+                return state.IsD1TreeNodeUnlocked(D1TreeConvergenceUnstableZoneStabilization);
+            case D1TreeConvergenceAdvancedBlueprintSignal:
+                return state.IsD1TreeNodeUnlocked(D1TreeConvergenceChain);
+            case D1TreeConvergenceDimensionalCore:
+                return state.IsD1TreeNodeUnlocked(D1TreeConvergenceAdvancedBlueprintSignal);
+
+            default:
+                return false;
+        }
+    }
+
+    public static bool CanBuyDimension1TreeNode(GameState state, string nodeId)
+    {
+        if (state == null)
+            return false;
+
+        if (!IsDimension1TreeNodeId(nodeId))
+            return false;
+
+        state.EnsureDimension1State();
+
+        int currentTier = state.GetD1TreeNodeTier(nodeId);
+        int maxTier = GetDimension1TreeNodeMaxTier(nodeId);
+
+        if (currentTier >= maxTier)
+            return false;
+
+        if (currentTier <= 0 && !HasDimension1TreeNodePrerequisite(state, nodeId))
+            return false;
+
+        int targetTier = currentTier + 1;
+        int cost = GetDimension1TreeNodeCost(nodeId, targetTier);
+
+        return state.prestige1Points >= cost;
+    }
+
+    public static bool TryBuyDimension1TreeNode(GameState state, string nodeId)
+    {
+        if (!CanBuyDimension1TreeNode(state, nodeId))
+            return false;
+
+        int currentTier = state.GetD1TreeNodeTier(nodeId);
+        int targetTier = currentTier + 1;
+        int cost = GetDimension1TreeNodeCost(nodeId, targetTier);
+
+        state.prestige1Points -= cost;
+
+        return state.SetD1TreeNodeTier(nodeId, targetTier);
+    }
+
+    private static double GetDimension1RelicProgress01(GameState state, string relicId)
+    {
+        if (state == null)
+            return 0.0;
+
+        if (!IsDimension1RelicId(relicId))
+            return 0.0;
+
+        if (!state.IsD1RelicUnlocked(relicId))
+            return 0.0;
+
+        int level = state.GetD1RelicLevel(relicId);
+
+        if (level <= 0)
+            return 0.0;
+
+        return Mathf.Clamp01((float)level / Dimension1RelicMaxLevel);
+    }
+
+    private static double GetDimension1RelicScaledBonus(
+        GameState state,
+        string relicId,
+        double maxBonus
+    )
+    {
+        return maxBonus * GetDimension1RelicProgress01(state, relicId);
+    }
+
+    private static bool IsLongExplorationDestination(string destinationId)
+    {
+        return GetSimpleExplorationBaseDurationSeconds(destinationId) >= 5.0;
+    }
+
+    private static bool IsDangerousExplorationDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationAbandonedShip:
+            case DestinationAbandonedStation:
+            case DestinationMinorAnomaly:
+            case DestinationAncientStructure:
+            case DestinationUnstableZone:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static double GetRelicExplorationDurationMultiplier(
+        GameState state,
+        string destinationId
+    )
+    {
+        double reduction = GetDimension1RelicScaledBonus(
+            state,
+            RelicDriftCompass,
+            0.06
+        );
+
+        if (IsLongExplorationDestination(destinationId))
+        {
+            reduction += GetDimension1RelicScaledBonus(
+                state,
+                RelicDriftCompass,
+                0.03
+            );
+        }
+
+        return System.Math.Max(0.50, 1.0 - reduction);
+    }
+
+    private static double GetRelicMaterialRewardMultiplier(
+        GameState state,
+        string destinationId,
+        D1ShipState ship
+    )
+    {
+        double bonus = 0.0;
+
+        bonus += GetDimension1RelicScaledBonus(
+            state,
+            RelicAncientCargoCore,
+            0.06
+        );
+
+        if (IsLongExplorationDestination(destinationId))
+        {
+            bonus += GetDimension1RelicScaledBonus(
+                state,
+                RelicAncientCargoCore,
+                0.03
+            );
+        }
+
+        if (ship != null && ship.shipId == ShipExtractorDrone)
+        {
+            bonus += GetDimension1RelicScaledBonus(
+                state,
+                RelicExtractionHook,
+                0.06
+            );
+        }
+
+        if (ship != null && ship.shipId == ShipCargoShip)
+        {
+            bonus += GetDimension1RelicScaledBonus(
+                state,
+                RelicModularContainer,
+                0.06
+            );
+
+            if (IsLongExplorationDestination(destinationId))
+            {
+                bonus += GetDimension1RelicScaledBonus(
+                    state,
+                    RelicModularContainer,
+                    0.03
+                );
+            }
+        }
+
+        return 1.0 + bonus;
+    }
+
+    private static double GetRelicArmorPreservationMultiplier(
+        GameState state,
+        string destinationId,
+        D1ShipState ship
+    )
+    {
+        if (ship == null)
+            return 1.0;
+
+        double bonus = 0.0;
+
+        if (ship.shipId == ShipRescueShip)
+        {
+            bonus += GetDimension1RelicScaledBonus(
+                state,
+                RelicRescueBeacon,
+                0.06
+            );
+
+            if (IsDangerousExplorationDestination(destinationId))
+            {
+                bonus += GetDimension1RelicScaledBonus(
+                    state,
+                    RelicRescueBeacon,
+                    0.03
+                );
+            }
+        }
+
+        return 1.0 + bonus;
+    }
+
+    private static float GetRelicBlueprintFragmentBonus(
+        GameState state,
+        string destinationId,
+        D1ShipState ship
+    )
+    {
+        if (ship == null)
+            return 0.0f;
+
+        if (ship.shipId != ShipAnalyticProbe)
+            return 0.0f;
+
+        double bonus = GetDimension1RelicScaledBonus(
+            state,
+            RelicAnalyticCrystal,
+            0.03
+        );
+
+        return (float)bonus;
     }
 
     public static bool UsesSpecificShipMatricesForUnlock(string shipId)
@@ -3959,7 +4429,7 @@ public static class Dimension1System
         if (string.IsNullOrEmpty(destination.destinationId))
             return false;
 
-        double duration = GetSimpleExplorationDurationSeconds(destination.destinationId, ship);
+        double duration = GetSimpleExplorationDurationSeconds(state, destination.destinationId, ship);
 
         ship.explorationActive = true;
         ship.activeDestinationId = destination.destinationId;
@@ -4092,8 +4562,8 @@ public static class Dimension1System
             return;
 
         List<D1MetalAmount> rewards = new List<D1MetalAmount>();
-        double materialMultiplier = GetShipMaterialRewardMultiplier(destinationId, ship);
-        materialMultiplier *= GetShipArmorRewardPreservationMultiplier(destinationId, ship);
+        double materialMultiplier = GetShipMaterialRewardMultiplier(state, destinationId, ship);
+        materialMultiplier *= GetShipArmorRewardPreservationMultiplier(state, destinationId, ship);
 
         state.dimension1LastExplorationBlueprintFragments = 0;
         state.dimension1LastExplorationSpecificBlueprints = new List<D1BlueprintAmount>();
@@ -4165,7 +4635,7 @@ public static class Dimension1System
                 break;
         }
 
-        int blueprintFragments = RollSimpleBlueprintFragments(destinationId, ship);
+        int blueprintFragments = RollSimpleBlueprintFragments(state, destinationId, ship);
 
         if (blueprintFragments > 0)
         {
@@ -4267,9 +4737,19 @@ public static class Dimension1System
 
     public static float GetSimpleBlueprintFragmentChance(string destinationId, D1ShipState ship)
     {
+        return GetSimpleBlueprintFragmentChance(null, destinationId, ship);
+    }
+
+    public static float GetSimpleBlueprintFragmentChance(
+        GameState state,
+        string destinationId,
+        D1ShipState ship
+    )
+    {
         float chance = GetBaseSimpleBlueprintFragmentChance(destinationId);
 
         chance += GetShipSensorBlueprintFragmentBonus(destinationId, ship);
+        chance += GetRelicBlueprintFragmentBonus(state, destinationId, ship);
 
         return Mathf.Clamp(chance, 0.0f, 0.60f);
     }
@@ -4283,9 +4763,13 @@ public static class Dimension1System
         );
     }
 
-    private static int RollSimpleBlueprintFragments(string destinationId, D1ShipState ship)
+    private static int RollSimpleBlueprintFragments(
+        GameState state,
+        string destinationId,
+        D1ShipState ship
+    )
     {
-        float chance = GetSimpleBlueprintFragmentChance(destinationId, ship);
+        float chance = GetSimpleBlueprintFragmentChance(state, destinationId, ship);
 
         if (chance <= 0.0f)
             return 0;
@@ -4694,71 +5178,93 @@ public static class Dimension1System
         }
     }
 
-    private static double GetShipMaterialRewardMultiplier(string destinationId, D1ShipState ship)
+    private static double GetShipMaterialRewardMultiplier(
+        GameState state,
+        string destinationId,
+        D1ShipState ship
+    )
     {
-        if (ship == null)
-            return 1.0;
+        double shipMultiplier = 1.0;
 
-        int cargoLevel = Mathf.Clamp(ship.cargoLevel, 0, 6);
-
-        switch (ship.shipId)
+        if (ship != null)
         {
-            case ShipLightProbe:
-                return GetLightProbeCargoRewardMultiplier(destinationId, cargoLevel);
+            int cargoLevel = Mathf.Clamp(ship.cargoLevel, 0, 6);
 
-            case ShipExtractorDrone:
-                return GetExtractorDroneCargoRewardMultiplier(destinationId, cargoLevel);
+            switch (ship.shipId)
+            {
+                case ShipLightProbe:
+                    shipMultiplier = GetLightProbeCargoRewardMultiplier(destinationId, cargoLevel);
+                    break;
 
-            case ShipAnalyticProbe:
-                return GetAnalyticProbeCargoRewardMultiplier(destinationId, cargoLevel);
+                case ShipExtractorDrone:
+                    shipMultiplier = GetExtractorDroneCargoRewardMultiplier(destinationId, cargoLevel);
+                    break;
 
-            case ShipCargoShip:
-                return GetCargoShipCargoRewardMultiplier(destinationId, cargoLevel);
+                case ShipAnalyticProbe:
+                    shipMultiplier = GetAnalyticProbeCargoRewardMultiplier(destinationId, cargoLevel);
+                    break;
 
-            case ShipRescueShip:
-                return GetRescueShipCargoRewardMultiplier(destinationId, cargoLevel);
+                case ShipCargoShip:
+                    shipMultiplier = GetCargoShipCargoRewardMultiplier(destinationId, cargoLevel);
+                    break;
 
-            case ShipConvergenceShip:
-                return GetConvergenceShipCargoRewardMultiplier(destinationId, cargoLevel);
+                case ShipRescueShip:
+                    shipMultiplier = GetRescueShipCargoRewardMultiplier(destinationId, cargoLevel);
+                    break;
 
-            default:
-                return 1.0;
+                case ShipConvergenceShip:
+                    shipMultiplier = GetConvergenceShipCargoRewardMultiplier(destinationId, cargoLevel);
+                    break;
+            }
         }
+
+        return shipMultiplier * GetRelicMaterialRewardMultiplier(state, destinationId, ship);
     }
 
-    private static double GetShipArmorRewardPreservationMultiplier(string destinationId, D1ShipState ship)
+    private static double GetShipArmorRewardPreservationMultiplier(
+        GameState state,
+        string destinationId,
+        D1ShipState ship
+    )
     {
-        if (ship == null)
-            return 1.0;
+        double shipMultiplier = 1.0;
 
-        int armorLevel = Mathf.Clamp(ship.armorLevel, 0, 6);
-
-        if (armorLevel <= 0)
-            return 1.0;
-
-        switch (ship.shipId)
+        if (ship != null)
         {
-            case ShipLightProbe:
-                return GetLightProbeArmorMultiplier(destinationId, armorLevel);
+            int armorLevel = Mathf.Clamp(ship.armorLevel, 0, 6);
 
-            case ShipExtractorDrone:
-                return GetExtractorDroneArmorMultiplier(destinationId, armorLevel);
+            if (armorLevel > 0)
+            {
+                switch (ship.shipId)
+                {
+                    case ShipLightProbe:
+                        shipMultiplier = GetLightProbeArmorMultiplier(destinationId, armorLevel);
+                        break;
 
-            case ShipAnalyticProbe:
-                return GetAnalyticProbeArmorMultiplier(destinationId, armorLevel);
+                    case ShipExtractorDrone:
+                        shipMultiplier = GetExtractorDroneArmorMultiplier(destinationId, armorLevel);
+                        break;
 
-            case ShipCargoShip:
-                return GetCargoShipArmorMultiplier(destinationId, armorLevel);
+                    case ShipAnalyticProbe:
+                        shipMultiplier = GetAnalyticProbeArmorMultiplier(destinationId, armorLevel);
+                        break;
 
-            case ShipRescueShip:
-                return GetRescueShipArmorMultiplier(destinationId, armorLevel);
+                    case ShipCargoShip:
+                        shipMultiplier = GetCargoShipArmorMultiplier(destinationId, armorLevel);
+                        break;
 
-            case ShipConvergenceShip:
-                return GetConvergenceShipArmorMultiplier(destinationId, armorLevel);
+                    case ShipRescueShip:
+                        shipMultiplier = GetRescueShipArmorMultiplier(destinationId, armorLevel);
+                        break;
 
-            default:
-                return 1.0;
+                    case ShipConvergenceShip:
+                        shipMultiplier = GetConvergenceShipArmorMultiplier(destinationId, armorLevel);
+                        break;
+                }
+            }
         }
+
+        return shipMultiplier * GetRelicArmorPreservationMultiplier(state, destinationId, ship);
     }
 
     private static double GetLightProbeArmorMultiplier(string destinationId, int armorLevel)
@@ -5170,30 +5676,36 @@ public static class Dimension1System
 
     private static double GetSimpleExplorationDurationSeconds(string destinationId, D1ShipState ship)
     {
+        return GetSimpleExplorationDurationSeconds(null, destinationId, ship);
+    }
+
+    private static double GetSimpleExplorationDurationSeconds(
+        GameState state,
+        string destinationId,
+        D1ShipState ship
+    )
+    {
         double baseDuration = GetSimpleExplorationBaseDurationSeconds(destinationId);
 
         if (ship == null)
-            return baseDuration;
+            return baseDuration * GetRelicExplorationDurationMultiplier(state, destinationId);
+
+        double shipDuration = baseDuration;
 
         if (ship.shipId == ShipLightProbe)
-            return baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);
+            shipDuration = baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);
+        else if (ship.shipId == ShipExtractorDrone && IsExtractorDroneSpeedCompatibleDestination(destinationId))
+            shipDuration = baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);
+        else if (ship.shipId == ShipAnalyticProbe && IsAnalyticProbeSpeedCompatibleDestination(destinationId))
+            shipDuration = baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);
+        else if (ship.shipId == ShipCargoShip && IsCargoShipSpeedCompatibleDestination(destinationId))
+            shipDuration = baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);
+        else if (ship.shipId == ShipRescueShip && IsRescueSpeedCompatibleDestination(destinationId))
+            shipDuration = baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);
+        else if (ship.shipId == ShipConvergenceShip && IsConvergenceSpeedCompatibleDestination(destinationId))
+            shipDuration = baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);
 
-        if (ship.shipId == ShipExtractorDrone && IsExtractorDroneSpeedCompatibleDestination(destinationId))
-            return baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);
-
-        if (ship.shipId == ShipAnalyticProbe && IsAnalyticProbeSpeedCompatibleDestination(destinationId))
-            return baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);
-
-        if (ship.shipId == ShipCargoShip && IsCargoShipSpeedCompatibleDestination(destinationId))
-            return baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);
-
-        if (ship.shipId == ShipRescueShip && IsRescueSpeedCompatibleDestination(destinationId))
-            return baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);
-
-        if (ship.shipId == ShipConvergenceShip && IsConvergenceSpeedCompatibleDestination(destinationId))
-            return baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);
-
-        return baseDuration;
+        return shipDuration * GetRelicExplorationDurationMultiplier(state, destinationId);
     }
 
     private static double GetSimpleExplorationBaseDurationSeconds(string destinationId)

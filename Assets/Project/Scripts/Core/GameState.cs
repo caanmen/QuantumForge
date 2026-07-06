@@ -157,6 +157,9 @@ public class GameState : MonoBehaviour
     [Tooltip("Indica si el jugador ya realizó Prestigio 1 al menos una vez.")]
     public bool hasDonePrestige1 = false;
 
+    [Tooltip("Puntos disponibles para comprar nodos del Árbol Dimensional D1.")]
+    public int prestige1Points = 0;
+
     // Máximo de LE alcanzado en el run actual.
     // Se conserva porque todavía sirve como estadística interna del run.
     public double maxLEAlcanzado = 0.0;
@@ -210,6 +213,9 @@ public class GameState : MonoBehaviour
 
     [Tooltip("Reliquias desbloqueadas y niveles de Dimensión 1.")]
     public List<D1RelicState> dimension1Relics = new List<D1RelicState>();
+
+    [Tooltip("Nodos comprados del Árbol Dimensional D1.")]
+    public List<D1TreeNodeState> dimension1TreeNodes = new List<D1TreeNodeState>();
 
     [Tooltip("Fragmentos de blueprint acumulados en Dimensión 1.")]
     public int dimension1BlueprintFragments = 0;
@@ -1154,6 +1160,9 @@ public class GameState : MonoBehaviour
         if (dimension1Relics == null)
             dimension1Relics = new List<D1RelicState>();
 
+        if (dimension1TreeNodes == null)
+            dimension1TreeNodes = new List<D1TreeNodeState>();
+
         MigrateDimension1LegacyShipIds();
 
         foreach (string metalId in Dimension1System.StarterMetals)
@@ -1179,6 +1188,11 @@ public class GameState : MonoBehaviour
         foreach (string relicId in Dimension1System.Dimension1RelicIds)
         {
             GetOrCreateD1Relic(relicId);
+        }
+
+        foreach (string nodeId in Dimension1System.Dimension1TreeNodeIds)
+        {
+            GetOrCreateD1TreeNode(nodeId);
         }
     }
 
@@ -1323,6 +1337,24 @@ public class GameState : MonoBehaviour
 
         dimension1Relics.Add(newRelic);
         return newRelic;
+    }
+
+    private D1TreeNodeState GetOrCreateD1TreeNode(string nodeId)
+    {
+        foreach (D1TreeNodeState node in dimension1TreeNodes)
+        {
+            if (node != null && node.nodeId == nodeId)
+                return node;
+        }
+
+        D1TreeNodeState newNode = new D1TreeNodeState
+        {
+            nodeId = nodeId,
+            tier = 0
+        };
+
+        dimension1TreeNodes.Add(newNode);
+        return newNode;
     }
 
     public double GetD1MetalAmount(string metalId)
@@ -1470,6 +1502,52 @@ public class GameState : MonoBehaviour
         return SetD1RelicLevel(relicId, currentLevel + levelsToAdd);
     }
 
+    public int GetD1TreeNodeTier(string nodeId)
+    {
+        if (!Dimension1System.IsDimension1TreeNodeId(nodeId))
+            return 0;
+
+        EnsureDimension1State();
+
+        D1TreeNodeState node = GetOrCreateD1TreeNode(nodeId);
+
+        return Dimension1System.ClampDimension1TreeNodeTier(
+            nodeId,
+            node.tier
+        );
+    }
+
+    public bool IsD1TreeNodeUnlocked(string nodeId)
+    {
+        return GetD1TreeNodeTier(nodeId) > 0;
+    }
+
+    public bool SetD1TreeNodeTier(string nodeId, int tier)
+    {
+        if (!Dimension1System.IsDimension1TreeNodeId(nodeId))
+            return false;
+
+        EnsureDimension1State();
+
+        D1TreeNodeState node = GetOrCreateD1TreeNode(nodeId);
+
+        node.tier = Dimension1System.ClampDimension1TreeNodeTier(
+            nodeId,
+            tier
+        );
+
+        return true;
+    }
+
+    public bool AddPrestige1Points(int amount)
+    {
+        if (amount <= 0)
+            return false;
+
+        prestige1Points += amount;
+        return true;
+    }
+
     public void UnlockDimensionSystemAfterPrestige1()
     {
         dimension01Unlocked = true;
@@ -1513,6 +1591,8 @@ public class GameState : MonoBehaviour
         dimension1RecentExplorationRecords = new List<D1ExplorationRecordEntry>();
         dimension1Blueprints = new List<D1BlueprintAmount>();
         dimension1Relics = new List<D1RelicState>();
+        dimension1TreeNodes = new List<D1TreeNodeState>();
+        prestige1Points = 0;
         dimension1LastExplorationSpecificBlueprints = new List<D1BlueprintAmount>();
         dimension1BlueprintFragments = 0;
         dimension1LastExplorationBlueprintFragments = 0;
@@ -1957,6 +2037,85 @@ public class GameState : MonoBehaviour
             " | Hito: " +
             Dimension1System.GetDimension1RelicMilestone(GetD1RelicLevel(relicId))
         );
+    }
+
+    [ContextMenu("D1 DEBUG: Max Effect Relics")]
+    private void DebugMaxD1EffectRelics()
+    {
+        EnsureDimension1State();
+
+        SetD1RelicLevel(Dimension1System.RelicDriftCompass, 150);
+        SetD1RelicLevel(Dimension1System.RelicAncientCargoCore, 150);
+        SetD1RelicLevel(Dimension1System.RelicExtractionHook, 150);
+        SetD1RelicLevel(Dimension1System.RelicAnalyticCrystal, 150);
+        SetD1RelicLevel(Dimension1System.RelicModularContainer, 150);
+        SetD1RelicLevel(Dimension1System.RelicRescueBeacon, 150);
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log("[D1] DEBUG: Reliquias de efecto básico al nivel 150.");
+    }
+
+    [ContextMenu("D1 DEBUG: Add +50 Prestige 1 Points")]
+    private void DebugAddPrestige1PointsForD1Tree()
+    {
+        EnsureDimension1State();
+
+        AddPrestige1Points(50);
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log("[D1] +50 Puntos de Prestigio 1 agregados. Total: " + prestige1Points);
+    }
+
+    [ContextMenu("D1 DEBUG: Buy D1 Tree First Nodes")]
+    [ContextMenu("D1 DEBUG: Buy D1 Tree First Nodes")]
+    private void DebugBuyD1TreeFirstNodes()
+    {
+        EnsureDimension1State();
+
+        string[] nodesToBuy =
+        {
+        Dimension1System.D1TreeExplorationDestinationReading,
+        Dimension1System.D1TreeFleetHangarPreparation,
+        Dimension1System.D1TreeRecoveryCopyRegistry,
+        Dimension1System.D1TreeConvergenceAnomalousReading
+    };
+
+        foreach (string nodeId in nodesToBuy)
+        {
+            if (GetD1TreeNodeTier(nodeId) > 0)
+            {
+                Debug.Log(
+                    "[D1 Tree] Nodo inicial ya comprado: " +
+                    nodeId +
+                    " | Tier: " +
+                    GetD1TreeNodeTier(nodeId) +
+                    " | Puntos restantes: " +
+                    prestige1Points
+                );
+
+                continue;
+            }
+
+            bool bought = Dimension1System.TryBuyDimension1TreeNode(this, nodeId);
+
+            Debug.Log(
+                "[D1 Tree] Comprar nodo inicial: " +
+                nodeId +
+                " => " +
+                bought +
+                " | Tier: " +
+                GetD1TreeNodeTier(nodeId) +
+                " | Puntos restantes: " +
+                prestige1Points
+            );
+        }
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
     }
 
 #endif
