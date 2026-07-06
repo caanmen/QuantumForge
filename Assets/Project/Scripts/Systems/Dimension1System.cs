@@ -5507,7 +5507,7 @@ public static class Dimension1System
             state.dimension1LastExplorationBlueprintFragments = blueprintFragments;
         }
 
-        TryGrantSpecificBlueprintReward(state, destinationId);
+        TryGrantSpecificBlueprintReward(state, destinationId, ship);
 
         state.dimension1LastExplorationDestinationId = destinationId;
         state.dimension1LastExplorationRewards = rewards;
@@ -5650,12 +5650,16 @@ public static class Dimension1System
         return 1;
     }
 
-    private static bool TryGrantSpecificBlueprintReward(GameState state, string destinationId)
+    private static bool TryGrantSpecificBlueprintReward(
+        GameState state,
+        string destinationId,
+        D1ShipState ship
+    )
     {
         if (state == null)
             return false;
 
-        float chance = GetBaseSpecificBlueprintChance(destinationId);
+        float chance = GetSpecificBlueprintChance(state, destinationId, ship);
 
         if (chance <= 0.0f)
             return false;
@@ -5680,6 +5684,44 @@ public static class Dimension1System
         });
 
         return true;
+    }
+
+    public static float GetSpecificBlueprintChancePreview(
+    GameState state,
+    string destinationId,
+    D1ShipState ship
+)
+    {
+        return GetSpecificBlueprintChance(state, destinationId, ship);
+    }
+
+    private static float GetSpecificBlueprintChance(
+        GameState state,
+        string destinationId,
+        D1ShipState ship
+    )
+    {
+        float chance = GetBaseSpecificBlueprintChance(destinationId);
+
+        if (chance <= 0.0f)
+            return 0.0f;
+
+        chance += GetShipSensorSpecificBlueprintBonus(destinationId, ship);
+
+        return Mathf.Clamp(chance, 0.0f, 0.20f);
+    }
+
+    private static float GetShipSensorSpecificBlueprintBonus(
+        string destinationId,
+        D1ShipState ship
+    )
+    {
+        if (ship == null)
+            return 0.0f;
+
+        // Las matrices específicas son más valiosas que los fragmentos,
+        // así que usamos solo parte del bonus de sensores.
+        return GetShipSensorBlueprintFragmentBonus(destinationId, ship) * 0.35f;
     }
 
     private static float GetBaseSpecificBlueprintChance(string destinationId)

@@ -1895,6 +1895,9 @@ public class GameState : MonoBehaviour
 
         dimension1BlueprintFragments += Dimension1System.BlueprintFragmentsPerBlueprint;
 
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
         Debug.Log(
             "[D1] +1 Matriz Adaptativa de Nave. " +
             "Fragmentos totales: " + dimension1BlueprintFragments +
@@ -1932,7 +1935,16 @@ public class GameState : MonoBehaviour
         AddD1Blueprint(Dimension1System.BlueprintRescueRecoveryBay, 1);
         AddD1Blueprint(Dimension1System.BlueprintRescueProtectionMatrix, 1);
 
-        Debug.Log("[D1] Matrices específicas de Nave de Rescate agregadas.");
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1] Matrices específicas de Nave de Rescate agregadas. " +
+            "Chasis=" + GetD1BlueprintAmount(Dimension1System.BlueprintRescueFrame) +
+            " | Baliza=" + GetD1BlueprintAmount(Dimension1System.BlueprintRescueBeacon) +
+            " | Bahía=" + GetD1BlueprintAmount(Dimension1System.BlueprintRescueRecoveryBay) +
+            " | Protección=" + GetD1BlueprintAmount(Dimension1System.BlueprintRescueProtectionMatrix)
+        );
     }
 
     [ContextMenu("D1 DEBUG: Add Convergence Specific Matrices")]
@@ -1955,6 +1967,87 @@ public class GameState : MonoBehaviour
             " | Lectura=" + GetD1BlueprintAmount(Dimension1System.BlueprintConvergenceMatrix) +
             " | Blindaje=" + GetD1BlueprintAmount(Dimension1System.BlueprintAnomalousArmor)
         );
+    }
+
+    [ContextMenu("D1 DEBUG: Validate Advanced Ship Matrix Coverage")]
+    private void DebugValidateAdvancedShipMatrixCoverage()
+    {
+        EnsureDimension1State();
+
+        Debug.Log("[D1 Matrix Coverage] Validando matrices de naves avanzadas...");
+
+        Debug.Log(
+            BuildAdvancedShipMatrixCoverageDebugLine(
+                Dimension1System.ShipCargoShip,
+                "Nave de Carga"
+            )
+        );
+
+        Debug.Log(
+            BuildAdvancedShipMatrixCoverageDebugLine(
+                Dimension1System.ShipRescueShip,
+                "Nave de Rescate"
+            )
+        );
+
+        Debug.Log(
+            BuildAdvancedShipMatrixCoverageDebugLine(
+                Dimension1System.ShipConvergenceShip,
+                "Nave de Convergencia"
+            )
+        );
+    }
+
+    private string BuildAdvancedShipMatrixCoverageDebugLine(string shipId, string shipName)
+    {
+        bool hasRequiredMatrixList = Dimension1System.TryGetRequiredShipBlueprintIds(
+            shipId,
+            out string[] matrixIds
+        );
+
+        int required = hasRequiredMatrixList && matrixIds != null ? matrixIds.Length : 0;
+        int ownedSpecific = Dimension1System.GetOwnedRequiredSpecificShipMatrixCount(this, shipId);
+        int missingSpecific = Dimension1System.GetMissingRequiredSpecificShipMatrixCount(this, shipId);
+        int adaptiveAvailable = Dimension1System.GetCompletedBlueprintCount(this);
+        bool canCover = Dimension1System.CanCoverRequiredShipMatrices(this, shipId);
+
+        bool unlocked = false;
+
+        if (dimension1Ships != null)
+        {
+            foreach (D1ShipState ship in dimension1Ships)
+            {
+                if (ship != null && ship.shipId == shipId)
+                {
+                    unlocked = ship.unlocked;
+                    break;
+                }
+            }
+        }
+
+        string matrixBreakdown = "";
+
+        if (hasRequiredMatrixList && matrixIds != null)
+        {
+            foreach (string matrixId in matrixIds)
+            {
+                if (!string.IsNullOrEmpty(matrixBreakdown))
+                    matrixBreakdown += " | ";
+
+                matrixBreakdown += matrixId + "=" + GetD1BlueprintAmount(matrixId);
+            }
+        }
+
+        return
+            "[D1 Matrix Coverage] " +
+            shipName +
+            " | Desbloqueada=" + unlocked +
+            " | Requeridas=" + required +
+            " | Específicas propias=" + ownedSpecific +
+            " | Faltantes=" + missingSpecific +
+            " | Adaptativas disponibles=" + adaptiveAvailable +
+            " | Puede cubrir=" + canCover +
+            " | Detalle: " + matrixBreakdown;
     }
 
     [ContextMenu("D1 DEBUG: Unlock Drift Compass Relic")]
@@ -1990,6 +2083,47 @@ public class GameState : MonoBehaviour
             Dimension1System.GetDimension1RelicMilestone(
                 GetD1RelicLevel(Dimension1System.RelicDriftCompass)
             )
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Add Ship Upgrade Test Resources")]
+    private void DebugAddD1ShipUpgradeTestResources()
+    {
+        EnsureDimension1State();
+
+        AddD1Metal(Dimension1System.MetalIron, 1000000.0);
+        AddD1Metal(Dimension1System.MetalCopper, 1000000.0);
+        AddD1Metal(Dimension1System.MetalAluminum, 1000000.0);
+        AddD1Metal(Dimension1System.MetalTitanium, 1000000.0);
+        AddD1Metal(Dimension1System.MetalNickel, 1000000.0);
+        AddD1Metal(Dimension1System.MetalCobalt, 1000000.0);
+        AddD1Metal(Dimension1System.MetalLithium, 1000000.0);
+        AddD1Metal(Dimension1System.MetalTungsten, 1000000.0);
+        AddD1Metal(Dimension1System.MetalPlatinum, 1000000.0);
+        AddD1Metal(Dimension1System.MetalIridium, 1000000.0);
+
+        dimension1BlueprintFragments += Dimension1System.BlueprintFragmentsPerBlueprint * 30;
+
+        AddD1Blueprint(Dimension1System.BlueprintCargoFrame, 10);
+        AddD1Blueprint(Dimension1System.BlueprintCargoHold, 10);
+        AddD1Blueprint(Dimension1System.BlueprintCargoStabilizer, 10);
+
+        AddD1Blueprint(Dimension1System.BlueprintRescueFrame, 10);
+        AddD1Blueprint(Dimension1System.BlueprintRescueBeacon, 10);
+        AddD1Blueprint(Dimension1System.BlueprintRescueRecoveryBay, 10);
+        AddD1Blueprint(Dimension1System.BlueprintRescueProtectionMatrix, 10);
+
+        AddD1Blueprint(Dimension1System.BlueprintConvergenceChassis, 10);
+        AddD1Blueprint(Dimension1System.BlueprintConvergenceCore, 10);
+        AddD1Blueprint(Dimension1System.BlueprintConvergenceMatrix, 10);
+        AddD1Blueprint(Dimension1System.BlueprintAnomalousArmor, 10);
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1] DEBUG: recursos de prueba para Taller de Naves agregados. " +
+            "Adaptativas disponibles: " + Dimension1System.GetCompletedBlueprintCount(this)
         );
     }
 
@@ -2300,6 +2434,78 @@ public class GameState : MonoBehaviour
             SaveService.I.Save();
 
         Debug.Log("[D1] DEBUG: Reliquias de minería al nivel 150.");
+    }
+
+    [ContextMenu("D1 DEBUG: Preview Specific Matrix Chances")]
+    private void DebugPreviewSpecificMatrixChances()
+    {
+        EnsureDimension1State();
+
+        Debug.Log("[D1 Specific Matrix Chances]");
+
+        Debug.Log(
+            "[D1 Specific Matrix Chances] Sonda Ligera / Cementerio: " +
+            GetSpecificMatrixChanceDebugText(
+                Dimension1System.ShipLightProbe,
+                Dimension1System.DestinationShipGraveyard
+            )
+        );
+
+        Debug.Log(
+            "[D1 Specific Matrix Chances] Sonda Analítica / Laboratorio: " +
+            GetSpecificMatrixChanceDebugText(
+                Dimension1System.ShipAnalyticProbe,
+                Dimension1System.DestinationLaboratory
+            )
+        );
+
+        Debug.Log(
+            "[D1 Specific Matrix Chances] Nave de Rescate / Estación abandonada: " +
+            GetSpecificMatrixChanceDebugText(
+                Dimension1System.ShipRescueShip,
+                Dimension1System.DestinationAbandonedStation
+            )
+        );
+
+        Debug.Log(
+            "[D1 Specific Matrix Chances] Nave de Convergencia / Zona inestable: " +
+            GetSpecificMatrixChanceDebugText(
+                Dimension1System.ShipConvergenceShip,
+                Dimension1System.DestinationUnstableZone
+            )
+        );
+    }
+
+    private string GetSpecificMatrixChanceDebugText(string shipId, string destinationId)
+    {
+        D1ShipState ship = null;
+
+        if (dimension1Ships != null)
+        {
+            foreach (D1ShipState candidate in dimension1Ships)
+            {
+                if (candidate != null && candidate.shipId == shipId)
+                {
+                    ship = candidate;
+                    break;
+                }
+            }
+        }
+
+        float chance = Dimension1System.GetSpecificBlueprintChancePreview(
+            this,
+            destinationId,
+            ship
+        );
+
+        int sensorsLevel = ship != null ? ship.sensorsLevel : 0;
+
+        return
+            "Sensores " +
+            sensorsLevel +
+            " | Chance " +
+            (chance * 100.0f).ToString("0.##") +
+            "%";
     }
 
 #endif

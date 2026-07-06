@@ -3389,6 +3389,10 @@ public class Dimension1PanelUI : MonoBehaviour
             return;
 
         TryBuyAnyShipPartUpgrade(gs, shipId, partId);
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
         RefreshUI();
     }
 
