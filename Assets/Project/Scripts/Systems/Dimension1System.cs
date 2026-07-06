@@ -904,6 +904,297 @@ public static class Dimension1System
         return state.SetD1TreeNodeTier(nodeId, targetTier);
     }
 
+    private static int GetDimension1TreeTierSafe(GameState state, string nodeId)
+    {
+        if (state == null)
+            return 0;
+
+        state.EnsureDimension1State();
+
+        return state.GetD1TreeNodeTier(nodeId);
+    }
+
+    public static bool HasDimension1TreeNode(GameState state, string nodeId)
+    {
+        return GetDimension1TreeTierSafe(state, nodeId) > 0;
+    }
+
+    // Rama Exploración
+
+    public static bool HasD1TreeDestinationReading(GameState state)
+    {
+        return HasDimension1TreeNode(state, D1TreeExplorationDestinationReading);
+    }
+
+    public static bool HasD1TreeExplorationFilter(GameState state)
+    {
+        return HasDimension1TreeNode(state, D1TreeExplorationFilter);
+    }
+
+    public static float GetD1TreeHiddenFindQualityBonus(GameState state)
+    {
+        int tier = GetDimension1TreeTierSafe(state, D1TreeExplorationHiddenFindTracking);
+
+        switch (tier)
+        {
+            case 1:
+                return 0.02f;
+            case 2:
+                return 0.04f;
+            case 3:
+                return 0.06f;
+            default:
+                return 0.0f;
+        }
+    }
+
+    public static float GetD1TreeContinuationDetectionBonus(GameState state)
+    {
+        return HasDimension1TreeNode(state, D1TreeExplorationContinuationDetected)
+            ? 0.03f
+            : 0.0f;
+    }
+
+    public static float GetD1TreeScanMemoryRepetitionReduction(GameState state)
+    {
+        int tier = GetDimension1TreeTierSafe(state, D1TreeExplorationScanMemory);
+
+        switch (tier)
+        {
+            case 1:
+                return 0.03f;
+            case 2:
+                return 0.06f;
+            case 3:
+                return 0.10f;
+            default:
+                return 0.0f;
+        }
+    }
+
+    public static float GetD1TreeAdvancedCartographySpecialDestinationChance(GameState state)
+    {
+        return HasDimension1TreeNode(state, D1TreeExplorationAdvancedCartography)
+            ? 0.10f
+            : 0.0f;
+    }
+
+    // Rama Flota
+
+    public static float GetD1TreeSingleShipEfficiencyBonus(GameState state)
+    {
+        return HasDimension1TreeNode(state, D1TreeFleetHangarPreparation)
+            ? 0.03f
+            : 0.0f;
+    }
+
+    public static bool HasD1TreeFleetCoordination(GameState state)
+    {
+        return HasDimension1TreeNode(state, D1TreeFleetCoordination);
+    }
+
+    public static float GetD1TreeSupportFormationValue(GameState state)
+    {
+        int tier = GetDimension1TreeTierSafe(state, D1TreeFleetSupportFormation);
+
+        switch (tier)
+        {
+            case 1:
+                return 0.20f;
+            case 2:
+                return 0.30f;
+            case 3:
+                return 0.40f;
+            default:
+                return 0.0f;
+        }
+    }
+
+    public static float GetD1TreeSupportProtocolsEfficiencyBonus(GameState state)
+    {
+        int tier = GetDimension1TreeTierSafe(state, D1TreeFleetSupportProtocols);
+
+        switch (tier)
+        {
+            case 1:
+                return 0.03f;
+            case 2:
+                return 0.06f;
+            case 3:
+                return 0.10f;
+            default:
+                return 0.0f;
+        }
+    }
+
+    public static bool HasD1TreeRescueOperations(GameState state)
+    {
+        return HasDimension1TreeNode(state, D1TreeFleetRescueOperations);
+    }
+
+    public static bool HasD1TreeConvergenceLink(GameState state)
+    {
+        return HasDimension1TreeNode(state, D1TreeFleetConvergenceLink);
+    }
+
+    // Rama Recuperación
+
+    public static float GetD1TreeDuplicateRelicConversionBonus(GameState state)
+    {
+        int tier = GetDimension1TreeTierSafe(state, D1TreeRecoveryCopyRegistry);
+
+        switch (tier)
+        {
+            case 1:
+                return 0.10f;
+            case 2:
+                return 0.20f;
+            case 3:
+                return 0.30f;
+            default:
+                return 0.0f;
+        }
+    }
+
+    public static void GetD1TreePartialRecoveryValues(
+        GameState state,
+        out float chance,
+        out float recoveredAmount
+    )
+    {
+        int tier = GetDimension1TreeTierSafe(state, D1TreeRecoveryPartialRecovery);
+
+        switch (tier)
+        {
+            case 1:
+                chance = 0.15f;
+                recoveredAmount = 0.10f;
+                return;
+
+            case 2:
+                chance = 0.25f;
+                recoveredAmount = 0.15f;
+                return;
+
+            case 3:
+                chance = 0.35f;
+                recoveredAmount = 0.20f;
+                return;
+
+            default:
+                chance = 0.0f;
+                recoveredAmount = 0.0f;
+                return;
+        }
+    }
+
+    public static float GetD1TreeBlueprintPriorityBonus(GameState state)
+    {
+        return HasDimension1TreeNode(state, D1TreeRecoveryBlueprintPriority)
+            ? 0.03f
+            : 0.0f;
+    }
+
+    public static float GetD1TreeRareCargoConservationChance(GameState state)
+    {
+        return HasDimension1TreeNode(state, D1TreeRecoveryCargoConservation)
+            ? 0.10f
+            : 0.0f;
+    }
+
+    public static float GetD1TreeDelicateFindProtectionBonus(GameState state)
+    {
+        return HasDimension1TreeNode(state, D1TreeRecoveryFindProtection)
+            ? 0.05f
+            : 0.0f;
+    }
+
+    public static float GetD1TreeExpeditionArchiveUsefulRewardBonus(GameState state)
+    {
+        return HasDimension1TreeNode(state, D1TreeRecoveryExpeditionArchive)
+            ? 0.05f
+            : 0.0f;
+    }
+
+    // Rama Convergencia
+
+    public static float GetD1TreeAnomalousHiddenIdentificationBonus(GameState state)
+    {
+        return HasDimension1TreeNode(state, D1TreeConvergenceAnomalousReading)
+            ? 0.10f
+            : 0.0f;
+    }
+
+    public static float GetD1TreeSpecialDestinationDetectionBonus(GameState state)
+    {
+        int tier = GetDimension1TreeTierSafe(state, D1TreeConvergenceSpecialDestinationReading);
+
+        switch (tier)
+        {
+            case 1:
+                return 0.02f;
+            case 2:
+                return 0.04f;
+            case 3:
+                return 0.06f;
+            default:
+                return 0.0f;
+        }
+    }
+
+    public static bool HasD1TreeUnstableZoneStabilization(GameState state)
+    {
+        return HasDimension1TreeNode(state, D1TreeConvergenceUnstableZoneStabilization);
+    }
+
+    public static float GetD1TreeUnstableZoneRiskReduction(GameState state)
+    {
+        return HasD1TreeUnstableZoneStabilization(state)
+            ? 0.05f
+            : 0.0f;
+    }
+
+    public static float GetD1TreeUnstableZoneDurationReduction(GameState state)
+    {
+        return HasD1TreeUnstableZoneStabilization(state)
+            ? 0.05f
+            : 0.0f;
+    }
+
+    public static float GetD1TreeUnstableZoneRareRewardProtection(GameState state)
+    {
+        return HasD1TreeUnstableZoneStabilization(state)
+            ? 0.05f
+            : 0.0f;
+    }
+
+    public static bool HasD1TreeConvergenceChain(GameState state)
+    {
+        return HasDimension1TreeNode(state, D1TreeConvergenceChain);
+    }
+
+    public static float GetD1TreeAdvancedBlueprintSignalBonus(GameState state)
+    {
+        int tier = GetDimension1TreeTierSafe(state, D1TreeConvergenceAdvancedBlueprintSignal);
+
+        switch (tier)
+        {
+            case 1:
+                return 0.01f;
+            case 2:
+                return 0.02f;
+            case 3:
+                return 0.03f;
+            default:
+                return 0.0f;
+        }
+    }
+
+    public static bool HasD1TreeDimensionalCore(GameState state)
+    {
+        return HasDimension1TreeNode(state, D1TreeConvergenceDimensionalCore);
+    }
+
     public static int CalculatePrestige1PointsFromBaseGame(GameState state)
     {
         if (state == null)
@@ -1202,6 +1493,43 @@ public static class Dimension1System
         }
 
         return System.Math.Max(0.50, 1.0 - reduction);
+    }
+
+    private static double GetD1TreeExplorationDurationMultiplier(
+    GameState state,
+    string destinationId,
+    D1ShipState ship
+)
+    {
+        double reduction = 0.0;
+
+        if (ship != null)
+        {
+            reduction += GetD1TreeSingleShipEfficiencyBonus(state);
+        }
+
+        if (destinationId == DestinationUnstableZone)
+        {
+            reduction += GetD1TreeUnstableZoneDurationReduction(state);
+        }
+
+        return System.Math.Max(0.50, 1.0 - reduction);
+    }
+
+    private static double GetD1TreeMaterialRewardMultiplier(
+        GameState state,
+        string destinationId,
+        D1ShipState ship
+    )
+    {
+        double bonus = 0.0;
+
+        if (ship != null)
+        {
+            bonus += GetD1TreeSingleShipEfficiencyBonus(state);
+        }
+
+        return 1.0 + bonus;
     }
 
     private static double GetRelicMaterialRewardMultiplier(
@@ -5446,7 +5774,10 @@ public static class Dimension1System
             }
         }
 
-        return shipMultiplier * GetRelicMaterialRewardMultiplier(state, destinationId, ship);
+        return
+            shipMultiplier *
+            GetRelicMaterialRewardMultiplier(state, destinationId, ship) *
+            GetD1TreeMaterialRewardMultiplier(state, destinationId, ship);
     }
 
     private static double GetShipArmorRewardPreservationMultiplier(
@@ -5933,7 +6264,10 @@ public static class Dimension1System
         else if (ship.shipId == ShipConvergenceShip && IsConvergenceSpeedCompatibleDestination(destinationId))
             shipDuration = baseDuration * GetSpeedMultiplierByLevel(ship.speedLevel);
 
-        return shipDuration * GetRelicExplorationDurationMultiplier(state, destinationId);
+        return
+            shipDuration *
+            GetRelicExplorationDurationMultiplier(state, destinationId) *
+            GetD1TreeExplorationDurationMultiplier(state, destinationId, ship);
     }
 
     private static double GetSimpleExplorationBaseDurationSeconds(string destinationId)

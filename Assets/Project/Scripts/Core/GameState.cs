@@ -2192,6 +2192,100 @@ public class GameState : MonoBehaviour
         );
     }
 
+    [ContextMenu("D1 DEBUG: Preview Tree Effect Values")]
+    private void DebugPreviewD1TreeEffectValues()
+    {
+        EnsureDimension1State();
+
+        Dimension1System.GetD1TreePartialRecoveryValues(
+            this,
+            out float partialRecoveryChance,
+            out float partialRecoveryAmount
+        );
+
+        Debug.Log(
+            "[D1 Tree Effects]" +
+            "\nExploración:" +
+            " DestinationReading=" +
+            Dimension1System.HasD1TreeDestinationReading(this) +
+            " | Filter=" +
+            Dimension1System.HasD1TreeExplorationFilter(this) +
+            " | HiddenFindQuality=+" +
+            (Dimension1System.GetD1TreeHiddenFindQualityBonus(this) * 100.0f).ToString("0.#") +
+            "%" +
+            " | Continuation=+" +
+            (Dimension1System.GetD1TreeContinuationDetectionBonus(this) * 100.0f).ToString("0.#") +
+            "%" +
+            " | ScanMemory=-" +
+            (Dimension1System.GetD1TreeScanMemoryRepetitionReduction(this) * 100.0f).ToString("0.#") +
+            "%" +
+            " | CartographyChance=+" +
+            (Dimension1System.GetD1TreeAdvancedCartographySpecialDestinationChance(this) * 100.0f).ToString("0.#") +
+            "%" +
+            "\nFlota:" +
+            " SingleShipEfficiency=+" +
+            (Dimension1System.GetD1TreeSingleShipEfficiencyBonus(this) * 100.0f).ToString("0.#") +
+            "%" +
+            " | FleetCoordination=" +
+            Dimension1System.HasD1TreeFleetCoordination(this) +
+            " | SupportFormation=" +
+            (Dimension1System.GetD1TreeSupportFormationValue(this) * 100.0f).ToString("0.#") +
+            "%" +
+            " | SupportProtocols=+" +
+            (Dimension1System.GetD1TreeSupportProtocolsEfficiencyBonus(this) * 100.0f).ToString("0.#") +
+            "%" +
+            " | RescueOps=" +
+            Dimension1System.HasD1TreeRescueOperations(this) +
+            " | ConvergenceLink=" +
+            Dimension1System.HasD1TreeConvergenceLink(this) +
+            "\nRecuperación:" +
+            " DuplicateRelicConversion=+" +
+            (Dimension1System.GetD1TreeDuplicateRelicConversionBonus(this) * 100.0f).ToString("0.#") +
+            "%" +
+            " | PartialRecoveryChance=" +
+            (partialRecoveryChance * 100.0f).ToString("0.#") +
+            "%" +
+            " | PartialRecoveryAmount=" +
+            (partialRecoveryAmount * 100.0f).ToString("0.#") +
+            "%" +
+            " | BlueprintPriority=+" +
+            (Dimension1System.GetD1TreeBlueprintPriorityBonus(this) * 100.0f).ToString("0.#") +
+            "%" +
+            " | CargoConservation=" +
+            (Dimension1System.GetD1TreeRareCargoConservationChance(this) * 100.0f).ToString("0.#") +
+            "%" +
+            " | FindProtection=+" +
+            (Dimension1System.GetD1TreeDelicateFindProtectionBonus(this) * 100.0f).ToString("0.#") +
+            "%" +
+            " | ExpeditionArchive=+" +
+            (Dimension1System.GetD1TreeExpeditionArchiveUsefulRewardBonus(this) * 100.0f).ToString("0.#") +
+            "%" +
+            "\nConvergencia:" +
+            " AnomalousIdentification=+" +
+            (Dimension1System.GetD1TreeAnomalousHiddenIdentificationBonus(this) * 100.0f).ToString("0.#") +
+            "%" +
+            " | SpecialDestinationDetection=+" +
+            (Dimension1System.GetD1TreeSpecialDestinationDetectionBonus(this) * 100.0f).ToString("0.#") +
+            "%" +
+            " | UnstableRisk=-" +
+            (Dimension1System.GetD1TreeUnstableZoneRiskReduction(this) * 100.0f).ToString("0.#") +
+            "%" +
+            " | UnstableDuration=-" +
+            (Dimension1System.GetD1TreeUnstableZoneDurationReduction(this) * 100.0f).ToString("0.#") +
+            "%" +
+            " | UnstableRareProtection=+" +
+            (Dimension1System.GetD1TreeUnstableZoneRareRewardProtection(this) * 100.0f).ToString("0.#") +
+            "%" +
+            " | ConvergenceChain=" +
+            Dimension1System.HasD1TreeConvergenceChain(this) +
+            " | AdvancedBlueprintSignal=+" +
+            (Dimension1System.GetD1TreeAdvancedBlueprintSignalBonus(this) * 100.0f).ToString("0.#") +
+            "%" +
+            " | DimensionalCore=" +
+            Dimension1System.HasD1TreeDimensionalCore(this)
+        );
+    }
+
 #endif
 
 
@@ -3276,7 +3370,17 @@ private double CalculateEMMultiplier()
         if (!MachineManager.I.Prestige1Prepared)
             return "Falta activar el Canal de Convergencia.";
 
-        return "Prestigio 1 disponible.";
+        int previewPoints = Dimension1System.CalculatePrestige1PointsPreview(this);
+        int claimablePoints = Dimension1System.CalculateClaimablePrestige1Points(this);
+
+        return
+            "Prestigio 1 disponible." +
+            "\nPuntos nuevos: +" +
+            claimablePoints +
+            " | Preview total: " +
+            previewPoints +
+            " | Disponibles: " +
+            prestige1Points;
     }
 
     public bool DoPrestige1Reset()
@@ -3286,6 +3390,17 @@ private double CalculateEMMultiplier()
             Debug.Log("[GameState] Prestigio 1 no disponible todavía: " + GetPrestige1StatusText());
             return false;
         }
+
+        EnsureDimension1State();
+        ActualizarMaxLE();
+
+        int previewBeforeReset = Dimension1System.CalculatePrestige1PointsPreview(this);
+        int claimableBeforeReset = Dimension1System.CalculateClaimablePrestige1Points(this);
+
+        bool claimed = Dimension1System.TryClaimPrestige1PreviewPoints(
+            this,
+            out int claimedPoints
+        );
 
         prestige1Count++;
         hasDonePrestige1 = true;
@@ -3299,7 +3414,21 @@ private double CalculateEMMultiplier()
         if (SaveService.I != null)
             SaveService.I.Save();
 
-        Debug.Log("[GameState] Prestigio 1 realizado. Total: " + prestige1Count);
+        Debug.Log(
+            "[GameState] Prestigio 1 realizado. Total: " +
+            prestige1Count +
+            " | Preview antes del reset: " +
+            previewBeforeReset +
+            " | Reclamables antes: " +
+            claimableBeforeReset +
+            " | Reclamo ejecutado: " +
+            claimed +
+            " | Puntos ganados: " +
+            claimedPoints +
+            " | Puntos P1 disponibles: " +
+            prestige1Points
+        );
+
         return true;
     }
 
