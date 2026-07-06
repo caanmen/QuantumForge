@@ -160,6 +160,9 @@ public class GameState : MonoBehaviour
     [Tooltip("Puntos disponibles para comprar nodos del Árbol Dimensional D1.")]
     public int prestige1Points = 0;
 
+    [Tooltip("Mayor cantidad de Puntos de Prestigio 1 ya reclamada desde el preview.")]
+    public int prestige1BestClaimedPreviewPoints = 0;
+
     // Máximo de LE alcanzado en el run actual.
     // Se conserva porque todavía sirve como estadística interna del run.
     public double maxLEAlcanzado = 0.0;
@@ -1593,6 +1596,7 @@ public class GameState : MonoBehaviour
         dimension1Relics = new List<D1RelicState>();
         dimension1TreeNodes = new List<D1TreeNodeState>();
         prestige1Points = 0;
+        prestige1BestClaimedPreviewPoints = 0;
         dimension1LastExplorationSpecificBlueprints = new List<D1BlueprintAmount>();
         dimension1BlueprintFragments = 0;
         dimension1LastExplorationBlueprintFragments = 0;
@@ -2116,6 +2120,76 @@ public class GameState : MonoBehaviour
 
         if (SaveService.I != null)
             SaveService.I.Save();
+    }
+
+    [ContextMenu("P1 DEBUG: Preview Prestige 1 Points")]
+    private void DebugPreviewPrestige1Points()
+    {
+        EnsureDimension1State();
+        ActualizarMaxLE();
+
+        int basePoints = Dimension1System.CalculatePrestige1PointsFromBaseGame(this);
+        int planetPoints = Dimension1System.CalculatePrestige1PointsFromD1Planets(this);
+        int shipPoints = Dimension1System.CalculatePrestige1PointsFromD1Ships(this);
+        int relicPoints = Dimension1System.CalculatePrestige1PointsFromD1Relics(this);
+        int treePoints = Dimension1System.CalculatePrestige1PointsFromD1Tree(this);
+        int scannerPoints = Dimension1System.CalculatePrestige1PointsFromD1Scanner(this);
+        int d1Points = Dimension1System.CalculatePrestige1PointsFromDimension1(this);
+        int totalPreview = Dimension1System.CalculatePrestige1PointsPreview(this);
+
+        Debug.Log(
+            "[P1 Preview] Base: " +
+            basePoints +
+            " | D1: " +
+            d1Points +
+            " | Total preview: " +
+            totalPreview +
+            " | Puntos disponibles actuales: " +
+            prestige1Points +
+            "\n[D1 Breakdown] Planetas: " +
+            planetPoints +
+            " | Naves: " +
+            shipPoints +
+            " | Reliquias: " +
+            relicPoints +
+            " | Árbol: " +
+            treePoints +
+            " | Escáner: " +
+            scannerPoints
+        );
+    }
+
+    [ContextMenu("P1 DEBUG: Claim Prestige 1 Preview Points")]
+    private void DebugClaimPrestige1PreviewPoints()
+    {
+        EnsureDimension1State();
+        ActualizarMaxLE();
+
+        int previewPoints = Dimension1System.CalculatePrestige1PointsPreview(this);
+        int claimableBefore = Dimension1System.CalculateClaimablePrestige1Points(this);
+
+        bool claimed = Dimension1System.TryClaimPrestige1PreviewPoints(
+            this,
+            out int claimedPoints
+        );
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[P1 Claim] Resultado: " +
+            claimed +
+            " | Preview: " +
+            previewPoints +
+            " | Reclamables antes: " +
+            claimableBefore +
+            " | Reclamados ahora: " +
+            claimedPoints +
+            " | Mejor preview reclamado: " +
+            prestige1BestClaimedPreviewPoints +
+            " | Puntos disponibles: " +
+            prestige1Points
+        );
     }
 
 #endif

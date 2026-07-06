@@ -57,6 +57,7 @@ public class SaveData
     public int prestige1Count;
     public bool hasDonePrestige1;
     public int prestige1Points;
+    public int prestige1BestClaimedPreviewPoints;
     // F6.1: Máximo LE alcanzado en el run
     public double maxLEAlcanzado;
     public List<SavedF2UpgradeTier> f2UpgradeTiers = new();
@@ -186,6 +187,7 @@ public class SaveService : MonoBehaviour
         prestige1Count = GameState.I.prestige1Count,
         hasDonePrestige1 = GameState.I.hasDonePrestige1,
         prestige1Points = GameState.I.prestige1Points,
+        prestige1BestClaimedPreviewPoints = GameState.I.prestige1BestClaimedPreviewPoints,
 
             // F6.1: prestigio viejo
         maxLEAlcanzado = GameState.I.maxLEAlcanzado,
@@ -348,6 +350,7 @@ public class SaveService : MonoBehaviour
         GameState.I.prestige1Count = data.prestige1Count;
         GameState.I.hasDonePrestige1 = data.hasDonePrestige1;
         GameState.I.prestige1Points = data.prestige1Points;
+        GameState.I.prestige1BestClaimedPreviewPoints = data.prestige1BestClaimedPreviewPoints;
 
         // Migración para partidas viejas:
         // si el jugador ya hizo Prestigio 1, el sistema de dimensiones debe quedar preparado.
@@ -494,6 +497,7 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension1Relics = new List<D1RelicState>();
         GameState.I.dimension1TreeNodes = new List<D1TreeNodeState>();
         GameState.I.prestige1Points = 0;
+        GameState.I.prestige1BestClaimedPreviewPoints = 0;
         GameState.I.dimension1BlueprintFragments = 0;
         GameState.I.dimension1LastExplorationBlueprintFragments = 0;
         GameState.I.dimension1LastExplorationResultId = 0;

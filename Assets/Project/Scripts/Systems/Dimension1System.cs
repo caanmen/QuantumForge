@@ -904,6 +904,234 @@ public static class Dimension1System
         return state.SetD1TreeNodeTier(nodeId, targetTier);
     }
 
+    public static int CalculatePrestige1PointsFromBaseGame(GameState state)
+    {
+        if (state == null)
+            return 0;
+
+        double maxLe = System.Math.Max(state.maxLEAlcanzado, state.LE);
+
+        if (maxLe >= 1000000000.0)
+            return 16;
+
+        if (maxLe >= 100000000.0)
+            return 12;
+
+        if (maxLe >= 10000000.0)
+            return 8;
+
+        if (maxLe >= 1000000.0)
+            return 5;
+
+        if (maxLe >= 100000.0)
+            return 3;
+
+        if (maxLe >= 10000.0)
+            return 1;
+
+        return 0;
+    }
+
+    public static int CalculatePrestige1PointsFromDimension1(GameState state)
+    {
+        if (state == null)
+            return 0;
+
+        int rawPoints =
+            CalculatePrestige1PointsFromD1Planets(state) +
+            CalculatePrestige1PointsFromD1Ships(state) +
+            CalculatePrestige1PointsFromD1Relics(state) +
+            CalculatePrestige1PointsFromD1Tree(state) +
+            CalculatePrestige1PointsFromD1Scanner(state);
+
+        return Mathf.Min(rawPoints, 12);
+    }
+
+    public static int CalculatePrestige1PointsPreview(GameState state)
+    {
+        if (state == null)
+            return 0;
+
+        return
+            CalculatePrestige1PointsFromBaseGame(state) +
+            CalculatePrestige1PointsFromDimension1(state);
+    }
+
+    public static int CalculateClaimablePrestige1Points(GameState state)
+    {
+        if (state == null)
+            return 0;
+
+        int previewPoints = CalculatePrestige1PointsPreview(state);
+        int alreadyClaimed = Mathf.Max(0, state.prestige1BestClaimedPreviewPoints);
+
+        return Mathf.Max(0, previewPoints - alreadyClaimed);
+    }
+
+    public static bool TryClaimPrestige1PreviewPoints(GameState state, out int claimedPoints)
+    {
+        claimedPoints = 0;
+
+        if (state == null)
+            return false;
+
+        state.EnsureDimension1State();
+
+        int previewPoints = CalculatePrestige1PointsPreview(state);
+        int claimablePoints = CalculateClaimablePrestige1Points(state);
+
+        if (claimablePoints <= 0)
+            return false;
+
+        state.prestige1Points += claimablePoints;
+        state.prestige1BestClaimedPreviewPoints = Mathf.Max(
+            state.prestige1BestClaimedPreviewPoints,
+            previewPoints
+        );
+
+        claimedPoints = claimablePoints;
+        return true;
+    }
+
+    public static int CalculatePrestige1PointsFromD1Planets(GameState state)
+    {
+        if (state == null)
+            return 0;
+
+        state.EnsureDimension1State();
+
+        int unlockedPlanets = 0;
+
+        foreach (D1PlanetState planet in state.dimension1Planets)
+        {
+            if (planet != null && planet.unlocked)
+                unlockedPlanets++;
+        }
+
+        int points = 0;
+
+        if (unlockedPlanets >= 1)
+            points += 1;
+
+        if (unlockedPlanets >= 3)
+            points += 2;
+
+        if (unlockedPlanets >= 5)
+            points += 3;
+
+        if (unlockedPlanets >= 7)
+            points += 4;
+
+        return points;
+    }
+
+    public static int CalculatePrestige1PointsFromD1Ships(GameState state)
+    {
+        if (state == null)
+            return 0;
+
+        state.EnsureDimension1State();
+
+        int unlockedShips = 0;
+
+        foreach (D1ShipState ship in state.dimension1Ships)
+        {
+            if (ship != null && ship.unlocked)
+                unlockedShips++;
+        }
+
+        int points = 0;
+
+        if (unlockedShips >= 1)
+            points += 1;
+
+        if (unlockedShips >= 3)
+            points += 2;
+
+        if (IsShipUnlockedForPrestigePreview(state, ShipCargoShip))
+            points += 2;
+
+        if (IsShipUnlockedForPrestigePreview(state, ShipRescueShip))
+            points += 3;
+
+        if (IsShipUnlockedForPrestigePreview(state, ShipConvergenceShip))
+            points += 4;
+
+        return points;
+    }
+
+    private static bool IsShipUnlockedForPrestigePreview(GameState state, string shipId)
+    {
+        if (state == null)
+            return false;
+
+        foreach (D1ShipState ship in state.dimension1Ships)
+        {
+            if (ship != null && ship.shipId == shipId)
+                return ship.unlocked;
+        }
+
+        return false;
+    }
+
+    public static int CalculatePrestige1PointsFromD1Relics(GameState state)
+    {
+        if (state == null)
+            return 0;
+
+        state.EnsureDimension1State();
+
+        int unlockedRelics = 0;
+        int totalMilestones = 0;
+
+        foreach (D1RelicState relic in state.dimension1Relics)
+        {
+            if (relic == null || !relic.unlocked)
+                continue;
+
+            unlockedRelics++;
+
+            int level = ClampDimension1RelicLevel(relic.level);
+            totalMilestones += level / Dimension1RelicMilestoneStep;
+        }
+
+        int pointsFromUnlocked = Mathf.Min(8, unlockedRelics / 3);
+        int pointsFromMilestones = Mathf.Min(8, totalMilestones / 8);
+
+        return pointsFromUnlocked + pointsFromMilestones;
+    }
+
+    public static int CalculatePrestige1PointsFromD1Tree(GameState state)
+    {
+        if (state == null)
+            return 0;
+
+        state.EnsureDimension1State();
+
+        int totalPurchasedTiers = 0;
+
+        foreach (D1TreeNodeState node in state.dimension1TreeNodes)
+        {
+            if (node == null)
+                continue;
+
+            totalPurchasedTiers += ClampDimension1TreeNodeTier(
+                node.nodeId,
+                node.tier
+            );
+        }
+
+        return Mathf.Min(8, totalPurchasedTiers / 5);
+    }
+
+    public static int CalculatePrestige1PointsFromD1Scanner(GameState state)
+    {
+        if (state == null)
+            return 0;
+
+        return Mathf.Clamp(state.dimension1ScannerLevel, 0, 3);
+    }
+
     private static double GetDimension1RelicProgress01(GameState state, string relicId)
     {
         if (state == null)
