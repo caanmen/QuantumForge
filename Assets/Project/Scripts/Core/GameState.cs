@@ -2286,6 +2286,22 @@ public class GameState : MonoBehaviour
         );
     }
 
+    [ContextMenu("D1 DEBUG: Max Mining Relics")]
+    private void DebugMaxD1MiningRelics()
+    {
+        EnsureDimension1State();
+
+        SetD1RelicLevel(Dimension1System.RelicAncientDrill, 150);
+        SetD1RelicLevel(Dimension1System.RelicRememberedAlloy, 150);
+        SetD1RelicLevel(Dimension1System.RelicProspectingCore, 150);
+        SetD1RelicLevel(Dimension1System.RelicExtractionSeal, 150);
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log("[D1] DEBUG: Reliquias de minería al nivel 150.");
+    }
+
 #endif
 
 

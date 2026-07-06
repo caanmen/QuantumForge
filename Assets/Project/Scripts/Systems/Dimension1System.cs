@@ -1638,6 +1638,206 @@ public static class Dimension1System
         return (float)bonus;
     }
 
+    private static bool IsPlanetPrimaryMetal(D1PlanetState planet, string metalId)
+    {
+        if (planet == null || string.IsNullOrEmpty(metalId))
+            return false;
+
+        switch (planet.planetId)
+        {
+            case Planet01:
+                return metalId == MetalIron;
+
+            case Planet02:
+                return metalId == MetalAluminum;
+
+            case Planet03:
+                return metalId == MetalNickel;
+
+            case Planet04:
+                return metalId == MetalLithium;
+
+            case Planet05:
+                return metalId == MetalPlatinum;
+
+            case Planet06:
+                return metalId == MetalIridium;
+
+            case Planet07:
+                return metalId == MetalTungsten;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsPlanetSecondaryOrExtraMetal(D1PlanetState planet, string metalId)
+    {
+        if (planet == null || string.IsNullOrEmpty(metalId))
+            return false;
+
+        switch (planet.planetId)
+        {
+            case Planet01:
+                return metalId == MetalCopper && planet.extractorTier >= 10;
+
+            case Planet02:
+                return metalId == MetalTitanium && planet.extractorTier >= 10;
+
+            case Planet03:
+                return metalId == MetalCobalt && planet.extractorTier >= 10;
+
+            case Planet04:
+                return metalId == MetalTungsten && planet.extractorTier >= 10;
+
+            case Planet05:
+                return metalId == MetalNickel && planet.extractorTier >= 10;
+
+            case Planet06:
+                return metalId == MetalCobalt && planet.extractorTier >= 10;
+
+            case Planet07:
+                return
+                    metalId == MetalPlatinum && planet.extractorTier >= 10 ||
+                    metalId == MetalIridium && planet.extractorTier >= 20;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsAdvancedPlanet(D1PlanetState planet)
+    {
+        if (planet == null)
+            return false;
+
+        return
+            planet.planetId == Planet04 ||
+            planet.planetId == Planet05 ||
+            planet.planetId == Planet06 ||
+            planet.planetId == Planet07;
+    }
+
+    private static int GetUnlockedMetalCountForPlanet(D1PlanetState planet)
+    {
+        if (planet == null || !planet.unlocked || planet.extractorTier <= 0)
+            return 0;
+
+        switch (planet.planetId)
+        {
+            case Planet07:
+                if (planet.extractorTier >= 20)
+                    return 3;
+
+                if (planet.extractorTier >= 10)
+                    return 2;
+
+                return 1;
+
+            default:
+                return planet.extractorTier >= 10 ? 2 : 1;
+        }
+    }
+
+    private static double GetRelicMiningProductionMultiplier(
+        GameState state,
+        D1PlanetState planet,
+        string metalId
+    )
+    {
+        if (state == null || planet == null)
+            return 1.0;
+
+        double bonus = 0.0;
+
+        // Taladro Antiguo: producción minera general.
+        bonus += GetDimension1RelicScaledBonus(
+            state,
+            RelicAncientDrill,
+            0.06
+        );
+
+        // Taladro Antiguo: extra al recurso principal del planeta.
+        if (IsPlanetPrimaryMetal(planet, metalId))
+        {
+            bonus += GetDimension1RelicScaledBonus(
+                state,
+                RelicAncientDrill,
+                0.03
+            );
+        }
+
+        // Núcleo de Prospección: recursos secundarios.
+        if (IsPlanetSecondaryOrExtraMetal(planet, metalId))
+        {
+            bonus += GetDimension1RelicScaledBonus(
+                state,
+                RelicProspectingCore,
+                0.06
+            );
+        }
+
+        // Núcleo de Prospección: recursos raros en planetas avanzados.
+        if (IsAdvancedPlanet(planet) && IsPlanetSecondaryOrExtraMetal(planet, metalId))
+        {
+            bonus += GetDimension1RelicScaledBonus(
+                state,
+                RelicProspectingCore,
+                0.03
+            );
+        }
+
+        // Sello de Extracción: extractores avanzados.
+        if (planet.extractorTier >= 20)
+        {
+            bonus += GetDimension1RelicScaledBonus(
+                state,
+                RelicExtractionSeal,
+                0.045
+            );
+        }
+
+        // Sello de Extracción: planetas con varios recursos desbloqueados.
+        if (GetUnlockedMetalCountForPlanet(planet) >= 2)
+        {
+            bonus += GetDimension1RelicScaledBonus(
+                state,
+                RelicExtractionSeal,
+                0.03
+            );
+        }
+
+        return 1.0 + bonus;
+    }
+
+    private static double GetRelicExtractorUpgradeCostMultiplier(
+        GameState state,
+        D1PlanetState planet
+    )
+    {
+        if (state == null || planet == null)
+            return 1.0;
+
+        double reduction = GetDimension1RelicScaledBonus(
+            state,
+            RelicRememberedAlloy,
+            0.03
+        );
+
+        int targetTier = planet.extractorTier + 1;
+
+        if (targetTier > 0 && targetTier % 10 == 0)
+        {
+            reduction += GetDimension1RelicScaledBonus(
+                state,
+                RelicRememberedAlloy,
+                0.03
+            );
+        }
+
+        return System.Math.Max(0.50, 1.0 - reduction);
+    }
+
     public static bool UsesSpecificShipMatricesForUnlock(string shipId)
     {
         return
@@ -2142,34 +2342,68 @@ public static class Dimension1System
 
     private static void ProducePlanetResources(GameState state, D1PlanetState planet, double dt)
     {
+        if (planet == null)
+            return;
+
         switch (planet.planetId)
         {
             case Planet01:
-                ProducePlanet01(state, planet.extractorTier, dt);
+                AddMetalPerSecond(state, planet, MetalIron, 0.10, planet.extractorTier, dt);
+
+                if (planet.extractorTier >= 10)
+                    AddMetalPerSecond(state, planet, MetalCopper, 0.04, planet.extractorTier, dt);
+
                 break;
 
             case Planet02:
-                ProducePlanet02(state, planet.extractorTier, dt);
+                AddMetalPerSecond(state, planet, MetalAluminum, 0.045, planet.extractorTier, dt);
+
+                if (planet.extractorTier >= 10)
+                    AddMetalPerSecond(state, planet, MetalTitanium, 0.018, planet.extractorTier, dt);
+
                 break;
 
             case Planet03:
-                ProducePlanet03(state, planet.extractorTier, dt);
+                AddMetalPerSecond(state, planet, MetalNickel, 0.028, planet.extractorTier, dt);
+
+                if (planet.extractorTier >= 10)
+                    AddMetalPerSecond(state, planet, MetalCobalt, 0.011, planet.extractorTier, dt);
+
                 break;
 
             case Planet04:
-                ProducePlanet04(state, planet.extractorTier, dt);
+                AddMetalPerSecond(state, planet, MetalLithium, 0.018, planet.extractorTier, dt);
+
+                if (planet.extractorTier >= 10)
+                    AddMetalPerSecond(state, planet, MetalTungsten, 0.007, planet.extractorTier, dt);
+
                 break;
 
             case Planet05:
-                ProducePlanet05(state, planet.extractorTier, dt);
+                AddMetalPerSecond(state, planet, MetalPlatinum, 0.012, planet.extractorTier, dt);
+
+                if (planet.extractorTier >= 10)
+                    AddMetalPerSecond(state, planet, MetalNickel, 0.020, planet.extractorTier, dt);
+
                 break;
 
             case Planet06:
-                ProducePlanet06(state, planet.extractorTier, dt);
+                AddMetalPerSecond(state, planet, MetalIridium, 0.008, planet.extractorTier, dt);
+
+                if (planet.extractorTier >= 10)
+                    AddMetalPerSecond(state, planet, MetalCobalt, 0.014, planet.extractorTier, dt);
+
                 break;
 
             case Planet07:
-                ProducePlanet07(state, planet.extractorTier, dt);
+                AddMetalPerSecond(state, planet, MetalTungsten, 0.010, planet.extractorTier, dt);
+
+                if (planet.extractorTier >= 10)
+                    AddMetalPerSecond(state, planet, MetalPlatinum, 0.007, planet.extractorTier, dt);
+
+                if (planet.extractorTier >= 20)
+                    AddMetalPerSecond(state, planet, MetalIridium, 0.004, planet.extractorTier, dt);
+
                 break;
         }
     }
@@ -2286,13 +2520,36 @@ public static class Dimension1System
         double dt
     )
     {
+        AddMetalPerSecond(
+            state,
+            null,
+            metalId,
+            productionPerSecondPerTier,
+            tier,
+            dt
+        );
+    }
+
+    private static void AddMetalPerSecond(
+        GameState state,
+        D1PlanetState planet,
+        string metalId,
+        double productionPerSecondPerTier,
+        int tier,
+        double dt
+    )
+    {
         if (productionPerSecondPerTier <= 0.0)
             return;
 
         if (tier <= 0)
             return;
 
-        double amount = productionPerSecondPerTier * tier * dt;
+        double multiplier = planet != null
+            ? GetRelicMiningProductionMultiplier(state, planet, metalId)
+            : 1.0;
+
+        double amount = productionPerSecondPerTier * tier * dt * multiplier;
 
         if (amount <= 0.0)
             return;
@@ -2362,6 +2619,47 @@ public static class Dimension1System
     }
 
     public static double GetMetalProductionPerSecond(GameState state, string metalId)
+    {
+        if (state == null)
+            return 0.0;
+
+        if (!state.dimension01Unlocked)
+            return 0.0;
+
+        state.EnsureDimension1State();
+
+        if (state.dimension1Planets == null)
+            return 0.0;
+
+        double total = 0.0;
+
+        foreach (D1PlanetState planet in state.dimension1Planets)
+        {
+            if (planet == null)
+                continue;
+
+            if (!planet.unlocked)
+                continue;
+
+            if (planet.extractorTier <= 0)
+                continue;
+
+            double baseProduction = GetPlanetMetalProductionPerSecond(planet, metalId);
+
+            if (baseProduction <= 0.0)
+                continue;
+
+            total += baseProduction * GetRelicMiningProductionMultiplier(
+                state,
+                planet,
+                metalId
+            );
+        }
+
+        return total;
+    }
+
+    private static double GetBaseMetalProductionPerSecond(GameState state, string metalId)
     {
         if (state == null)
             return 0.0;
@@ -2503,6 +2801,16 @@ public static class Dimension1System
             default:
                 return 999999.0;
         }
+    }
+
+    public static double GetExtractorUpgradeCost(GameState state, D1PlanetState planet)
+    {
+        double baseCost = GetExtractorUpgradeCost(planet);
+
+        if (state == null || planet == null)
+            return baseCost;
+
+        return baseCost * GetRelicExtractorUpgradeCostMultiplier(state, planet);
     }
 
     public static string GetExtractorUpgradeMainCostMetal(D1PlanetState planet)
@@ -2652,7 +2960,7 @@ public static class Dimension1System
         if (planet == null || !planet.unlocked)
             return false;
 
-        double cost = GetExtractorUpgradeCost(planet);
+        double cost = GetExtractorUpgradeCost(state, planet);
         string costMetal = GetExtractorUpgradeMainCostMetal(planet);
 
         return state.GetD1MetalAmount(costMetal) >= cost;
@@ -2724,8 +3032,8 @@ public static class Dimension1System
         if (!planet.unlocked)
             return false;
 
-        double cost = GetExtractorUpgradeCost(planet);
-        string costMetal = GetExtractorUpgradeMainCostMetal(planet);
+        double cost = GetExtractorUpgradeCost(state, planet);
+         string costMetal = GetExtractorUpgradeMainCostMetal(planet);
 
         if (!state.SpendD1Metal(costMetal, cost))
             return false;
@@ -6197,7 +6505,7 @@ public static class Dimension1System
         if (!IsMetalUnlockedForDimension1(state, metalId))
             return;
 
-        double productionPerSecond = GetMetalProductionPerSecond(state, metalId);
+        double productionPerSecond = GetBaseMetalProductionPerSecond(state, metalId);
 
         if (productionPerSecond <= 0.0)
             return;

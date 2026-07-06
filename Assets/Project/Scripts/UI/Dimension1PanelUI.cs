@@ -286,7 +286,7 @@ public class Dimension1PanelUI : MonoBehaviour
             activeMetals += " / " + thirdMetalName;
         }
 
-        double upgradeCost = Dimension1System.GetExtractorUpgradeCost(planet);
+        double upgradeCost = Dimension1System.GetExtractorUpgradeCost(gs, planet);
         string costMetalId = Dimension1System.GetExtractorUpgradeMainCostMetal(planet);
         string costMetalName = GetMetalVisualName(costMetalId);
 
@@ -3321,7 +3321,7 @@ public class Dimension1PanelUI : MonoBehaviour
             return;
         }
 
-        double cost = Dimension1System.GetExtractorUpgradeCost(planet);
+        double cost = Dimension1System.GetExtractorUpgradeCost(gs, planet);
         string metalId = Dimension1System.GetExtractorUpgradeMainCostMetal(planet);
         string metalName = GetMetalVisualName(metalId);
 
