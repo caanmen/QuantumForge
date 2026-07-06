@@ -3349,7 +3349,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
   m_AnchoredPosition: {x: 130, y: 0}
-  m_SizeDelta: {x: 300, y: 300}
+  m_SizeDelta: {x: 500, y: 500}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &153350285
 MonoBehaviour:
@@ -24884,7 +24884,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 1.026, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -50.000122, y: 50}
+  m_AnchoredPosition: {x: -50.000183, y: 50}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &906358124
@@ -29753,7 +29753,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 100, y: 100}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1103687071
@@ -32293,6 +32293,8 @@ MonoBehaviour:
   guidedSynthesisIntent: 0
   prestige1Count: 0
   hasDonePrestige1: 0
+  prestige1Points: 0
+  prestige1BestClaimedPreviewPoints: 0
   maxLEAlcanzado: 0
   dimension01Unlocked: 0
   dimension02Unlocked: 0
@@ -32309,6 +32311,8 @@ MonoBehaviour:
   dimension1LastExplorationRewards: []
   dimension1RecentExplorationRecords: []
   dimension1Blueprints: []
+  dimension1Relics: []
+  dimension1TreeNodes: []
   dimension1BlueprintFragments: 0
   dimension1LastExplorationBlueprintFragments: 0
   dimension1LastExplorationSpecificBlueprints: []

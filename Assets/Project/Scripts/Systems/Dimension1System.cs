@@ -5755,83 +5755,88 @@ public static class Dimension1System
 
     private static string GetRandomSpecificBlueprintForDestination(string destinationId)
     {
-        if (destinationId == DestinationShipGraveyard)
+        string[] pool = GetSpecificBlueprintPoolForDestination(destinationId);
+
+        if (pool == null || pool.Length == 0)
+            return "";
+
+        return pool[Random.Range(0, pool.Length)];
+    }
+
+    public static string[] GetSpecificBlueprintPoolPreview(string destinationId)
+    {
+        string[] pool = GetSpecificBlueprintPoolForDestination(destinationId);
+
+        if (pool == null || pool.Length == 0)
+            return new string[0];
+
+        string[] result = new string[pool.Length];
+
+        for (int i = 0; i < pool.Length; i++)
+            result[i] = pool[i];
+
+        return result;
+    }
+
+    private static string[] GetSpecificBlueprintPoolForDestination(string destinationId)
+    {
+        switch (destinationId)
         {
-            string[] pool =
-            {
-            BlueprintCargoFrame,
-            BlueprintCargoHold,
-            BlueprintCargoStabilizer
-        };
+            case DestinationShipGraveyard:
+                return new string[]
+                {
+                BlueprintCargoFrame,
+                BlueprintCargoHold,
+                BlueprintCargoStabilizer
+                };
 
-            return pool[Random.Range(0, pool.Length)];
+            case DestinationAbandonedShip:
+                return new string[]
+                {
+                BlueprintCargoFrame,
+                BlueprintCargoHold,
+                BlueprintCargoStabilizer,
+                BlueprintRescueFrame,
+                BlueprintRescueBeacon
+                };
+
+            case DestinationAbandonedStation:
+                return new string[]
+                {
+                BlueprintRescueFrame,
+                BlueprintRescueBeacon,
+                BlueprintRescueRecoveryBay,
+                BlueprintRescueProtectionMatrix
+                };
+
+            case DestinationLaboratory:
+                return new string[]
+                {
+                BlueprintRescueRecoveryBay,
+                BlueprintRescueProtectionMatrix,
+                BlueprintConvergenceMatrix
+                };
+
+            case DestinationAncientStructure:
+                return new string[]
+                {
+                BlueprintConvergenceChassis,
+                BlueprintConvergenceMatrix,
+                BlueprintAnomalousArmor
+                };
+
+            case DestinationUnstableZone:
+                return new string[]
+                {
+                BlueprintConvergenceChassis,
+                BlueprintConvergenceCore,
+                BlueprintConvergenceMatrix,
+                BlueprintAnomalousArmor
+                };
+
+            default:
+                return new string[0];
         }
-
-        if (destinationId == DestinationAbandonedShip)
-        {
-            string[] pool =
-            {
-            BlueprintCargoFrame,
-            BlueprintCargoHold,
-            BlueprintCargoStabilizer,
-            BlueprintRescueFrame,
-            BlueprintRescueBeacon
-        };
-
-            return pool[Random.Range(0, pool.Length)];
-        }
-
-        if (destinationId == DestinationAbandonedStation)
-        {
-            string[] pool =
-            {
-            BlueprintRescueFrame,
-            BlueprintRescueBeacon,
-            BlueprintRescueRecoveryBay,
-            BlueprintRescueProtectionMatrix
-        };
-
-            return pool[Random.Range(0, pool.Length)];
-        }
-
-        if (destinationId == DestinationLaboratory)
-        {
-            string[] pool =
-            {
-            BlueprintRescueRecoveryBay,
-            BlueprintRescueProtectionMatrix,
-            BlueprintConvergenceMatrix
-        };
-
-            return pool[Random.Range(0, pool.Length)];
-        }
-
-        if (destinationId == DestinationAncientStructure)
-        {
-            string[] pool =
-            {
-            BlueprintConvergenceChassis,
-            BlueprintConvergenceMatrix,
-            BlueprintAnomalousArmor
-        };
-
-            return pool[Random.Range(0, pool.Length)];
-        }
-
-        if (destinationId == DestinationUnstableZone)
-        {
-            string[] pool =
-            {
-            BlueprintConvergenceChassis,
-            BlueprintConvergenceCore,
-            BlueprintConvergenceMatrix,
-            BlueprintAnomalousArmor
-        };
-
-            return pool[Random.Range(0, pool.Length)];
-        }
-
-        return "";
     }
 
     private static float GetBaseSimpleBlueprintFragmentChance(string destinationId)

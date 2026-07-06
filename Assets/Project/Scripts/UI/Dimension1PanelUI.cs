@@ -675,6 +675,7 @@ public class Dimension1PanelUI : MonoBehaviour
 
         float fragmentChance =
             Dimension1System.GetSimpleBlueprintFragmentChance(
+                gs,
                 destination.destinationId,
                 selectedShip
             );
@@ -696,6 +697,36 @@ public class Dimension1PanelUI : MonoBehaviour
             (specificMatrixChance * 100f).ToString("0.#") +
             "%";
 
+        text +=
+            "\n\nMatrices posibles del destino:\n" +
+            BuildSpecificMatrixPreviewPoolText(
+                Dimension1System.GetSpecificBlueprintPoolPreview(destination.destinationId)
+            );
+
+        return text;
+    }
+
+    private string BuildSpecificMatrixPreviewPoolText(string[] matrixIds)
+    {
+        if (matrixIds == null || matrixIds.Length == 0)
+            return "- Ninguna";
+
+        string text = "";
+
+        for (int i = 0; i < matrixIds.Length; i++)
+        {
+            if (string.IsNullOrEmpty(matrixIds[i]))
+                continue;
+
+            if (!string.IsNullOrEmpty(text))
+                text += "\n";
+
+            text += "- " + GetBlueprintVisualName(matrixIds[i]);
+        }
+
+        if (string.IsNullOrEmpty(text))
+            return "- Ninguna";
+
         return text;
     }
 
@@ -706,39 +737,12 @@ public class Dimension1PanelUI : MonoBehaviour
 
         string text =
             "Exploración completada\n\n" +
+            "Destino:\n" +
             GetDestinationVisualName(gs.dimension1LastExplorationDestinationId) +
-            "\n\nMetales obtenidos:\n";
-
-        bool hasAnyMetal = false;
-
-        if (gs.dimension1LastExplorationRewards != null)
-        {
-            foreach (D1MetalAmount reward in gs.dimension1LastExplorationRewards)
-            {
-                if (reward == null)
-                    continue;
-
-                if (string.IsNullOrEmpty(reward.metalId))
-                    continue;
-
-                if (reward.amount <= 0.0)
-                    continue;
-
-                text +=
-                    "- " +
-                    GetMetalVisualName(reward.metalId) +
-                    " +" +
-                    reward.amount.ToString("0.0") +
-                    "\n";
-
-                hasAnyMetal = true;
-            }
-        }
-
-        if (!hasAnyMetal)
-            text += "- Sin metales\n";
-
-        text += "\n" + BuildExplorationBlueprintResultText(gs);
+            "\n\n" +
+            BuildExplorationMetalResultText(gs) +
+            "\n\n" +
+            BuildExplorationMatrixResultText(gs);
 
         return text;
     }
@@ -778,7 +782,7 @@ public class Dimension1PanelUI : MonoBehaviour
         return text.TrimEnd('\n');
     }
 
-    private string BuildExplorationBlueprintResultText(GameState gs)
+    private string BuildExplorationMatrixResultText(GameState gs)
     {
         if (gs == null)
             return "Matrices:\nNo disponible.";
@@ -788,28 +792,110 @@ public class Dimension1PanelUI : MonoBehaviour
         int completedBlueprints = Dimension1System.GetCompletedBlueprintCount(gs);
 
         string text =
-            "Matrices:\n" +
-            "- Fragmentos de Matriz Adaptativa obtenidos: +" +
-            gainedFragments +
-            "\n" +
-            "- Progreso hacia Matriz Adaptativa: " +
+            "Matrices obtenidas:\n";
+
+        if (gainedFragments > 0)
+        {
+            text +=
+                "- Fragmentos de Matriz Adaptativa: +" +
+                gainedFragments +
+                "\n";
+        }
+        else
+        {
+            text += "- Fragmentos de Matriz Adaptativa: +0\n";
+        }
+
+        text +=
+            "- Progreso Matriz Adaptativa: " +
             currentProgress +
             "/" +
             Dimension1System.BlueprintFragmentsPerBlueprint +
             "\n" +
-            "- Matrices Adaptativas de Nave disponibles: " +
-            completedBlueprints;
+            "- Matrices Adaptativas disponibles: " +
+            completedBlueprints +
+            "\n";
 
-        if (gainedFragments <= 0)
-            text += "\n- No se encontraron fragmentos de Matriz Adaptativa en esta exploración.";
-
-        text +=
-            "\n" +
-            BuildSpecificMatrixRewardsText(gs.dimension1LastExplorationSpecificBlueprints);
+        text += BuildSpecificMatrixResultText(gs.dimension1LastExplorationSpecificBlueprints);
 
         return text;
     }
 
+    private string BuildExplorationMetalResultText(GameState gs)
+    {
+        if (gs == null)
+            return "Metales obtenidos:\n- No disponible";
+
+        string text = "Metales obtenidos:\n";
+        bool hasAnyMetal = false;
+
+        if (gs.dimension1LastExplorationRewards != null)
+        {
+            foreach (D1MetalAmount reward in gs.dimension1LastExplorationRewards)
+            {
+                if (reward == null)
+                    continue;
+
+                if (string.IsNullOrEmpty(reward.metalId))
+                    continue;
+
+                if (reward.amount <= 0.0)
+                    continue;
+
+                text +=
+                    "- " +
+                    GetMetalVisualName(reward.metalId) +
+                    ": +" +
+                    reward.amount.ToString("0.0") +
+                    "\n";
+
+                hasAnyMetal = true;
+            }
+        }
+
+        if (!hasAnyMetal)
+            text += "- Ninguno\n";
+
+        return text.TrimEnd('\n');
+    }
+
+    private string BuildSpecificMatrixResultText(List<D1BlueprintAmount> matrixRewards)
+    {
+        if (matrixRewards == null || matrixRewards.Count == 0)
+            return "- Matriz específica: ninguna";
+
+        string text = "";
+        bool hasAnyMatrix = false;
+
+        foreach (D1BlueprintAmount reward in matrixRewards)
+        {
+            if (reward == null)
+                continue;
+
+            if (string.IsNullOrEmpty(reward.blueprintId))
+                continue;
+
+            if (reward.amount <= 0)
+                continue;
+
+            if (!hasAnyMatrix)
+                text += "- Matrices específicas:\n";
+
+            text +=
+                "  • " +
+                GetBlueprintVisualName(reward.blueprintId) +
+                ": +" +
+                reward.amount +
+                "\n";
+
+            hasAnyMatrix = true;
+        }
+
+        if (!hasAnyMatrix)
+            return "- Matriz específica: ninguna";
+
+        return text.TrimEnd('\n');
+    }
     private string BuildLastExplorationText(GameState gs)
     {
         if (gs == null)
