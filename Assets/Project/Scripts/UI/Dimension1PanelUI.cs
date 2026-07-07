@@ -1522,77 +1522,24 @@ public class Dimension1PanelUI : MonoBehaviour
     {
         GameState gs = GameState.I;
 
+        string[] metalIds =
+            Dimension1System.GetExplorationMetalRewardPoolPreview(gs, destinationId);
+
+        if (metalIds == null || metalIds.Length == 0)
+            return "Sin metales produciendo para este destino";
+
         List<string> rewards = new List<string>();
 
-        switch (destinationId)
+        for (int i = 0; i < metalIds.Length; i++)
         {
-            case Dimension1System.DestinationMineralBelt:
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalIron);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalCopper);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalAluminum);
-                break;
+            if (string.IsNullOrEmpty(metalIds[i]))
+                continue;
 
-            case Dimension1System.DestinationShipGraveyard:
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalIron);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalTitanium);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalNickel);
-                break;
-
-            case Dimension1System.DestinationAbandonedProbe:
-            case Dimension1System.DestinationAbandonedShip:
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalCopper);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalTitanium);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalNickel);
-                break;
-
-            case Dimension1System.DestinationOrbitalRuin:
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalCopper);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalAluminum);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalLithium);
-                break;
-
-            case Dimension1System.DestinationDriftingProbes:
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalCopper);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalAluminum);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalLithium);
-                break;
-
-            case Dimension1System.DestinationLaboratory:
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalAluminum);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalTitanium);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalLithium);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalCobalt);
-                break;
-
-            case Dimension1System.DestinationAbandonedStation:
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalTitanium);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalNickel);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalCobalt);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalPlatinum);
-                break;
-
-            case Dimension1System.DestinationMinorAnomaly:
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalLithium);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalTungsten);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalCobalt);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalPlatinum);
-                break;
-
-            case Dimension1System.DestinationAncientStructure:
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalTungsten);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalPlatinum);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalIridium);
-                break;
-
-            case Dimension1System.DestinationUnstableZone:
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalTungsten);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalPlatinum);
-                AddRewardPreviewIfUnlocked(gs, rewards, Dimension1System.MetalIridium);
-                break;
+            rewards.Add(GetMetalVisualName(metalIds[i]));
         }
 
         if (rewards.Count == 0)
-            return "Sin metales desbloqueados para este destino";
+            return "Sin metales produciendo para este destino";
 
         return string.Join(" / ", rewards);
     }

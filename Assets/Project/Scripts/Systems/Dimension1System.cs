@@ -5434,71 +5434,16 @@ public static class Dimension1System
         state.dimension1LastExplorationBlueprintFragments = 0;
         state.dimension1LastExplorationSpecificBlueprints = new List<D1BlueprintAmount>();
 
-        switch (destinationId)
+        string[] metalRewardPool = GetExplorationMetalRewardPool(destinationId);
+
+        for (int i = 0; i < metalRewardPool.Length; i++)
         {
-            case DestinationMineralBelt:
-                AddExplorationTimedReward(state, rewards, MetalIron, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalCopper, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalAluminum, materialMultiplier);
-                break;
-
-            case DestinationShipGraveyard:
-                AddExplorationTimedReward(state, rewards, MetalIron, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalTitanium, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalNickel, materialMultiplier);
-                break;
-
-            case DestinationAbandonedProbe:
-            case DestinationAbandonedShip:
-                AddExplorationTimedReward(state, rewards, MetalCopper, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalTitanium, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalNickel, materialMultiplier);
-                break;
-
-            case DestinationOrbitalRuin:
-                AddExplorationTimedReward(state, rewards, MetalCopper, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalAluminum, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalLithium, materialMultiplier);
-                break;
-
-            case DestinationDriftingProbes:
-                AddExplorationTimedReward(state, rewards, MetalCopper, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalAluminum, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalLithium, materialMultiplier);
-                break;
-
-            case DestinationLaboratory:
-                AddExplorationTimedReward(state, rewards, MetalAluminum, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalTitanium, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalLithium, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalCobalt, materialMultiplier);
-                break;
-
-            case DestinationAbandonedStation:
-                AddExplorationTimedReward(state, rewards, MetalTitanium, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalNickel, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalCobalt, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalPlatinum, materialMultiplier);
-                break;
-
-            case DestinationMinorAnomaly:
-                AddExplorationTimedReward(state, rewards, MetalLithium, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalTungsten, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalCobalt, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalPlatinum, materialMultiplier);
-                break;
-
-            case DestinationAncientStructure:
-                AddExplorationTimedReward(state, rewards, MetalTungsten, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalPlatinum, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalIridium, materialMultiplier);
-                break;
-
-            case DestinationUnstableZone:
-                AddExplorationTimedReward(state, rewards, MetalTungsten, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalPlatinum, materialMultiplier);
-                AddExplorationTimedReward(state, rewards, MetalIridium, materialMultiplier);
-                break;
+            AddExplorationTimedReward(
+                state,
+                rewards,
+                metalRewardPool[i],
+                materialMultiplier
+            );
         }
 
         int blueprintFragments = RollSimpleBlueprintFragments(state, destinationId, ship);
@@ -6541,6 +6486,127 @@ public static class Dimension1System
         }
     }
 
+    public static string[] GetExplorationMetalRewardPoolPreview(GameState state, string destinationId)
+    {
+        string[] pool = GetExplorationMetalRewardPool(destinationId);
+
+        if (pool == null || pool.Length == 0)
+            return new string[0];
+
+        List<string> result = new List<string>();
+
+        for (int i = 0; i < pool.Length; i++)
+        {
+            string metalId = pool[i];
+
+            if (string.IsNullOrEmpty(metalId))
+                continue;
+
+            if (!IsMetalUnlockedForDimension1(state, metalId))
+                continue;
+
+            if (GetBaseMetalProductionPerSecond(state, metalId) <= 0.0)
+                continue;
+
+            result.Add(metalId);
+        }
+
+        return result.ToArray();
+    }
+
+    private static string[] GetExplorationMetalRewardPool(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationMineralBelt:
+                return new string[]
+                {
+                MetalIron,
+                MetalCopper,
+                MetalAluminum
+                };
+
+            case DestinationShipGraveyard:
+                return new string[]
+                {
+                MetalIron,
+                MetalTitanium,
+                MetalNickel
+                };
+
+            case DestinationAbandonedProbe:
+            case DestinationAbandonedShip:
+                return new string[]
+                {
+                MetalCopper,
+                MetalTitanium,
+                MetalNickel
+                };
+
+            case DestinationOrbitalRuin:
+                return new string[]
+                {
+                MetalCopper,
+                MetalAluminum,
+                MetalLithium
+                };
+
+            case DestinationDriftingProbes:
+                return new string[]
+                {
+                MetalCopper,
+                MetalAluminum,
+                MetalLithium
+                };
+
+            case DestinationLaboratory:
+                return new string[]
+                {
+                MetalAluminum,
+                MetalTitanium,
+                MetalLithium,
+                MetalCobalt
+                };
+
+            case DestinationAbandonedStation:
+                return new string[]
+                {
+                MetalTitanium,
+                MetalNickel,
+                MetalCobalt,
+                MetalPlatinum
+                };
+
+            case DestinationMinorAnomaly:
+                return new string[]
+                {
+                MetalLithium,
+                MetalTungsten,
+                MetalCobalt,
+                MetalPlatinum
+                };
+
+            case DestinationAncientStructure:
+                return new string[]
+                {
+                MetalTungsten,
+                MetalPlatinum,
+                MetalIridium
+                };
+
+            case DestinationUnstableZone:
+                return new string[]
+                {
+                MetalTungsten,
+                MetalPlatinum,
+                MetalIridium
+                };
+
+            default:
+                return new string[0];
+        }
+    }
+
     private static void AddExplorationTimedReward(
     GameState state,
     List<D1MetalAmount> rewards,
@@ -6979,74 +7045,8 @@ public static class Dimension1System
 
     private static bool DestinationHasUnlockedMetalReward(GameState state, string destinationId)
     {
-        switch (destinationId)
-        {
-            case DestinationMineralBelt:
-                return
-                    IsMetalUnlockedForDimension1(state, MetalIron) ||
-                    IsMetalUnlockedForDimension1(state, MetalCopper) ||
-                    IsMetalUnlockedForDimension1(state, MetalAluminum);
+        string[] availableRewards = GetExplorationMetalRewardPoolPreview(state, destinationId);
 
-            case DestinationShipGraveyard:
-                return
-                    IsMetalUnlockedForDimension1(state, MetalIron) ||
-                    IsMetalUnlockedForDimension1(state, MetalTitanium) ||
-                    IsMetalUnlockedForDimension1(state, MetalNickel);
-
-            case DestinationAbandonedProbe:
-            case DestinationAbandonedShip:
-                return
-                    IsMetalUnlockedForDimension1(state, MetalCopper) ||
-                    IsMetalUnlockedForDimension1(state, MetalTitanium) ||
-                    IsMetalUnlockedForDimension1(state, MetalNickel);
-
-            case DestinationOrbitalRuin:
-                return
-                    IsMetalUnlockedForDimension1(state, MetalCopper) ||
-                    IsMetalUnlockedForDimension1(state, MetalAluminum) ||
-                    IsMetalUnlockedForDimension1(state, MetalLithium);
-
-            case DestinationDriftingProbes:
-                return
-                    IsMetalUnlockedForDimension1(state, MetalCopper) ||
-                    IsMetalUnlockedForDimension1(state, MetalAluminum) ||
-                    IsMetalUnlockedForDimension1(state, MetalLithium);
-
-            case DestinationLaboratory:
-                return
-                    IsMetalUnlockedForDimension1(state, MetalAluminum) ||
-                    IsMetalUnlockedForDimension1(state, MetalTitanium) ||
-                    IsMetalUnlockedForDimension1(state, MetalLithium) ||
-                    IsMetalUnlockedForDimension1(state, MetalCobalt);
-
-            case DestinationAbandonedStation:
-                return
-                    IsMetalUnlockedForDimension1(state, MetalTitanium) ||
-                    IsMetalUnlockedForDimension1(state, MetalNickel) ||
-                    IsMetalUnlockedForDimension1(state, MetalCobalt) ||
-                    IsMetalUnlockedForDimension1(state, MetalPlatinum);
-
-            case DestinationMinorAnomaly:
-                return
-                    IsMetalUnlockedForDimension1(state, MetalLithium) ||
-                    IsMetalUnlockedForDimension1(state, MetalTungsten) ||
-                    IsMetalUnlockedForDimension1(state, MetalCobalt) ||
-                    IsMetalUnlockedForDimension1(state, MetalPlatinum);
-
-            case DestinationAncientStructure:
-                return
-                    IsMetalUnlockedForDimension1(state, MetalTungsten) ||
-                    IsMetalUnlockedForDimension1(state, MetalPlatinum) ||
-                    IsMetalUnlockedForDimension1(state, MetalIridium);
-
-            case DestinationUnstableZone:
-                return
-                    IsMetalUnlockedForDimension1(state, MetalTungsten) ||
-                    IsMetalUnlockedForDimension1(state, MetalPlatinum) ||
-                    IsMetalUnlockedForDimension1(state, MetalIridium);
-
-            default:
-                return false;
-        }
+        return availableRewards != null && availableRewards.Length > 0;
     }
 }
