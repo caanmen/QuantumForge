@@ -442,102 +442,119 @@ public class Dimension1PanelUI : MonoBehaviour
                 continue;
 
             text +=
-                "\n" +
+                "\n\n#" +
+                entry.resultId +
+                " — " +
                 GetShipVisualName(entry.shipId) +
                 " → " +
                 GetDestinationVisualName(entry.destinationId) +
-                ": ";
-
-            bool hasAnyReward = false;
-
-            if (entry.rewards != null)
-            {
-                foreach (D1MetalAmount reward in entry.rewards)
-                {
-                    if (reward == null)
-                        continue;
-
-                    if (string.IsNullOrEmpty(reward.metalId))
-                        continue;
-
-                    if (reward.amount <= 0.0)
-                        continue;
-
-                    if (hasAnyReward)
-                        text += " / ";
-
-                    text +=
-                        "+" +
-                        reward.amount.ToString("0.0") +
-                        " " +
-                        GetMetalVisualName(reward.metalId);
-
-                    hasAnyReward = true;
-                }
-            }
-
-            if (!hasAnyReward)
-                text += "sin metales";
-
-            if (entry.blueprintFragments > 0)
-            {
-                text +=
-                    " / +" +
-                    entry.blueprintFragments +
-                    " fragmentos de Matriz Adaptativa";
-            }
-
-            if (entry.specificBlueprintRewards != null)
-            {
-                foreach (D1BlueprintAmount blueprintReward in entry.specificBlueprintRewards)
-                {
-                    if (blueprintReward == null)
-                        continue;
-
-                    if (string.IsNullOrEmpty(blueprintReward.blueprintId))
-                        continue;
-
-                    if (blueprintReward.amount <= 0)
-                        continue;
-
-                    text +=
-                        " / +" +
-                        blueprintReward.amount +
-                        " " +
-                        GetBlueprintVisualName(blueprintReward.blueprintId);
-
-                    hasAnyReward = true;
-                }
-
-                if (entry.specificBlueprintRewards != null)
-                {
-                    foreach (D1BlueprintAmount matrixReward in entry.specificBlueprintRewards)
-                    {
-                        if (matrixReward == null)
-                            continue;
-
-                        if (string.IsNullOrEmpty(matrixReward.blueprintId))
-                            continue;
-
-                        if (matrixReward.amount <= 0)
-                            continue;
-
-                        text +=
-                            " / +" +
-                            matrixReward.amount +
-                            " " +
-                            GetBlueprintVisualName(matrixReward.blueprintId);
-
-                        hasAnyReward = true;
-                    }
-                }
-            }
+                "\n" +
+                BuildExplorationRecordRewardSummaryText(entry);
         }
 
         return text;
     }
 
+    private string BuildExplorationRecordRewardSummaryText(D1ExplorationRecordEntry entry)
+    {
+        if (entry == null)
+            return "- Sin datos.";
 
+        string text = "";
+
+        text += BuildExplorationRecordMetalSummaryText(entry);
+        text += "\n";
+        text += BuildExplorationRecordMatrixSummaryText(entry);
+
+        return text;
+    }
+
+    private string BuildExplorationRecordMetalSummaryText(D1ExplorationRecordEntry entry)
+    {
+        if (entry == null || entry.rewards == null || entry.rewards.Count == 0)
+            return "- Metales: ninguno";
+
+        string text = "- Metales: ";
+        bool hasAnyMetal = false;
+
+        foreach (D1MetalAmount reward in entry.rewards)
+        {
+            if (reward == null)
+                continue;
+
+            if (string.IsNullOrEmpty(reward.metalId))
+                continue;
+
+            if (reward.amount <= 0.0)
+                continue;
+
+            if (hasAnyMetal)
+                text += " / ";
+
+            text +=
+                "+" +
+                reward.amount.ToString("0.0") +
+                " " +
+                GetMetalVisualName(reward.metalId);
+
+            hasAnyMetal = true;
+        }
+
+        if (!hasAnyMetal)
+            return "- Metales: ninguno";
+
+        return text;
+    }
+
+    private string BuildExplorationRecordMatrixSummaryText(D1ExplorationRecordEntry entry)
+    {
+        if (entry == null)
+            return "- Matrices: ninguna";
+
+        string text = "- Matrices: ";
+        bool hasAnyMatrixReward = false;
+
+        if (entry.blueprintFragments > 0)
+        {
+            text +=
+                "+" +
+                entry.blueprintFragments +
+                " fragmentos de Matriz Adaptativa";
+
+            hasAnyMatrixReward = true;
+        }
+
+        if (entry.specificBlueprintRewards != null)
+        {
+            foreach (D1BlueprintAmount matrixReward in entry.specificBlueprintRewards)
+            {
+                if (matrixReward == null)
+                    continue;
+
+                if (string.IsNullOrEmpty(matrixReward.blueprintId))
+                    continue;
+
+                if (matrixReward.amount <= 0)
+                    continue;
+
+                if (hasAnyMatrixReward)
+                    text += " / ";
+
+                text +=
+                    "+" +
+                    matrixReward.amount +
+                    " " +
+                    GetBlueprintVisualName(matrixReward.blueprintId);
+
+                hasAnyMatrixReward = true;
+            }
+        }
+
+        if (!hasAnyMatrixReward)
+            return "- Matrices: ninguna";
+
+        return text;
+    }
 
     private string BuildSelectedDestinationText(GameState gs)
     {
@@ -652,6 +669,49 @@ public class Dimension1PanelUI : MonoBehaviour
         }
 
         explorationRecordText.text = BuildExplorationRecordText(gs);
+        ResizeExplorationRecordScrollContent();
+    }
+
+    private void ResizeExplorationRecordScrollContent()
+    {
+        if (explorationRecordText == null)
+            return;
+
+        RectTransform textRect = explorationRecordText.rectTransform;
+
+        if (textRect == null)
+            return;
+
+        RectTransform contentRect = textRect.parent as RectTransform;
+
+        if (contentRect == null)
+            return;
+
+        float paddingX = 12f;
+        float paddingTop = 10f;
+        float paddingBottom = 16f;
+
+        float contentWidth = contentRect.rect.width;
+
+        if (contentWidth <= 0f)
+            contentWidth = 420f;
+
+        float textWidth = Mathf.Max(100f, contentWidth - paddingX * 2f);
+
+        textRect.anchorMin = new Vector2(0f, 1f);
+        textRect.anchorMax = new Vector2(0f, 1f);
+        textRect.pivot = new Vector2(0f, 1f);
+        textRect.anchoredPosition = new Vector2(paddingX, -paddingTop);
+        textRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, textWidth);
+
+        explorationRecordText.ForceMeshUpdate();
+
+        float preferredHeight = Mathf.Ceil(explorationRecordText.preferredHeight);
+        float finalTextHeight = Mathf.Max(50f, preferredHeight + 4f);
+        float finalContentHeight = finalTextHeight + paddingTop + paddingBottom;
+
+        textRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, finalTextHeight);
+        contentRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, finalContentHeight);
     }
 
     private string BuildExplorationRewardsText(GameState gs)
