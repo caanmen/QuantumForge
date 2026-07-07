@@ -5614,7 +5614,7 @@ public static class Dimension1System
         if (Random.value > chance)
             return false;
 
-        string blueprintId = GetRandomSpecificBlueprintForDestination(destinationId);
+        string blueprintId = GetRandomSpecificBlueprintForDestination(state, destinationId);
 
         if (string.IsNullOrEmpty(blueprintId))
             return false;
@@ -5648,6 +5648,11 @@ public static class Dimension1System
         D1ShipState ship
     )
     {
+        string[] availablePool = GetSpecificBlueprintPoolForDestination(state, destinationId);
+
+        if (availablePool == null || availablePool.Length == 0)
+            return 0.0f;
+
         float chance = GetBaseSpecificBlueprintChance(destinationId);
 
         if (chance <= 0.0f)
@@ -5698,9 +5703,9 @@ public static class Dimension1System
         }
     }
 
-    private static string GetRandomSpecificBlueprintForDestination(string destinationId)
+    private static string GetRandomSpecificBlueprintForDestination(GameState state, string destinationId)
     {
-        string[] pool = GetSpecificBlueprintPoolForDestination(destinationId);
+        string[] pool = GetSpecificBlueprintPoolForDestination(state, destinationId);
 
         if (pool == null || pool.Length == 0)
             return "";
@@ -5708,9 +5713,14 @@ public static class Dimension1System
         return pool[Random.Range(0, pool.Length)];
     }
 
-    public static string[] GetSpecificBlueprintPoolPreview(string destinationId)
+    private static string GetRandomSpecificBlueprintForDestination(string destinationId)
     {
-        string[] pool = GetSpecificBlueprintPoolForDestination(destinationId);
+        return GetRandomSpecificBlueprintForDestination(null, destinationId);
+    }
+
+    public static string[] GetSpecificBlueprintPoolPreview(GameState state, string destinationId)
+    {
+        string[] pool = GetSpecificBlueprintPoolForDestination(state, destinationId);
 
         if (pool == null || pool.Length == 0)
             return new string[0];
@@ -5723,7 +5733,40 @@ public static class Dimension1System
         return result;
     }
 
-    private static string[] GetSpecificBlueprintPoolForDestination(string destinationId)
+    public static string[] GetSpecificBlueprintPoolPreview(string destinationId)
+    {
+        return GetSpecificBlueprintPoolPreview(null, destinationId);
+    }
+
+    private static string[] GetSpecificBlueprintPoolForDestination(GameState state, string destinationId)
+    {
+        string[] basePool = GetBaseSpecificBlueprintPoolForDestination(destinationId);
+
+        if (basePool == null || basePool.Length == 0)
+            return new string[0];
+
+        if (state == null)
+            return basePool;
+
+        List<string> filteredPool = new List<string>();
+
+        for (int i = 0; i < basePool.Length; i++)
+        {
+            string blueprintId = basePool[i];
+
+            if (string.IsNullOrEmpty(blueprintId))
+                continue;
+
+            if (!IsSpecificBlueprintAllowedForCurrentD1Progress(state, blueprintId))
+                continue;
+
+            filteredPool.Add(blueprintId);
+        }
+
+        return filteredPool.ToArray();
+    }
+
+    private static string[] GetBaseSpecificBlueprintPoolForDestination(string destinationId)
     {
         switch (destinationId)
         {
@@ -5782,6 +5825,53 @@ public static class Dimension1System
             default:
                 return new string[0];
         }
+    }
+
+    private static bool IsSpecificBlueprintAllowedForCurrentD1Progress(GameState state, string blueprintId)
+    {
+        if (IsCargoShipSpecificBlueprint(blueprintId))
+            return true;
+
+        if (IsRescueShipSpecificBlueprint(blueprintId))
+            return IsD1ShipUnlockedForRewardProgress(state, ShipCargoShip);
+
+        if (IsConvergenceShipSpecificBlueprint(blueprintId))
+            return IsD1ShipUnlockedForRewardProgress(state, ShipRescueShip);
+
+        return true;
+    }
+
+    private static bool IsCargoShipSpecificBlueprint(string blueprintId)
+    {
+        return
+            blueprintId == BlueprintCargoFrame ||
+            blueprintId == BlueprintCargoHold ||
+            blueprintId == BlueprintCargoStabilizer;
+    }
+
+    private static bool IsRescueShipSpecificBlueprint(string blueprintId)
+    {
+        return
+            blueprintId == BlueprintRescueFrame ||
+            blueprintId == BlueprintRescueBeacon ||
+            blueprintId == BlueprintRescueRecoveryBay ||
+            blueprintId == BlueprintRescueProtectionMatrix;
+    }
+
+    private static bool IsConvergenceShipSpecificBlueprint(string blueprintId)
+    {
+        return
+            blueprintId == BlueprintConvergenceChassis ||
+            blueprintId == BlueprintConvergenceCore ||
+            blueprintId == BlueprintConvergenceMatrix ||
+            blueprintId == BlueprintAnomalousArmor;
+    }
+
+    private static bool IsD1ShipUnlockedForRewardProgress(GameState state, string shipId)
+    {
+        D1ShipState ship = FindShipState(state, shipId);
+
+        return ship != null && ship.unlocked;
     }
 
     private static float GetBaseSimpleBlueprintFragmentChance(string destinationId)

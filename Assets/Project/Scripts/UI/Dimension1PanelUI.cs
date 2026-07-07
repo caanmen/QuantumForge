@@ -760,7 +760,7 @@ public class Dimension1PanelUI : MonoBehaviour
         text +=
             "\n\nMatrices posibles del destino:\n" +
             BuildSpecificMatrixPreviewPoolText(
-                Dimension1System.GetSpecificBlueprintPoolPreview(destination.destinationId)
+                Dimension1System.GetSpecificBlueprintPoolPreview(gs, destination.destinationId)
             );
 
         return text;
