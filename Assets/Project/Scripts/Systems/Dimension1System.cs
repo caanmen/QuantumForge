@@ -1482,9 +1482,49 @@ public static class Dimension1System
         }
     }
 
+    private static bool IsExplorerPlateBasicDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationMineralBelt:
+            case DestinationShipGraveyard:
+            case DestinationAbandonedProbe:
+            case DestinationAbandonedShip:
+            case DestinationDriftingProbes:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool IsExplorerPlateMediumDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationOrbitalRuin:
+            case DestinationLaboratory:
+            case DestinationAbandonedStation:
+            case DestinationMinorAnomaly:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
     private static double GetRelicExplorationDurationMultiplier(
         GameState state,
         string destinationId
+    )
+    {
+        return GetRelicExplorationDurationMultiplier(state, destinationId, null);
+    }
+
+    private static double GetRelicExplorationDurationMultiplier(
+        GameState state,
+        string destinationId,
+        D1ShipState ship
     )
     {
         double reduction = GetDimension1RelicScaledBonus(
@@ -1500,6 +1540,26 @@ public static class Dimension1System
                 RelicDriftCompass,
                 0.03
             );
+        }
+
+        if (ship != null && ship.shipId == ShipLightProbe)
+        {
+            if (IsExplorerPlateBasicDestination(destinationId))
+            {
+                reduction += GetDimension1RelicScaledBonus(
+                    state,
+                    RelicExplorerPlate,
+                    0.03
+                );
+            }
+            else if (IsExplorerPlateMediumDestination(destinationId))
+            {
+                reduction += GetDimension1RelicScaledBonus(
+                    state,
+                    RelicExplorerPlate,
+                    0.015
+                );
+            }
         }
 
         return System.Math.Max(0.50, 1.0 - reduction);
@@ -1565,6 +1625,26 @@ public static class Dimension1System
             );
         }
 
+        if (ship != null && ship.shipId == ShipLightProbe)
+        {
+            if (IsExplorerPlateBasicDestination(destinationId))
+            {
+                bonus += GetDimension1RelicScaledBonus(
+                    state,
+                    RelicExplorerPlate,
+                    0.06
+                );
+            }
+            else if (IsExplorerPlateMediumDestination(destinationId))
+            {
+                bonus += GetDimension1RelicScaledBonus(
+                    state,
+                    RelicExplorerPlate,
+                    0.03
+                );
+            }
+        }
+
         if (ship != null && ship.shipId == ShipExtractorDrone)
         {
             bonus += GetDimension1RelicScaledBonus(
@@ -1605,6 +1685,16 @@ public static class Dimension1System
             return 1.0;
 
         double bonus = 0.0;
+
+        if (ship.shipId == ShipLightProbe &&
+            IsExplorerPlateMediumDestination(destinationId))
+        {
+            bonus += GetDimension1RelicScaledBonus(
+                state,
+                RelicExplorerPlate,
+                0.03
+            );
+        }
 
         if (ship.shipId == ShipRescueShip)
         {
@@ -2237,9 +2327,18 @@ public static class Dimension1System
         return GetSimpleExplorationBaseDurationSeconds(destinationId);
     }
 
+    public static double GetSimpleExplorationDurationPreviewSeconds(
+        GameState state,
+        string destinationId,
+        D1ShipState ship
+    )
+    {
+        return GetSimpleExplorationDurationSeconds(state, destinationId, ship);
+    }
+
     public static double GetSimpleExplorationDurationPreviewSeconds(string destinationId, D1ShipState ship)
     {
-        return GetSimpleExplorationDurationSeconds(destinationId, ship);
+        return GetSimpleExplorationDurationPreviewSeconds(null, destinationId, ship);
     }
 
 
@@ -7111,7 +7210,7 @@ public static class Dimension1System
         double baseDuration = GetSimpleExplorationBaseDurationSeconds(destinationId);
 
         if (ship == null)
-            return baseDuration * GetRelicExplorationDurationMultiplier(state, destinationId);
+            return baseDuration * GetRelicExplorationDurationMultiplier(state, destinationId, ship);
 
         double shipDuration = baseDuration;
 
@@ -7130,7 +7229,7 @@ public static class Dimension1System
 
         return
             shipDuration *
-            GetRelicExplorationDurationMultiplier(state, destinationId) *
+            GetRelicExplorationDurationMultiplier(state, destinationId, ship) *
             GetD1TreeExplorationDurationMultiplier(state, destinationId, ship);
     }
 

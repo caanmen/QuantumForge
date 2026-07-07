@@ -2233,6 +2233,7 @@ public class GameState : MonoBehaviour
 
         SetD1RelicLevel(Dimension1System.RelicDriftCompass, 150);
         SetD1RelicLevel(Dimension1System.RelicAncientCargoCore, 150);
+        SetD1RelicLevel(Dimension1System.RelicExplorerPlate, 150);
         SetD1RelicLevel(Dimension1System.RelicExtractionHook, 150);
         SetD1RelicLevel(Dimension1System.RelicAnalyticCrystal, 150);
         SetD1RelicLevel(Dimension1System.RelicModularContainer, 150);

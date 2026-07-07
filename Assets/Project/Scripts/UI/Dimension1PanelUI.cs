@@ -100,6 +100,8 @@ public class Dimension1PanelUI : MonoBehaviour
     private int lastHandledExplorationResultId;
     private bool showingExplorationResultPanel;
     private bool explorationRecordPanelOpen;
+    private int lastObservedDestinationDropdownValue = -1;
+    private int lastObservedShipDropdownValue = -1;
 
     private static readonly string[] HangarShipIds =
 {
@@ -131,6 +133,12 @@ public class Dimension1PanelUI : MonoBehaviour
 
     private void Update()
     {
+        if (SyncMainExplorationDropdownChanges())
+        {
+            RefreshUI();
+            return;
+        }
+
         refreshTimer += Time.unscaledDeltaTime;
 
         if (refreshTimer < refreshInterval)
@@ -138,6 +146,39 @@ public class Dimension1PanelUI : MonoBehaviour
 
         refreshTimer = 0f;
         RefreshUI();
+    }
+
+    private bool SyncMainExplorationDropdownChanges()
+    {
+        bool changed = false;
+
+        if (destinationDropdown != null && !isRefreshingDestinationDropdown)
+        {
+            int currentDestinationValue = destinationDropdown.value;
+
+            if (lastObservedDestinationDropdownValue != currentDestinationValue)
+            {
+                lastObservedDestinationDropdownValue = currentDestinationValue;
+                selectedDestinationIndex = currentDestinationValue;
+                CloseExplorationOverlayPanels();
+                changed = true;
+            }
+        }
+
+        if (shipDropdown != null && !isRefreshingShipDropdown)
+        {
+            int currentShipValue = shipDropdown.value;
+
+            if (lastObservedShipDropdownValue != currentShipValue)
+            {
+                lastObservedShipDropdownValue = currentShipValue;
+                selectedShipIndex = currentShipValue;
+                CloseExplorationOverlayPanels();
+                changed = true;
+            }
+        }
+
+        return changed;
     }
 
     private void RefreshUI()
@@ -823,8 +864,10 @@ public class Dimension1PanelUI : MonoBehaviour
 
         string text =
             "Recompensas posibles\n\n" +
-            "Tiempo de misión:\n" +
-            GetDestinationDurationPreview(destination.destinationId, selectedShip) +
+            "Nave:\n" +
+            GetShipVisualName(selectedShip.shipId) +
+            "\n\nTiempo de misión:\n" +
+            GetDestinationDurationPreview(gs, destination.destinationId, selectedShip) +
             "\n\nMetales:\n" +
             metalRewards;
 
@@ -1811,9 +1854,14 @@ public class Dimension1PanelUI : MonoBehaviour
         return (chance * 100f).ToString("0") + "%";
     }
 
-    private string GetDestinationDurationPreview(string destinationId, D1ShipState selectedShip)
+    private string GetDestinationDurationPreview(
+        GameState gs,
+        string destinationId,
+        D1ShipState selectedShip
+    )
     {
         double duration = Dimension1System.GetSimpleExplorationDurationPreviewSeconds(
+            gs,
             destinationId,
             selectedShip
         );
@@ -2795,6 +2843,8 @@ public class Dimension1PanelUI : MonoBehaviour
             return;
 
         selectedDestinationIndex = index;
+        lastObservedDestinationDropdownValue = index;
+
         CloseExplorationOverlayPanels();
 
         RefreshUI();
@@ -2806,6 +2856,8 @@ public class Dimension1PanelUI : MonoBehaviour
             return;
 
         selectedShipIndex = index;
+        lastObservedShipDropdownValue = index;
+
         CloseExplorationOverlayPanels();
 
         RefreshUI();
