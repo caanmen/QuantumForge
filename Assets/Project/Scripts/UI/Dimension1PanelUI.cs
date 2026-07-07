@@ -423,6 +423,9 @@ public class Dimension1PanelUI : MonoBehaviour
             case Dimension1System.RelicExtractionSeal:
                 return "Sello de Extracción";
 
+            case Dimension1System.RelicMatrixArchive:
+                return "Archivo de Matrices";
+
             default:
                 return relicId;
         }

@@ -1723,17 +1723,22 @@ public static class Dimension1System
         D1ShipState ship
     )
     {
-        if (ship == null)
-            return 0.0f;
+        double bonus = 0.0;
 
-        if (ship.shipId != ShipAnalyticProbe)
-            return 0.0f;
-
-        double bonus = GetDimension1RelicScaledBonus(
+        bonus += GetDimension1RelicScaledBonus(
             state,
-            RelicAnalyticCrystal,
+            RelicMatrixArchive,
             0.03
         );
+
+        if (ship != null && ship.shipId == ShipAnalyticProbe)
+        {
+            bonus += GetDimension1RelicScaledBonus(
+                state,
+                RelicAnalyticCrystal,
+                0.03
+            );
+        }
 
         return (float)bonus;
     }
@@ -6010,6 +6015,7 @@ public static class Dimension1System
                 {
                 RelicDormantEcho,
                 RelicAnalyticCrystal,
+                RelicMatrixArchive,
                 RelicModularContainer,
                 RelicRescueBeacon
                 };
@@ -6035,6 +6041,7 @@ public static class Dimension1System
                 {
                 RelicDormantEcho,
                 RelicAnalyticCrystal,
+                RelicMatrixArchive,
                 RelicRescueBeacon
                 };
 
@@ -6109,8 +6116,35 @@ public static class Dimension1System
             return 0.0f;
 
         chance += GetShipSensorSpecificBlueprintBonus(destinationId, ship);
+        chance += GetRelicSpecificBlueprintChanceBonus(state, destinationId, ship);
 
         return Mathf.Clamp(chance, 0.0f, 0.20f);
+    }
+
+    private static float GetRelicSpecificBlueprintChanceBonus(
+    GameState state,
+    string destinationId,
+    D1ShipState ship
+)
+    {
+        double bonus = 0.0;
+
+        bonus += GetDimension1RelicScaledBonus(
+            state,
+            RelicMatrixArchive,
+            0.03
+        );
+
+        if (ship != null && ship.shipId == ShipAnalyticProbe)
+        {
+            bonus += GetDimension1RelicScaledBonus(
+                state,
+                RelicAnalyticCrystal,
+                0.01
+            );
+        }
+
+        return (float)bonus;
     }
 
     private static float GetShipSensorSpecificBlueprintBonus(
