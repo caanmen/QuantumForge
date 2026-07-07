@@ -229,6 +229,9 @@ public class GameState : MonoBehaviour
     [Tooltip("Blueprints específicos obtenidos en la última exploración.")]
     public List<D1BlueprintAmount> dimension1LastExplorationSpecificBlueprints = new List<D1BlueprintAmount>();
 
+    [Tooltip("Reliquias obtenidas en la última exploración.")]
+    public List<D1RelicRewardEntry> dimension1LastExplorationRelics = new List<D1RelicRewardEntry>();
+
     [Tooltip("Contador interno para detectar nuevas exploraciones completadas en la UI.")]
     public int dimension1LastExplorationResultId = 0;
 
@@ -1154,6 +1157,9 @@ public class GameState : MonoBehaviour
         if (dimension1LastExplorationSpecificBlueprints == null)
             dimension1LastExplorationSpecificBlueprints = new List<D1BlueprintAmount>();
 
+        if (dimension1LastExplorationRelics == null)
+            dimension1LastExplorationRelics = new List<D1RelicRewardEntry>();
+
         if (dimension1RecentExplorationRecords == null)
             dimension1RecentExplorationRecords = new List<D1ExplorationRecordEntry>();
 
@@ -1598,6 +1604,7 @@ public class GameState : MonoBehaviour
         prestige1Points = 0;
         prestige1BestClaimedPreviewPoints = 0;
         dimension1LastExplorationSpecificBlueprints = new List<D1BlueprintAmount>();
+        dimension1LastExplorationRelics = new List<D1RelicRewardEntry>();
         dimension1BlueprintFragments = 0;
         dimension1LastExplorationBlueprintFragments = 0;
         dimension1LastExplorationResultId = 0;
@@ -2048,6 +2055,48 @@ public class GameState : MonoBehaviour
             " | Adaptativas disponibles=" + adaptiveAvailable +
             " | Puede cubrir=" + canCover +
             " | Detalle: " + matrixBreakdown;
+    }
+
+    [ContextMenu("D1 DEBUG: Print Relics")]
+    private void DebugPrintD1Relics()
+    {
+        EnsureDimension1State();
+
+        Debug.Log("[D1 Relics] Estado actual de Reliquias:");
+
+        DebugPrintD1RelicLine(Dimension1System.RelicDriftCompass, "Brújula de Deriva");
+        DebugPrintD1RelicLine(Dimension1System.RelicAncientCargoCore, "Núcleo de Bodega Antigua");
+        DebugPrintD1RelicLine(Dimension1System.RelicLostNavigationRecord, "Registro de Navegación Perdido");
+        DebugPrintD1RelicLine(Dimension1System.RelicExpeditionSeal, "Sello de Expedición");
+        DebugPrintD1RelicLine(Dimension1System.RelicDormantEcho, "Eco de Reliquia Dormida");
+
+        DebugPrintD1RelicLine(Dimension1System.RelicExplorerPlate, "Placa de Explorador");
+        DebugPrintD1RelicLine(Dimension1System.RelicExtractionHook, "Gancho de Extracción");
+        DebugPrintD1RelicLine(Dimension1System.RelicAnalyticCrystal, "Cristal Analítico");
+        DebugPrintD1RelicLine(Dimension1System.RelicModularContainer, "Contenedor Modular");
+        DebugPrintD1RelicLine(Dimension1System.RelicRescueBeacon, "Baliza de Rescate");
+
+        DebugPrintD1RelicLine(Dimension1System.RelicAncientDrill, "Taladro Antiguo");
+        DebugPrintD1RelicLine(Dimension1System.RelicRememberedAlloy, "Aleación Recordada");
+        DebugPrintD1RelicLine(Dimension1System.RelicProspectingCore, "Núcleo de Prospección");
+        DebugPrintD1RelicLine(Dimension1System.RelicExtractionSeal, "Sello de Extracción");
+    }
+
+    private void DebugPrintD1RelicLine(string relicId, string relicName)
+    {
+        bool unlocked = IsD1RelicUnlocked(relicId);
+        int level = GetD1RelicLevel(relicId);
+
+        Debug.Log(
+            "[D1 Relics] " +
+            relicName +
+            " | ID=" +
+            relicId +
+            " | Desbloqueada=" +
+            unlocked +
+            " | Nivel=" +
+            level
+        );
     }
 
     [ContextMenu("D1 DEBUG: Unlock Drift Compass Relic")]

@@ -336,6 +336,57 @@ public class Dimension1PanelUI : MonoBehaviour
         }
     }
 
+    private string GetRelicVisualName(string relicId)
+    {
+        switch (relicId)
+        {
+            case Dimension1System.RelicDriftCompass:
+                return "Brújula de Deriva";
+
+            case Dimension1System.RelicAncientCargoCore:
+                return "Núcleo de Bodega Antigua";
+
+            case Dimension1System.RelicLostNavigationRecord:
+                return "Registro de Navegación Perdido";
+
+            case Dimension1System.RelicExpeditionSeal:
+                return "Sello de Expedición";
+
+            case Dimension1System.RelicDormantEcho:
+                return "Eco de Reliquia Dormida";
+
+            case Dimension1System.RelicExplorerPlate:
+                return "Placa de Explorador";
+
+            case Dimension1System.RelicExtractionHook:
+                return "Gancho de Extracción";
+
+            case Dimension1System.RelicAnalyticCrystal:
+                return "Cristal Analítico";
+
+            case Dimension1System.RelicModularContainer:
+                return "Contenedor Modular";
+
+            case Dimension1System.RelicRescueBeacon:
+                return "Baliza de Rescate";
+
+            case Dimension1System.RelicAncientDrill:
+                return "Taladro Antiguo";
+
+            case Dimension1System.RelicRememberedAlloy:
+                return "Aleación Recordada";
+
+            case Dimension1System.RelicProspectingCore:
+                return "Núcleo de Prospección";
+
+            case Dimension1System.RelicExtractionSeal:
+                return "Sello de Extracción";
+
+            default:
+                return relicId;
+        }
+    }
+
     private string BuildScannerText(GameState gs)
     {
         if (gs == null)
@@ -802,7 +853,9 @@ public class Dimension1PanelUI : MonoBehaviour
             "\n\n" +
             BuildExplorationMetalResultText(gs) +
             "\n\n" +
-            BuildExplorationMatrixResultText(gs);
+            BuildExplorationMatrixResultText(gs) +
+            "\n\n" +
+            BuildExplorationRelicResultText(gs);
 
         return text;
     }
@@ -879,6 +932,50 @@ public class Dimension1PanelUI : MonoBehaviour
         text += BuildSpecificMatrixResultText(gs.dimension1LastExplorationSpecificBlueprints);
 
         return text;
+    }
+
+    private string BuildExplorationRelicResultText(GameState gs)
+    {
+        if (gs == null)
+            return "Reliquias obtenidas:\n- No disponible";
+
+        if (gs.dimension1LastExplorationRelics == null ||
+            gs.dimension1LastExplorationRelics.Count == 0)
+        {
+            return "Reliquias obtenidas:\n- Ninguna";
+        }
+
+        string text = "Reliquias obtenidas:\n";
+
+        foreach (D1RelicRewardEntry reward in gs.dimension1LastExplorationRelics)
+        {
+            if (reward == null)
+                continue;
+
+            if (string.IsNullOrEmpty(reward.relicId))
+                continue;
+
+            if (reward.wasDuplicate)
+            {
+                text +=
+                    "- " +
+                    GetRelicVisualName(reward.relicId) +
+                    " repetida → +" +
+                    reward.duplicateMetalAmount.ToString("0") +
+                    " " +
+                    GetMetalVisualName(reward.duplicateMetalId) +
+                    "\n";
+            }
+            else
+            {
+                text +=
+                    "- " +
+                    GetRelicVisualName(reward.relicId) +
+                    " desbloqueada\n";
+            }
+        }
+
+        return text.TrimEnd('\n');
     }
 
     private string BuildExplorationMetalResultText(GameState gs)

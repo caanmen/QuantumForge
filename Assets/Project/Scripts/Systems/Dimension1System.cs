@@ -61,6 +61,15 @@ public class D1BlueprintAmount
 }
 
 [System.Serializable]
+public class D1RelicRewardEntry
+{
+    public string relicId;
+    public bool wasDuplicate;
+    public string duplicateMetalId;
+    public double duplicateMetalAmount;
+}
+
+[System.Serializable]
 public class D1RelicState
 {
     public string relicId;
@@ -5433,6 +5442,7 @@ public static class Dimension1System
 
         state.dimension1LastExplorationBlueprintFragments = 0;
         state.dimension1LastExplorationSpecificBlueprints = new List<D1BlueprintAmount>();
+        state.dimension1LastExplorationRelics = new List<D1RelicRewardEntry>();
 
         string[] metalRewardPool = GetExplorationMetalRewardPool(destinationId);
 
@@ -5455,6 +5465,7 @@ public static class Dimension1System
         }
 
         TryGrantSpecificBlueprintReward(state, destinationId, ship);
+        TryGrantExplorationRelicReward(state, destinationId, ship);
 
         state.dimension1LastExplorationDestinationId = destinationId;
         state.dimension1LastExplorationRewards = rewards;
@@ -5631,6 +5642,288 @@ public static class Dimension1System
         });
 
         return true;
+    }
+
+    private static void TryGrantExplorationRelicReward(
+    GameState state,
+    string destinationId,
+    D1ShipState ship
+)
+    {
+        if (state == null)
+            return;
+
+        string[] relicPool = GetExplorationRelicRewardPool(state, destinationId);
+
+        if (relicPool == null || relicPool.Length == 0)
+            return;
+
+        float chance = GetExplorationRelicChance(state, destinationId, ship);
+
+        if (chance <= 0.0f)
+            return;
+
+        if (Random.value > chance)
+            return;
+
+        string relicId = relicPool[Random.Range(0, relicPool.Length)];
+
+        if (string.IsNullOrEmpty(relicId))
+            return;
+
+        bool wasDuplicate = state.IsD1RelicUnlocked(relicId);
+
+        D1RelicRewardEntry reward = new D1RelicRewardEntry
+        {
+            relicId = relicId,
+            wasDuplicate = wasDuplicate,
+            duplicateMetalId = "",
+            duplicateMetalAmount = 0.0
+        };
+
+        if (wasDuplicate)
+        {
+            reward.duplicateMetalId = MetalIron;
+            reward.duplicateMetalAmount = GetDuplicateRelicConversionAmount(state);
+
+            state.AddD1Metal(reward.duplicateMetalId, reward.duplicateMetalAmount);
+        }
+        else
+        {
+            state.UnlockD1Relic(relicId);
+        }
+
+        if (state.dimension1LastExplorationRelics == null)
+            state.dimension1LastExplorationRelics = new List<D1RelicRewardEntry>();
+
+        state.dimension1LastExplorationRelics.Add(reward);
+    }
+
+    private static float GetExplorationRelicChance(
+        GameState state,
+        string destinationId,
+        D1ShipState ship
+    )
+    {
+        float chance = GetBaseExplorationRelicChance(destinationId);
+
+        chance += (float)GetDimension1RelicScaledBonus(
+            state,
+            RelicDormantEcho,
+            0.018
+        );
+
+        if (ship != null &&
+            ship.shipId == ShipAnalyticProbe &&
+            IsResearchRelicDestination(destinationId))
+        {
+            chance += (float)GetDimension1RelicScaledBonus(
+                state,
+                RelicAnalyticCrystal,
+                0.012
+            );
+        }
+
+        return Mathf.Clamp(chance, 0.0f, 0.15f);
+    }
+
+    private static float GetBaseExplorationRelicChance(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationMineralBelt:
+                return 0.03f;
+
+            case DestinationShipGraveyard:
+                return 0.02f;
+
+            case DestinationAbandonedShip:
+                return 0.04f;
+
+            case DestinationOrbitalRuin:
+                return 0.07f;
+
+            case DestinationDriftingProbes:
+                return 0.03f;
+
+            case DestinationLaboratory:
+                return 0.05f;
+
+            case DestinationAbandonedStation:
+                return 0.05f;
+
+            case DestinationMinorAnomaly:
+                return 0.07f;
+
+            case DestinationAncientStructure:
+                return 0.09f;
+
+            case DestinationUnstableZone:
+                return 0.08f;
+
+            default:
+                return 0.0f;
+        }
+    }
+
+    private static bool IsResearchRelicDestination(string destinationId)
+    {
+        return
+            destinationId == DestinationOrbitalRuin ||
+            destinationId == DestinationLaboratory ||
+            destinationId == DestinationMinorAnomaly ||
+            destinationId == DestinationAncientStructure ||
+            destinationId == DestinationUnstableZone;
+    }
+
+    private static string[] GetExplorationRelicRewardPool(GameState state, string destinationId)
+    {
+        string[] basePool = GetBaseExplorationRelicRewardPool(destinationId);
+
+        if (basePool == null || basePool.Length == 0)
+            return new string[0];
+
+        List<string> filteredPool = new List<string>();
+
+        for (int i = 0; i < basePool.Length; i++)
+        {
+            string relicId = basePool[i];
+
+            if (string.IsNullOrEmpty(relicId))
+                continue;
+
+            if (!IsExplorationRelicAllowedForCurrentProgress(state, relicId))
+                continue;
+
+            filteredPool.Add(relicId);
+        }
+
+        return filteredPool.ToArray();
+    }
+
+    private static string[] GetBaseExplorationRelicRewardPool(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationMineralBelt:
+                return new string[]
+                {
+                RelicAncientDrill,
+                RelicProspectingCore,
+                RelicRememberedAlloy,
+                RelicExtractionSeal
+                };
+
+            case DestinationShipGraveyard:
+                return new string[]
+                {
+                RelicDriftCompass,
+                RelicAncientCargoCore,
+                RelicExplorerPlate,
+                RelicExtractionHook
+                };
+
+            case DestinationAbandonedShip:
+                return new string[]
+                {
+                RelicAncientCargoCore,
+                RelicExplorerPlate,
+                RelicAnalyticCrystal,
+                RelicModularContainer,
+                RelicRescueBeacon
+                };
+
+            case DestinationOrbitalRuin:
+                return new string[]
+                {
+                RelicDriftCompass,
+                RelicDormantEcho,
+                RelicAnalyticCrystal
+                };
+
+            case DestinationDriftingProbes:
+                return new string[]
+                {
+                RelicDriftCompass,
+                RelicAnalyticCrystal
+                };
+
+            case DestinationLaboratory:
+                return new string[]
+                {
+                RelicDormantEcho,
+                RelicAnalyticCrystal,
+                RelicModularContainer,
+                RelicRescueBeacon
+                };
+
+            case DestinationAbandonedStation:
+                return new string[]
+                {
+                RelicAncientCargoCore,
+                RelicModularContainer,
+                RelicRescueBeacon
+                };
+
+            case DestinationMinorAnomaly:
+                return new string[]
+                {
+                RelicDormantEcho,
+                RelicDriftCompass,
+                RelicAnalyticCrystal
+                };
+
+            case DestinationAncientStructure:
+                return new string[]
+                {
+                RelicDormantEcho,
+                RelicAnalyticCrystal,
+                RelicRescueBeacon
+                };
+
+            case DestinationUnstableZone:
+                return new string[]
+                {
+                RelicDormantEcho,
+                RelicRescueBeacon,
+                RelicExtractionSeal
+                };
+
+            default:
+                return new string[0];
+        }
+    }
+
+    private static bool IsExplorationRelicAllowedForCurrentProgress(GameState state, string relicId)
+    {
+        if (string.IsNullOrEmpty(relicId))
+            return false;
+
+        if (relicId == RelicExplorerPlate)
+            return true;
+
+        if (relicId == RelicExtractionHook)
+            return IsD1ShipUnlockedForRewardProgress(state, ShipExtractorDrone);
+
+        if (relicId == RelicAnalyticCrystal)
+            return IsD1ShipUnlockedForRewardProgress(state, ShipAnalyticProbe);
+
+        if (relicId == RelicModularContainer)
+            return IsD1ShipUnlockedForRewardProgress(state, ShipCargoShip);
+
+        if (relicId == RelicRescueBeacon)
+            return IsD1ShipUnlockedForRewardProgress(state, ShipRescueShip);
+
+        return true;
+    }
+
+    private static double GetDuplicateRelicConversionAmount(GameState state)
+    {
+        double amount = 50.0;
+
+        amount *= 1.0 + GetD1TreeDuplicateRelicConversionBonus(state);
+
+        return System.Math.Ceiling(amount);
     }
 
     public static float GetSpecificBlueprintChancePreview(
