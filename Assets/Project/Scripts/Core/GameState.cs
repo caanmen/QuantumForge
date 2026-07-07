@@ -2081,6 +2081,7 @@ public class GameState : MonoBehaviour
         DebugPrintD1RelicLine(Dimension1System.RelicProspectingCore, "Núcleo de Prospección");
         DebugPrintD1RelicLine(Dimension1System.RelicExtractionSeal, "Sello de Extracción");
         DebugPrintD1RelicLine(Dimension1System.RelicMatrixArchive, "Archivo de Matrices");
+        DebugPrintD1RelicLine(Dimension1System.RelicFracturedAntenna, "Antena Fracturada");
     }
 
     private void DebugPrintD1RelicLine(string relicId, string relicName)
@@ -2240,6 +2241,7 @@ public class GameState : MonoBehaviour
         SetD1RelicLevel(Dimension1System.RelicModularContainer, 150);
         SetD1RelicLevel(Dimension1System.RelicRescueBeacon, 150);
         SetD1RelicLevel(Dimension1System.RelicMatrixArchive, 150);
+        SetD1RelicLevel(Dimension1System.RelicFracturedAntenna, 150);
 
         if (SaveService.I != null)
             SaveService.I.Save();

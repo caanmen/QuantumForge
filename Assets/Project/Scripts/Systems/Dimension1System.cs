@@ -5460,7 +5460,7 @@ public static class Dimension1System
 
         state.dimension1ScannedDestinations.Clear();
 
-        int destinationCount = GetSimpleScanDestinationCount(state);
+        int destinationCount = GetSimpleScanDestinationCountWithRelicRoll(state);
         List<string> destinations = PickSimpleDestinations(state, destinationCount);
 
         foreach (string destinationId in destinations)
@@ -5482,6 +5482,41 @@ public static class Dimension1System
             SimpleScanBaseDestinationCount,
             SimpleScanMaxDestinationCount
         );
+    }
+
+    private static int GetSimpleScanDestinationCountWithRelicRoll(GameState state)
+    {
+        int destinationCount = GetSimpleScanDestinationCount(state);
+
+        if (destinationCount < SimpleScanMaxDestinationCount)
+        {
+            float extraDestinationChance = GetFracturedAntennaExtraScanDestinationChance(state);
+
+            if (Random.value < extraDestinationChance)
+                destinationCount += 1;
+        }
+
+        return Mathf.Clamp(
+            destinationCount,
+            SimpleScanBaseDestinationCount,
+            SimpleScanMaxDestinationCount
+        );
+    }
+
+    public static float GetFracturedAntennaExtraScanDestinationChancePreview(GameState state)
+    {
+        return GetFracturedAntennaExtraScanDestinationChance(state);
+    }
+
+    private static float GetFracturedAntennaExtraScanDestinationChance(GameState state)
+    {
+        double chance = GetDimension1RelicScaledBonus(
+            state,
+            RelicFracturedAntenna,
+            0.015
+        );
+
+        return Mathf.Clamp((float)chance, 0.0f, 0.05f);
     }
 
     private static void UpdateActiveExplorations(GameState state, double dt)
@@ -6000,14 +6035,16 @@ public static class Dimension1System
                 {
                 RelicDriftCompass,
                 RelicDormantEcho,
-                RelicAnalyticCrystal
+                RelicAnalyticCrystal,
+                RelicFracturedAntenna
                 };
 
             case DestinationDriftingProbes:
                 return new string[]
                 {
                 RelicDriftCompass,
-                RelicAnalyticCrystal
+                RelicAnalyticCrystal,
+                RelicFracturedAntenna
                 };
 
             case DestinationLaboratory:
@@ -6016,6 +6053,7 @@ public static class Dimension1System
                 RelicDormantEcho,
                 RelicAnalyticCrystal,
                 RelicMatrixArchive,
+                RelicFracturedAntenna,
                 RelicModularContainer,
                 RelicRescueBeacon
                 };
@@ -7414,30 +7452,38 @@ public static class Dimension1System
 
     private static double GetSimpleScanDurationSeconds(GameState state)
     {
+        double baseDuration = SimpleScanDurationSeconds;
+
         D1ShipState analyticProbe = FindShipState(state, ShipAnalyticProbe);
 
         if (analyticProbe != null && analyticProbe.unlocked)
         {
             if (analyticProbe.sensorsLevel >= 6)
-                return 2.1;
-
-            if (analyticProbe.sensorsLevel >= 5)
-                return 2.4;
-
-            if (analyticProbe.sensorsLevel >= 4)
-                return 2.7;
-
-            if (analyticProbe.sensorsLevel >= 3)
-                return 3.0;
-
-            if (analyticProbe.sensorsLevel >= 2)
-                return 3.5;
-
-            if (analyticProbe.sensorsLevel >= 1)
-                return 4.0;
+                baseDuration = 2.1;
+            else if (analyticProbe.sensorsLevel >= 5)
+                baseDuration = 2.4;
+            else if (analyticProbe.sensorsLevel >= 4)
+                baseDuration = 2.7;
+            else if (analyticProbe.sensorsLevel >= 3)
+                baseDuration = 3.0;
+            else if (analyticProbe.sensorsLevel >= 2)
+                baseDuration = 3.5;
+            else if (analyticProbe.sensorsLevel >= 1)
+                baseDuration = 4.0;
         }
 
-        return SimpleScanDurationSeconds;
+        return baseDuration * GetRelicScanDurationMultiplier(state);
+    }
+
+    private static double GetRelicScanDurationMultiplier(GameState state)
+    {
+        double reduction = GetDimension1RelicScaledBonus(
+            state,
+            RelicFracturedAntenna,
+            0.06
+        );
+
+        return System.Math.Max(0.75, 1.0 - reduction);
     }
 
     private static D1PlanetState FindPlanetState(GameState state, string planetId)

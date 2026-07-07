@@ -426,6 +426,9 @@ public class Dimension1PanelUI : MonoBehaviour
             case Dimension1System.RelicMatrixArchive:
                 return "Archivo de Matrices";
 
+            case Dimension1System.RelicFracturedAntenna:
+                return "Antena Fracturada";
+
             default:
                 return relicId;
         }
@@ -447,6 +450,17 @@ public class Dimension1PanelUI : MonoBehaviour
             "/" +
             Dimension1System.GetSimpleScanMaxDestinationCount() +
             " destinos\n";
+
+        float fracturedAntennaExtraChance =
+            Dimension1System.GetFracturedAntennaExtraScanDestinationChancePreview(gs);
+
+        if (fracturedAntennaExtraChance > 0.0f)
+        {
+            scannerHeader +=
+                "Antena Fracturada: " +
+                (fracturedAntennaExtraChance * 100f).ToString("0.#") +
+                "% de +1 destino\n";
+        }
 
         if (gs.dimension1ScanActive)
         {
