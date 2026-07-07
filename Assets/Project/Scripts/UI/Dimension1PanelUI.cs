@@ -516,6 +516,8 @@ public class Dimension1PanelUI : MonoBehaviour
         text += BuildExplorationRecordMetalSummaryText(entry);
         text += "\n";
         text += BuildExplorationRecordMatrixSummaryText(entry);
+        text += "\n";
+        text += BuildExplorationRecordRelicSummaryText(entry);
 
         return text;
     }
@@ -603,6 +605,48 @@ public class Dimension1PanelUI : MonoBehaviour
 
         if (!hasAnyMatrixReward)
             return "- Matrices: ninguna";
+
+        return text;
+    }
+
+    private string BuildExplorationRecordRelicSummaryText(D1ExplorationRecordEntry entry)
+    {
+        if (entry == null || entry.relicRewards == null || entry.relicRewards.Count == 0)
+            return "- Reliquias: ninguna";
+
+        string text = "- Reliquias: ";
+        bool hasAnyRelic = false;
+
+        foreach (D1RelicRewardEntry reward in entry.relicRewards)
+        {
+            if (reward == null)
+                continue;
+
+            if (string.IsNullOrEmpty(reward.relicId))
+                continue;
+
+            if (hasAnyRelic)
+                text += " / ";
+
+            if (reward.wasDuplicate)
+            {
+                text +=
+                    GetRelicVisualName(reward.relicId) +
+                    " repetida +" +
+                    reward.duplicateMetalAmount.ToString("0") +
+                    " " +
+                    GetMetalVisualName(reward.duplicateMetalId);
+            }
+            else
+            {
+                text += GetRelicVisualName(reward.relicId) + " desbloqueada";
+            }
+
+            hasAnyRelic = true;
+        }
+
+        if (!hasAnyRelic)
+            return "- Reliquias: ninguna";
 
         return text;
     }
@@ -814,6 +858,24 @@ public class Dimension1PanelUI : MonoBehaviour
                 Dimension1System.GetSpecificBlueprintPoolPreview(gs, destination.destinationId)
             );
 
+        float relicChance =
+            Dimension1System.GetExplorationRelicChancePreview(
+                gs,
+                destination.destinationId,
+                selectedShip
+            );
+
+        text +=
+            "\n\nReliquia posible:\n" +
+            (relicChance * 100f).ToString("0.#") +
+            "%";
+
+        text +=
+            "\n\nReliquias posibles del destino:\n" +
+            BuildRelicPreviewPoolText(
+                Dimension1System.GetExplorationRelicRewardPoolPreview(gs, destination.destinationId)
+            );
+
         return text;
     }
 
@@ -833,6 +895,30 @@ public class Dimension1PanelUI : MonoBehaviour
                 text += "\n";
 
             text += "- " + GetBlueprintVisualName(matrixIds[i]);
+        }
+
+        if (string.IsNullOrEmpty(text))
+            return "- Ninguna";
+
+        return text;
+    }
+
+    private string BuildRelicPreviewPoolText(string[] relicIds)
+    {
+        if (relicIds == null || relicIds.Length == 0)
+            return "- Ninguna";
+
+        string text = "";
+
+        for (int i = 0; i < relicIds.Length; i++)
+        {
+            if (string.IsNullOrEmpty(relicIds[i]))
+                continue;
+
+            if (!string.IsNullOrEmpty(text))
+                text += "\n";
+
+            text += "- " + GetRelicVisualName(relicIds[i]);
         }
 
         if (string.IsNullOrEmpty(text))

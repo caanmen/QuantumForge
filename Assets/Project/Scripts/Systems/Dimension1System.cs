@@ -51,6 +51,7 @@ public class D1ExplorationRecordEntry
     public List<D1MetalAmount> rewards = new List<D1MetalAmount>();
     public int blueprintFragments;
     public List<D1BlueprintAmount> specificBlueprintRewards = new List<D1BlueprintAmount>();
+    public List<D1RelicRewardEntry> relicRewards = new List<D1RelicRewardEntry>();
 }
 
 [System.Serializable]
@@ -5477,7 +5478,8 @@ public static class Dimension1System
             destinationId,
             rewards,
             blueprintFragments,
-            state.dimension1LastExplorationSpecificBlueprints
+            state.dimension1LastExplorationSpecificBlueprints,
+            state.dimension1LastExplorationRelics
         );
     }
 
@@ -5487,7 +5489,8 @@ public static class Dimension1System
         string destinationId,
         List<D1MetalAmount> rewards,
         int blueprintFragments,
-        List<D1BlueprintAmount> specificBlueprintRewards
+        List<D1BlueprintAmount> specificBlueprintRewards,
+        List<D1RelicRewardEntry> relicRewards
     )
     {
         if (state == null)
@@ -5503,7 +5506,8 @@ public static class Dimension1System
             destinationId = destinationId,
             rewards = new List<D1MetalAmount>(),
             blueprintFragments = blueprintFragments,
-            specificBlueprintRewards = CloneBlueprintRewards(specificBlueprintRewards)
+            specificBlueprintRewards = CloneBlueprintRewards(specificBlueprintRewards),
+            relicRewards = CloneRelicRewards(relicRewards)
         };
 
         if (rewards != null)
@@ -5551,6 +5555,33 @@ public static class Dimension1System
             {
                 blueprintId = reward.blueprintId,
                 amount = reward.amount
+            });
+        }
+
+        return result;
+    }
+
+    private static List<D1RelicRewardEntry> CloneRelicRewards(List<D1RelicRewardEntry> rewards)
+    {
+        List<D1RelicRewardEntry> result = new List<D1RelicRewardEntry>();
+
+        if (rewards == null)
+            return result;
+
+        foreach (D1RelicRewardEntry reward in rewards)
+        {
+            if (reward == null)
+                continue;
+
+            if (string.IsNullOrEmpty(reward.relicId))
+                continue;
+
+            result.Add(new D1RelicRewardEntry
+            {
+                relicId = reward.relicId,
+                wasDuplicate = reward.wasDuplicate,
+                duplicateMetalId = reward.duplicateMetalId,
+                duplicateMetalAmount = reward.duplicateMetalAmount
             });
         }
 
@@ -5697,6 +5728,33 @@ public static class Dimension1System
             state.dimension1LastExplorationRelics = new List<D1RelicRewardEntry>();
 
         state.dimension1LastExplorationRelics.Add(reward);
+    }
+
+    public static float GetExplorationRelicChancePreview(
+    GameState state,
+    string destinationId,
+    D1ShipState ship
+)
+    {
+        return GetExplorationRelicChance(state, destinationId, ship);
+    }
+
+    public static string[] GetExplorationRelicRewardPoolPreview(
+        GameState state,
+        string destinationId
+    )
+    {
+        string[] pool = GetExplorationRelicRewardPool(state, destinationId);
+
+        if (pool == null || pool.Length == 0)
+            return new string[0];
+
+        string[] result = new string[pool.Length];
+
+        for (int i = 0; i < pool.Length; i++)
+            result[i] = pool[i];
+
+        return result;
     }
 
     private static float GetExplorationRelicChance(
