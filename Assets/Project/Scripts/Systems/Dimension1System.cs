@@ -5469,6 +5469,12 @@ public static class Dimension1System
             previousDestinationIds
         );
 
+        destinations = ApplyAdvancedCartographyDestinationRoll(
+            state,
+            destinations,
+            previousDestinationIds
+        );
+
         foreach (string destinationId in destinations)
         {
             state.dimension1ScannedDestinations.Add(new D1ScannedDestinationState
@@ -7824,6 +7830,138 @@ public static class Dimension1System
         }
 
         return 1.0f;
+    }
+
+    private static List<string> ApplyAdvancedCartographyDestinationRoll(
+    GameState state,
+    List<string> destinations,
+    List<string> previousDestinationIds
+)
+    {
+        if (destinations == null)
+            return new List<string>();
+
+        float chance = GetD1TreeAdvancedCartographySpecialDestinationChance(state);
+
+        if (chance <= 0.0f)
+            return destinations;
+
+        if (Random.value > chance)
+            return destinations;
+
+        List<string> candidates = GetAdvancedCartographyCandidateDestinations(
+            state,
+            destinations
+        );
+
+        if (candidates.Count == 0)
+            return destinations;
+
+        string selectedAdvancedDestination = candidates[Random.Range(0, candidates.Count)];
+
+        if (string.IsNullOrEmpty(selectedAdvancedDestination))
+            return destinations;
+
+        if (destinations.Count == 0)
+        {
+            destinations.Add(selectedAdvancedDestination);
+            return destinations;
+        }
+
+        int replaceIndex = PickAdvancedCartographyReplaceIndex(
+            destinations,
+            previousDestinationIds
+        );
+
+        destinations[replaceIndex] = selectedAdvancedDestination;
+
+        return destinations;
+    }
+
+    private static List<string> GetAdvancedCartographyCandidateDestinations(
+        GameState state,
+        List<string> currentDestinations
+    )
+    {
+        List<string> candidates = new List<string>();
+
+        AddAdvancedCartographyCandidate(
+            state,
+            currentDestinations,
+            candidates,
+            DestinationOrbitalRuin
+        );
+
+        AddAdvancedCartographyCandidate(
+            state,
+            currentDestinations,
+            candidates,
+            DestinationLaboratory
+        );
+
+        AddAdvancedCartographyCandidate(
+            state,
+            currentDestinations,
+            candidates,
+            DestinationMinorAnomaly
+        );
+
+        AddAdvancedCartographyCandidate(
+            state,
+            currentDestinations,
+            candidates,
+            DestinationAncientStructure
+        );
+
+        AddAdvancedCartographyCandidate(
+            state,
+            currentDestinations,
+            candidates,
+            DestinationUnstableZone
+        );
+
+        return candidates;
+    }
+
+    private static void AddAdvancedCartographyCandidate(
+        GameState state,
+        List<string> currentDestinations,
+        List<string> candidates,
+        string destinationId
+    )
+    {
+        if (string.IsNullOrEmpty(destinationId))
+            return;
+
+        if (currentDestinations != null && currentDestinations.Contains(destinationId))
+            return;
+
+        if (!CanDestinationAppearInScan(state, destinationId))
+            return;
+
+        candidates.Add(destinationId);
+    }
+
+    private static int PickAdvancedCartographyReplaceIndex(
+        List<string> destinations,
+        List<string> previousDestinationIds
+    )
+    {
+        if (destinations == null || destinations.Count == 0)
+            return 0;
+
+        for (int i = 0; i < destinations.Count; i++)
+        {
+            string destinationId = destinations[i];
+
+            if (previousDestinationIds != null &&
+                previousDestinationIds.Contains(destinationId))
+            {
+                return i;
+            }
+        }
+
+        return destinations.Count - 1;
     }
 
     private static bool CanDestinationAppearInScan(GameState state, string destinationId)

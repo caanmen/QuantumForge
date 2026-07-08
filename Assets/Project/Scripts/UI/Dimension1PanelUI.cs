@@ -473,6 +473,17 @@ public class Dimension1PanelUI : MonoBehaviour
                 "% peso de destinos repetidos\n";
         }
 
+        float advancedCartographyChance =
+            Dimension1System.GetD1TreeAdvancedCartographySpecialDestinationChance(gs);
+
+        if (advancedCartographyChance > 0.0f)
+        {
+            scannerHeader +=
+                "Cartografía Avanzada: " +
+                (advancedCartographyChance * 100f).ToString("0.#") +
+                "% de mejorar destino avanzado\n";
+        }
+
         if (gs.dimension1ScanActive)
         {
             return
