@@ -5458,10 +5458,16 @@ public static class Dimension1System
         if (state.dimension1ScannedDestinations == null)
             state.dimension1ScannedDestinations = new List<D1ScannedDestinationState>();
 
+        List<string> previousDestinationIds = GetCurrentScannedDestinationIds(state);
+
         state.dimension1ScannedDestinations.Clear();
 
         int destinationCount = GetSimpleScanDestinationCountWithRelicRoll(state);
-        List<string> destinations = PickSimpleDestinations(state, destinationCount);
+        List<string> destinations = PickSimpleDestinations(
+            state,
+            destinationCount,
+            previousDestinationIds
+        );
 
         foreach (string destinationId in destinations)
         {
@@ -5471,6 +5477,28 @@ public static class Dimension1System
                 available = true
             });
         }
+    }
+
+    private static List<string> GetCurrentScannedDestinationIds(GameState state)
+    {
+        List<string> result = new List<string>();
+
+        if (state == null || state.dimension1ScannedDestinations == null)
+            return result;
+
+        foreach (D1ScannedDestinationState destination in state.dimension1ScannedDestinations)
+        {
+            if (destination == null)
+                continue;
+
+            if (string.IsNullOrEmpty(destination.destinationId))
+                continue;
+
+            if (!result.Contains(destination.destinationId))
+                result.Add(destination.destinationId);
+        }
+
+        return result;
     }
 
     private static int GetSimpleScanDestinationCount(GameState state)
@@ -7684,19 +7712,28 @@ public static class Dimension1System
 
     private static List<string> PickSimpleDestinations(GameState state, int count)
     {
+        return PickSimpleDestinations(state, count, null);
+    }
+
+    private static List<string> PickSimpleDestinations(
+        GameState state,
+        int count,
+        List<string> previousDestinationIds
+    )
+    {
         List<string> pool = new List<string>
-        {
-            DestinationMineralBelt,
-            DestinationShipGraveyard,
-            DestinationAbandonedShip,
-            DestinationOrbitalRuin,
-            DestinationDriftingProbes,
-            DestinationLaboratory,
-            DestinationAbandonedStation,
-            DestinationMinorAnomaly,
-            DestinationAncientStructure,
-            DestinationUnstableZone
-        };
+    {
+        DestinationMineralBelt,
+        DestinationShipGraveyard,
+        DestinationAbandonedShip,
+        DestinationOrbitalRuin,
+        DestinationDriftingProbes,
+        DestinationLaboratory,
+        DestinationAbandonedStation,
+        DestinationMinorAnomaly,
+        DestinationAncientStructure,
+        DestinationUnstableZone
+    };
 
         List<string> validPool = new List<string>();
 
@@ -7709,15 +7746,84 @@ public static class Dimension1System
         }
 
         List<string> selected = new List<string>();
+        float repetitionReduction = GetD1TreeScanMemoryRepetitionReduction(state);
 
         while (selected.Count < count && validPool.Count > 0)
         {
-            int index = Random.Range(0, validPool.Count);
+            int index = PickDestinationIndexWithScanMemory(
+                validPool,
+                previousDestinationIds,
+                repetitionReduction
+            );
+
             selected.Add(validPool[index]);
             validPool.RemoveAt(index);
         }
 
         return selected;
+    }
+
+    private static int PickDestinationIndexWithScanMemory(
+        List<string> validPool,
+        List<string> previousDestinationIds,
+        float repetitionReduction
+    )
+    {
+        if (validPool == null || validPool.Count == 0)
+            return 0;
+
+        if (previousDestinationIds == null ||
+            previousDestinationIds.Count == 0 ||
+            repetitionReduction <= 0.0f)
+        {
+            return Random.Range(0, validPool.Count);
+        }
+
+        float totalWeight = 0.0f;
+
+        for (int i = 0; i < validPool.Count; i++)
+        {
+            totalWeight += GetScanMemoryDestinationWeight(
+                validPool[i],
+                previousDestinationIds,
+                repetitionReduction
+            );
+        }
+
+        if (totalWeight <= 0.0f)
+            return Random.Range(0, validPool.Count);
+
+        float roll = Random.value * totalWeight;
+        float accumulated = 0.0f;
+
+        for (int i = 0; i < validPool.Count; i++)
+        {
+            accumulated += GetScanMemoryDestinationWeight(
+                validPool[i],
+                previousDestinationIds,
+                repetitionReduction
+            );
+
+            if (roll <= accumulated)
+                return i;
+        }
+
+        return validPool.Count - 1;
+    }
+
+    private static float GetScanMemoryDestinationWeight(
+        string destinationId,
+        List<string> previousDestinationIds,
+        float repetitionReduction
+    )
+    {
+        if (previousDestinationIds != null &&
+            previousDestinationIds.Contains(destinationId))
+        {
+            return Mathf.Max(0.05f, 1.0f - repetitionReduction);
+        }
+
+        return 1.0f;
     }
 
     private static bool CanDestinationAppearInScan(GameState state, string destinationId)

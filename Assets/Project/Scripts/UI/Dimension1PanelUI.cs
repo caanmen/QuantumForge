@@ -462,6 +462,17 @@ public class Dimension1PanelUI : MonoBehaviour
                 "% de +1 destino\n";
         }
 
+        float scanMemoryReduction =
+            Dimension1System.GetD1TreeScanMemoryRepetitionReduction(gs);
+
+        if (scanMemoryReduction > 0.0f)
+        {
+            scannerHeader +=
+                "Memoria de Escaneo: -" +
+                (scanMemoryReduction * 100f).ToString("0.#") +
+                "% peso de destinos repetidos\n";
+        }
+
         if (gs.dimension1ScanActive)
         {
             return
@@ -875,94 +886,108 @@ public class Dimension1PanelUI : MonoBehaviour
         if (destination == null || selectedShip == null)
             return "";
 
+        string destinationId = destination.destinationId;
+
         string metalRewards =
-            GetDestinationRewardPreview(destination.destinationId)
-                .Replace(" / ", "\n");
+            GetDestinationRewardPreview(destinationId)
+                .Replace(" / ", " / ");
+
+        float fragmentChance =
+            Dimension1System.GetSimpleBlueprintFragmentChance(
+                gs,
+                destinationId,
+                selectedShip
+            );
+
+        float specificMatrixChance =
+            Dimension1System.GetSpecificBlueprintChancePreview(
+                gs,
+                destinationId,
+                selectedShip
+            );
+
+        float relicChance =
+            Dimension1System.GetExplorationRelicChancePreview(
+                gs,
+                destinationId,
+                selectedShip
+            );
 
         string text =
             "Recompensas posibles\n\n" +
-            "Nave:\n" +
+            "Nave: " +
             GetShipVisualName(selectedShip.shipId) +
-            "\n\nTiempo de misión:\n" +
-            GetDestinationDurationPreview(gs, destination.destinationId, selectedShip) +
-            "\n\nMetales:\n" +
+            "\n" +
+            "Tiempo: " +
+            GetDestinationDurationPreview(gs, destinationId, selectedShip) +
+            "\n\n" +
+            "Metales:\n" +
             metalRewards;
 
         if (Dimension1System.HasD1TreeDestinationReading(gs))
         {
             text +=
-                "\n\nLectura de Destino:\n" +
-                BuildD1DestinationReadingText(destination.destinationId);
+                "\n\nLectura:\n" +
+                GetD1DestinationFocusText(destinationId) +
+                " | Riesgo: " +
+                GetD1DestinationRiskText(destinationId) +
+                "\nHallazgo: " +
+                GetD1DestinationExpectedFindText(destinationId) +
+                "\nNave sugerida: " +
+                GetD1DestinationRecommendedShipText(destinationId);
         }
 
-        float fragmentChance =
-            Dimension1System.GetSimpleBlueprintFragmentChance(
-                gs,
-                destination.destinationId,
-                selectedShip
-            );
-
         text +=
-            "\n\nFragmentos de Matriz Adaptativa:\n" +
+            "\n\nMatrices:\n" +
+            "Adaptativa: " +
             (fragmentChance * 100f).ToString("0") +
-            "%";
-
-        float specificMatrixChance =
-            Dimension1System.GetSpecificBlueprintChancePreview(
-                gs,
-                destination.destinationId,
-                selectedShip
-            );
-
-        text +=
-            "\n\nMatriz específica posible:\n" +
+            "% | Específica: " +
             (specificMatrixChance * 100f).ToString("0.#") +
             "%";
 
         text +=
-            "\n\nMatrices posibles del destino:\n" +
-            BuildSpecificMatrixPreviewPoolText(
-                Dimension1System.GetSpecificBlueprintPoolPreview(gs, destination.destinationId)
+            "\nPool matrices:\n" +
+            BuildInlineSpecificMatrixPreviewPoolText(
+                Dimension1System.GetSpecificBlueprintPoolPreview(gs, destinationId)
             );
 
         float blueprintPriorityBonus =
             Dimension1System.GetD1TreeBlueprintPriorityBonus(gs);
 
-        if (blueprintPriorityBonus > 0.0f)
-        {
-            text +=
-                "\n\nPrioridad de Matriz faltante:\n+" +
-                (blueprintPriorityBonus * 100f).ToString("0.#") +
-                "% cuando cae una Matriz específica";
-        }
-
         float hiddenFindBonus =
             Dimension1System.GetD1TreeHiddenFindQualityBonus(gs);
 
-        if (hiddenFindBonus > 0.0f)
+        if (blueprintPriorityBonus > 0.0f || hiddenFindBonus > 0.0f)
         {
-            text +=
-                "\n\nRastreo de Hallazgos Ocultos:\n+" +
-                (hiddenFindBonus * 100f).ToString("0.#") +
-                "% a matrices/reliquias compatibles";
+            text += "\n\nBonus árbol:";
+
+            if (blueprintPriorityBonus > 0.0f)
+            {
+                text +=
+                    "\nPrioridad matriz faltante: +" +
+                    (blueprintPriorityBonus * 100f).ToString("0.#") +
+                    "%";
+            }
+
+            if (hiddenFindBonus > 0.0f)
+            {
+                text +=
+                    "\nRastreo oculto: +" +
+                    (hiddenFindBonus * 100f).ToString("0.#") +
+                    "%";
+            }
         }
 
-        float relicChance =
-            Dimension1System.GetExplorationRelicChancePreview(
-                gs,
-                destination.destinationId,
-                selectedShip
-            );
-
         text +=
-            "\n\nReliquia posible:\n" +
+            "\n\nReliquias:\n" +
+            "Chance: " +
             (relicChance * 100f).ToString("0.#") +
             "%";
 
         text +=
-            "\n\nReliquias posibles del destino:\n" +
-            BuildRelicPreviewPoolText(
-                Dimension1System.GetExplorationRelicRewardPoolPreview(gs, destination.destinationId)
+            "\nPool reliquias:\n" +
+            BuildInlineRelicPreviewPoolText(
+                Dimension1System.GetExplorationRelicRewardPoolPreview(gs, destinationId)
             );
 
         return text;
@@ -1149,6 +1174,96 @@ public class Dimension1PanelUI : MonoBehaviour
             return "- Ninguna";
 
         return text;
+    }
+
+    private string BuildInlineSpecificMatrixPreviewPoolText(string[] matrixIds)
+    {
+        if (matrixIds == null || matrixIds.Length == 0)
+            return "Ninguna";
+
+        string text = "";
+
+        for (int i = 0; i < matrixIds.Length; i++)
+        {
+            if (string.IsNullOrEmpty(matrixIds[i]))
+                continue;
+
+            if (!string.IsNullOrEmpty(text))
+                text += " / ";
+
+            text += GetShortBlueprintVisualName(matrixIds[i]);
+        }
+
+        if (string.IsNullOrEmpty(text))
+            return "Ninguna";
+
+        return text;
+    }
+
+    private string BuildInlineRelicPreviewPoolText(string[] relicIds)
+    {
+        if (relicIds == null || relicIds.Length == 0)
+            return "Ninguna";
+
+        string text = "";
+
+        for (int i = 0; i < relicIds.Length; i++)
+        {
+            if (string.IsNullOrEmpty(relicIds[i]))
+                continue;
+
+            if (!string.IsNullOrEmpty(text))
+                text += " / ";
+
+            text += GetRelicVisualName(relicIds[i]);
+        }
+
+        if (string.IsNullOrEmpty(text))
+            return "Ninguna";
+
+        return text;
+    }
+
+    private string GetShortBlueprintVisualName(string blueprintId)
+    {
+        switch (blueprintId)
+        {
+            case Dimension1System.BlueprintCargoFrame:
+                return "Chasis Carga";
+
+            case Dimension1System.BlueprintCargoHold:
+                return "Bodega Carga";
+
+            case Dimension1System.BlueprintCargoStabilizer:
+                return "Estabilizador Carga";
+
+            case Dimension1System.BlueprintRescueFrame:
+                return "Chasis Rescate";
+
+            case Dimension1System.BlueprintRescueBeacon:
+                return "Baliza Rescate";
+
+            case Dimension1System.BlueprintRescueRecoveryBay:
+                return "Bahía Recuperación";
+
+            case Dimension1System.BlueprintRescueProtectionMatrix:
+                return "Protección Rescate";
+
+            case Dimension1System.BlueprintConvergenceChassis:
+                return "Chasis Convergencia";
+
+            case Dimension1System.BlueprintConvergenceCore:
+                return "Núcleo Convergencia";
+
+            case Dimension1System.BlueprintConvergenceMatrix:
+                return "Matriz Convergencia";
+
+            case Dimension1System.BlueprintAnomalousArmor:
+                return "Blindaje Anómalo";
+
+            default:
+                return GetBlueprintVisualName(blueprintId);
+        }
     }
 
     private string BuildRelicPreviewPoolText(string[] relicIds)

@@ -2339,6 +2339,36 @@ public class GameState : MonoBehaviour
         );
     }
 
+    [ContextMenu("D1 DEBUG: Buy Scan Memory Node")]
+    private void DebugBuyD1ScanMemoryNode()
+    {
+        EnsureDimension1State();
+
+        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeExplorationDestinationReading);
+        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeExplorationFilter);
+        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeExplorationHiddenFindTracking);
+        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeExplorationContinuationDetected);
+
+        bool bought = Dimension1System.TryBuyDimension1TreeNode(
+            this,
+            Dimension1System.D1TreeExplorationScanMemory
+        );
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1 Tree] Comprar Memoria de Escaneo => " +
+            bought +
+            " | Tier: " +
+            GetD1TreeNodeTier(Dimension1System.D1TreeExplorationScanMemory) +
+            " | Reducción repetición: -" +
+            (Dimension1System.GetD1TreeScanMemoryRepetitionReduction(this) * 100f).ToString("0.#") +
+            "% | Puntos restantes: " +
+            prestige1Points
+        );
+    }
+
     private void TryBuyD1TreeNodeForDebug(string nodeId)
     {
         if (string.IsNullOrEmpty(nodeId))
