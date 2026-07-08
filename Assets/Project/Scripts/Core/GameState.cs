@@ -2311,6 +2311,34 @@ public class GameState : MonoBehaviour
         );
     }
 
+    [ContextMenu("D1 DEBUG: Buy Hidden Find Tracking Node")]
+    private void DebugBuyD1HiddenFindTrackingNode()
+    {
+        EnsureDimension1State();
+
+        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeExplorationDestinationReading);
+        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeExplorationFilter);
+
+        bool bought = Dimension1System.TryBuyDimension1TreeNode(
+            this,
+            Dimension1System.D1TreeExplorationHiddenFindTracking
+        );
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1 Tree] Comprar Rastreo de Hallazgos Ocultos => " +
+            bought +
+            " | Tier: " +
+            GetD1TreeNodeTier(Dimension1System.D1TreeExplorationHiddenFindTracking) +
+            " | Bonus: +" +
+            (Dimension1System.GetD1TreeHiddenFindQualityBonus(this) * 100f).ToString("0.#") +
+            "% | Puntos restantes: " +
+            prestige1Points
+        );
+    }
+
     private void TryBuyD1TreeNodeForDebug(string nodeId)
     {
         if (string.IsNullOrEmpty(nodeId))

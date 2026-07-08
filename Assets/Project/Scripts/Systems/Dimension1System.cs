@@ -5921,7 +5921,27 @@ public static class Dimension1System
             );
         }
 
+        chance += GetD1TreeHiddenFindRelicBonus(state, destinationId);
+
         return Mathf.Clamp(chance, 0.0f, 0.15f);
+    }
+
+    private static float GetD1TreeHiddenFindRelicBonus(
+    GameState state,
+    string destinationId
+)
+    {
+        float bonus = GetD1TreeHiddenFindQualityBonus(state);
+
+        if (bonus <= 0.0f)
+            return 0.0f;
+
+        string[] relicPool = GetExplorationRelicRewardPool(state, destinationId);
+
+        if (relicPool == null || relicPool.Length == 0)
+            return 0.0f;
+
+        return bonus;
     }
 
     private static float GetBaseExplorationRelicChance(string destinationId)
@@ -6155,8 +6175,27 @@ public static class Dimension1System
 
         chance += GetShipSensorSpecificBlueprintBonus(destinationId, ship);
         chance += GetRelicSpecificBlueprintChanceBonus(state, destinationId, ship);
+        chance += GetD1TreeHiddenFindSpecificMatrixBonus(state, destinationId);
 
         return Mathf.Clamp(chance, 0.0f, 0.20f);
+    }
+
+    private static float GetD1TreeHiddenFindSpecificMatrixBonus(
+    GameState state,
+    string destinationId
+)
+    {
+        float bonus = GetD1TreeHiddenFindQualityBonus(state);
+
+        if (bonus <= 0.0f)
+            return 0.0f;
+
+        string[] availablePool = GetSpecificBlueprintPoolForDestination(state, destinationId);
+
+        if (availablePool == null || availablePool.Length == 0)
+            return 0.0f;
+
+        return bonus;
     }
 
     private static float GetRelicSpecificBlueprintChanceBonus(

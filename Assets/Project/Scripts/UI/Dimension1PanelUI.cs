@@ -936,6 +936,17 @@ public class Dimension1PanelUI : MonoBehaviour
                 "% cuando cae una Matriz específica";
         }
 
+        float hiddenFindBonus =
+            Dimension1System.GetD1TreeHiddenFindQualityBonus(gs);
+
+        if (hiddenFindBonus > 0.0f)
+        {
+            text +=
+                "\n\nRastreo de Hallazgos Ocultos:\n+" +
+                (hiddenFindBonus * 100f).ToString("0.#") +
+                "% a matrices/reliquias compatibles";
+        }
+
         float relicChance =
             Dimension1System.GetExplorationRelicChancePreview(
                 gs,
