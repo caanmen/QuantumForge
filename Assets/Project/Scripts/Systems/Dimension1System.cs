@@ -6232,7 +6232,78 @@ public static class Dimension1System
         if (pool == null || pool.Length == 0)
             return "";
 
+        string priorityBlueprintId = TryPickPrioritySpecificBlueprint(state, pool);
+
+        if (!string.IsNullOrEmpty(priorityBlueprintId))
+            return priorityBlueprintId;
+
         return pool[Random.Range(0, pool.Length)];
+    }
+
+    private static string TryPickPrioritySpecificBlueprint(GameState state, string[] pool)
+    {
+        if (state == null || pool == null || pool.Length == 0)
+            return "";
+
+        float priorityChance = GetD1TreeBlueprintPriorityBonus(state);
+
+        if (priorityChance <= 0.0f)
+            return "";
+
+        if (Random.value > priorityChance)
+            return "";
+
+        List<string> missingPool = new List<string>();
+
+        for (int i = 0; i < pool.Length; i++)
+        {
+            string blueprintId = pool[i];
+
+            if (string.IsNullOrEmpty(blueprintId))
+                continue;
+
+            if (!IsSpecificBlueprintMissingForCurrentShipUnlock(state, blueprintId))
+                continue;
+
+            missingPool.Add(blueprintId);
+        }
+
+        if (missingPool.Count == 0)
+            return "";
+
+        return missingPool[Random.Range(0, missingPool.Count)];
+    }
+
+    private static bool IsSpecificBlueprintMissingForCurrentShipUnlock(GameState state, string blueprintId)
+    {
+        if (state == null || string.IsNullOrEmpty(blueprintId))
+            return false;
+
+        string targetShipId = GetShipIdForSpecificBlueprint(blueprintId);
+
+        if (string.IsNullOrEmpty(targetShipId))
+            return false;
+
+        D1ShipState ship = FindShipState(state, targetShipId);
+
+        if (ship != null && ship.unlocked)
+            return false;
+
+        return state.GetD1BlueprintAmount(blueprintId) <= 0;
+    }
+
+    private static string GetShipIdForSpecificBlueprint(string blueprintId)
+    {
+        if (IsCargoShipSpecificBlueprint(blueprintId))
+            return ShipCargoShip;
+
+        if (IsRescueShipSpecificBlueprint(blueprintId))
+            return ShipRescueShip;
+
+        if (IsConvergenceShipSpecificBlueprint(blueprintId))
+            return ShipConvergenceShip;
+
+        return "";
     }
 
     private static string GetRandomSpecificBlueprintForDestination(string destinationId)

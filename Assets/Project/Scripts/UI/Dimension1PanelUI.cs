@@ -925,6 +925,17 @@ public class Dimension1PanelUI : MonoBehaviour
                 Dimension1System.GetSpecificBlueprintPoolPreview(gs, destination.destinationId)
             );
 
+        float blueprintPriorityBonus =
+            Dimension1System.GetD1TreeBlueprintPriorityBonus(gs);
+
+        if (blueprintPriorityBonus > 0.0f)
+        {
+            text +=
+                "\n\nPrioridad de Matriz faltante:\n+" +
+                (blueprintPriorityBonus * 100f).ToString("0.#") +
+                "% cuando cae una Matriz específica";
+        }
+
         float relicChance =
             Dimension1System.GetExplorationRelicChancePreview(
                 gs,

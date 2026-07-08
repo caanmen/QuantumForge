@@ -2285,6 +2285,54 @@ public class GameState : MonoBehaviour
         );
     }
 
+    [ContextMenu("D1 DEBUG: Buy Blueprint Priority Node")]
+    private void DebugBuyD1BlueprintPriorityNode()
+    {
+        EnsureDimension1State();
+
+        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeRecoveryCopyRegistry);
+        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeRecoveryPartialRecovery);
+
+        bool bought = Dimension1System.TryBuyDimension1TreeNode(
+            this,
+            Dimension1System.D1TreeRecoveryBlueprintPriority
+        );
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1 Tree] Comprar Prioridad de Blueprint => " +
+            bought +
+            " | Tier: " +
+            GetD1TreeNodeTier(Dimension1System.D1TreeRecoveryBlueprintPriority) +
+            " | Puntos restantes: " +
+            prestige1Points
+        );
+    }
+
+    private void TryBuyD1TreeNodeForDebug(string nodeId)
+    {
+        if (string.IsNullOrEmpty(nodeId))
+            return;
+
+        if (GetD1TreeNodeTier(nodeId) > 0)
+            return;
+
+        bool bought = Dimension1System.TryBuyDimension1TreeNode(this, nodeId);
+
+        Debug.Log(
+            "[D1 Tree] Debug prerequisito " +
+            nodeId +
+            " => " +
+            bought +
+            " | Tier: " +
+            GetD1TreeNodeTier(nodeId) +
+            " | Puntos restantes: " +
+            prestige1Points
+        );
+    }
+
     [ContextMenu("D1 DEBUG: Buy D1 Tree First Nodes")]
     private void DebugBuyD1TreeFirstNodes()
     {
