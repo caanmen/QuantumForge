@@ -888,6 +888,13 @@ public class Dimension1PanelUI : MonoBehaviour
             "\n\nMetales:\n" +
             metalRewards;
 
+        if (Dimension1System.HasD1TreeDestinationReading(gs))
+        {
+            text +=
+                "\n\nLectura de Destino:\n" +
+                BuildD1DestinationReadingText(destination.destinationId);
+        }
+
         float fragmentChance =
             Dimension1System.GetSimpleBlueprintFragmentChance(
                 gs,
@@ -937,6 +944,165 @@ public class Dimension1PanelUI : MonoBehaviour
             );
 
         return text;
+    }
+
+    private string BuildD1DestinationReadingText(string destinationId)
+    {
+        return
+            "- Enfoque: " +
+            GetD1DestinationFocusText(destinationId) +
+            "\n- Riesgo: " +
+            GetD1DestinationRiskText(destinationId) +
+            "\n- Hallazgo esperado: " +
+            GetD1DestinationExpectedFindText(destinationId) +
+            "\n- Nave recomendada: " +
+            GetD1DestinationRecommendedShipText(destinationId);
+    }
+
+    private string GetD1DestinationFocusText(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case Dimension1System.DestinationMineralBelt:
+                return "minerales y depósitos";
+
+            case Dimension1System.DestinationShipGraveyard:
+                return "restos de naves y matrices de carga";
+
+            case Dimension1System.DestinationAbandonedProbe:
+            case Dimension1System.DestinationDriftingProbes:
+                return "sondas, sensores y lectura técnica";
+
+            case Dimension1System.DestinationAbandonedShip:
+                return "nave antigua, matrices y hallazgos recuperables";
+
+            case Dimension1System.DestinationOrbitalRuin:
+                return "ruinas, reliquias y señales antiguas";
+
+            case Dimension1System.DestinationLaboratory:
+                return "tecnología, matrices y reliquias técnicas";
+
+            case Dimension1System.DestinationAbandonedStation:
+                return "módulos de estación y recuperación";
+
+            case Dimension1System.DestinationMinorAnomaly:
+                return "anomalía menor y reliquias";
+
+            case Dimension1System.DestinationAncientStructure:
+                return "estructura avanzada y hallazgos raros";
+
+            case Dimension1System.DestinationUnstableZone:
+                return "zona avanzada de alto riesgo";
+
+            default:
+                return "desconocido";
+        }
+    }
+
+    private string GetD1DestinationRiskText(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case Dimension1System.DestinationMineralBelt:
+            case Dimension1System.DestinationShipGraveyard:
+            case Dimension1System.DestinationAbandonedProbe:
+            case Dimension1System.DestinationDriftingProbes:
+                return "bajo";
+
+            case Dimension1System.DestinationAbandonedShip:
+            case Dimension1System.DestinationOrbitalRuin:
+            case Dimension1System.DestinationLaboratory:
+            case Dimension1System.DestinationAbandonedStation:
+            case Dimension1System.DestinationMinorAnomaly:
+                return "medio";
+
+            case Dimension1System.DestinationAncientStructure:
+            case Dimension1System.DestinationUnstableZone:
+                return "alto";
+
+            default:
+                return "desconocido";
+        }
+    }
+
+    private string GetD1DestinationExpectedFindText(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case Dimension1System.DestinationMineralBelt:
+                return "metales";
+
+            case Dimension1System.DestinationShipGraveyard:
+                return "metales y matrices de Carga";
+
+            case Dimension1System.DestinationAbandonedShip:
+                return "matrices de nave y reliquias";
+
+            case Dimension1System.DestinationOrbitalRuin:
+                return "reliquias y matrices técnicas";
+
+            case Dimension1System.DestinationDriftingProbes:
+            case Dimension1System.DestinationAbandonedProbe:
+                return "sensores, fragmentos y reliquias técnicas";
+
+            case Dimension1System.DestinationLaboratory:
+                return "matrices, reliquias y hallazgos técnicos";
+
+            case Dimension1System.DestinationAbandonedStation:
+                return "matrices de Rescate y estación";
+
+            case Dimension1System.DestinationMinorAnomaly:
+                return "reliquias y hallazgos ocultos";
+
+            case Dimension1System.DestinationAncientStructure:
+                return "reliquias raras y matrices avanzadas";
+
+            case Dimension1System.DestinationUnstableZone:
+                return "recompensas avanzadas y Convergencia";
+
+            default:
+                return "sin lectura";
+        }
+    }
+
+    private string GetD1DestinationRecommendedShipText(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case Dimension1System.DestinationMineralBelt:
+                return "Dron Extractor / Nave de Carga";
+
+            case Dimension1System.DestinationShipGraveyard:
+                return "Dron Extractor / Nave de Carga";
+
+            case Dimension1System.DestinationAbandonedProbe:
+            case Dimension1System.DestinationDriftingProbes:
+                return "Sonda Analítica";
+
+            case Dimension1System.DestinationAbandonedShip:
+                return "Sonda Analítica / Nave de Rescate";
+
+            case Dimension1System.DestinationOrbitalRuin:
+                return "Sonda Analítica";
+
+            case Dimension1System.DestinationLaboratory:
+                return "Sonda Analítica / Nave de Rescate";
+
+            case Dimension1System.DestinationAbandonedStation:
+                return "Nave de Carga / Nave de Rescate";
+
+            case Dimension1System.DestinationMinorAnomaly:
+                return "Sonda Analítica";
+
+            case Dimension1System.DestinationAncientStructure:
+                return "Sonda Analítica / Nave de Convergencia";
+
+            case Dimension1System.DestinationUnstableZone:
+                return "Nave de Rescate / Nave de Convergencia";
+
+            default:
+                return "Sonda Ligera";
+        }
     }
 
     private string BuildSpecificMatrixPreviewPoolText(string[] matrixIds)

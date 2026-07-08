@@ -2262,7 +2262,29 @@ public class GameState : MonoBehaviour
         Debug.Log("[D1] +50 Puntos de Prestigio 1 agregados. Total: " + prestige1Points);
     }
 
-    [ContextMenu("D1 DEBUG: Buy D1 Tree First Nodes")]
+    [ContextMenu("D1 DEBUG: Buy Destination Reading Node")]
+    private void DebugBuyD1DestinationReadingNode()
+    {
+        EnsureDimension1State();
+
+        bool bought = Dimension1System.TryBuyDimension1TreeNode(
+            this,
+            Dimension1System.D1TreeExplorationDestinationReading
+        );
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1 Tree] Comprar Lectura de Destinos => " +
+            bought +
+            " | Tier: " +
+            GetD1TreeNodeTier(Dimension1System.D1TreeExplorationDestinationReading) +
+            " | Puntos restantes: " +
+            prestige1Points
+        );
+    }
+
     [ContextMenu("D1 DEBUG: Buy D1 Tree First Nodes")]
     private void DebugBuyD1TreeFirstNodes()
     {
