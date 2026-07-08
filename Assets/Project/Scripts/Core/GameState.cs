@@ -2400,6 +2400,70 @@ public class GameState : MonoBehaviour
         );
     }
 
+    [ContextMenu("D1 DEBUG: Buy Copy Registry Node")]
+    private void DebugBuyD1CopyRegistryNode()
+    {
+        EnsureDimension1State();
+
+        bool bought = Dimension1System.TryBuyDimension1TreeNode(
+            this,
+            Dimension1System.D1TreeRecoveryCopyRegistry
+        );
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1 Tree] Comprar Registro de Copias => " +
+            bought +
+            " | Tier: " +
+            GetD1TreeNodeTier(Dimension1System.D1TreeRecoveryCopyRegistry) +
+            " | Bonus conversión duplicada: +" +
+            (Dimension1System.GetD1TreeDuplicateRelicConversionBonus(this) * 100f).ToString("0.#") +
+            "% | Conversión actual: " +
+            Dimension1System.GetD1DuplicateRelicConversionPreviewAmount(this).ToString("0") +
+            " Hierro | Puntos restantes: " +
+            prestige1Points
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Force Duplicate Drift Compass Relic")]
+    private void DebugForceDuplicateD1DriftCompassRelic()
+    {
+        EnsureDimension1State();
+
+        string relicId = Dimension1System.RelicDriftCompass;
+        string metalId = Dimension1System.MetalIron;
+        double amount = Dimension1System.GetD1DuplicateRelicConversionPreviewAmount(this);
+
+        UnlockD1Relic(relicId);
+        AddD1Metal(metalId, amount);
+
+        dimension1LastExplorationRelics = new List<D1RelicRewardEntry>
+    {
+        new D1RelicRewardEntry
+        {
+            relicId = relicId,
+            wasDuplicate = true,
+            duplicateMetalId = metalId,
+            duplicateMetalAmount = amount
+        }
+    };
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1 Relic] Reliquia repetida forzada: Brújula de Deriva => +" +
+            amount.ToString("0") +
+            " Hierro | Registro de Copias Tier: " +
+            GetD1TreeNodeTier(Dimension1System.D1TreeRecoveryCopyRegistry) +
+            " | Bonus: +" +
+            (Dimension1System.GetD1TreeDuplicateRelicConversionBonus(this) * 100f).ToString("0.#") +
+            "%"
+        );
+    }
+
     private void TryBuyD1TreeNodeForDebug(string nodeId)
     {
         if (string.IsNullOrEmpty(nodeId))

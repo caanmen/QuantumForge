@@ -6173,13 +6173,18 @@ public static class Dimension1System
         return true;
     }
 
+    public static double GetD1DuplicateRelicConversionPreviewAmount(GameState state)
+    {
+        return GetDuplicateRelicConversionAmount(state);
+    }
+
     private static double GetDuplicateRelicConversionAmount(GameState state)
     {
         double amount = 50.0;
 
         amount *= 1.0 + GetD1TreeDuplicateRelicConversionBonus(state);
 
-        return System.Math.Ceiling(amount);
+        return System.Math.Round(amount, 0, System.MidpointRounding.AwayFromZero);
     }
 
     public static float GetSpecificBlueprintChancePreview(
