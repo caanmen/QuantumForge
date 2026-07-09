@@ -1003,6 +1003,13 @@ public static class Dimension1System
         return HasDimension1TreeNode(state, D1TreeFleetCoordination);
     }
 
+    public static float GetD1TreeRouteOptimizationDurationReduction(GameState state)
+    {
+        return HasD1TreeFleetCoordination(state)
+            ? 0.04f
+            : 0.0f;
+    }
+
     public static float GetD1TreeSupportFormationValue(GameState state)
     {
         int tier = GetDimension1TreeTierSafe(state, D1TreeFleetSupportFormation);
@@ -1566,16 +1573,17 @@ public static class Dimension1System
     }
 
     private static double GetD1TreeExplorationDurationMultiplier(
-    GameState state,
-    string destinationId,
-    D1ShipState ship
-)
+        GameState state,
+        string destinationId,
+        D1ShipState ship
+    )
     {
         double reduction = 0.0;
 
         if (ship != null)
         {
             reduction += GetD1TreeSingleShipEfficiencyBonus(state);
+            reduction += GetD1TreeRouteOptimizationDurationReduction(state);
         }
 
         if (destinationId == DestinationUnstableZone)

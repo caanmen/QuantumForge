@@ -2487,6 +2487,33 @@ public class GameState : MonoBehaviour
         );
     }
 
+    [ContextMenu("D1 DEBUG: Buy Route Optimization Node")]
+    private void DebugBuyD1RouteOptimizationNode()
+    {
+        EnsureDimension1State();
+
+        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeFleetHangarPreparation);
+
+        bool bought = Dimension1System.TryBuyDimension1TreeNode(
+            this,
+            Dimension1System.D1TreeFleetCoordination
+        );
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1 Tree] Comprar Optimización de Ruta => " +
+            bought +
+            " | Tier: " +
+            GetD1TreeNodeTier(Dimension1System.D1TreeFleetCoordination) +
+            " | Reducción duración: -" +
+            (Dimension1System.GetD1TreeRouteOptimizationDurationReduction(this) * 100f).ToString("0.#") +
+            "% | Puntos restantes: " +
+            prestige1Points
+        );
+    }
+
     [ContextMenu("D1 DEBUG: Force Duplicate Drift Compass Relic")]
     private void DebugForceDuplicateD1DriftCompassRelic()
     {

@@ -987,9 +987,13 @@ public class Dimension1PanelUI : MonoBehaviour
         float singleShipEfficiencyBonus =
             Dimension1System.GetD1TreeSingleShipEfficiencyBonus(gs);
 
+        float routeOptimizationReduction =
+            Dimension1System.GetD1TreeRouteOptimizationDurationReduction(gs);
+
         if (blueprintPriorityBonus > 0.0f ||
             hiddenFindBonus > 0.0f ||
-            singleShipEfficiencyBonus > 0.0f)
+            singleShipEfficiencyBonus > 0.0f ||
+            routeOptimizationReduction > 0.0f)
         {
             text += "\n\nBonus árbol:";
 
@@ -1015,6 +1019,14 @@ public class Dimension1PanelUI : MonoBehaviour
                     "\nPreparación de Hangar: +" +
                     (singleShipEfficiencyBonus * 100f).ToString("0.#") +
                     "% eficiencia nave única";
+            }
+
+            if (routeOptimizationReduction > 0.0f)
+            {
+                text +=
+                    "\nOptimización de Ruta: -" +
+                    (routeOptimizationReduction * 100f).ToString("0.#") +
+                    "% duración";
             }
         }
 
