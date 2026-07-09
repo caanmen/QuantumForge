@@ -2462,6 +2462,31 @@ public class GameState : MonoBehaviour
         );
     }
 
+    [ContextMenu("D1 DEBUG: Buy Hangar Preparation Node")]
+    private void DebugBuyD1HangarPreparationNode()
+    {
+        EnsureDimension1State();
+
+        bool bought = Dimension1System.TryBuyDimension1TreeNode(
+            this,
+            Dimension1System.D1TreeFleetHangarPreparation
+        );
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1 Tree] Comprar Preparación de Hangar => " +
+            bought +
+            " | Tier: " +
+            GetD1TreeNodeTier(Dimension1System.D1TreeFleetHangarPreparation) +
+            " | Eficiencia nave única: +" +
+            (Dimension1System.GetD1TreeSingleShipEfficiencyBonus(this) * 100f).ToString("0.#") +
+            "% | Puntos restantes: " +
+            prestige1Points
+        );
+    }
+
     [ContextMenu("D1 DEBUG: Force Duplicate Drift Compass Relic")]
     private void DebugForceDuplicateD1DriftCompassRelic()
     {

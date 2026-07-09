@@ -984,7 +984,12 @@ public class Dimension1PanelUI : MonoBehaviour
         float hiddenFindBonus =
             Dimension1System.GetD1TreeHiddenFindQualityBonus(gs);
 
-        if (blueprintPriorityBonus > 0.0f || hiddenFindBonus > 0.0f)
+        float singleShipEfficiencyBonus =
+            Dimension1System.GetD1TreeSingleShipEfficiencyBonus(gs);
+
+        if (blueprintPriorityBonus > 0.0f ||
+            hiddenFindBonus > 0.0f ||
+            singleShipEfficiencyBonus > 0.0f)
         {
             text += "\n\nBonus árbol:";
 
@@ -1002,6 +1007,14 @@ public class Dimension1PanelUI : MonoBehaviour
                     "\nRastreo oculto: +" +
                     (hiddenFindBonus * 100f).ToString("0.#") +
                     "%";
+            }
+
+            if (singleShipEfficiencyBonus > 0.0f)
+            {
+                text +=
+                    "\nPreparación de Hangar: +" +
+                    (singleShipEfficiencyBonus * 100f).ToString("0.#") +
+                    "% eficiencia nave única";
             }
         }
 
