@@ -2427,6 +2427,41 @@ public class GameState : MonoBehaviour
         );
     }
 
+    [ContextMenu("D1 DEBUG: Buy Partial Recovery Node")]
+    private void DebugBuyD1PartialRecoveryNode()
+    {
+        EnsureDimension1State();
+
+        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeRecoveryCopyRegistry);
+
+        bool bought = Dimension1System.TryBuyDimension1TreeNode(
+            this,
+            Dimension1System.D1TreeRecoveryPartialRecovery
+        );
+
+        Dimension1System.GetD1TreePartialRecoveryValues(
+            this,
+            out float chance,
+            out float recoveredAmount
+        );
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1 Tree] Comprar Recuperación Parcial => " +
+            bought +
+            " | Tier: " +
+            GetD1TreeNodeTier(Dimension1System.D1TreeRecoveryPartialRecovery) +
+            " | Chance: " +
+            (chance * 100f).ToString("0.#") +
+            "% | Recupera: +" +
+            (recoveredAmount * 100f).ToString("0.#") +
+            "% | Puntos restantes: " +
+            prestige1Points
+        );
+    }
+
     [ContextMenu("D1 DEBUG: Force Duplicate Drift Compass Relic")]
     private void DebugForceDuplicateD1DriftCompassRelic()
     {

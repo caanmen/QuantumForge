@@ -935,6 +935,22 @@ public class Dimension1PanelUI : MonoBehaviour
             "Metales:\n" +
             metalRewards;
 
+        Dimension1System.GetD1TreePartialRecoveryValues(
+            gs,
+            out float partialRecoveryChance,
+            out float partialRecoveryAmount
+            );
+
+        if (partialRecoveryChance > 0.0f && partialRecoveryAmount > 0.0f)
+        {
+            text +=
+                "\nRecuperación parcial: " +
+                (partialRecoveryChance * 100f).ToString("0.#") +
+                "% de +" +
+                (partialRecoveryAmount * 100f).ToString("0.#") +
+                "% metal";
+        }
+
         if (Dimension1System.HasD1TreeDestinationReading(gs))
         {
             text +=

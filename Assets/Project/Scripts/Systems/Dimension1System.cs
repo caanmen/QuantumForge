@@ -7369,11 +7369,11 @@ public static class Dimension1System
     }
 
     private static void AddExplorationTimedReward(
-    GameState state,
-    List<D1MetalAmount> rewards,
-    string metalId,
-    double materialMultiplier
-)
+        GameState state,
+        List<D1MetalAmount> rewards,
+        string metalId,
+        double materialMultiplier
+    )
     {
         if (state == null || rewards == null)
             return;
@@ -7390,6 +7390,52 @@ public static class Dimension1System
         double amount = productionPerSecond * secondsReward * materialMultiplier;
 
         AddExplorationReward(state, rewards, metalId, amount);
+        TryApplyPartialRecoveryMetalBonus(state, rewards, metalId, amount);
+    }
+
+    private static void TryApplyPartialRecoveryMetalBonus(
+    GameState state,
+    List<D1MetalAmount> rewards,
+    string metalId,
+    double baseAmount
+)
+    {
+        if (state == null || rewards == null)
+            return;
+
+        if (string.IsNullOrEmpty(metalId))
+            return;
+
+        if (baseAmount <= 0.0)
+            return;
+
+        GetD1TreePartialRecoveryValues(
+            state,
+            out float chance,
+            out float recoveredAmount
+        );
+
+        if (chance <= 0.0f || recoveredAmount <= 0.0f)
+            return;
+
+        if (Random.value > chance)
+            return;
+
+        double bonusAmount = baseAmount * recoveredAmount;
+
+        AddExplorationReward(state, rewards, metalId, bonusAmount);
+
+        Debug.Log(
+            "[D1 Recovery] Recuperación parcial: +" +
+            bonusAmount.ToString("0.0") +
+            " " +
+            metalId +
+            " | Chance: " +
+            (chance * 100f).ToString("0.#") +
+            "% | Recuperado: +" +
+            (recoveredAmount * 100f).ToString("0.#") +
+            "%"
+        );
     }
 
     private static void AddExplorationReward(
@@ -7410,11 +7456,42 @@ public static class Dimension1System
 
         state.AddD1Metal(metalId, amount);
 
+        D1MetalAmount existingReward = FindExplorationRewardEntry(
+            rewards,
+            metalId
+        );
+
+        if (existingReward != null)
+        {
+            existingReward.amount += amount;
+            return;
+        }
+
         rewards.Add(new D1MetalAmount
         {
             metalId = metalId,
             amount = amount
         });
+    }
+
+    private static D1MetalAmount FindExplorationRewardEntry(
+    List<D1MetalAmount> rewards,
+    string metalId
+    )
+    {
+        if (rewards == null || string.IsNullOrEmpty(metalId))
+            return null;
+
+        foreach (D1MetalAmount reward in rewards)
+        {
+            if (reward == null)
+                continue;
+
+            if (reward.metalId == metalId)
+                return reward;
+        }
+
+        return null;
     }
 
     private static double GetSimpleExplorationDurationSeconds(string destinationId, D1ShipState ship)
