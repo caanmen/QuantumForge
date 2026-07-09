@@ -2600,6 +2600,206 @@ public class GameState : MonoBehaviour
         }
     }
 
+    [ContextMenu("D1 DEBUG: Print Exploration Bonuses")]
+    private void DebugPrintD1ExplorationBonuses()
+    {
+        EnsureDimension1State();
+
+        D1ShipState ship = GetFirstUnlockedD1ShipForDebug();
+
+        if (ship == null)
+        {
+            Debug.LogWarning("[D1 Bonuses] No hay nave desbloqueada para probar.");
+            return;
+        }
+
+        Dimension1System.GetD1TreePartialRecoveryValues(
+            this,
+            out float partialRecoveryChance,
+            out float partialRecoveryAmount
+        );
+
+        Debug.Log(
+            "[D1 Bonuses] Resumen general" +
+            " | Nave usada: " +
+            GetD1DebugShipName(ship.shipId) +
+            " | Preparación Hangar: +" +
+            (Dimension1System.GetD1TreeSingleShipEfficiencyBonus(this) * 100f).ToString("0.#") +
+            "% | Optimización Ruta: -" +
+            (Dimension1System.GetD1TreeRouteOptimizationDurationReduction(this) * 100f).ToString("0.#") +
+            "% | Prioridad Matriz: +" +
+            (Dimension1System.GetD1TreeBlueprintPriorityBonus(this) * 100f).ToString("0.#") +
+            "% | Rastreo Oculto: +" +
+            (Dimension1System.GetD1TreeHiddenFindQualityBonus(this) * 100f).ToString("0.#") +
+            "% | Recuperación Parcial: " +
+            (partialRecoveryChance * 100f).ToString("0.#") +
+            "% de +" +
+            (partialRecoveryAmount * 100f).ToString("0.#") +
+            "%"
+        );
+
+        if (dimension1ScannedDestinations == null ||
+            dimension1ScannedDestinations.Count == 0)
+        {
+            Debug.LogWarning("[D1 Bonuses] No hay destinos escaneados. Haz un escaneo primero.");
+            return;
+        }
+
+        foreach (D1ScannedDestinationState destination in dimension1ScannedDestinations)
+        {
+            if (destination == null || !destination.available)
+                continue;
+
+            if (string.IsNullOrEmpty(destination.destinationId))
+                continue;
+
+            DebugPrintD1ExplorationBonusLine(destination.destinationId, ship);
+        }
+    }
+
+    private void DebugPrintD1ExplorationBonusLine(
+        string destinationId,
+        D1ShipState ship
+    )
+    {
+        double duration =
+            Dimension1System.GetSimpleExplorationDurationPreviewSeconds(
+                this,
+                destinationId,
+                ship
+            );
+
+        float fragmentChance =
+            Dimension1System.GetSimpleBlueprintFragmentChance(
+                this,
+                destinationId,
+                ship
+            );
+
+        float specificMatrixChance =
+            Dimension1System.GetSpecificBlueprintChancePreview(
+                this,
+                destinationId,
+                ship
+            );
+
+        float relicChance =
+            Dimension1System.GetExplorationRelicChancePreview(
+                this,
+                destinationId,
+                ship
+            );
+
+        float unstableZoneReduction = 0.0f;
+
+        if (destinationId == Dimension1System.DestinationUnstableZone)
+        {
+            unstableZoneReduction =
+                Dimension1System.GetD1TreeUnstableZoneDurationReduction(this);
+        }
+
+        Debug.Log(
+            "[D1 Bonuses] " +
+            GetD1DebugDestinationName(destinationId) +
+            " | Nave: " +
+            GetD1DebugShipName(ship.shipId) +
+            " | Duración: " +
+            duration.ToString("0.0") +
+            "s | Fragmento adaptativo: " +
+            (fragmentChance * 100f).ToString("0.#") +
+            "% | Matriz específica: " +
+            (specificMatrixChance * 100f).ToString("0.#") +
+            "% | Reliquia: " +
+            (relicChance * 100f).ToString("0.#") +
+            "% | Estabilización zona: -" +
+            (unstableZoneReduction * 100f).ToString("0.#") +
+            "%"
+        );
+    }
+
+    private D1ShipState GetFirstUnlockedD1ShipForDebug()
+    {
+        if (dimension1Ships == null)
+            return null;
+
+        foreach (D1ShipState ship in dimension1Ships)
+        {
+            if (ship == null)
+                continue;
+
+            if (ship.unlocked)
+                return ship;
+        }
+
+        return null;
+    }
+
+    private string GetD1DebugShipName(string shipId)
+    {
+        switch (shipId)
+        {
+            case Dimension1System.ShipLightProbe:
+                return "Sonda Ligera";
+
+            case Dimension1System.ShipExtractorDrone:
+                return "Dron Extractor";
+
+            case Dimension1System.ShipAnalyticProbe:
+                return "Sonda Analítica";
+
+            case Dimension1System.ShipCargoShip:
+                return "Nave de Carga";
+
+            case Dimension1System.ShipRescueShip:
+                return "Nave de Rescate";
+
+            case Dimension1System.ShipConvergenceShip:
+                return "Nave de Convergencia";
+
+            default:
+                return shipId;
+        }
+    }
+
+    private string GetD1DebugDestinationName(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case Dimension1System.DestinationMineralBelt:
+                return "Cinturón Mineral";
+
+            case Dimension1System.DestinationShipGraveyard:
+                return "Cementerio de Naves";
+
+            case Dimension1System.DestinationAbandonedShip:
+                return "Nave Abandonada";
+
+            case Dimension1System.DestinationOrbitalRuin:
+                return "Ruina Orbital";
+
+            case Dimension1System.DestinationDriftingProbes:
+                return "Sondas a la Deriva";
+
+            case Dimension1System.DestinationLaboratory:
+                return "Laboratorio";
+
+            case Dimension1System.DestinationAbandonedStation:
+                return "Estación Abandonada";
+
+            case Dimension1System.DestinationMinorAnomaly:
+                return "Anomalía Menor";
+
+            case Dimension1System.DestinationAncientStructure:
+                return "Estructura Antigua";
+
+            case Dimension1System.DestinationUnstableZone:
+                return "Zona Inestable";
+
+            default:
+                return destinationId;
+        }
+    }
+
     [ContextMenu("D1 DEBUG: Force Duplicate Drift Compass Relic")]
     private void DebugForceDuplicateD1DriftCompassRelic()
     {
