@@ -2514,6 +2514,92 @@ public class GameState : MonoBehaviour
         );
     }
 
+    [ContextMenu("D1 DEBUG: Buy Unstable Zone Stabilization Node")]
+    private void DebugBuyD1UnstableZoneStabilizationNode()
+    {
+        EnsureDimension1State();
+
+        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeConvergenceAnomalousReading);
+        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeConvergenceSpecialDestinationReading);
+
+        bool bought = Dimension1System.TryBuyDimension1TreeNode(
+            this,
+            Dimension1System.D1TreeConvergenceUnstableZoneStabilization
+        );
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1 Tree] Comprar Estabilización Zona Inestable => " +
+            bought +
+            " | Tier: " +
+            GetD1TreeNodeTier(Dimension1System.D1TreeConvergenceUnstableZoneStabilization) +
+            " | Reducción duración en Zona Inestable: -" +
+            (Dimension1System.GetD1TreeUnstableZoneDurationReduction(this) * 100f).ToString("0.#") +
+            "% | Puntos restantes: " +
+            prestige1Points
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Buy Special Destination Reading Node")]
+    private void DebugBuyD1SpecialDestinationReadingNode()
+    {
+        EnsureDimension1State();
+
+        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeConvergenceAnomalousReading);
+
+        bool bought = Dimension1System.TryBuyDimension1TreeNode(
+            this,
+            Dimension1System.D1TreeConvergenceSpecialDestinationReading
+        );
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1 Tree] Comprar Lectura de Destinos Especiales => " +
+            bought +
+            " | Tier: " +
+            GetD1TreeNodeTier(Dimension1System.D1TreeConvergenceSpecialDestinationReading) +
+            " | Bonus detección especial: +" +
+            (Dimension1System.GetD1TreeSpecialDestinationDetectionBonus(this) * 100f).ToString("0.#") +
+            "% | Chance total destino avanzado: " +
+            (Dimension1System.GetD1TreeAdvancedCartographySpecialDestinationChance(this) * 100f).ToString("0.#") +
+            "% | Puntos restantes: " +
+            prestige1Points
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Print Tree Nodes")]
+    private void DebugPrintD1TreeNodes()
+    {
+        EnsureDimension1State();
+
+        Debug.Log(
+            "[D1 Tree] Estado actual | Puntos restantes: " +
+            prestige1Points
+        );
+
+        foreach (string nodeId in Dimension1System.Dimension1TreeNodeIds)
+        {
+            int tier = GetD1TreeNodeTier(nodeId);
+            int maxTier = Dimension1System.GetDimension1TreeNodeMaxTier(nodeId);
+
+            if (tier <= 0)
+                continue;
+
+            Debug.Log(
+                "[D1 Tree] " +
+                nodeId +
+                " | Tier: " +
+                tier +
+                "/" +
+                maxTier
+            );
+        }
+    }
+
     [ContextMenu("D1 DEBUG: Force Duplicate Drift Compass Relic")]
     private void DebugForceDuplicateD1DriftCompassRelic()
     {

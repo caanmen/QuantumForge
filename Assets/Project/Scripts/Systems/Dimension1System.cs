@@ -984,9 +984,14 @@ public static class Dimension1System
 
     public static float GetD1TreeAdvancedCartographySpecialDestinationChance(GameState state)
     {
-        return HasDimension1TreeNode(state, D1TreeExplorationAdvancedCartography)
-            ? 0.10f
-            : 0.0f;
+        float chance = 0.0f;
+
+        if (HasDimension1TreeNode(state, D1TreeExplorationAdvancedCartography))
+            chance += 0.10f;
+
+        chance += GetD1TreeSpecialDestinationDetectionBonus(state);
+
+        return Mathf.Clamp(chance, 0.0f, 0.25f);
     }
 
     // Rama Flota

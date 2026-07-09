@@ -990,10 +990,19 @@ public class Dimension1PanelUI : MonoBehaviour
         float routeOptimizationReduction =
             Dimension1System.GetD1TreeRouteOptimizationDurationReduction(gs);
 
+        float unstableZoneDurationReduction = 0.0f;
+
+        if (destinationId == Dimension1System.DestinationUnstableZone)
+        {
+            unstableZoneDurationReduction =
+                Dimension1System.GetD1TreeUnstableZoneDurationReduction(gs);
+        }
+
         if (blueprintPriorityBonus > 0.0f ||
             hiddenFindBonus > 0.0f ||
             singleShipEfficiencyBonus > 0.0f ||
-            routeOptimizationReduction > 0.0f)
+            routeOptimizationReduction > 0.0f ||
+            unstableZoneDurationReduction > 0.0f)
         {
             text += "\n\nBonus árbol:";
 
@@ -1026,6 +1035,14 @@ public class Dimension1PanelUI : MonoBehaviour
                 text +=
                     "\nOptimización de Ruta: -" +
                     (routeOptimizationReduction * 100f).ToString("0.#") +
+                    "% duración";
+            }
+
+            if (unstableZoneDurationReduction > 0.0f)
+            {
+                text +=
+                    "\nEstabilización Zona Inestable: -" +
+                    (unstableZoneDurationReduction * 100f).ToString("0.#") +
                     "% duración";
             }
         }
