@@ -2657,6 +2657,55 @@ public class GameState : MonoBehaviour
         }
     }
 
+    [ContextMenu("D1 DEBUG: Force Special Point")]
+    private void DebugForceD1SpecialPoint()
+    {
+        EnsureDimension1State();
+
+        bool assigned =
+            Dimension1System.TryForceD1SpecialPointOnFirstCompatibleScannedDestination(this);
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1 Special Point] Forzar punto especial => " +
+            assigned
+        );
+
+        DebugPrintD1SpecialPoints();
+    }
+
+    [ContextMenu("D1 DEBUG: Print Special Points")]
+    private void DebugPrintD1SpecialPoints()
+    {
+        EnsureDimension1State();
+
+        if (dimension1ScannedDestinations == null ||
+            dimension1ScannedDestinations.Count == 0)
+        {
+            Debug.Log("[D1 Special Point] No hay destinos escaneados.");
+            return;
+        }
+
+        foreach (D1ScannedDestinationState destination in dimension1ScannedDestinations)
+        {
+            if (destination == null || !destination.available)
+                continue;
+
+            Debug.Log(
+                "[D1 Special Point] Destino: " +
+                destination.destinationId +
+                " | Punto: " +
+                (
+                    string.IsNullOrEmpty(destination.specialPointId)
+                        ? "Ninguno"
+                        : Dimension1System.GetD1SpecialPointVisualName(destination.specialPointId)
+                )
+            );
+        }
+    }
+
     private void DebugPrintD1ExplorationBonusLine(
         string destinationId,
         D1ShipState ship

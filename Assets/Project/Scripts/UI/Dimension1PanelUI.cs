@@ -484,6 +484,17 @@ public class Dimension1PanelUI : MonoBehaviour
                 "% de mejorar destino avanzado\n";
         }
 
+        float specialPointChance =
+    Dimension1System.GetD1SpecialPointScanChance(gs);
+
+        if (specialPointChance > 0.0f)
+        {
+            scannerHeader +=
+                "Puntos especiales: " +
+                (specialPointChance * 100f).ToString("0.#") +
+                "% de marcar 1 destino\n";
+        }
+
         if (gs.dimension1ScanActive)
         {
             return
@@ -940,6 +951,15 @@ public class Dimension1PanelUI : MonoBehaviour
             out float partialRecoveryChance,
             out float partialRecoveryAmount
             );
+
+        if (!string.IsNullOrEmpty(destination.specialPointId))
+        {
+            text +=
+                "\n\nPunto especial:\n" +
+                Dimension1System.GetD1SpecialPointVisualName(destination.specialPointId) +
+                "\n" +
+                Dimension1System.GetD1SpecialPointPreviewDescription(destination.specialPointId);
+        }
 
         if (partialRecoveryChance > 0.0f && partialRecoveryAmount > 0.0f)
         {
@@ -1696,11 +1716,17 @@ public class Dimension1PanelUI : MonoBehaviour
             if (destination == null || !destination.available)
                 continue;
 
+            string specialPointMarker = "";
+
+            if (!string.IsNullOrEmpty(destination.specialPointId))
+                specialPointMarker = " [P]";
+
             options.Add(
                 "Destino " +
                 visibleIndex +
                 ": " +
-                GetDestinationVisualName(destination.destinationId)
+                GetDestinationVisualName(destination.destinationId) +
+                specialPointMarker
             );
 
             visibleIndex++;

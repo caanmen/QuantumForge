@@ -40,6 +40,7 @@ public class D1ScannedDestinationState
 {
     public string destinationId;
     public bool available;
+    public string specialPointId;
 }
 
 [System.Serializable]
@@ -232,7 +233,13 @@ public static class Dimension1System
     RelicMachineMemory
 };
 
+    // IDs de puntos especiales
     public const int Dimension1TreeTieredNodeMaxTier = 3;
+
+    public const string D1SpecialPointRelicEcho = "d1_special_point_relic_echo";
+    public const string D1SpecialPointMatrixTrace = "d1_special_point_matrix_trace";
+    public const string D1SpecialPointMineralDeposit = "d1_special_point_mineral_deposit";
+    public const string D1SpecialPointUnstableReading = "d1_special_point_unstable_reading";
 
     // Árbol D1 - Rama Exploración
     public const string D1TreeExplorationDestinationReading = "d1_tree_exploration_destination_reading";
@@ -1147,6 +1154,16 @@ public static class Dimension1System
             : 0.0f;
     }
 
+    public static float GetD1SpecialPointScanChance(GameState state)
+    {
+        float chance = 0.0f;
+
+        chance += GetD1TreeAnomalousHiddenIdentificationBonus(state);
+        chance += GetD1TreeSpecialDestinationDetectionBonus(state);
+
+        return Mathf.Clamp(chance, 0.0f, 0.35f);
+    }
+
     public static float GetD1TreeSpecialDestinationDetectionBonus(GameState state)
     {
         int tier = GetDimension1TreeTierSafe(state, D1TreeConvergenceSpecialDestinationReading);
@@ -1595,6 +1612,11 @@ public static class Dimension1System
         {
             reduction += GetD1TreeUnstableZoneDurationReduction(state);
         }
+
+        reduction += GetD1SpecialPointUnstableReadingDurationReduction(
+            state,
+            destinationId
+        );
 
         return System.Math.Max(0.50, 1.0 - reduction);
     }
@@ -5493,9 +5515,316 @@ public static class Dimension1System
             state.dimension1ScannedDestinations.Add(new D1ScannedDestinationState
             {
                 destinationId = destinationId,
-                available = true
+                available = true,
+                specialPointId = ""
             });
         }
+
+        TryAssignD1SpecialPointAfterScan(state);
+    }
+
+    private static void TryAssignD1SpecialPointAfterScan(GameState state)
+    {
+        if (state == null || state.dimension1ScannedDestinations == null)
+            return;
+
+        float chance = GetD1SpecialPointScanChance(state);
+
+        if (chance <= 0.0f)
+            return;
+
+        if (Random.value > chance)
+            return;
+
+        TryForceD1SpecialPointOnFirstCompatibleScannedDestination(state);
+    }
+
+    public static bool TryForceD1SpecialPointOnFirstCompatibleScannedDestination(GameState state)
+    {
+        if (state == null || state.dimension1ScannedDestinations == null)
+            return false;
+
+        List<D1ScannedDestinationState> candidates = new List<D1ScannedDestinationState>();
+
+        foreach (D1ScannedDestinationState destination in state.dimension1ScannedDestinations)
+        {
+            if (destination == null || !destination.available)
+                continue;
+
+            if (string.IsNullOrEmpty(destination.destinationId))
+                continue;
+
+            if (GetD1SpecialPointPoolForDestination(state, destination.destinationId).Length <= 0)
+                continue;
+
+            candidates.Add(destination);
+        }
+
+        if (candidates.Count <= 0)
+            return false;
+
+        D1ScannedDestinationState selected =
+            candidates[Random.Range(0, candidates.Count)];
+
+        string[] pool = GetD1SpecialPointPoolForDestination(
+            state,
+            selected.destinationId
+        );
+
+        if (pool == null || pool.Length == 0)
+            return false;
+
+        selected.specialPointId = pool[Random.Range(0, pool.Length)];
+
+        return true;
+    }
+
+    private static string[] GetD1SpecialPointPoolForDestination(
+        GameState state,
+        string destinationId
+    )
+    {
+        List<string> pool = new List<string>();
+
+        if (GetExplorationRelicRewardPoolPreview(state, destinationId).Length > 0)
+            pool.Add(D1SpecialPointRelicEcho);
+
+        if (GetSpecificBlueprintPoolPreview(state, destinationId).Length > 0)
+            pool.Add(D1SpecialPointMatrixTrace);
+
+        if (GetExplorationMetalRewardPoolPreview(state, destinationId).Length > 0)
+            pool.Add(D1SpecialPointMineralDeposit);
+
+        if (IsD1UnstableSpecialPointDestination(destinationId))
+            pool.Add(D1SpecialPointUnstableReading);
+
+        return pool.ToArray();
+    }
+
+    private static bool IsD1UnstableSpecialPointDestination(string destinationId)
+    {
+        switch (destinationId)
+        {
+            case DestinationMinorAnomaly:
+            case DestinationAncientStructure:
+            case DestinationUnstableZone:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    public static string GetD1SpecialPointVisualName(string specialPointId)
+    {
+        switch (specialPointId)
+        {
+            case D1SpecialPointRelicEcho:
+                return "Eco de Reliquia";
+
+            case D1SpecialPointMatrixTrace:
+                return "Rastro de Matriz";
+
+            case D1SpecialPointMineralDeposit:
+                return "Depósito Mineral";
+
+            case D1SpecialPointUnstableReading:
+                return "Lectura Inestable";
+
+            default:
+                return "Punto especial";
+        }
+    }
+
+    public static string GetD1SpecialPointPreviewDescription(string specialPointId)
+    {
+        switch (specialPointId)
+        {
+            case D1SpecialPointRelicEcho:
+                return "+5% probabilidad de reliquia en esta exploración.";
+
+            case D1SpecialPointMatrixTrace:
+                return "+5% probabilidad de Matriz específica en esta exploración.";
+
+            case D1SpecialPointMineralDeposit:
+                return "+15% metales al completar esta exploración.";
+
+            case D1SpecialPointUnstableReading:
+                return "-5% duración en esta exploración.";
+
+            default:
+                return "Bonus especial activo en esta exploración.";
+        }
+    }
+
+    private static string GetD1SpecialPointIdForDestination(
+    GameState state,
+    string destinationId
+)
+    {
+        if (state == null ||
+            state.dimension1ScannedDestinations == null ||
+            string.IsNullOrEmpty(destinationId))
+        {
+            return "";
+        }
+
+        foreach (D1ScannedDestinationState destination in state.dimension1ScannedDestinations)
+        {
+            if (destination == null)
+                continue;
+
+            if (!destination.available)
+                continue;
+
+            if (destination.destinationId != destinationId)
+                continue;
+
+            return string.IsNullOrEmpty(destination.specialPointId)
+                ? ""
+                : destination.specialPointId;
+        }
+
+        return "";
+    }
+
+    private static float GetD1SpecialPointSpecificMatrixChanceBonus(
+        GameState state,
+        string destinationId
+    )
+    {
+        string specialPointId = GetD1SpecialPointIdForDestination(
+            state,
+            destinationId
+        );
+
+        if (specialPointId != D1SpecialPointMatrixTrace)
+            return 0.0f;
+
+        if (GetSpecificBlueprintPoolPreview(state, destinationId).Length <= 0)
+            return 0.0f;
+
+        return 0.05f;
+    }
+
+    private static float GetD1SpecialPointRelicChanceBonus(
+        GameState state,
+        string destinationId
+    )
+    {
+        string specialPointId = GetD1SpecialPointIdForDestination(
+            state,
+            destinationId
+        );
+
+        if (specialPointId != D1SpecialPointRelicEcho)
+            return 0.0f;
+
+        if (GetExplorationRelicRewardPoolPreview(state, destinationId).Length <= 0)
+            return 0.0f;
+
+        return 0.05f;
+    }
+
+    private static bool HasD1SpecialPoint(
+        GameState state,
+        string destinationId,
+        string specialPointId
+    )
+    {
+        return GetD1SpecialPointIdForDestination(state, destinationId) == specialPointId;
+    }
+
+    private static void ClearD1SpecialPointForDestination(
+    GameState state,
+    string destinationId
+)
+    {
+        if (state == null ||
+            state.dimension1ScannedDestinations == null ||
+            string.IsNullOrEmpty(destinationId))
+        {
+            return;
+        }
+
+        foreach (D1ScannedDestinationState destination in state.dimension1ScannedDestinations)
+        {
+            if (destination == null)
+                continue;
+
+            if (destination.destinationId != destinationId)
+                continue;
+
+            destination.specialPointId = "";
+        }
+    }
+
+    private static float GetD1SpecialPointUnstableReadingDurationReduction(
+    GameState state,
+    string destinationId
+)
+    {
+        if (!HasD1SpecialPoint(state, destinationId, D1SpecialPointUnstableReading))
+            return 0.0f;
+
+        if (!IsD1UnstableSpecialPointDestination(destinationId))
+            return 0.0f;
+
+        return 0.05f;
+    }
+
+    private static void TryApplyD1SpecialPointMineralDepositBonus(
+    GameState state,
+    string destinationId,
+    List<D1MetalAmount> rewards
+)
+    {
+        if (state == null || rewards == null)
+            return;
+
+        if (!HasD1SpecialPoint(state, destinationId, D1SpecialPointMineralDeposit))
+            return;
+
+        if (rewards.Count <= 0)
+            return;
+
+        List<D1MetalAmount> snapshot = new List<D1MetalAmount>();
+
+        foreach (D1MetalAmount reward in rewards)
+        {
+            if (reward == null)
+                continue;
+
+            if (string.IsNullOrEmpty(reward.metalId))
+                continue;
+
+            if (reward.amount <= 0.0)
+                continue;
+
+            snapshot.Add(new D1MetalAmount
+            {
+                metalId = reward.metalId,
+                amount = reward.amount
+            });
+        }
+
+        foreach (D1MetalAmount reward in snapshot)
+        {
+            double bonusAmount = reward.amount * 0.15;
+
+            AddExplorationReward(
+                state,
+                rewards,
+                reward.metalId,
+                bonusAmount
+            );
+        }
+
+        Debug.Log(
+            "[D1 Special Point] Depósito Mineral aplicado en " +
+            destinationId +
+            " | Bonus: +15% metales"
+        );
     }
 
     private static List<string> GetCurrentScannedDestinationIds(GameState state)
@@ -5654,6 +5983,12 @@ public static class Dimension1System
         TryGrantSpecificBlueprintReward(state, destinationId, ship);
         TryGrantExplorationRelicReward(state, destinationId, ship);
 
+        TryApplyD1SpecialPointMineralDepositBonus(
+            state,
+            destinationId,
+            rewards
+        );
+
         state.dimension1LastExplorationDestinationId = destinationId;
         state.dimension1LastExplorationRewards = rewards;
         state.dimension1LastExplorationResultId += 1;
@@ -5667,6 +6002,8 @@ public static class Dimension1System
             state.dimension1LastExplorationSpecificBlueprints,
             state.dimension1LastExplorationRelics
         );
+
+        ClearD1SpecialPointForDestination(state, destinationId);
     }
 
     private static void AddRecentExplorationRecord(
@@ -5969,6 +6306,7 @@ public static class Dimension1System
         }
 
         chance += GetD1TreeHiddenFindRelicBonus(state, destinationId);
+        chance += GetD1SpecialPointRelicChanceBonus(state, destinationId);
 
         return Mathf.Clamp(chance, 0.0f, 0.15f);
     }
@@ -6228,6 +6566,7 @@ public static class Dimension1System
         chance += GetShipSensorSpecificBlueprintBonus(destinationId, ship);
         chance += GetRelicSpecificBlueprintChanceBonus(state, destinationId, ship);
         chance += GetD1TreeHiddenFindSpecificMatrixBonus(state, destinationId);
+        chance += GetD1SpecialPointSpecificMatrixChanceBonus(state, destinationId);
 
         return Mathf.Clamp(chance, 0.0f, 0.20f);
     }
