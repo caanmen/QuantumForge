@@ -184,11 +184,24 @@ public class GameState : MonoBehaviour
     [Tooltip("Estado de planetas/extractores de Dimensión 1.")]
     public List<D1PlanetState> dimension1Planets = new List<D1PlanetState>();
 
+    [Tooltip("Estado de los sectores de Dimensión 1.")]
+    public List<D1SectorState> dimension1Sectors = new List<D1SectorState>();
+
+    [Tooltip("Sector de Dimensión 1 en cuyo contexto se encuentra el jugador.")]
+    public string dimension1SelectedSectorId = "";
+
+    [Tooltip("Sector donde se inició el barrido de escáner activo.")]
+    public string dimension1ActiveScanSectorId = "";
+
     [Tooltip("Estado de naves de Dimensión 1.")]
     public List<D1ShipState> dimension1Ships = new List<D1ShipState>();
 
     [Tooltip("Destinos detectados por el escáner de Dimensión 1.")]
     public List<D1ScannedDestinationState> dimension1ScannedDestinations = new List<D1ScannedDestinationState>();
+
+    [Tooltip("IDs del escaneo anterior conservados solo mientras hay un nuevo escaneo activo.")]
+    public List<string> dimension1PreviousScannedDestinationIds = new List<string>();
+
     [Tooltip("Indica si el escáner de Dimensión 1 está haciendo un barrido.")]
 
     public bool dimension1ScanActive;
@@ -1139,17 +1152,27 @@ public class GameState : MonoBehaviour
 
     public void EnsureDimension1State()
     {
+        bool requiresSectorMigration =
+            dimension1Sectors == null ||
+            dimension1Sectors.Count == 0;
+
         if (dimension1Metals == null)
             dimension1Metals = new List<D1MetalAmount>();
 
         if (dimension1Planets == null)
             dimension1Planets = new List<D1PlanetState>();
 
+        if (dimension1Sectors == null)
+            dimension1Sectors = new List<D1SectorState>();
+
         if (dimension1Ships == null)
             dimension1Ships = new List<D1ShipState>();
 
         if (dimension1ScannedDestinations == null)
             dimension1ScannedDestinations = new List<D1ScannedDestinationState>();
+
+        if (dimension1PreviousScannedDestinationIds == null)
+            dimension1PreviousScannedDestinationIds = new List<string>();
 
         if (dimension1LastExplorationRewards == null)
             dimension1LastExplorationRewards = new List<D1MetalAmount>();
@@ -1172,7 +1195,18 @@ public class GameState : MonoBehaviour
         if (dimension1TreeNodes == null)
             dimension1TreeNodes = new List<D1TreeNodeState>();
 
+        foreach (string sectorId in Dimension1System.Dimension1SectorIds)
+        {
+            GetOrCreateD1Sector(sectorId);
+        }
+
+        if (requiresSectorMigration)
+            MigrateDimension1LegacySectorProgress();
+
+        SanitizeDimension1StateValues();
         MigrateDimension1LegacyShipIds();
+        ClampDimension1ShipPartLevels();
+        ClampDimension1RelicLevels();
 
         foreach (string metalId in Dimension1System.StarterMetals)
         {
@@ -1203,6 +1237,373 @@ public class GameState : MonoBehaviour
         {
             GetOrCreateD1TreeNode(nodeId);
         }
+    }
+
+    private void SanitizeDimension1StateValues()
+    {
+        SanitizeDimension1Sectors();
+
+        dimension1ScannerLevel = Mathf.Clamp(
+            dimension1ScannerLevel,
+            0,
+            Dimension1System.SimpleScannerMaxLevel
+        );
+
+        dimension1ScanRemainingSeconds = SanitizeD1NonNegative(
+            dimension1ScanRemainingSeconds
+        );
+        dimension1ScanTotalSeconds = SanitizeD1NonNegative(
+            dimension1ScanTotalSeconds
+        );
+
+        if (dimension1ScanActive)
+        {
+            if (!Dimension1System.IsDimension1ExplorationSectorId(
+                dimension1ActiveScanSectorId
+            ))
+            {
+                dimension1ActiveScanSectorId =
+                    Dimension1System.IsDimension1ExplorationSectorId(
+                        dimension1SelectedSectorId
+                    )
+                        ? dimension1SelectedSectorId
+                        : Dimension1System.Sector01OuterRim;
+            }
+
+            dimension1ScanTotalSeconds = System.Math.Max(
+                dimension1ScanTotalSeconds,
+                dimension1ScanRemainingSeconds
+            );
+        }
+        else
+        {
+            dimension1ActiveScanSectorId = "";
+            dimension1ScanRemainingSeconds = 0.0;
+            dimension1ScanTotalSeconds = 0.0;
+        }
+
+        dimension1BlueprintFragments = Mathf.Max(0, dimension1BlueprintFragments);
+        dimension1LastExplorationBlueprintFragments = Mathf.Max(
+            0,
+            dimension1LastExplorationBlueprintFragments
+        );
+        dimension1LastExplorationResultId = Mathf.Max(
+            0,
+            dimension1LastExplorationResultId
+        );
+        prestige1Points = Mathf.Max(0, prestige1Points);
+        prestige1BestClaimedPreviewPoints = Mathf.Max(
+            0,
+            prestige1BestClaimedPreviewPoints
+        );
+        dimension1LastExplorationDestinationId =
+            dimension1LastExplorationDestinationId ?? "";
+
+        SanitizeD1MetalAmounts(dimension1Metals);
+        SanitizeD1MetalAmounts(dimension1LastExplorationRewards);
+        SanitizeD1BlueprintAmounts(dimension1Blueprints);
+        SanitizeD1BlueprintAmounts(dimension1LastExplorationSpecificBlueprints);
+        SanitizeD1RelicRewards(dimension1LastExplorationRelics);
+
+        dimension1Planets.RemoveAll(planet => planet == null);
+
+        foreach (D1PlanetState planet in dimension1Planets)
+        {
+            planet.planetId = planet.planetId ?? "";
+            planet.extractorTier = Mathf.Max(0, planet.extractorTier);
+
+            if (planet.extractorTier > 0)
+                planet.unlocked = true;
+            else if (planet.unlocked)
+                planet.extractorTier = 1;
+        }
+
+        dimension1ScannedDestinations.RemoveAll(
+            destination =>
+                destination == null ||
+                string.IsNullOrEmpty(destination.destinationId)
+        );
+
+        foreach (D1ScannedDestinationState destination in dimension1ScannedDestinations)
+        {
+            destination.specialPointId = destination.specialPointId ?? "";
+            destination.sectorId = Dimension1System.IsDimension1ExplorationSectorId(
+                destination.sectorId
+            )
+                ? destination.sectorId
+                : Dimension1System.IsDimension1ExplorationSectorId(
+                    dimension1SelectedSectorId
+                )
+                    ? dimension1SelectedSectorId
+                    : Dimension1System.Sector01OuterRim;
+        }
+
+        dimension1ScannedDestinations.RemoveAll(
+            destination =>
+                destination == null ||
+                !Dimension1System.IsDestinationInDimension1Sector(
+                    destination.destinationId,
+                    destination.sectorId
+                )
+        );
+
+        for (int i = dimension1PreviousScannedDestinationIds.Count - 1; i >= 0; i--)
+        {
+            string destinationId = dimension1PreviousScannedDestinationIds[i];
+
+            if (string.IsNullOrEmpty(destinationId) ||
+                dimension1PreviousScannedDestinationIds.IndexOf(destinationId) != i)
+            {
+                dimension1PreviousScannedDestinationIds.RemoveAt(i);
+            }
+        }
+
+        if (!dimension1ScanActive)
+            dimension1PreviousScannedDestinationIds.Clear();
+
+        dimension1TreeNodes.RemoveAll(node => node == null);
+
+        foreach (D1TreeNodeState node in dimension1TreeNodes)
+        {
+            node.nodeId = node.nodeId ?? "";
+            node.tier = Mathf.Max(0, node.tier);
+        }
+
+        SanitizeD1ExplorationHistory();
+    }
+
+    private void SanitizeD1ExplorationHistory()
+    {
+        dimension1RecentExplorationRecords.RemoveAll(entry => entry == null);
+
+        foreach (D1ExplorationRecordEntry entry in dimension1RecentExplorationRecords)
+        {
+            entry.resultId = Mathf.Max(0, entry.resultId);
+            entry.shipId = entry.shipId ?? "";
+            entry.destinationId = entry.destinationId ?? "";
+            entry.sectorId = Dimension1System.IsDimension1ExplorationSectorId(
+                entry.sectorId
+            )
+                ? entry.sectorId
+                : Dimension1System.Sector01OuterRim;
+            entry.blueprintFragments = Mathf.Max(0, entry.blueprintFragments);
+
+            if (entry.rewards == null)
+                entry.rewards = new List<D1MetalAmount>();
+
+            if (entry.specificBlueprintRewards == null)
+                entry.specificBlueprintRewards = new List<D1BlueprintAmount>();
+
+            if (entry.relicRewards == null)
+                entry.relicRewards = new List<D1RelicRewardEntry>();
+
+            SanitizeD1MetalAmounts(entry.rewards);
+            SanitizeD1BlueprintAmounts(entry.specificBlueprintRewards);
+            SanitizeD1RelicRewards(entry.relicRewards);
+        }
+
+        while (dimension1RecentExplorationRecords.Count >
+            Dimension1System.Dimension1RecentExplorationHistoryLimit)
+        {
+            dimension1RecentExplorationRecords.RemoveAt(0);
+        }
+    }
+
+    private static void SanitizeD1MetalAmounts(List<D1MetalAmount> amounts)
+    {
+        if (amounts == null)
+            return;
+
+        amounts.RemoveAll(amount => amount == null);
+
+        foreach (D1MetalAmount amount in amounts)
+        {
+            amount.metalId = amount.metalId ?? "";
+            amount.amount = SanitizeD1NonNegative(amount.amount);
+        }
+    }
+
+    private static void SanitizeD1BlueprintAmounts(List<D1BlueprintAmount> amounts)
+    {
+        if (amounts == null)
+            return;
+
+        amounts.RemoveAll(amount => amount == null);
+
+        foreach (D1BlueprintAmount amount in amounts)
+        {
+            amount.blueprintId = amount.blueprintId ?? "";
+            amount.amount = Mathf.Max(0, amount.amount);
+        }
+    }
+
+    private static void SanitizeD1RelicRewards(List<D1RelicRewardEntry> rewards)
+    {
+        if (rewards == null)
+            return;
+
+        rewards.RemoveAll(reward => reward == null);
+
+        foreach (D1RelicRewardEntry reward in rewards)
+        {
+            reward.relicId = reward.relicId ?? "";
+            reward.duplicateMetalId = reward.duplicateMetalId ?? "";
+            reward.duplicateMetalAmount = SanitizeD1NonNegative(
+                reward.duplicateMetalAmount
+            );
+        }
+    }
+
+    private static double SanitizeD1NonNegative(double value)
+    {
+        if (double.IsNaN(value) || double.IsInfinity(value) || value < 0.0)
+            return 0.0;
+
+        return value;
+    }
+
+    private void SanitizeDimension1Sectors()
+    {
+        if (dimension1Sectors == null)
+            dimension1Sectors = new List<D1SectorState>();
+
+        var normalized = new Dictionary<string, D1SectorState>();
+
+        foreach (D1SectorState sector in dimension1Sectors)
+        {
+            if (sector == null ||
+                !Dimension1System.IsDimension1SectorId(sector.sectorId))
+            {
+                continue;
+            }
+
+            if (!normalized.TryGetValue(sector.sectorId, out D1SectorState current))
+            {
+                normalized.Add(
+                    sector.sectorId,
+                    new D1SectorState
+                    {
+                        sectorId = sector.sectorId,
+                        unlocked = sector.unlocked,
+                        completedExplorations = Mathf.Max(
+                            0,
+                            sector.completedExplorations
+                        )
+                    }
+                );
+                continue;
+            }
+
+            current.unlocked = current.unlocked || sector.unlocked;
+            current.completedExplorations = Mathf.Max(
+                current.completedExplorations,
+                sector.completedExplorations
+            );
+        }
+
+        dimension1Sectors.Clear();
+
+        foreach (string sectorId in Dimension1System.Dimension1SectorIds)
+        {
+            if (!normalized.TryGetValue(sectorId, out D1SectorState sector))
+            {
+                sector = new D1SectorState
+                {
+                    sectorId = sectorId,
+                    unlocked = false,
+                    completedExplorations = 0
+                };
+            }
+
+            dimension1Sectors.Add(sector);
+        }
+
+        D1SectorState firstSector = FindD1SectorState(
+            Dimension1System.Sector01OuterRim
+        );
+
+        if (firstSector != null)
+            firstSector.unlocked = true;
+
+        if (!Dimension1System.IsDimension1SectorId(dimension1SelectedSectorId))
+            dimension1SelectedSectorId = Dimension1System.Sector01OuterRim;
+
+        D1SectorState selectedSector = FindD1SectorState(
+            dimension1SelectedSectorId
+        );
+
+        if (selectedSector == null || !selectedSector.unlocked)
+            dimension1SelectedSectorId = Dimension1System.Sector01OuterRim;
+    }
+
+    private void MigrateDimension1LegacySectorProgress()
+    {
+        D1SectorState firstSector = GetOrCreateD1Sector(
+            Dimension1System.Sector01OuterRim
+        );
+
+        firstSector.unlocked = true;
+        firstSector.completedExplorations = Mathf.Max(
+            firstSector.completedExplorations,
+            Mathf.Max(0, dimension1LastExplorationResultId)
+        );
+
+        bool reachedSector2 = IsD1PlanetUnlockedForSectorMigration(
+            Dimension1System.Planet03
+        );
+        bool reachedSector3 =
+            IsD1PlanetUnlockedForSectorMigration(Dimension1System.Planet04) ||
+            IsD1PlanetUnlockedForSectorMigration(Dimension1System.Planet05);
+        bool reachedSector4 =
+            IsD1PlanetUnlockedForSectorMigration(Dimension1System.Planet06) ||
+            IsD1PlanetUnlockedForSectorMigration(Dimension1System.Planet07);
+
+        if (reachedSector2 || reachedSector3 || reachedSector4)
+        {
+            GetOrCreateD1Sector(
+                Dimension1System.Sector02DebrisRing
+            ).unlocked = true;
+        }
+
+        if (reachedSector3 || reachedSector4)
+        {
+            GetOrCreateD1Sector(
+                Dimension1System.Sector03AncientOrbits
+            ).unlocked = true;
+        }
+
+        if (reachedSector4)
+        {
+            GetOrCreateD1Sector(
+                Dimension1System.Sector04SilentFrontier
+            ).unlocked = true;
+        }
+
+        dimension1SelectedSectorId = Dimension1System.Sector01OuterRim;
+
+        if (dimension1ScanActive)
+        {
+            dimension1ActiveScanSectorId =
+                Dimension1System.Sector01OuterRim;
+        }
+    }
+
+    private bool IsD1PlanetUnlockedForSectorMigration(string planetId)
+    {
+        if (dimension1Planets == null || string.IsNullOrEmpty(planetId))
+            return false;
+
+        foreach (D1PlanetState planet in dimension1Planets)
+        {
+            if (planet != null &&
+                planet.planetId == planetId &&
+                planet.unlocked)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void MigrateDimension1LegacyShipIds()
@@ -1240,6 +1641,8 @@ public class GameState : MonoBehaviour
         {
             cargoShip.explorationActive = true;
             cargoShip.activeDestinationId = legacyCargoShip.activeDestinationId;
+            cargoShip.activeSpecialPointId = legacyCargoShip.activeSpecialPointId;
+            cargoShip.activeSectorId = legacyCargoShip.activeSectorId;
             cargoShip.explorationRemainingSeconds = legacyCargoShip.explorationRemainingSeconds;
             cargoShip.explorationTotalSeconds = legacyCargoShip.explorationTotalSeconds;
         }
@@ -1250,6 +1653,212 @@ public class GameState : MonoBehaviour
         cargoShip.sensorsLevel = Mathf.Max(cargoShip.sensorsLevel, legacyCargoShip.sensorsLevel);
 
         dimension1Ships.Remove(legacyCargoShip);
+    }
+
+    private void ClampDimension1ShipPartLevels()
+    {
+        if (dimension1Ships == null)
+            return;
+
+        dimension1Ships.RemoveAll(ship => ship == null);
+        HashSet<string> activeDestinationKeys = new HashSet<string>();
+
+        foreach (D1ShipState ship in dimension1Ships)
+        {
+            ship.shipId = ship.shipId ?? "";
+            ship.activeDestinationId = ship.activeDestinationId ?? "";
+            ship.activeSpecialPointId = ship.activeSpecialPointId ?? "";
+            ship.activeSectorId = ship.activeSectorId ?? "";
+
+            ship.cargoLevel = Mathf.Max(0, ship.cargoLevel);
+            ship.speedLevel = Mathf.Max(0, ship.speedLevel);
+            ship.armorLevel = Mathf.Max(0, ship.armorLevel);
+            ship.sensorsLevel = Mathf.Max(0, ship.sensorsLevel);
+
+            ship.explorationRemainingSeconds = SanitizeD1NonNegative(
+                ship.explorationRemainingSeconds
+            );
+            ship.explorationTotalSeconds = SanitizeD1NonNegative(
+                ship.explorationTotalSeconds
+            );
+
+            if (ship.explorationActive && string.IsNullOrEmpty(ship.activeDestinationId))
+                ship.explorationActive = false;
+
+            if (ship.explorationActive &&
+                !Dimension1System.IsDimension1ExplorationSectorId(
+                    ship.activeSectorId
+                ))
+            {
+                ship.activeSectorId =
+                    Dimension1System.IsDimension1ExplorationSectorId(
+                        dimension1SelectedSectorId
+                    )
+                        ? dimension1SelectedSectorId
+                        : Dimension1System.Sector01OuterRim;
+            }
+
+            if (ship.explorationActive &&
+                Dimension1System.IsShipActiveInDimension1Base(ship.shipId) &&
+                !activeDestinationKeys.Add(
+                    ship.activeSectorId + "|" + ship.activeDestinationId
+                ))
+            {
+                ship.explorationActive = false;
+            }
+
+            if (!ship.explorationActive)
+            {
+                ship.activeDestinationId = "";
+                ship.activeSpecialPointId = "";
+                ship.activeSectorId = "";
+                ship.explorationRemainingSeconds = 0.0;
+                ship.explorationTotalSeconds = 0.0;
+            }
+            else
+            {
+                ship.unlocked = true;
+                ship.explorationTotalSeconds = System.Math.Max(
+                    ship.explorationTotalSeconds,
+                    ship.explorationRemainingSeconds
+                );
+            }
+        }
+    }
+
+    private void ClampDimension1RelicLevels()
+    {
+        if (dimension1Relics == null)
+            return;
+
+        dimension1Relics.RemoveAll(relic => relic == null);
+
+        foreach (D1RelicState relic in dimension1Relics)
+        {
+            relic.relicId = relic.relicId ?? "";
+            relic.level = Mathf.Max(0, relic.level);
+
+            if (relic.level > 0)
+                relic.unlocked = true;
+            else if (relic.unlocked)
+                relic.level = 1;
+        }
+    }
+
+    private D1SectorState FindD1SectorState(string sectorId)
+    {
+        if (dimension1Sectors == null || string.IsNullOrEmpty(sectorId))
+            return null;
+
+        foreach (D1SectorState sector in dimension1Sectors)
+        {
+            if (sector != null && sector.sectorId == sectorId)
+                return sector;
+        }
+
+        return null;
+    }
+
+    private D1SectorState GetOrCreateD1Sector(string sectorId)
+    {
+        D1SectorState sector = FindD1SectorState(sectorId);
+
+        if (sector != null)
+            return sector;
+
+        sector = new D1SectorState
+        {
+            sectorId = sectorId,
+            unlocked = sectorId == Dimension1System.Sector01OuterRim,
+            completedExplorations = 0
+        };
+
+        dimension1Sectors.Add(sector);
+        return sector;
+    }
+
+    public bool IsD1SectorUnlocked(string sectorId)
+    {
+        if (!Dimension1System.IsDimension1SectorId(sectorId))
+            return false;
+
+        EnsureDimension1State();
+
+        D1SectorState sector = FindD1SectorState(sectorId);
+        return sector != null && sector.unlocked;
+    }
+
+    public int GetD1SectorExplorationCount(string sectorId)
+    {
+        if (!Dimension1System.IsDimension1SectorId(sectorId))
+            return 0;
+
+        EnsureDimension1State();
+
+        D1SectorState sector = FindD1SectorState(sectorId);
+        return sector != null ? Mathf.Max(0, sector.completedExplorations) : 0;
+    }
+
+    public bool UnlockD1Sector(string sectorId)
+    {
+        if (!Dimension1System.IsDimension1SectorId(sectorId))
+            return false;
+
+        EnsureDimension1State();
+
+        D1SectorState sector = GetOrCreateD1Sector(sectorId);
+        sector.unlocked = true;
+        return true;
+    }
+
+    public bool TrySelectD1Sector(string sectorId)
+    {
+        if (!Dimension1System.IsDimension1SectorId(sectorId))
+            return false;
+
+        EnsureDimension1State();
+
+        D1SectorState sector = FindD1SectorState(sectorId);
+
+        if (sector == null || !sector.unlocked)
+            return false;
+
+        if (dimension1ScanActive &&
+            dimension1ActiveScanSectorId != sectorId)
+        {
+            return false;
+        }
+
+        if (dimension1SelectedSectorId == sectorId)
+            return true;
+
+        dimension1SelectedSectorId = sectorId;
+        dimension1ScannedDestinations.Clear();
+        dimension1PreviousScannedDestinationIds.Clear();
+        return true;
+    }
+
+    public bool AddD1SectorExplorationCount(string sectorId, int amount)
+    {
+        if (!Dimension1System.IsDimension1ExplorationSectorId(sectorId))
+            return false;
+
+        if (amount <= 0)
+            return false;
+
+        EnsureDimension1State();
+
+        D1SectorState sector = FindD1SectorState(sectorId);
+
+        if (sector == null || !sector.unlocked)
+            return false;
+
+        long total = (long)sector.completedExplorations + amount;
+        sector.completedExplorations = total > int.MaxValue
+            ? int.MaxValue
+            : (int)total;
+
+        return true;
     }
 
     private D1MetalAmount GetOrCreateD1Metal(string metalId)
@@ -1303,6 +1912,8 @@ public class GameState : MonoBehaviour
             unlocked = false,
             explorationActive = false,
             activeDestinationId = "",
+            activeSpecialPointId = "",
+            activeSectorId = "",
             explorationRemainingSeconds = 0.0,
             explorationTotalSeconds = 0.0
         };
@@ -1589,8 +2200,12 @@ public class GameState : MonoBehaviour
 
         dimension1Metals = new List<D1MetalAmount>();
         dimension1Planets = new List<D1PlanetState>();
+        dimension1Sectors = new List<D1SectorState>();
+        dimension1SelectedSectorId = "";
+        dimension1ActiveScanSectorId = "";
         dimension1Ships = new List<D1ShipState>();
         dimension1ScannedDestinations = new List<D1ScannedDestinationState>();
+        dimension1PreviousScannedDestinationIds = new List<string>();
         dimension1ScanActive = false;
         dimension1ScanRemainingSeconds = 0.0;
         dimension1ScanTotalSeconds = 0.0;
@@ -1619,11 +2234,381 @@ public class GameState : MonoBehaviour
     }
 
 #if UNITY_EDITOR
+    [ContextMenu("D1 DEBUG: Validate Part 1 Integrity")]
+    private void DebugValidateD1Part1Integrity()
+    {
+        EnsureDimension1State();
+
+        List<string> failures = new List<string>();
+
+        if (Dimension1System.StarterPlanets.Length != 7)
+            failures.Add("El catálogo activo no contiene exactamente 7 planetas.");
+
+        if (Dimension1System.StarterMetals.Length != 10)
+            failures.Add("El catálogo activo no contiene exactamente 10 metales.");
+
+        if (Dimension1System.Dimension1ActiveShipIds.Length != 4)
+            failures.Add("El catálogo activo no contiene exactamente 4 naves.");
+
+        if (Dimension1System.Dimension1SectorIds.Length != 5)
+            failures.Add("El catálogo no contiene exactamente 5 sectores.");
+
+        if (dimension1Sectors.Count != Dimension1System.Dimension1SectorIds.Length)
+            failures.Add("El estado persistente no contiene exactamente 5 sectores.");
+
+        if (!IsD1SectorUnlocked(Dimension1System.Sector01OuterRim))
+            failures.Add("El Sector 1 no está desbloqueado.");
+
+        if (!IsD1SectorUnlocked(dimension1SelectedSectorId))
+            failures.Add("El sector seleccionado no está desbloqueado.");
+
+        foreach (string sectorId in Dimension1System.Dimension1SectorIds)
+        {
+            string[] destinations =
+                Dimension1System.GetDimension1SectorDestinationIds(sectorId);
+
+            if (sectorId == Dimension1System.Sector05GalacticCenter)
+            {
+                if (destinations.Length != 0)
+                    failures.Add("El Centro Galáctico contiene destinos normales.");
+
+                continue;
+            }
+
+            if (destinations.Length != 4)
+            {
+                failures.Add(
+                    Dimension1System.GetDimension1SectorVisualName(sectorId) +
+                    " no contiene exactamente 4 destinos."
+                );
+            }
+
+            float totalWeight = 0.0f;
+
+            foreach (string destinationId in destinations)
+            {
+                totalWeight +=
+                    Dimension1System.GetDimension1SectorDestinationWeight(
+                        sectorId,
+                        destinationId
+                    );
+            }
+
+            if (Mathf.Abs(totalWeight - 1.0f) > 0.0001f)
+            {
+                failures.Add(
+                    Dimension1System.GetDimension1SectorVisualName(sectorId) +
+                    " no suma 100% de peso."
+                );
+            }
+        }
+
+        foreach (string planetId in Dimension1System.StarterPlanets)
+        {
+            if (!Dimension1System.IsDimension1ExplorationSectorId(
+                Dimension1System.GetDimension1PlanetSectorId(planetId)
+            ))
+            {
+                failures.Add("Un planeta no está asignado a un sector normal.");
+            }
+        }
+
+        if (Dimension1System.Dimension1RelicIds.Length != 10)
+            failures.Add("El catálogo activo no contiene exactamente 10 reliquias.");
+
+        if (Dimension1System.Dimension1TreeNodeIds.Length != 10)
+            failures.Add("El catálogo activo no contiene exactamente 10 nodos.");
+
+        if (dimension1ScannerLevel < 0 ||
+            dimension1ScannerLevel > Dimension1System.SimpleScannerMaxLevel)
+        {
+            failures.Add("El nivel del escáner está fuera del rango 0-3.");
+        }
+
+        if (dimension1ScanActive &&
+            (dimension1ScanRemainingSeconds < 0.0 ||
+             dimension1ScanTotalSeconds < dimension1ScanRemainingSeconds))
+        {
+            failures.Add("Los tiempos del escaneo activo no son coherentes.");
+        }
+
+        if (dimension1ScanActive &&
+            !Dimension1System.IsDimension1ExplorationSectorId(
+                dimension1ActiveScanSectorId
+            ))
+        {
+            failures.Add("El escaneo activo no tiene un sector de origen válido.");
+        }
+
+        foreach (D1SectorState sector in dimension1Sectors)
+        {
+            if (sector == null)
+            {
+                failures.Add("Existe un sector nulo.");
+                continue;
+            }
+
+            if (sector.completedExplorations < 0)
+                failures.Add("Un sector tiene exploraciones negativas.");
+        }
+
+        foreach (D1ScannedDestinationState destination in dimension1ScannedDestinations)
+        {
+            if (destination != null &&
+                !Dimension1System.IsDimension1ExplorationSectorId(
+                    destination.sectorId
+                ))
+            {
+                failures.Add("Un destino escaneado no tiene sector válido.");
+            }
+
+            if (destination != null &&
+                !Dimension1System.IsDestinationInDimension1Sector(
+                    destination.destinationId,
+                    destination.sectorId
+                ))
+            {
+                failures.Add("Un destino escaneado no pertenece a su sector.");
+            }
+        }
+
+        if (dimension1RecentExplorationRecords.Count >
+            Dimension1System.Dimension1RecentExplorationHistoryLimit)
+        {
+            failures.Add("El historial supera las 20 exploraciones.");
+        }
+
+        HashSet<string> activeMissionDestinations = new HashSet<string>();
+        int activeMissions = 0;
+        int frozenFutureMissions = 0;
+
+        foreach (D1ShipState ship in dimension1Ships)
+        {
+            if (ship == null || !ship.explorationActive)
+                continue;
+
+            if (!Dimension1System.IsShipActiveInDimension1Base(ship.shipId))
+            {
+                frozenFutureMissions++;
+                continue;
+            }
+
+            activeMissions++;
+
+            if (string.IsNullOrEmpty(ship.activeDestinationId))
+                failures.Add("Una misión activa no tiene destino.");
+            else if (!activeMissionDestinations.Add(
+                ship.activeSectorId + "|" + ship.activeDestinationId
+            ))
+            {
+                failures.Add(
+                    "Dos naves activas comparten el mismo destino y sector."
+                );
+            }
+
+            if (!Dimension1System.IsDimension1ExplorationSectorId(
+                ship.activeSectorId
+            ))
+            {
+                failures.Add("Una misión activa no tiene sector de origen válido.");
+            }
+
+            if (ship.explorationRemainingSeconds < 0.0 ||
+                ship.explorationTotalSeconds < ship.explorationRemainingSeconds)
+            {
+                failures.Add("Una misión activa tiene tiempos incoherentes.");
+            }
+        }
+
+        int d1PrestigePoints =
+            Dimension1System.CalculatePrestige1PointsFromDimension1(this);
+
+        if (d1PrestigePoints < 0 ||
+            d1PrestigePoints > Dimension1System.Dimension1Prestige1PreviewPointCap)
+        {
+            failures.Add("El aporte P1 de D1 está fuera del rango 0-12.");
+        }
+
+        string summary =
+            "[D1 Parte 1 Integrity] " +
+            (failures.Count == 0 ? "PASS" : "FAIL") +
+            " | Misiones activas: " + activeMissions +
+            " | Misiones futuras congeladas: " + frozenFutureMissions +
+            " | Historial: " + dimension1RecentExplorationRecords.Count + "/" +
+            Dimension1System.Dimension1RecentExplorationHistoryLimit +
+            " | P1 D1: " + d1PrestigePoints + "/" +
+            Dimension1System.Dimension1Prestige1PreviewPointCap;
+
+        if (failures.Count == 0)
+        {
+            Debug.Log(summary);
+            return;
+        }
+
+        Debug.LogError(summary + "\n- " + string.Join("\n- ", failures));
+    }
+
     [ContextMenu("D1 DEBUG: Ensure State")]
     private void DebugEnsureDimension1State()
     {
         EnsureDimension1State();
         Debug.Log("[D1] Estado base inicializado.");
+    }
+
+    [ContextMenu("D1 DEBUG: Print Galaxy Sectors")]
+    private void DebugPrintD1GalaxySectors()
+    {
+        EnsureDimension1State();
+
+        var lines = new List<string>();
+
+        foreach (string sectorId in Dimension1System.Dimension1SectorIds)
+        {
+            D1SectorState sector = FindD1SectorState(sectorId);
+            lines.Add(
+                Dimension1System.GetDimension1SectorVisualName(sectorId) +
+                " | " +
+                (sector != null && sector.unlocked ? "DESBLOQUEADO" : "BLOQUEADO") +
+                " | Exploraciones: " +
+                (sector != null ? sector.completedExplorations : 0)
+            );
+        }
+
+        Debug.Log("[D1 Galaxy]\n" + string.Join("\n", lines));
+    }
+
+    [ContextMenu("D1 DEBUG: Print Selected Sector Scan Pool")]
+    private void DebugPrintD1SelectedSectorScanPool()
+    {
+        EnsureDimension1State();
+
+        string sectorId = dimension1SelectedSectorId;
+        string[] destinations =
+            Dimension1System.GetDimension1SectorDestinationIds(sectorId);
+        var lines = new List<string>();
+
+        foreach (string destinationId in destinations)
+        {
+            float weight =
+                Dimension1System.GetDimension1SectorDestinationWeight(
+                    sectorId,
+                    destinationId
+                );
+
+            lines.Add(
+                destinationId +
+                " | " +
+                (weight * 100.0f).ToString("0.##") +
+                "%"
+            );
+        }
+
+        string content = lines.Count > 0
+            ? string.Join("\n", lines)
+            : "Sin destinos normales.";
+
+        Debug.Log(
+            "[D1 Scan Pool] " +
+            Dimension1System.GetDimension1SectorVisualName(sectorId) +
+            "\n" +
+            content +
+            "\nPunto especial base: " +
+            (Dimension1System.GetDimension1SectorSpecialPointBaseChance(
+                sectorId
+            ) * 100.0f).ToString("0.##") +
+            "%"
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Force Unlock Next Sector")]
+    private void DebugForceUnlockNextD1Sector()
+    {
+        EnsureDimension1State();
+
+        foreach (string sectorId in Dimension1System.Dimension1SectorIds)
+        {
+            if (IsD1SectorUnlocked(sectorId))
+                continue;
+
+            UnlockD1Sector(sectorId);
+            Debug.Log(
+                "[D1 Galaxy] Desbloqueado: " +
+                Dimension1System.GetDimension1SectorVisualName(sectorId)
+            );
+            return;
+        }
+
+        Debug.Log("[D1 Galaxy] Todos los sectores ya están desbloqueados.");
+    }
+
+    [ContextMenu("D1 DEBUG: Force Selected Sector")]
+    private void DebugForceSelectedD1Sector()
+    {
+        EnsureDimension1State();
+
+        int currentIndex = System.Array.IndexOf(
+            Dimension1System.Dimension1SectorIds,
+            dimension1SelectedSectorId
+        );
+
+        for (int offset = 1;
+             offset <= Dimension1System.Dimension1SectorIds.Length;
+             offset++)
+        {
+            int index = (currentIndex + offset) %
+                Dimension1System.Dimension1SectorIds.Length;
+            string sectorId = Dimension1System.Dimension1SectorIds[index];
+
+            if (!IsD1SectorUnlocked(sectorId))
+                continue;
+
+            if (!TrySelectD1Sector(sectorId))
+            {
+                Debug.LogWarning(
+                    "[D1 Galaxy] No se puede cambiar de sector durante un escaneo activo."
+                );
+                return;
+            }
+
+            Debug.Log(
+                "[D1 Galaxy] Sector seleccionado: " +
+                Dimension1System.GetDimension1SectorVisualName(sectorId)
+            );
+            return;
+        }
+    }
+
+    [ContextMenu("D1 DEBUG: Print Selected Sector")]
+    private void DebugPrintSelectedD1Sector()
+    {
+        EnsureDimension1State();
+        Debug.Log(
+            "[D1 Galaxy] Sector seleccionado: " +
+            Dimension1System.GetDimension1SectorVisualName(
+                dimension1SelectedSectorId
+            )
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Add 50 Sector Exploration Count")]
+    private void DebugAddD1SectorExplorationCount()
+    {
+        EnsureDimension1State();
+
+        bool added = AddD1SectorExplorationCount(
+            dimension1SelectedSectorId,
+            50
+        );
+
+        Debug.Log(
+            "[D1 Galaxy] +50 exploraciones => " + added +
+            " | " +
+            Dimension1System.GetDimension1SectorVisualName(
+                dimension1SelectedSectorId
+            ) +
+            ": " +
+            GetD1SectorExplorationCount(dimension1SelectedSectorId)
+        );
     }
 
     [ContextMenu("D1 DEBUG: Unlock Dimension System")]
@@ -1912,7 +2897,7 @@ public class GameState : MonoBehaviour
         );
     }
 
-    [ContextMenu("D1 DEBUG: Add Cargo Specific Matrices")]
+    [ContextMenu("D1 DEBUG: Add All Specific Ship Matrices")]
     private void DebugAddCargoSpecificMatrices()
     {
         EnsureDimension1State();
@@ -1920,6 +2905,14 @@ public class GameState : MonoBehaviour
         AddD1Blueprint(Dimension1System.BlueprintCargoFrame, 1);
         AddD1Blueprint(Dimension1System.BlueprintCargoHold, 1);
         AddD1Blueprint(Dimension1System.BlueprintCargoStabilizer, 1);
+        AddD1Blueprint(Dimension1System.BlueprintRescueFrame, 1);
+        AddD1Blueprint(Dimension1System.BlueprintRescueBeacon, 1);
+        AddD1Blueprint(Dimension1System.BlueprintRescueRecoveryBay, 1);
+        AddD1Blueprint(Dimension1System.BlueprintRescueProtectionMatrix, 1);
+        AddD1Blueprint(Dimension1System.BlueprintConvergenceChassis, 1);
+        AddD1Blueprint(Dimension1System.BlueprintConvergenceCore, 1);
+        AddD1Blueprint(Dimension1System.BlueprintConvergenceMatrix, 1);
+        AddD1Blueprint(Dimension1System.BlueprintAnomalousArmor, 1);
 
         if (SaveService.I != null)
             SaveService.I.Save();
@@ -1932,56 +2925,12 @@ public class GameState : MonoBehaviour
         );
     }
 
-    [ContextMenu("D1 DEBUG: Add Rescue Specific Matrices")]
-    private void DebugAddRescueSpecificMatrices()
-    {
-        EnsureDimension1State();
-
-        AddD1Blueprint(Dimension1System.BlueprintRescueFrame, 1);
-        AddD1Blueprint(Dimension1System.BlueprintRescueBeacon, 1);
-        AddD1Blueprint(Dimension1System.BlueprintRescueRecoveryBay, 1);
-        AddD1Blueprint(Dimension1System.BlueprintRescueProtectionMatrix, 1);
-
-        if (SaveService.I != null)
-            SaveService.I.Save();
-
-        Debug.Log(
-            "[D1] Matrices específicas de Nave de Rescate agregadas. " +
-            "Chasis=" + GetD1BlueprintAmount(Dimension1System.BlueprintRescueFrame) +
-            " | Baliza=" + GetD1BlueprintAmount(Dimension1System.BlueprintRescueBeacon) +
-            " | Bahía=" + GetD1BlueprintAmount(Dimension1System.BlueprintRescueRecoveryBay) +
-            " | Protección=" + GetD1BlueprintAmount(Dimension1System.BlueprintRescueProtectionMatrix)
-        );
-    }
-
-    [ContextMenu("D1 DEBUG: Add Convergence Specific Matrices")]
-    private void DebugAddConvergenceSpecificMatrices()
-    {
-        EnsureDimension1State();
-
-        AddD1Blueprint(Dimension1System.BlueprintConvergenceChassis, 1);
-        AddD1Blueprint(Dimension1System.BlueprintConvergenceCore, 1);
-        AddD1Blueprint(Dimension1System.BlueprintConvergenceMatrix, 1);
-        AddD1Blueprint(Dimension1System.BlueprintAnomalousArmor, 1);
-
-        if (SaveService.I != null)
-            SaveService.I.Save();
-
-        Debug.Log(
-            "[D1] Matrices específicas de Nave de Convergencia agregadas. " +
-            "Chasis=" + GetD1BlueprintAmount(Dimension1System.BlueprintConvergenceChassis) +
-            " | Núcleo=" + GetD1BlueprintAmount(Dimension1System.BlueprintConvergenceCore) +
-            " | Lectura=" + GetD1BlueprintAmount(Dimension1System.BlueprintConvergenceMatrix) +
-            " | Blindaje=" + GetD1BlueprintAmount(Dimension1System.BlueprintAnomalousArmor)
-        );
-    }
-
-    [ContextMenu("D1 DEBUG: Validate Advanced Ship Matrix Coverage")]
+    [ContextMenu("D1 DEBUG: Validate Specific Ship Matrix Coverage")]
     private void DebugValidateAdvancedShipMatrixCoverage()
     {
         EnsureDimension1State();
 
-        Debug.Log("[D1 Matrix Coverage] Validando matrices de naves avanzadas...");
+        Debug.Log("[D1 Matrix Coverage] Validando matrices de Nave de Carga...");
 
         Debug.Log(
             BuildAdvancedShipMatrixCoverageDebugLine(
@@ -2003,6 +2952,7 @@ public class GameState : MonoBehaviour
                 "Nave de Convergencia"
             )
         );
+
     }
 
     private string BuildAdvancedShipMatrixCoverageDebugLine(string shipId, string shipName)
@@ -2067,21 +3017,15 @@ public class GameState : MonoBehaviour
         DebugPrintD1RelicLine(Dimension1System.RelicDriftCompass, "Brújula de Deriva");
         DebugPrintD1RelicLine(Dimension1System.RelicAncientCargoCore, "Núcleo de Bodega Antigua");
         DebugPrintD1RelicLine(Dimension1System.RelicLostNavigationRecord, "Registro de Navegación Perdido");
-        DebugPrintD1RelicLine(Dimension1System.RelicExpeditionSeal, "Sello de Expedición");
         DebugPrintD1RelicLine(Dimension1System.RelicDormantEcho, "Eco de Reliquia Dormida");
 
         DebugPrintD1RelicLine(Dimension1System.RelicExplorerPlate, "Placa de Explorador");
         DebugPrintD1RelicLine(Dimension1System.RelicExtractionHook, "Gancho de Extracción");
         DebugPrintD1RelicLine(Dimension1System.RelicAnalyticCrystal, "Cristal Analítico");
         DebugPrintD1RelicLine(Dimension1System.RelicModularContainer, "Contenedor Modular");
-        DebugPrintD1RelicLine(Dimension1System.RelicRescueBeacon, "Baliza de Rescate");
 
         DebugPrintD1RelicLine(Dimension1System.RelicAncientDrill, "Taladro Antiguo");
-        DebugPrintD1RelicLine(Dimension1System.RelicRememberedAlloy, "Aleación Recordada");
-        DebugPrintD1RelicLine(Dimension1System.RelicProspectingCore, "Núcleo de Prospección");
-        DebugPrintD1RelicLine(Dimension1System.RelicExtractionSeal, "Sello de Extracción");
-        DebugPrintD1RelicLine(Dimension1System.RelicMatrixArchive, "Archivo de Matrices");
-        DebugPrintD1RelicLine(Dimension1System.RelicFracturedAntenna, "Antena Fracturada");
+        DebugPrintD1RelicLine(Dimension1System.RelicRoom1Echo, "Eco del Cuarto 1");
     }
 
     private void DebugPrintD1RelicLine(string relicId, string relicName)
@@ -2158,12 +3102,10 @@ public class GameState : MonoBehaviour
         AddD1Blueprint(Dimension1System.BlueprintCargoFrame, 10);
         AddD1Blueprint(Dimension1System.BlueprintCargoHold, 10);
         AddD1Blueprint(Dimension1System.BlueprintCargoStabilizer, 10);
-
         AddD1Blueprint(Dimension1System.BlueprintRescueFrame, 10);
         AddD1Blueprint(Dimension1System.BlueprintRescueBeacon, 10);
         AddD1Blueprint(Dimension1System.BlueprintRescueRecoveryBay, 10);
         AddD1Blueprint(Dimension1System.BlueprintRescueProtectionMatrix, 10);
-
         AddD1Blueprint(Dimension1System.BlueprintConvergenceChassis, 10);
         AddD1Blueprint(Dimension1System.BlueprintConvergenceCore, 10);
         AddD1Blueprint(Dimension1System.BlueprintConvergenceMatrix, 10);
@@ -2233,20 +3175,21 @@ public class GameState : MonoBehaviour
     {
         EnsureDimension1State();
 
-        SetD1RelicLevel(Dimension1System.RelicDriftCompass, 150);
-        SetD1RelicLevel(Dimension1System.RelicAncientCargoCore, 150);
-        SetD1RelicLevel(Dimension1System.RelicExplorerPlate, 150);
-        SetD1RelicLevel(Dimension1System.RelicExtractionHook, 150);
-        SetD1RelicLevel(Dimension1System.RelicAnalyticCrystal, 150);
-        SetD1RelicLevel(Dimension1System.RelicModularContainer, 150);
-        SetD1RelicLevel(Dimension1System.RelicRescueBeacon, 150);
-        SetD1RelicLevel(Dimension1System.RelicMatrixArchive, 150);
-        SetD1RelicLevel(Dimension1System.RelicFracturedAntenna, 150);
+        SetD1RelicLevel(Dimension1System.RelicDriftCompass, Dimension1System.Dimension1RelicMaxLevel);
+        SetD1RelicLevel(Dimension1System.RelicAncientCargoCore, Dimension1System.Dimension1RelicMaxLevel);
+        SetD1RelicLevel(Dimension1System.RelicLostNavigationRecord, Dimension1System.Dimension1RelicMaxLevel);
+        SetD1RelicLevel(Dimension1System.RelicDormantEcho, Dimension1System.Dimension1RelicMaxLevel);
+        SetD1RelicLevel(Dimension1System.RelicExplorerPlate, Dimension1System.Dimension1RelicMaxLevel);
+        SetD1RelicLevel(Dimension1System.RelicExtractionHook, Dimension1System.Dimension1RelicMaxLevel);
+        SetD1RelicLevel(Dimension1System.RelicAnalyticCrystal, Dimension1System.Dimension1RelicMaxLevel);
+        SetD1RelicLevel(Dimension1System.RelicModularContainer, Dimension1System.Dimension1RelicMaxLevel);
+        SetD1RelicLevel(Dimension1System.RelicAncientDrill, Dimension1System.Dimension1RelicMaxLevel);
+        SetD1RelicLevel(Dimension1System.RelicRoom1Echo, Dimension1System.Dimension1RelicMaxLevel);
 
         if (SaveService.I != null)
             SaveService.I.Save();
 
-        Debug.Log("[D1] DEBUG: Reliquias de efecto básico al nivel 150.");
+        Debug.Log("[D1] DEBUG: Reliquias base al nivel maximo.");
     }
 
     [ContextMenu("D1 DEBUG: Add +50 Prestige 1 Points")]
@@ -2285,7 +3228,7 @@ public class GameState : MonoBehaviour
         );
     }
 
-    [ContextMenu("D1 DEBUG: Buy Blueprint Priority Node")]
+    [ContextMenu("D1 DEBUG: Buy Missing Matrix Priority Node")]
     private void DebugBuyD1BlueprintPriorityNode()
     {
         EnsureDimension1State();
@@ -2302,7 +3245,7 @@ public class GameState : MonoBehaviour
             SaveService.I.Save();
 
         Debug.Log(
-            "[D1 Tree] Comprar Prioridad de Blueprint => " +
+            "[D1 Tree] Comprar Prioridad de Matriz Faltante => " +
             bought +
             " | Tier: " +
             GetD1TreeNodeTier(Dimension1System.D1TreeRecoveryBlueprintPriority) +
@@ -2317,7 +3260,6 @@ public class GameState : MonoBehaviour
         EnsureDimension1State();
 
         TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeExplorationDestinationReading);
-        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeExplorationFilter);
 
         bool bought = Dimension1System.TryBuyDimension1TreeNode(
             this,
@@ -2334,7 +3276,7 @@ public class GameState : MonoBehaviour
             GetD1TreeNodeTier(Dimension1System.D1TreeExplorationHiddenFindTracking) +
             " | Bonus: +" +
             (Dimension1System.GetD1TreeHiddenFindQualityBonus(this) * 100f).ToString("0.#") +
-            "% | Puntos restantes: " +
+            " puntos porcentuales | Puntos restantes: " +
             prestige1Points
         );
     }
@@ -2345,9 +3287,7 @@ public class GameState : MonoBehaviour
         EnsureDimension1State();
 
         TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeExplorationDestinationReading);
-        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeExplorationFilter);
         TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeExplorationHiddenFindTracking);
-        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeExplorationContinuationDetected);
 
         bool bought = Dimension1System.TryBuyDimension1TreeNode(
             this,
@@ -2364,37 +3304,6 @@ public class GameState : MonoBehaviour
             GetD1TreeNodeTier(Dimension1System.D1TreeExplorationScanMemory) +
             " | Reducción repetición: -" +
             (Dimension1System.GetD1TreeScanMemoryRepetitionReduction(this) * 100f).ToString("0.#") +
-            "% | Puntos restantes: " +
-            prestige1Points
-        );
-    }
-
-    [ContextMenu("D1 DEBUG: Buy Advanced Cartography Node")]
-    private void DebugBuyD1AdvancedCartographyNode()
-    {
-        EnsureDimension1State();
-
-        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeExplorationDestinationReading);
-        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeExplorationFilter);
-        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeExplorationHiddenFindTracking);
-        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeExplorationContinuationDetected);
-        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeExplorationScanMemory);
-
-        bool bought = Dimension1System.TryBuyDimension1TreeNode(
-            this,
-            Dimension1System.D1TreeExplorationAdvancedCartography
-        );
-
-        if (SaveService.I != null)
-            SaveService.I.Save();
-
-        Debug.Log(
-            "[D1 Tree] Comprar Cartografía Avanzada => " +
-            bought +
-            " | Tier: " +
-            GetD1TreeNodeTier(Dimension1System.D1TreeExplorationAdvancedCartography) +
-            " | Chance: " +
-            (Dimension1System.GetD1TreeAdvancedCartographySpecialDestinationChance(this) * 100f).ToString("0.#") +
             "% | Puntos restantes: " +
             prestige1Points
         );
@@ -2427,7 +3336,7 @@ public class GameState : MonoBehaviour
         );
     }
 
-    [ContextMenu("D1 DEBUG: Buy Partial Recovery Node")]
+    [ContextMenu("D1 DEBUG: Buy Material Recovery Node")]
     private void DebugBuyD1PartialRecoveryNode()
     {
         EnsureDimension1State();
@@ -2449,7 +3358,7 @@ public class GameState : MonoBehaviour
             SaveService.I.Save();
 
         Debug.Log(
-            "[D1 Tree] Comprar Recuperación Parcial => " +
+            "[D1 Tree] Comprar Recuperación de Materiales => " +
             bought +
             " | Tier: " +
             GetD1TreeNodeTier(Dimension1System.D1TreeRecoveryPartialRecovery) +
@@ -2480,7 +3389,9 @@ public class GameState : MonoBehaviour
             bought +
             " | Tier: " +
             GetD1TreeNodeTier(Dimension1System.D1TreeFleetHangarPreparation) +
-            " | Eficiencia nave única: +" +
+            " | Materiales individuales: +" +
+            (Dimension1System.GetD1TreeSingleShipEfficiencyBonus(this) * 100f).ToString("0.#") +
+            "% | Duración individual: -" +
             (Dimension1System.GetD1TreeSingleShipEfficiencyBonus(this) * 100f).ToString("0.#") +
             "% | Puntos restantes: " +
             prestige1Points
@@ -2488,7 +3399,7 @@ public class GameState : MonoBehaviour
     }
 
     [ContextMenu("D1 DEBUG: Buy Route Optimization Node")]
-    private void DebugBuyD1RouteOptimizationNode()
+    private void DebugBuyD1SupportFormationNode()
     {
         EnsureDimension1State();
 
@@ -2496,7 +3407,7 @@ public class GameState : MonoBehaviour
 
         bool bought = Dimension1System.TryBuyDimension1TreeNode(
             this,
-            Dimension1System.D1TreeFleetCoordination
+            Dimension1System.D1TreeFleetSupportFormation
         );
 
         if (SaveService.I != null)
@@ -2506,9 +3417,9 @@ public class GameState : MonoBehaviour
             "[D1 Tree] Comprar Optimización de Ruta => " +
             bought +
             " | Tier: " +
-            GetD1TreeNodeTier(Dimension1System.D1TreeFleetCoordination) +
-            " | Reducción duración: -" +
-            (Dimension1System.GetD1TreeRouteOptimizationDurationReduction(this) * 100f).ToString("0.#") +
+            GetD1TreeNodeTier(Dimension1System.D1TreeFleetSupportFormation) +
+            " | Reducción de duración individual: -" +
+            (Dimension1System.GetD1TreeSupportFormationValue(this) * 100f).ToString("0.#") +
             "% | Puntos restantes: " +
             prestige1Points
         );
@@ -2519,7 +3430,7 @@ public class GameState : MonoBehaviour
     {
         EnsureDimension1State();
 
-        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeConvergenceAnomalousReading);
+        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeExplorationDestinationReading);
         TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeConvergenceSpecialDestinationReading);
 
         bool bought = Dimension1System.TryBuyDimension1TreeNode(
@@ -2537,6 +3448,8 @@ public class GameState : MonoBehaviour
             GetD1TreeNodeTier(Dimension1System.D1TreeConvergenceUnstableZoneStabilization) +
             " | Reducción duración en Zona Inestable: -" +
             (Dimension1System.GetD1TreeUnstableZoneDurationReduction(this) * 100f).ToString("0.#") +
+            "% | Conservación final: +" +
+            (Dimension1System.GetD1TreeUnstableZoneRareRewardProtection(this) * 100f).ToString("0.#") +
             "% | Puntos restantes: " +
             prestige1Points
         );
@@ -2547,7 +3460,7 @@ public class GameState : MonoBehaviour
     {
         EnsureDimension1State();
 
-        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeConvergenceAnomalousReading);
+        TryBuyD1TreeNodeForDebug(Dimension1System.D1TreeExplorationDestinationReading);
 
         bool bought = Dimension1System.TryBuyDimension1TreeNode(
             this,
@@ -2564,8 +3477,8 @@ public class GameState : MonoBehaviour
             GetD1TreeNodeTier(Dimension1System.D1TreeConvergenceSpecialDestinationReading) +
             " | Bonus detección especial: +" +
             (Dimension1System.GetD1TreeSpecialDestinationDetectionBonus(this) * 100f).ToString("0.#") +
-            "% | Chance total destino avanzado: " +
-            (Dimension1System.GetD1TreeAdvancedCartographySpecialDestinationChance(this) * 100f).ToString("0.#") +
+            " puntos porcentuales | Chance total puntos especiales: " +
+            (Dimension1System.GetD1SpecialPointScanChance(this) * 100f).ToString("0.#") +
             "% | Puntos restantes: " +
             prestige1Points
         );
@@ -2591,7 +3504,10 @@ public class GameState : MonoBehaviour
 
             Debug.Log(
                 "[D1 Tree] " +
+                Dimension1System.GetDimension1TreeNodeVisualName(nodeId) +
+                " (" +
                 nodeId +
+                ")" +
                 " | Tier: " +
                 tier +
                 "/" +
@@ -2625,13 +3541,13 @@ public class GameState : MonoBehaviour
             GetD1DebugShipName(ship.shipId) +
             " | Preparación Hangar: +" +
             (Dimension1System.GetD1TreeSingleShipEfficiencyBonus(this) * 100f).ToString("0.#") +
-            "% | Optimización Ruta: -" +
-            (Dimension1System.GetD1TreeRouteOptimizationDurationReduction(this) * 100f).ToString("0.#") +
+            "% | Optimización de Ruta: -" +
+            (Dimension1System.GetD1TreeSupportFormationValue(this) * 100f).ToString("0.#") +
             "% | Prioridad Matriz: +" +
             (Dimension1System.GetD1TreeBlueprintPriorityBonus(this) * 100f).ToString("0.#") +
             "% | Rastreo Oculto: +" +
             (Dimension1System.GetD1TreeHiddenFindQualityBonus(this) * 100f).ToString("0.#") +
-            "% | Recuperación Parcial: " +
+            "% | Recuperación de Materiales: " +
             (partialRecoveryChance * 100f).ToString("0.#") +
             "% de +" +
             (partialRecoveryAmount * 100f).ToString("0.#") +
@@ -2670,6 +3586,53 @@ public class GameState : MonoBehaviour
 
         Debug.Log(
             "[D1 Special Point] Forzar punto especial => " +
+            assigned
+        );
+
+        DebugPrintD1SpecialPoints();
+    }
+
+    [ContextMenu("D1 DEBUG: Force Special Point Relic")]
+    private void DebugForceD1SpecialPointRelic()
+    {
+        DebugForceSpecificD1SpecialPoint(Dimension1System.D1SpecialPointRelicEcho);
+    }
+
+    [ContextMenu("D1 DEBUG: Force Special Point Matrix")]
+    private void DebugForceD1SpecialPointMatrix()
+    {
+        DebugForceSpecificD1SpecialPoint(Dimension1System.D1SpecialPointMatrixTrace);
+    }
+
+    [ContextMenu("D1 DEBUG: Force Special Point Mineral")]
+    private void DebugForceD1SpecialPointMineral()
+    {
+        DebugForceSpecificD1SpecialPoint(Dimension1System.D1SpecialPointMineralDeposit);
+    }
+
+    [ContextMenu("D1 DEBUG: Force Special Point Duration")]
+    private void DebugForceD1SpecialPointDuration()
+    {
+        DebugForceSpecificD1SpecialPoint(Dimension1System.D1SpecialPointUnstableReading);
+    }
+
+    private void DebugForceSpecificD1SpecialPoint(string specialPointId)
+    {
+        EnsureDimension1State();
+
+        bool assigned =
+            Dimension1System.TryForceD1SpecialPointOnFirstCompatibleScannedDestination(
+                this,
+                specialPointId
+            );
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1 Special Point] Forzar " +
+            Dimension1System.GetD1SpecialPointVisualName(specialPointId) +
+            " => " +
             assigned
         );
 
@@ -2918,7 +3881,7 @@ public class GameState : MonoBehaviour
         Dimension1System.D1TreeExplorationDestinationReading,
         Dimension1System.D1TreeFleetHangarPreparation,
         Dimension1System.D1TreeRecoveryCopyRegistry,
-        Dimension1System.D1TreeConvergenceAnomalousReading
+        Dimension1System.D1TreeConvergenceSpecialDestinationReading
     };
 
         foreach (string nodeId in nodesToBuy)
@@ -2975,6 +3938,8 @@ public class GameState : MonoBehaviour
             basePoints +
             " | D1: " +
             d1Points +
+            "/" +
+            Dimension1System.Dimension1Prestige1PreviewPointCap +
             " | Total preview: " +
             totalPreview +
             " | Puntos disponibles actuales: " +
@@ -3041,81 +4006,42 @@ public class GameState : MonoBehaviour
             "\nExploración:" +
             " DestinationReading=" +
             Dimension1System.HasD1TreeDestinationReading(this) +
-            " | Filter=" +
-            Dimension1System.HasD1TreeExplorationFilter(this) +
             " | HiddenFindQuality=+" +
             (Dimension1System.GetD1TreeHiddenFindQualityBonus(this) * 100.0f).ToString("0.#") +
             "%" +
-            " | Continuation=+" +
-            (Dimension1System.GetD1TreeContinuationDetectionBonus(this) * 100.0f).ToString("0.#") +
-            "%" +
             " | ScanMemory=-" +
             (Dimension1System.GetD1TreeScanMemoryRepetitionReduction(this) * 100.0f).ToString("0.#") +
-            "%" +
-            " | CartographyChance=+" +
-            (Dimension1System.GetD1TreeAdvancedCartographySpecialDestinationChance(this) * 100.0f).ToString("0.#") +
             "%" +
             "\nFlota:" +
             " SingleShipEfficiency=+" +
             (Dimension1System.GetD1TreeSingleShipEfficiencyBonus(this) * 100.0f).ToString("0.#") +
             "%" +
-            " | FleetCoordination=" +
-            Dimension1System.HasD1TreeFleetCoordination(this) +
-            " | SupportFormation=" +
-            (Dimension1System.GetD1TreeSupportFormationValue(this) * 100.0f).ToString("0.#") +
+            " | RouteOptimization=-" +
+            (Dimension1System.GetD1TreeRouteOptimizationDurationReduction(this) * 100.0f).ToString("0.#") +
             "%" +
-            " | SupportProtocols=+" +
-            (Dimension1System.GetD1TreeSupportProtocolsEfficiencyBonus(this) * 100.0f).ToString("0.#") +
-            "%" +
-            " | RescueOps=" +
-            Dimension1System.HasD1TreeRescueOperations(this) +
-            " | ConvergenceLink=" +
-            Dimension1System.HasD1TreeConvergenceLink(this) +
             "\nRecuperación:" +
             " DuplicateRelicConversion=+" +
             (Dimension1System.GetD1TreeDuplicateRelicConversionBonus(this) * 100.0f).ToString("0.#") +
             "%" +
-            " | PartialRecoveryChance=" +
+            " | MaterialRecoveryChance=" +
             (partialRecoveryChance * 100.0f).ToString("0.#") +
             "%" +
-            " | PartialRecoveryAmount=" +
+            " | MaterialRecoveryAmount=" +
             (partialRecoveryAmount * 100.0f).ToString("0.#") +
             "%" +
             " | BlueprintPriority=+" +
             (Dimension1System.GetD1TreeBlueprintPriorityBonus(this) * 100.0f).ToString("0.#") +
             "%" +
-            " | CargoConservation=" +
-            (Dimension1System.GetD1TreeRareCargoConservationChance(this) * 100.0f).ToString("0.#") +
-            "%" +
-            " | FindProtection=+" +
-            (Dimension1System.GetD1TreeDelicateFindProtectionBonus(this) * 100.0f).ToString("0.#") +
-            "%" +
-            " | ExpeditionArchive=+" +
-            (Dimension1System.GetD1TreeExpeditionArchiveUsefulRewardBonus(this) * 100.0f).ToString("0.#") +
-            "%" +
-            "\nConvergencia:" +
-            " AnomalousIdentification=+" +
-            (Dimension1System.GetD1TreeAnomalousHiddenIdentificationBonus(this) * 100.0f).ToString("0.#") +
-            "%" +
+            "\nLecturas especiales:" +
             " | SpecialDestinationDetection=+" +
             (Dimension1System.GetD1TreeSpecialDestinationDetectionBonus(this) * 100.0f).ToString("0.#") +
-            "%" +
-            " | UnstableRisk=-" +
-            (Dimension1System.GetD1TreeUnstableZoneRiskReduction(this) * 100.0f).ToString("0.#") +
             "%" +
             " | UnstableDuration=-" +
             (Dimension1System.GetD1TreeUnstableZoneDurationReduction(this) * 100.0f).ToString("0.#") +
             "%" +
             " | UnstableRareProtection=+" +
             (Dimension1System.GetD1TreeUnstableZoneRareRewardProtection(this) * 100.0f).ToString("0.#") +
-            "%" +
-            " | ConvergenceChain=" +
-            Dimension1System.HasD1TreeConvergenceChain(this) +
-            " | AdvancedBlueprintSignal=+" +
-            (Dimension1System.GetD1TreeAdvancedBlueprintSignalBonus(this) * 100.0f).ToString("0.#") +
-            "%" +
-            " | DimensionalCore=" +
-            Dimension1System.HasD1TreeDimensionalCore(this)
+            "%"
         );
     }
 
@@ -3124,15 +4050,12 @@ public class GameState : MonoBehaviour
     {
         EnsureDimension1State();
 
-        SetD1RelicLevel(Dimension1System.RelicAncientDrill, 150);
-        SetD1RelicLevel(Dimension1System.RelicRememberedAlloy, 150);
-        SetD1RelicLevel(Dimension1System.RelicProspectingCore, 150);
-        SetD1RelicLevel(Dimension1System.RelicExtractionSeal, 150);
+        SetD1RelicLevel(Dimension1System.RelicAncientDrill, Dimension1System.Dimension1RelicMaxLevel);
 
         if (SaveService.I != null)
             SaveService.I.Save();
 
-        Debug.Log("[D1] DEBUG: Reliquias de minería al nivel 150.");
+        Debug.Log("[D1] DEBUG: Reliquias de mineria base al nivel maximo.");
     }
 
     [ContextMenu("D1 DEBUG: Preview Specific Matrix Chances")]
@@ -3159,7 +4082,15 @@ public class GameState : MonoBehaviour
         );
 
         Debug.Log(
-            "[D1 Specific Matrix Chances] Nave de Rescate / Estación abandonada: " +
+            "[D1 Specific Matrix Chances] Nave de Carga / Nave Abandonada: " +
+            GetSpecificMatrixChanceDebugText(
+                Dimension1System.ShipCargoShip,
+                Dimension1System.DestinationAbandonedShip
+            )
+        );
+
+        Debug.Log(
+            "[D1 Specific Matrix Chances] Nave de Rescate / Estacion Abandonada: " +
             GetSpecificMatrixChanceDebugText(
                 Dimension1System.ShipRescueShip,
                 Dimension1System.DestinationAbandonedStation
@@ -3167,12 +4098,13 @@ public class GameState : MonoBehaviour
         );
 
         Debug.Log(
-            "[D1 Specific Matrix Chances] Nave de Convergencia / Zona inestable: " +
+            "[D1 Specific Matrix Chances] Nave de Convergencia / Zona Inestable: " +
             GetSpecificMatrixChanceDebugText(
                 Dimension1System.ShipConvergenceShip,
                 Dimension1System.DestinationUnstableZone
             )
         );
+
     }
 
     private string GetSpecificMatrixChanceDebugText(string shipId, string destinationId)
@@ -3387,6 +4319,26 @@ public class GameState : MonoBehaviour
         }
 
         return factor;
+    }
+
+    private bool IsRoom1LEArtifactBuilding(string buildingId)
+    {
+        return
+            buildingId == "vacuum_observer" ||
+            buildingId == "casimir_panel";
+    }
+
+    private double GetRoom1EchoGlobalLEMultiplier()
+    {
+        return 1.0 + Dimension1System.GetRoom1EchoGlobalLEBonus(this);
+    }
+
+    private double GetRoom1EchoArtifactLEMultiplier(string buildingId)
+    {
+        if (!IsRoom1LEArtifactBuilding(buildingId))
+            return 1.0;
+
+        return 1.0 + Dimension1System.GetRoom1EchoArtifactLEBonus(this);
     }
 
     public double GetMachineTriangleBonusMultiplier()
@@ -3972,6 +4924,7 @@ public class GameState : MonoBehaviour
 
         // Máquina / Zona 1: Calibración de Artefactos
         buildingProd *= GetMachineArtifactProductionMultiplier(b.def.id);
+        buildingProd *= GetRoom1EchoArtifactLEMultiplier(b.def.id);
 
         fromBuildings += buildingProd;
 
@@ -4023,8 +4976,9 @@ public class GameState : MonoBehaviour
     }
 
     double room1GlobalFactor = GetMachineRoom1GlobalMultiplier();
+    double room1EchoGlobalFactor = GetRoom1EchoGlobalLEMultiplier();
 
-    double rawTotal = ((baseProd + fromBuildings) * triangleImpulseFactor)
+    double rawTotalBeforeRoom1Echo = ((baseProd + fromBuildings) * triangleImpulseFactor)
                     * multiplier
                     * emFactor
                     * researchFactor
@@ -4034,6 +4988,8 @@ public class GameState : MonoBehaviour
                     * machineLEFactor
                     * room1GlobalFactor
                     + flatBonus;
+
+    double rawTotal = rawTotalBeforeRoom1Echo * room1EchoGlobalFactor;
 
     return rawTotal;
     }
@@ -4575,10 +5531,12 @@ private double CalculateEMMultiplier()
 
     if (worldMult <= 0) worldMult = 1.0;
 
+    double room1EchoGlobalFactor = GetRoom1EchoGlobalLEMultiplier();
+
     // 2) Producción base continua (sin edificios)
     if (baseLEps > 0.0)
     {
-        LE += baseLEps * worldMult * dt;
+        LE += baseLEps * worldMult * room1EchoGlobalFactor * dt;
     }
 
             // 3) Producción de edificios (ticks + continuo)
@@ -4623,6 +5581,7 @@ if (buildingStates != null)
 
             // Máquina / Zona 1: Calibración de Artefactos
             lePerTick *= GetMachineArtifactProductionMultiplier(def.id);
+            lePerTick *= GetRoom1EchoArtifactLEMultiplier(def.id);
 
             if (F2UpgradeManager.I != null)
             {
@@ -4637,7 +5596,12 @@ if (buildingStates != null)
                 }
             }
 
-                double leGain = lePerTick * worldMult * GetMachineRoom1GlobalMultiplier() * ticks;
+                double leGain =
+                    lePerTick *
+                    worldMult *
+                    GetMachineRoom1GlobalMultiplier() *
+                    room1EchoGlobalFactor *
+                    ticks;
 
                 if (def.id != "fluctuation_antenna")
                 {
@@ -4692,7 +5656,8 @@ if (buildingStates != null)
             if (def.baseLEps > 0.0)
             {
                 double leps = def.baseLEps * b.level;
-                LE += leps * worldMult * dt;
+                leps *= GetRoom1EchoArtifactLEMultiplier(def.id);
+                LE += leps * worldMult * room1EchoGlobalFactor * dt;
             }
         }
     }
@@ -4701,7 +5666,7 @@ if (buildingStates != null)
         // 4) Bonus plano (LE/s constantes)
         if (flatBonus > 0.0)
         {
-            LE += flatBonus * dt;
+            LE += flatBonus * room1EchoGlobalFactor * dt;
         }
 
     }

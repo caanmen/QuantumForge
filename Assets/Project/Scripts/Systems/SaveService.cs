@@ -90,8 +90,12 @@ public class SaveData
     public bool dimension03Unlocked;
     public List<D1MetalAmount> dimension1Metals;
     public List<D1PlanetState> dimension1Planets;
+    public List<D1SectorState> dimension1Sectors;
+    public string dimension1SelectedSectorId;
+    public string dimension1ActiveScanSectorId;
     public List<D1ShipState> dimension1Ships;
     public List<D1ScannedDestinationState> dimension1ScannedDestinations;
+    public List<string> dimension1PreviousScannedDestinationIds;
     public bool dimension1ScanActive;
     public double dimension1ScanRemainingSeconds;
     public double dimension1ScanTotalSeconds;
@@ -99,6 +103,7 @@ public class SaveData
     public string dimension1LastExplorationDestinationId;
     public List<D1MetalAmount> dimension1LastExplorationRewards;
     public List<D1BlueprintAmount> dimension1LastExplorationSpecificBlueprints;
+    public List<D1RelicRewardEntry> dimension1LastExplorationRelics;
     public List<D1ExplorationRecordEntry> dimension1RecentExplorationRecords;
     public List<D1BlueprintAmount> dimension1Blueprints;
     public List<D1RelicState> dimension1Relics;
@@ -215,8 +220,12 @@ public class SaveService : MonoBehaviour
         dimension03Unlocked = GameState.I.dimension03Unlocked,
         dimension1Metals = GameState.I.dimension1Metals,
         dimension1Planets = GameState.I.dimension1Planets,
+        dimension1Sectors = GameState.I.dimension1Sectors,
+        dimension1SelectedSectorId = GameState.I.dimension1SelectedSectorId,
+        dimension1ActiveScanSectorId = GameState.I.dimension1ActiveScanSectorId,
         dimension1Ships = GameState.I.dimension1Ships,
         dimension1ScannedDestinations = GameState.I.dimension1ScannedDestinations,
+        dimension1PreviousScannedDestinationIds = GameState.I.dimension1PreviousScannedDestinationIds,
         dimension1ScanActive = GameState.I.dimension1ScanActive,
         dimension1ScanRemainingSeconds = GameState.I.dimension1ScanRemainingSeconds,
         dimension1ScanTotalSeconds = GameState.I.dimension1ScanTotalSeconds,
@@ -224,6 +233,7 @@ public class SaveService : MonoBehaviour
         dimension1LastExplorationDestinationId = GameState.I.dimension1LastExplorationDestinationId,
         dimension1LastExplorationRewards = GameState.I.dimension1LastExplorationRewards,
         dimension1LastExplorationSpecificBlueprints = GameState.I.dimension1LastExplorationSpecificBlueprints,
+        dimension1LastExplorationRelics = GameState.I.dimension1LastExplorationRelics,
         dimension1RecentExplorationRecords = GameState.I.dimension1RecentExplorationRecords,
         dimension1Blueprints = GameState.I.dimension1Blueprints,
         dimension1Relics = GameState.I.dimension1Relics,
@@ -328,8 +338,12 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension03Unlocked = data.dimension03Unlocked;
         GameState.I.dimension1Metals = data.dimension1Metals ?? new List<D1MetalAmount>();
         GameState.I.dimension1Planets = data.dimension1Planets ?? new List<D1PlanetState>();
+        GameState.I.dimension1Sectors = data.dimension1Sectors ?? new List<D1SectorState>();
+        GameState.I.dimension1SelectedSectorId = data.dimension1SelectedSectorId ?? "";
+        GameState.I.dimension1ActiveScanSectorId = data.dimension1ActiveScanSectorId ?? "";
         GameState.I.dimension1Ships = data.dimension1Ships ?? new List<D1ShipState>();
         GameState.I.dimension1ScannedDestinations = data.dimension1ScannedDestinations ?? new List<D1ScannedDestinationState>();
+        GameState.I.dimension1PreviousScannedDestinationIds = data.dimension1PreviousScannedDestinationIds ?? new List<string>();
         GameState.I.dimension1ScanActive = data.dimension1ScanActive;
         GameState.I.dimension1ScanRemainingSeconds = data.dimension1ScanRemainingSeconds;
         GameState.I.dimension1ScanTotalSeconds = data.dimension1ScanTotalSeconds;
@@ -337,6 +351,7 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension1LastExplorationDestinationId = data.dimension1LastExplorationDestinationId ?? "";
         GameState.I.dimension1LastExplorationRewards = data.dimension1LastExplorationRewards ?? new List<D1MetalAmount>();
         GameState.I.dimension1LastExplorationSpecificBlueprints = data.dimension1LastExplorationSpecificBlueprints ?? new List<D1BlueprintAmount>();
+        GameState.I.dimension1LastExplorationRelics = data.dimension1LastExplorationRelics ?? new List<D1RelicRewardEntry>();
         GameState.I.dimension1RecentExplorationRecords = data.dimension1RecentExplorationRecords ?? new List<D1ExplorationRecordEntry>();
         GameState.I.dimension1Blueprints = data.dimension1Blueprints ?? new List<D1BlueprintAmount>();
         GameState.I.dimension1Relics = data.dimension1Relics ?? new List<D1RelicState>();
@@ -344,13 +359,13 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension1BlueprintFragments = data.dimension1BlueprintFragments;
         GameState.I.dimension1LastExplorationBlueprintFragments = data.dimension1LastExplorationBlueprintFragments;
         GameState.I.dimension1LastExplorationResultId = data.dimension1LastExplorationResultId;
-        GameState.I.EnsureDimension1State();
 
         // Prestigio 1 - Convergencia
         GameState.I.prestige1Count = data.prestige1Count;
         GameState.I.hasDonePrestige1 = data.hasDonePrestige1;
         GameState.I.prestige1Points = data.prestige1Points;
         GameState.I.prestige1BestClaimedPreviewPoints = data.prestige1BestClaimedPreviewPoints;
+        GameState.I.EnsureDimension1State();
 
         // Migración para partidas viejas:
         // si el jugador ya hizo Prestigio 1, el sistema de dimensiones debe quedar preparado.
@@ -483,8 +498,12 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension03Unlocked = false;
         GameState.I.dimension1Metals = new List<D1MetalAmount>();
         GameState.I.dimension1Planets = new List<D1PlanetState>();
+        GameState.I.dimension1Sectors = new List<D1SectorState>();
+        GameState.I.dimension1SelectedSectorId = "";
+        GameState.I.dimension1ActiveScanSectorId = "";
         GameState.I.dimension1Ships = new List<D1ShipState>();
         GameState.I.dimension1ScannedDestinations = new List<D1ScannedDestinationState>();
+        GameState.I.dimension1PreviousScannedDestinationIds = new List<string>();
         GameState.I.dimension1ScanActive = false;
         GameState.I.dimension1ScanRemainingSeconds = 0.0;
         GameState.I.dimension1ScanTotalSeconds = 0.0;
@@ -492,6 +511,7 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension1LastExplorationDestinationId = "";
         GameState.I.dimension1LastExplorationRewards = new List<D1MetalAmount>();
         GameState.I.dimension1LastExplorationSpecificBlueprints = new List<D1BlueprintAmount>();
+        GameState.I.dimension1LastExplorationRelics = new List<D1RelicRewardEntry>();
         GameState.I.dimension1RecentExplorationRecords = new List<D1ExplorationRecordEntry>();
         GameState.I.dimension1Blueprints = new List<D1BlueprintAmount>();
         GameState.I.dimension1Relics = new List<D1RelicState>();
