@@ -35986,6 +35986,8 @@ MonoBehaviour:
   dimension1RecentExplorationRecords: []
   dimension1Blueprints: []
   dimension1Relics: []
+  dimension1RelicPityStates: []
+  dimension1RelicProgressVersion: 0
   dimension1TreeNodes: []
   dimension1TreeProgressVersion: 0
   dimension1BlueprintFragments: 0

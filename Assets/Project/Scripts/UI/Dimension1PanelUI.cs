@@ -91,6 +91,14 @@ public class Dimension1PanelUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI relicChamberInfoText;
     [SerializeField] private Button upgradeSelectedRelicButton;
 
+    [Header("Arbol D1")]
+    [SerializeField] private GameObject dimension1TreePanel;
+    [SerializeField] private Button openDimension1TreePanelButton;
+    [SerializeField] private Button closeDimension1TreePanelButton;
+    [SerializeField] private TMP_Dropdown dimension1TreeNodeDropdown;
+    [SerializeField] private TextMeshProUGUI dimension1TreeInfoText;
+    [SerializeField] private Button buySelectedDimension1TreeNodeButton;
+
     [Header("Galaxia")]
     [SerializeField] private GameObject galaxyPanel;
     [SerializeField] private Button openGalaxyPanelButton;
@@ -125,6 +133,10 @@ public class Dimension1PanelUI : MonoBehaviour
     private string relicChamberDropdownSignature = "";
     private bool isRefreshingRelicChamberDropdown;
     private bool relicChamberPanelOpen;
+    private bool dimension1TreePanelOpen;
+    private int selectedDimension1TreeNodeIndex;
+    private string dimension1TreeDropdownSignature = "";
+    private bool isRefreshingDimension1TreeDropdown;
     private bool galaxyPanelOpen;
     private string galaxyPreviewSectorId =
         Dimension1System.Sector01OuterRim;
@@ -141,6 +153,7 @@ public class Dimension1PanelUI : MonoBehaviour
     private void OnEnable()
     {
         BindGalaxyButtonListeners();
+        BindDimension1TreeListeners();
         HideFrozenPart2Controls();
         PrimeExplorationResultPanelState();
         RefreshUI();
@@ -149,6 +162,7 @@ public class Dimension1PanelUI : MonoBehaviour
     private void OnDisable()
     {
         UnbindGalaxyButtonListeners();
+        UnbindDimension1TreeListeners();
     }
 
     private void BindGalaxyButtonListeners()
@@ -229,6 +243,54 @@ public class Dimension1PanelUI : MonoBehaviour
     {
         if (button != null)
             button.onClick.RemoveListener(action);
+    }
+
+    private void BindDimension1TreeListeners()
+    {
+        UnbindDimension1TreeListeners();
+
+        AddGalaxyButtonListener(
+            openDimension1TreePanelButton,
+            OnClickOpenDimension1TreePanel
+        );
+        AddGalaxyButtonListener(
+            closeDimension1TreePanelButton,
+            OnClickCloseDimension1TreePanel
+        );
+        AddGalaxyButtonListener(
+            buySelectedDimension1TreeNodeButton,
+            OnClickBuySelectedDimension1TreeNode
+        );
+
+        if (dimension1TreeNodeDropdown != null)
+        {
+            dimension1TreeNodeDropdown.onValueChanged.AddListener(
+                OnDimension1TreeNodeDropdownChanged
+            );
+        }
+    }
+
+    private void UnbindDimension1TreeListeners()
+    {
+        RemoveGalaxyButtonListener(
+            openDimension1TreePanelButton,
+            OnClickOpenDimension1TreePanel
+        );
+        RemoveGalaxyButtonListener(
+            closeDimension1TreePanelButton,
+            OnClickCloseDimension1TreePanel
+        );
+        RemoveGalaxyButtonListener(
+            buySelectedDimension1TreeNodeButton,
+            OnClickBuySelectedDimension1TreeNode
+        );
+
+        if (dimension1TreeNodeDropdown != null)
+        {
+            dimension1TreeNodeDropdown.onValueChanged.RemoveListener(
+                OnDimension1TreeNodeDropdownChanged
+            );
+        }
     }
 
     private void PrimeExplorationResultPanelState()
@@ -338,6 +400,7 @@ public class Dimension1PanelUI : MonoBehaviour
         RefreshHangarPanel(gs);
         RefreshRelicChamberPanel(gs);
         RefreshGalaxyPanel(gs);
+        RefreshDimension1TreePanel(gs);
 
     }
 
@@ -572,62 +635,7 @@ public class Dimension1PanelUI : MonoBehaviour
 
     private string GetRelicVisualName(string relicId)
     {
-        switch (relicId)
-        {
-            case Dimension1System.RelicDriftCompass:
-                return "Brújula de Deriva";
-
-            case Dimension1System.RelicAncientCargoCore:
-                return "Núcleo de Bodega Antigua";
-
-            case Dimension1System.RelicLostNavigationRecord:
-                return "Registro de Navegación Perdido";
-
-            case Dimension1System.RelicExpeditionSeal:
-                return "Sello de Expedición";
-
-            case Dimension1System.RelicDormantEcho:
-                return "Eco de Reliquia Dormida";
-
-            case Dimension1System.RelicExplorerPlate:
-                return "Placa de Explorador";
-
-            case Dimension1System.RelicExtractionHook:
-                return "Gancho de Extracción";
-
-            case Dimension1System.RelicAnalyticCrystal:
-                return "Cristal Analítico";
-
-            case Dimension1System.RelicModularContainer:
-                return "Contenedor Modular";
-
-            case Dimension1System.RelicRescueBeacon:
-                return "Baliza de Rescate";
-
-            case Dimension1System.RelicAncientDrill:
-                return "Taladro Antiguo";
-
-            case Dimension1System.RelicRememberedAlloy:
-                return "Aleación Recordada";
-
-            case Dimension1System.RelicProspectingCore:
-                return "Núcleo de Prospección";
-
-            case Dimension1System.RelicExtractionSeal:
-                return "Sello de Extracción";
-
-            case Dimension1System.RelicMatrixArchive:
-                return "Archivo de Matrices";
-
-            case Dimension1System.RelicFracturedAntenna:
-                return "Antena Fracturada";
-
-            case Dimension1System.RelicRoom1Echo:
-                return "Eco del Cuarto 1";
-
-            default:
-                return relicId;
-        }
+        return Dimension1System.GetDimension1RelicVisualName(relicId);
     }
 
     private string BuildScannerText(GameState gs)
@@ -679,6 +687,11 @@ public class Dimension1PanelUI : MonoBehaviour
                 (specialPointChance * 100f).ToString("0.#") +
                 "% de marcar 1 destino\n";
         }
+
+        scannerHeader +=
+            "Calidad de escaneo: +" +
+            (Dimension1System.GetSimpleScannerQualityBonus(gs) * 100f).ToString("0.#") +
+            "%\n";
 
         if (gs.dimension1ScanActive)
         {
@@ -3713,7 +3726,15 @@ public class Dimension1PanelUI : MonoBehaviour
         {
             SetButtonText(
                 upgradeScannerButton,
-                "Escáner máximo\n5/5 destinos"
+                "Escáner máximo\n" +
+                Dimension1System.SimpleScannerMaxLevel +
+                "/" +
+                Dimension1System.SimpleScannerMaxLevel +
+                " | " +
+                Dimension1System.GetSimpleScanMaxDestinationCount() +
+                "/" +
+                Dimension1System.GetSimpleScanMaxDestinationCount() +
+                " destinos"
             );
 
             upgradeScannerButton.interactable = false;
@@ -4123,6 +4144,33 @@ public class Dimension1PanelUI : MonoBehaviour
             case 6:
                 return "VI";
 
+            case 7:
+                return "VII";
+
+            case 8:
+                return "VIII";
+
+            case 9:
+                return "IX";
+
+            case 10:
+                return "X";
+
+            case 11:
+                return "XI";
+
+            case 12:
+                return "XII";
+
+            case 13:
+                return "XIII";
+
+            case 14:
+                return "XIV";
+
+            case 15:
+                return "XV";
+
             default:
                 return value.ToString();
         }
@@ -4435,6 +4483,7 @@ public class Dimension1PanelUI : MonoBehaviour
         galaxyPanelOpen = true;
         hangarPanelOpen = false;
         relicChamberPanelOpen = false;
+        dimension1TreePanelOpen = false;
         CloseExplorationOverlayPanels();
 
         RefreshUI();
@@ -4518,6 +4567,7 @@ public class Dimension1PanelUI : MonoBehaviour
         bool secondaryPanelOpen =
             hangarPanelOpen ||
             relicChamberPanelOpen ||
+            dimension1TreePanelOpen ||
             galaxyPanelOpen;
 
         if (dimension1MainContentRoot != null)
@@ -4707,6 +4757,14 @@ public class Dimension1PanelUI : MonoBehaviour
             BuildGalaxySectorDestinationsText(sectorId)
         };
 
+        string requirementsText = BuildGalaxySectorRequirementsText(gs, sectorId);
+
+        if (!string.IsNullOrEmpty(requirementsText))
+        {
+            lines.Add("");
+            lines.Add(requirementsText);
+        }
+
         if (!string.IsNullOrEmpty(galaxyFeedbackMessage))
         {
             lines.Add("");
@@ -4717,6 +4775,47 @@ public class Dimension1PanelUI : MonoBehaviour
         {
             lines.Add("");
             lines.Add(blockedReason);
+        }
+
+        return string.Join("\n", lines);
+    }
+
+    private string BuildGalaxySectorRequirementsText(
+        GameState gs,
+        string sectorId
+    )
+    {
+        List<D1SectorRequirementStatus> requirements =
+            Dimension1System.GetD1SectorUnlockRequirements(gs, sectorId);
+
+        if (requirements.Count == 0)
+            return "";
+
+        var lines = new List<string>
+        {
+            "Requisitos de acceso:"
+        };
+
+        foreach (D1SectorRequirementStatus requirement in requirements)
+        {
+            if (requirement == null)
+                continue;
+
+            string line =
+                (requirement.met ? "[OK] " : "[ ] ") +
+                requirement.label;
+
+            if (requirement.showProgress)
+            {
+                line +=
+                    " (" +
+                    Mathf.Min(requirement.currentValue, requirement.requiredValue) +
+                    "/" +
+                    requirement.requiredValue +
+                    ")";
+            }
+
+            lines.Add(line);
         }
 
         return string.Join("\n", lines);
@@ -4825,6 +4924,7 @@ public class Dimension1PanelUI : MonoBehaviour
     {
         hangarPanelOpen = true;
         relicChamberPanelOpen = false;
+        dimension1TreePanelOpen = false;
         galaxyPanelOpen = false;
         explorationRecordPanelOpen = false;
         showingExplorationResultPanel = false;
@@ -4893,6 +4993,7 @@ public class Dimension1PanelUI : MonoBehaviour
 
         relicChamberPanelOpen = true;
         hangarPanelOpen = false;
+        dimension1TreePanelOpen = false;
         galaxyPanelOpen = false;
         explorationRecordPanelOpen = false;
         showingExplorationResultPanel = false;
@@ -4941,6 +5042,7 @@ public class Dimension1PanelUI : MonoBehaviour
             dimension1MainContentRoot.SetActive(
                 !hangarPanelOpen &&
                 !relicChamberPanelOpen &&
+                !dimension1TreePanelOpen &&
                 !galaxyPanelOpen
             );
         }
@@ -4951,6 +5053,7 @@ public class Dimension1PanelUI : MonoBehaviour
                 relicChamberPanel != null &&
                 !hangarPanelOpen &&
                 !relicChamberPanelOpen &&
+                !dimension1TreePanelOpen &&
                 !galaxyPanelOpen
             );
             SetButtonText(openRelicChamberPanelButton, "Reliquias");
@@ -5003,7 +5106,12 @@ public class Dimension1PanelUI : MonoBehaviour
             if (!Dimension1System.IsRelicActiveInDimension1Base(relicId))
                 continue;
 
-            string optionText = GetRelicVisualName(relicId);
+            string optionText =
+                GetRelicSectorShortLabel(relicId) +
+                " · N" +
+                Dimension1System.GetDimension1RelicTier(relicId) +
+                " · " +
+                GetRelicVisualName(relicId);
 
             if (gs == null || !gs.IsD1RelicUnlocked(relicId))
             {
@@ -5064,6 +5172,23 @@ public class Dimension1PanelUI : MonoBehaviour
         isRefreshingRelicChamberDropdown = false;
     }
 
+    private string GetRelicSectorShortLabel(string relicId)
+    {
+        switch (Dimension1System.GetDimension1RelicSectorId(relicId))
+        {
+            case Dimension1System.Sector01OuterRim:
+                return "S1";
+            case Dimension1System.Sector02DebrisRing:
+                return "S2";
+            case Dimension1System.Sector03AncientOrbits:
+                return "S3";
+            case Dimension1System.Sector04SilentFrontier:
+                return "S4";
+            default:
+                return "D1";
+        }
+    }
+
     private string GetSelectedRelicChamberRelicId()
     {
         int index = selectedRelicIndex;
@@ -5114,9 +5239,18 @@ public class Dimension1PanelUI : MonoBehaviour
             "\n\n" +
             GetRelicVisualName(relicId) +
             "\n" +
+            "Sector: " +
+            Dimension1System.GetDimension1SectorVisualName(
+                Dimension1System.GetDimension1RelicSectorId(relicId)
+            ) +
+            "\nCategoria de descubrimiento: Nivel " +
+            Dimension1System.GetDimension1RelicTier(relicId) +
+            "\nDestinos: " +
+            BuildRelicCompatibleDestinationsText(relicId) +
+            "\n" +
             "Estado: " +
             (unlocked ? "Obtenida" : "Bloqueada") +
-            "\nNivel " +
+            "\nNivel de mejora: " +
             level +
             "/" +
             Dimension1System.Dimension1RelicMaxLevel +
@@ -5156,7 +5290,12 @@ public class Dimension1PanelUI : MonoBehaviour
 
         if (!unlocked)
         {
-            text += "\n\nSe obtiene como recompensa de exploracion.";
+            text +=
+                "\n\nRequisitos de descubrimiento:\n" +
+                Dimension1System.GetDimension1RelicDiscoveryRequirementsText(
+                    gs,
+                    relicId
+                );
             return text;
         }
 
@@ -5188,6 +5327,9 @@ public class Dimension1PanelUI : MonoBehaviour
     private string BuildRelicChamberSummaryText(GameState gs)
     {
         int unlockedCount = GetUnlockedDimension1RelicCount(gs, out int activeCount);
+        int tier1Count = GetUnlockedDimension1RelicCountByTier(gs, 1);
+        int tier2Count = GetUnlockedDimension1RelicCountByTier(gs, 2);
+        int tier3Count = GetUnlockedDimension1RelicCountByTier(gs, 3);
         int totalLevel = 0;
 
         foreach (string relicId in Dimension1System.Dimension1RelicIds)
@@ -5207,6 +5349,13 @@ public class Dimension1PanelUI : MonoBehaviour
             unlockedCount +
             "/" +
             activeCount +
+            "\nNivel 1: " +
+            tier1Count +
+            "/7 | Nivel 2: " +
+            tier2Count +
+            "/8 | Nivel 3: " +
+            tier3Count +
+            "/5" +
             "\nNiveles acumulados: " +
             totalLevel +
             "\nMaximo por reliquia: " +
@@ -5231,6 +5380,28 @@ public class Dimension1PanelUI : MonoBehaviour
         }
 
         return unlockedCount;
+    }
+
+    private int GetUnlockedDimension1RelicCountByTier(
+        GameState gs,
+        int relicTier
+    )
+    {
+        if (gs == null)
+            return 0;
+
+        int count = 0;
+
+        foreach (string relicId in Dimension1System.Dimension1RelicIds)
+        {
+            if (Dimension1System.GetDimension1RelicTier(relicId) != relicTier)
+                continue;
+
+            if (gs.IsD1RelicUnlocked(relicId))
+                count++;
+        }
+
+        return count;
     }
 
     private string BuildRelicUpgradeCostText(
@@ -5385,6 +5556,40 @@ public class Dimension1PanelUI : MonoBehaviour
                     "\n- Produccion del metal principal: +" +
                     FormatRelicPercent(secondaryBonus);
 
+            case Dimension1System.RelicRememberedAlloy:
+                return
+                    "- Reduccion de costos de extractores: -" +
+                    FormatRelicPercent(primaryBonus) +
+                    "\n- Reduccion adicional en tiers multiplos de 10: -" +
+                    FormatRelicPercent(secondaryBonus);
+
+            case Dimension1System.RelicProspectingCore:
+                return
+                    "- Produccion de recursos secundarios: +" +
+                    FormatRelicPercent(primaryBonus) +
+                    "\n- Bonus adicional en planetas avanzados: +" +
+                    FormatRelicPercent(secondaryBonus);
+
+            case Dimension1System.RelicExtractionSeal:
+                return
+                    "- Produccion con extractores tier 20+: +" +
+                    FormatRelicPercent(primaryBonus) +
+                    "\n- Produccion en planetas con varios recursos: +" +
+                    FormatRelicPercent(secondaryBonus);
+
+            case Dimension1System.RelicFracturedAntenna:
+                return
+                    "- Probabilidad de obtener un destino adicional al escanear: +" +
+                    FormatRelicPercentagePoints(primaryBonus) +
+                    "\n- Bonus secundario: pendiente de definicion.";
+
+            case Dimension1System.RelicMatrixArchive:
+                return
+                    "- Probabilidad de Fragmento de Matriz Adaptativa: +" +
+                    FormatRelicPercentagePoints(primaryBonus) +
+                    "\n- Probabilidad de Matriz especifica compatible: +" +
+                    FormatRelicPercentagePoints(secondaryBonus);
+
             case Dimension1System.RelicRoom1Echo:
                 return
                     "- Produccion general de LE: +" +
@@ -5392,9 +5597,43 @@ public class Dimension1PanelUI : MonoBehaviour
                     "\n- LE de artefactos del Cuarto 1: +" +
                     FormatRelicPercent(secondaryBonus);
 
+            case Dimension1System.RelicIncompleteStarMap:
+                return BuildPendingRelicEffectText(
+                    "variedad de destinos"
+                );
+
+            case Dimension1System.RelicTracesResonator:
+                return BuildPendingRelicEffectText("Trazas");
+
+            case Dimension1System.RelicCalibrationFragment:
+                return BuildPendingRelicEffectText(
+                    "Modulador de Fase"
+                );
+
+            case Dimension1System.RelicRareFrequencySensor:
+                return BuildPendingRelicEffectText(
+                    "puntos especiales"
+                );
+
+            case Dimension1System.RelicTriangularSeal:
+                return BuildPendingRelicEffectText("Triangulo");
+
+            case Dimension1System.RelicMachineMemory:
+                return BuildPendingRelicEffectText(
+                    "Maquina / Cuarto 2"
+                );
+
             default:
-                return "Efecto reservado para expansion futura.";
+                return "Efecto no disponible.";
         }
+    }
+
+    private string BuildPendingRelicEffectText(string intendedImpact)
+    {
+        return
+            "- Impacto previsto: " +
+            intendedImpact +
+            ".\n- Valores numericos pendientes de definicion; no aplica bonus por ahora.";
     }
 
     private string FormatRelicPercent(double value)
@@ -5415,6 +5654,316 @@ public class Dimension1PanelUI : MonoBehaviour
         ) + " puntos porcentuales";
     }
 
+    public void OnClickOpenDimension1TreePanel()
+    {
+        if (dimension1TreePanel == null)
+            return;
+
+        dimension1TreePanelOpen = true;
+        hangarPanelOpen = false;
+        relicChamberPanelOpen = false;
+        galaxyPanelOpen = false;
+        explorationRecordPanelOpen = false;
+        showingExplorationResultPanel = false;
+        RefreshUI();
+    }
+
+    public void OnClickCloseDimension1TreePanel()
+    {
+        dimension1TreePanelOpen = false;
+        RefreshUI();
+    }
+
+    public void OnDimension1TreeNodeDropdownChanged(int index)
+    {
+        if (isRefreshingDimension1TreeDropdown)
+            return;
+
+        selectedDimension1TreeNodeIndex = index;
+        RefreshUI();
+    }
+
+    public void OnClickBuySelectedDimension1TreeNode()
+    {
+        GameState gs = GameState.I;
+        string nodeId = GetSelectedDimension1TreeNodeId();
+
+        if (gs == null || string.IsNullOrEmpty(nodeId))
+            return;
+
+        Dimension1System.TryBuyDimension1TreeNode(gs, nodeId);
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        dimension1TreeDropdownSignature = "";
+        RefreshUI();
+    }
+
+    private void RefreshDimension1TreePanel(GameState gs)
+    {
+        bool anotherPanelOpen =
+            hangarPanelOpen ||
+            relicChamberPanelOpen ||
+            galaxyPanelOpen;
+
+        if (dimension1MainContentRoot != null)
+        {
+            dimension1MainContentRoot.SetActive(
+                !anotherPanelOpen &&
+                !dimension1TreePanelOpen
+            );
+        }
+
+        if (openDimension1TreePanelButton != null)
+        {
+            openDimension1TreePanelButton.gameObject.SetActive(
+                dimension1TreePanel != null &&
+                !anotherPanelOpen &&
+                !dimension1TreePanelOpen
+            );
+            SetButtonText(openDimension1TreePanelButton, "Árbol D1");
+        }
+
+        if (dimension1TreePanel != null)
+            dimension1TreePanel.SetActive(dimension1TreePanelOpen);
+
+        if (closeDimension1TreePanelButton != null)
+        {
+            closeDimension1TreePanelButton.gameObject.SetActive(
+                dimension1TreePanelOpen
+            );
+            SetButtonText(closeDimension1TreePanelButton, "Cerrar");
+        }
+
+        if (!dimension1TreePanelOpen)
+        {
+            if (dimension1TreeInfoText != null)
+                dimension1TreeInfoText.text = "";
+
+            if (buySelectedDimension1TreeNodeButton != null)
+                buySelectedDimension1TreeNodeButton.gameObject.SetActive(false);
+
+            return;
+        }
+
+        RefreshDimension1TreeDropdown(gs);
+
+        string nodeId = GetSelectedDimension1TreeNodeId();
+
+        if (dimension1TreeInfoText != null)
+        {
+            dimension1TreeInfoText.text =
+                BuildDimension1TreeNodeInfoText(gs, nodeId);
+        }
+
+        RefreshDimension1TreeBuyButton(gs, nodeId);
+    }
+
+    private void RefreshDimension1TreeDropdown(GameState gs)
+    {
+        if (dimension1TreeNodeDropdown == null)
+            return;
+
+        var options = new List<string>
+        {
+            "Elegir nodo"
+        };
+
+        foreach (string nodeId in Dimension1System.Dimension1TreeNodeIds)
+        {
+            int tier = gs != null ? gs.GetD1TreeNodeTier(nodeId) : 0;
+            int maxTier = Dimension1System.GetDimension1TreeNodeMaxTier(nodeId);
+            string option = Dimension1System.GetDimension1TreeNodeVisualName(nodeId);
+
+            option += tier > 0
+                ? " " + tier + "/" + maxTier
+                : " (sin comprar)";
+
+            options.Add(option);
+        }
+
+        string signature = string.Join("|", options);
+
+        if (signature != dimension1TreeDropdownSignature)
+        {
+            isRefreshingDimension1TreeDropdown = true;
+            dimension1TreeNodeDropdown.ClearOptions();
+            dimension1TreeNodeDropdown.AddOptions(options);
+            dimension1TreeDropdownSignature = signature;
+            isRefreshingDimension1TreeDropdown = false;
+        }
+
+        selectedDimension1TreeNodeIndex = Mathf.Clamp(
+            selectedDimension1TreeNodeIndex,
+            0,
+            options.Count - 1
+        );
+
+        dimension1TreeNodeDropdown.SetValueWithoutNotify(
+            selectedDimension1TreeNodeIndex
+        );
+        dimension1TreeNodeDropdown.RefreshShownValue();
+    }
+
+    private string GetSelectedDimension1TreeNodeId()
+    {
+        int nodeIndex = selectedDimension1TreeNodeIndex - 1;
+
+        if (nodeIndex < 0 ||
+            nodeIndex >= Dimension1System.Dimension1TreeNodeIds.Length)
+        {
+            return "";
+        }
+
+        return Dimension1System.Dimension1TreeNodeIds[nodeIndex];
+    }
+
+    private string BuildDimension1TreeNodeInfoText(
+        GameState gs,
+        string nodeId
+    )
+    {
+        if (gs == null)
+            return "Árbol D1 no disponible.";
+
+        string header =
+            "ÁRBOL D1\n" +
+            "Puntos disponibles: " +
+            gs.prestige1Points +
+            "\nNodos comprados: " +
+            Dimension1System.GetD1PurchasedTreeNodeCount(gs) +
+            "/" +
+            Dimension1System.Dimension1TreeNodeIds.Length;
+
+        if (string.IsNullOrEmpty(nodeId))
+            return header + "\n\nSelecciona un nodo para revisar sus efectos.";
+
+        int tier = gs.GetD1TreeNodeTier(nodeId);
+        int maxTier = Dimension1System.GetDimension1TreeNodeMaxTier(nodeId);
+        int targetTier = Mathf.Min(tier + 1, maxTier);
+
+        string text =
+            header +
+            "\n\n" +
+            Dimension1System.GetDimension1TreeNodeVisualName(nodeId) +
+            "\nNivel: " +
+            tier +
+            "/" +
+            maxTier +
+            "\n\n" +
+            Dimension1System.GetDimension1TreeNodeDescription(nodeId);
+
+        if (tier >= maxTier)
+            return text + "\n\nEstado: máximo alcanzado.";
+
+        int cost = Dimension1System.GetDimension1TreeNodeCost(
+            nodeId,
+            targetTier
+        );
+
+        text +=
+            "\n\nPróximo nivel: " +
+            targetTier +
+            "\nCosto: " +
+            cost +
+            " Puntos de Prestigio 1" +
+            "\n" +
+            Dimension1System.GetDimension1TreeNodeUnlockSummary(
+                gs,
+                nodeId,
+                targetTier
+            );
+
+        return text;
+    }
+
+    private string BuildRelicCompatibleDestinationsText(string relicId)
+    {
+        string sectorId =
+            Dimension1System.GetDimension1RelicSectorId(relicId);
+        string[] destinations =
+            Dimension1System.GetDimension1SectorDestinationIds(sectorId);
+        List<string> compatibleNames = new List<string>();
+
+        foreach (string destinationId in destinations)
+        {
+            if (!Dimension1System.IsDimension1RelicCompatibleDestination(
+                    relicId,
+                    destinationId
+                ))
+            {
+                continue;
+            }
+
+            string destinationName = GetDestinationVisualName(destinationId);
+
+            if (Dimension1System.IsDimension1RelicStrongDestination(
+                    relicId,
+                    destinationId
+                ))
+            {
+                destinationName += " (fuerte)";
+            }
+
+            compatibleNames.Add(destinationName);
+        }
+
+        return compatibleNames.Count > 0
+            ? string.Join(", ", compatibleNames)
+            : "Sin destinos compatibles";
+    }
+
+    private void RefreshDimension1TreeBuyButton(GameState gs, string nodeId)
+    {
+        if (buySelectedDimension1TreeNodeButton == null)
+            return;
+
+        buySelectedDimension1TreeNodeButton.gameObject.SetActive(
+            dimension1TreePanelOpen
+        );
+
+        if (gs == null || string.IsNullOrEmpty(nodeId))
+        {
+            buySelectedDimension1TreeNodeButton.interactable = false;
+            SetButtonText(buySelectedDimension1TreeNodeButton, "Comprar");
+            return;
+        }
+
+        int tier = gs.GetD1TreeNodeTier(nodeId);
+        int maxTier = Dimension1System.GetDimension1TreeNodeMaxTier(nodeId);
+
+        if (tier >= maxTier)
+        {
+            buySelectedDimension1TreeNodeButton.interactable = false;
+            SetButtonText(buySelectedDimension1TreeNodeButton, "Máximo");
+            return;
+        }
+
+        int targetTier = tier + 1;
+        int cost = Dimension1System.GetDimension1TreeNodeCost(
+            nodeId,
+            targetTier
+        );
+        bool canBuy = Dimension1System.CanBuyDimension1TreeNode(gs, nodeId);
+
+        buySelectedDimension1TreeNodeButton.interactable = canBuy;
+
+        if (canBuy)
+        {
+            SetButtonText(
+                buySelectedDimension1TreeNodeButton,
+                "Comprar nivel " + targetTier + "\nCosto: " + cost
+            );
+            return;
+        }
+
+        string buttonText = gs.prestige1Points < cost
+            ? "Faltan puntos " + gs.prestige1Points + "/" + cost
+            : "Requisitos pendientes";
+        SetButtonText(buySelectedDimension1TreeNodeButton, buttonText);
+    }
+
     private void RefreshHangarPanel(GameState gs)
     {
         if (dimension1MainContentRoot != null)
@@ -5422,6 +5971,7 @@ public class Dimension1PanelUI : MonoBehaviour
             dimension1MainContentRoot.SetActive(
                 !hangarPanelOpen &&
                 !relicChamberPanelOpen &&
+                !dimension1TreePanelOpen &&
                 !galaxyPanelOpen
             );
         }
@@ -5431,6 +5981,7 @@ public class Dimension1PanelUI : MonoBehaviour
             openHangarPanelButton.gameObject.SetActive(
                 !hangarPanelOpen &&
                 !relicChamberPanelOpen &&
+                !dimension1TreePanelOpen &&
                 !galaxyPanelOpen
             );
             SetButtonText(openHangarPanelButton, "Hangar");

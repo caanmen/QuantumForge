@@ -100,6 +100,7 @@ public class SaveData
     public double dimension1ScanRemainingSeconds;
     public double dimension1ScanTotalSeconds;
     public int dimension1ScannerLevel;
+    public int dimension1ScannerProgressVersion;
     public string dimension1LastExplorationDestinationId;
     public List<D1MetalAmount> dimension1LastExplorationRewards;
     public List<D1BlueprintAmount> dimension1LastExplorationSpecificBlueprints;
@@ -107,7 +108,10 @@ public class SaveData
     public List<D1ExplorationRecordEntry> dimension1RecentExplorationRecords;
     public List<D1BlueprintAmount> dimension1Blueprints;
     public List<D1RelicState> dimension1Relics;
+    public List<D1RelicPityState> dimension1RelicPityStates;
+    public int dimension1RelicProgressVersion;
     public List<D1TreeNodeState> dimension1TreeNodes;
+    public int dimension1TreeProgressVersion;
     public int dimension1BlueprintFragments;
     public int dimension1LastExplorationBlueprintFragments;
     public int dimension1LastExplorationResultId;
@@ -230,6 +234,7 @@ public class SaveService : MonoBehaviour
         dimension1ScanRemainingSeconds = GameState.I.dimension1ScanRemainingSeconds,
         dimension1ScanTotalSeconds = GameState.I.dimension1ScanTotalSeconds,
         dimension1ScannerLevel = GameState.I.dimension1ScannerLevel,
+        dimension1ScannerProgressVersion = GameState.I.dimension1ScannerProgressVersion,
         dimension1LastExplorationDestinationId = GameState.I.dimension1LastExplorationDestinationId,
         dimension1LastExplorationRewards = GameState.I.dimension1LastExplorationRewards,
         dimension1LastExplorationSpecificBlueprints = GameState.I.dimension1LastExplorationSpecificBlueprints,
@@ -237,7 +242,10 @@ public class SaveService : MonoBehaviour
         dimension1RecentExplorationRecords = GameState.I.dimension1RecentExplorationRecords,
         dimension1Blueprints = GameState.I.dimension1Blueprints,
         dimension1Relics = GameState.I.dimension1Relics,
+        dimension1RelicPityStates = GameState.I.dimension1RelicPityStates,
+        dimension1RelicProgressVersion = GameState.I.dimension1RelicProgressVersion,
         dimension1TreeNodes = GameState.I.dimension1TreeNodes,
+        dimension1TreeProgressVersion = GameState.I.dimension1TreeProgressVersion,
         dimension1BlueprintFragments = GameState.I.dimension1BlueprintFragments,
         dimension1LastExplorationBlueprintFragments = GameState.I.dimension1LastExplorationBlueprintFragments,
         dimension1LastExplorationResultId = GameState.I.dimension1LastExplorationResultId,
@@ -348,6 +356,7 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension1ScanRemainingSeconds = data.dimension1ScanRemainingSeconds;
         GameState.I.dimension1ScanTotalSeconds = data.dimension1ScanTotalSeconds;
         GameState.I.dimension1ScannerLevel = data.dimension1ScannerLevel;
+        GameState.I.dimension1ScannerProgressVersion = data.dimension1ScannerProgressVersion;
         GameState.I.dimension1LastExplorationDestinationId = data.dimension1LastExplorationDestinationId ?? "";
         GameState.I.dimension1LastExplorationRewards = data.dimension1LastExplorationRewards ?? new List<D1MetalAmount>();
         GameState.I.dimension1LastExplorationSpecificBlueprints = data.dimension1LastExplorationSpecificBlueprints ?? new List<D1BlueprintAmount>();
@@ -355,7 +364,10 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension1RecentExplorationRecords = data.dimension1RecentExplorationRecords ?? new List<D1ExplorationRecordEntry>();
         GameState.I.dimension1Blueprints = data.dimension1Blueprints ?? new List<D1BlueprintAmount>();
         GameState.I.dimension1Relics = data.dimension1Relics ?? new List<D1RelicState>();
+        GameState.I.dimension1RelicPityStates = data.dimension1RelicPityStates ?? new List<D1RelicPityState>();
+        GameState.I.dimension1RelicProgressVersion = data.dimension1RelicProgressVersion;
         GameState.I.dimension1TreeNodes = data.dimension1TreeNodes ?? new List<D1TreeNodeState>();
+        GameState.I.dimension1TreeProgressVersion = data.dimension1TreeProgressVersion;
         GameState.I.dimension1BlueprintFragments = data.dimension1BlueprintFragments;
         GameState.I.dimension1LastExplorationBlueprintFragments = data.dimension1LastExplorationBlueprintFragments;
         GameState.I.dimension1LastExplorationResultId = data.dimension1LastExplorationResultId;
@@ -507,7 +519,9 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension1ScanActive = false;
         GameState.I.dimension1ScanRemainingSeconds = 0.0;
         GameState.I.dimension1ScanTotalSeconds = 0.0;
-        GameState.I.dimension1ScannerLevel = 0;
+        GameState.I.dimension1ScannerLevel = Dimension1System.SimpleScannerMinLevel;
+        GameState.I.dimension1ScannerProgressVersion =
+            Dimension1System.SimpleScannerProgressVersion;
         GameState.I.dimension1LastExplorationDestinationId = "";
         GameState.I.dimension1LastExplorationRewards = new List<D1MetalAmount>();
         GameState.I.dimension1LastExplorationSpecificBlueprints = new List<D1BlueprintAmount>();
@@ -515,7 +529,12 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension1RecentExplorationRecords = new List<D1ExplorationRecordEntry>();
         GameState.I.dimension1Blueprints = new List<D1BlueprintAmount>();
         GameState.I.dimension1Relics = new List<D1RelicState>();
+        GameState.I.dimension1RelicPityStates = new List<D1RelicPityState>();
+        GameState.I.dimension1RelicProgressVersion =
+            Dimension1System.Dimension1RelicProgressVersion;
         GameState.I.dimension1TreeNodes = new List<D1TreeNodeState>();
+        GameState.I.dimension1TreeProgressVersion =
+            Dimension1System.Dimension1TreeProgressVersion;
         GameState.I.prestige1Points = 0;
         GameState.I.prestige1BestClaimedPreviewPoints = 0;
         GameState.I.dimension1BlueprintFragments = 0;
