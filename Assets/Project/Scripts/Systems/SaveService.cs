@@ -94,6 +94,19 @@ public class SaveData
     public string dimension1SelectedSectorId;
     public string dimension1ActiveScanSectorId;
     public List<D1ShipState> dimension1Ships;
+    public int dimension1CoordinatedMissionProgressVersion;
+    public int dimension1CompletedCoordinatedMissions;
+    public int dimension1ArkProgressVersion;
+    public bool dimension1ArkInvestigated;
+    public List<D1CentralSyncMissionState> dimension1CentralSyncMissions;
+    public bool dimension1CentralSyncEstablished;
+    public bool dimension1CentralAccessKeyObtained;
+    public bool dimension1CentralAccessKeyLogSeen;
+    public bool dimension1ArkFinalMissionActive;
+    public double dimension1ArkFinalMissionRemainingSeconds;
+    public double dimension1ArkFinalMissionTotalSeconds;
+    public List<string> dimension1ArkFinalMissionShipIds;
+    public bool dimension1GalacticAnchorDiscovered;
     public List<D1ScannedDestinationState> dimension1ScannedDestinations;
     public List<string> dimension1PreviousScannedDestinationIds;
     public bool dimension1ScanActive;
@@ -228,6 +241,19 @@ public class SaveService : MonoBehaviour
         dimension1SelectedSectorId = GameState.I.dimension1SelectedSectorId,
         dimension1ActiveScanSectorId = GameState.I.dimension1ActiveScanSectorId,
         dimension1Ships = GameState.I.dimension1Ships,
+        dimension1CoordinatedMissionProgressVersion = GameState.I.dimension1CoordinatedMissionProgressVersion,
+        dimension1CompletedCoordinatedMissions = GameState.I.dimension1CompletedCoordinatedMissions,
+        dimension1ArkProgressVersion = GameState.I.dimension1ArkProgressVersion,
+        dimension1ArkInvestigated = GameState.I.dimension1ArkInvestigated,
+        dimension1CentralSyncMissions = GameState.I.dimension1CentralSyncMissions,
+        dimension1CentralSyncEstablished = GameState.I.dimension1CentralSyncEstablished,
+        dimension1CentralAccessKeyObtained = GameState.I.dimension1CentralAccessKeyObtained,
+        dimension1CentralAccessKeyLogSeen = GameState.I.dimension1CentralAccessKeyLogSeen,
+        dimension1ArkFinalMissionActive = GameState.I.dimension1ArkFinalMissionActive,
+        dimension1ArkFinalMissionRemainingSeconds = GameState.I.dimension1ArkFinalMissionRemainingSeconds,
+        dimension1ArkFinalMissionTotalSeconds = GameState.I.dimension1ArkFinalMissionTotalSeconds,
+        dimension1ArkFinalMissionShipIds = GameState.I.dimension1ArkFinalMissionShipIds,
+        dimension1GalacticAnchorDiscovered = GameState.I.dimension1GalacticAnchorDiscovered,
         dimension1ScannedDestinations = GameState.I.dimension1ScannedDestinations,
         dimension1PreviousScannedDestinationIds = GameState.I.dimension1PreviousScannedDestinationIds,
         dimension1ScanActive = GameState.I.dimension1ScanActive,
@@ -350,6 +376,19 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension1SelectedSectorId = data.dimension1SelectedSectorId ?? "";
         GameState.I.dimension1ActiveScanSectorId = data.dimension1ActiveScanSectorId ?? "";
         GameState.I.dimension1Ships = data.dimension1Ships ?? new List<D1ShipState>();
+        GameState.I.dimension1CoordinatedMissionProgressVersion = data.dimension1CoordinatedMissionProgressVersion;
+        GameState.I.dimension1CompletedCoordinatedMissions = data.dimension1CompletedCoordinatedMissions;
+        GameState.I.dimension1ArkProgressVersion = data.dimension1ArkProgressVersion;
+        GameState.I.dimension1ArkInvestigated = data.dimension1ArkInvestigated;
+        GameState.I.dimension1CentralSyncMissions = data.dimension1CentralSyncMissions ?? new List<D1CentralSyncMissionState>();
+        GameState.I.dimension1CentralSyncEstablished = data.dimension1CentralSyncEstablished;
+        GameState.I.dimension1CentralAccessKeyObtained = data.dimension1CentralAccessKeyObtained;
+        GameState.I.dimension1CentralAccessKeyLogSeen = data.dimension1CentralAccessKeyLogSeen;
+        GameState.I.dimension1ArkFinalMissionActive = data.dimension1ArkFinalMissionActive;
+        GameState.I.dimension1ArkFinalMissionRemainingSeconds = data.dimension1ArkFinalMissionRemainingSeconds;
+        GameState.I.dimension1ArkFinalMissionTotalSeconds = data.dimension1ArkFinalMissionTotalSeconds;
+        GameState.I.dimension1ArkFinalMissionShipIds = data.dimension1ArkFinalMissionShipIds ?? new List<string>();
+        GameState.I.dimension1GalacticAnchorDiscovered = data.dimension1GalacticAnchorDiscovered;
         GameState.I.dimension1ScannedDestinations = data.dimension1ScannedDestinations ?? new List<D1ScannedDestinationState>();
         GameState.I.dimension1PreviousScannedDestinationIds = data.dimension1PreviousScannedDestinationIds ?? new List<string>();
         GameState.I.dimension1ScanActive = data.dimension1ScanActive;
@@ -514,6 +553,21 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension1SelectedSectorId = "";
         GameState.I.dimension1ActiveScanSectorId = "";
         GameState.I.dimension1Ships = new List<D1ShipState>();
+        GameState.I.dimension1CoordinatedMissionProgressVersion =
+            Dimension1System.Dimension1CoordinatedMissionProgressVersion;
+        GameState.I.dimension1CompletedCoordinatedMissions = 0;
+        GameState.I.dimension1ArkProgressVersion =
+            Dimension1System.Dimension1ArkProgressVersion;
+        GameState.I.dimension1ArkInvestigated = false;
+        GameState.I.dimension1CentralSyncMissions = new List<D1CentralSyncMissionState>();
+        GameState.I.dimension1CentralSyncEstablished = false;
+        GameState.I.dimension1CentralAccessKeyObtained = false;
+        GameState.I.dimension1CentralAccessKeyLogSeen = false;
+        GameState.I.dimension1ArkFinalMissionActive = false;
+        GameState.I.dimension1ArkFinalMissionRemainingSeconds = 0.0;
+        GameState.I.dimension1ArkFinalMissionTotalSeconds = 0.0;
+        GameState.I.dimension1ArkFinalMissionShipIds = new List<string>();
+        GameState.I.dimension1GalacticAnchorDiscovered = false;
         GameState.I.dimension1ScannedDestinations = new List<D1ScannedDestinationState>();
         GameState.I.dimension1PreviousScannedDestinationIds = new List<string>();
         GameState.I.dimension1ScanActive = false;

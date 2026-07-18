@@ -55,6 +55,28 @@ public class D1ShipState
     public int armorLevel;
     public int sensorsLevel;
 
+    // Bloque 5: la nave principal conserva el temporizador de la mision.
+    // La nave de apoyo queda reservada y no crea un segundo resultado.
+    public bool coordinatedMission;
+    public string coordinatedSupportShipId;
+    public bool coordinatedSupportReserved;
+    public string coordinatedMainShipId;
+
+    // Bloque 6: Ark reserva naves sin convertirlas en exploraciones normales.
+    public bool arkMissionReserved;
+    public string arkMissionId;
+
+}
+
+[System.Serializable]
+public class D1CentralSyncMissionState
+{
+    public string missionId;
+    public bool active;
+    public bool completed;
+    public double remainingSeconds;
+    public double totalSeconds;
+    public int failedAttempts;
 }
 
 [System.Serializable]
@@ -77,6 +99,9 @@ public class D1ExplorationRecordEntry
     public int blueprintFragments;
     public List<D1BlueprintAmount> specificBlueprintRewards = new List<D1BlueprintAmount>();
     public List<D1RelicRewardEntry> relicRewards = new List<D1RelicRewardEntry>();
+    public bool coordinatedMission;
+    public string supportShipId;
+    public string synergyId;
 }
 
 [System.Serializable]
@@ -128,6 +153,25 @@ public static class Dimension1System
     public const string Sector03AncientOrbits = "d1_sector_03_ancient_orbits";
     public const string Sector04SilentFrontier = "d1_sector_04_silent_frontier";
     public const string Sector05GalacticCenter = "d1_sector_05_galactic_center";
+
+    // Centro Galactico / Ark - Bloque 6
+    public const int Dimension1ArkProgressVersion = 1;
+    public const double D1CentralSyncMissionDurationSeconds = 3600.0;
+    public const double D1ArkFinalMissionDurationSeconds = 5400.0;
+    public const string D1CentralSyncOuter = "d1_sync_outer";
+    public const string D1CentralSyncDebris = "d1_sync_debris";
+    public const string D1CentralSyncAncient = "d1_sync_ancient";
+    public const string D1CentralSyncSilent = "d1_sync_silent";
+    public const string D1ArkFinalMission = "d1_ark_final";
+    public const string D1DiscoveryGalacticAnchor = "d1_discovery_galactic_anchor";
+
+    public static readonly string[] D1CentralSyncMissionIds =
+    {
+        D1CentralSyncOuter,
+        D1CentralSyncDebris,
+        D1CentralSyncAncient,
+        D1CentralSyncSilent
+    };
 
     public static readonly string[] Dimension1SectorIds =
     {
@@ -751,6 +795,31 @@ public static class Dimension1System
     public const string MetalIridium = "metal_iridium";
     public const int Dimension1RecentExplorationHistoryLimit = 20;
 
+    // Misiones coordinadas de Parte 1.
+    public const int Dimension1CoordinatedMissionProgressVersion = 1;
+    public const double CoordinatedDurationMultiplier = 2.5;
+    public const double CoordinatedMetalRewardMultiplier = 4.0;
+    public const double CoordinatedAdaptiveMatrixMultiplier = 2.5;
+    public const float CoordinatedSpecificMatrixChanceBonus = 0.15f;
+    public const float CoordinatedRelicChanceBonus = 0.08f;
+
+    public const string SynergyRapidExtraction = "d1_synergy_rapid_extraction";
+    public const string SynergyPrecisionSweep = "d1_synergy_precision_sweep";
+    public const string SynergyFastConvoy = "d1_synergy_fast_convoy";
+    public const string SynergyCalibratedRecovery = "d1_synergy_calibrated_recovery";
+    public const string SynergyIndustrialHaul = "d1_synergy_industrial_haul";
+    public const string SynergyProtectedArchive = "d1_synergy_protected_archive";
+
+    public static readonly string[] Dimension1SynergyIds =
+    {
+        SynergyRapidExtraction,
+        SynergyPrecisionSweep,
+        SynergyFastConvoy,
+        SynergyCalibratedRecovery,
+        SynergyIndustrialHaul,
+        SynergyProtectedArchive
+    };
+
     // Planetas de Dimensión 1
     public const string Planet01 = "planet_01";
     public const string Planet02 = "planet_02";
@@ -1259,7 +1328,7 @@ public static class Dimension1System
             level25Count >= 2,
             "2 Reliquias del sector en nivel 25+ (" + level25Count + "/2)"
         );
-        text += "\n[ ] Misión coordinada con 2 naves (aún no disponible)";
+        text += "\n[REQ] El hallazgo Nivel 3 exige una misión coordinada activa";
         return text;
     }
 
@@ -4027,6 +4096,162 @@ public static class Dimension1System
             shipId == ShipCargoShip;
     }
 
+    public static string GetDimension1ShipVisualName(string shipId)
+    {
+        switch (shipId)
+        {
+            case ShipLightProbe:
+                return "Sonda Ligera";
+            case ShipExtractorDrone:
+                return "Dron Extractor";
+            case ShipAnalyticProbe:
+                return "Sonda Analitica";
+            case ShipCargoShip:
+                return "Nave de Carga";
+            case ShipRescueShip:
+                return "Nave de Rescate";
+            case ShipConvergenceShip:
+                return "Nave de Convergencia";
+            default:
+                return "Nave";
+        }
+    }
+
+    public static string GetD1SynergyId(string shipAId, string shipBId)
+    {
+        if (string.IsNullOrEmpty(shipAId) ||
+            string.IsNullOrEmpty(shipBId) ||
+            shipAId == shipBId)
+        {
+            return "";
+        }
+
+        if (IsD1ShipPair(shipAId, shipBId, ShipLightProbe, ShipExtractorDrone))
+            return SynergyRapidExtraction;
+        if (IsD1ShipPair(shipAId, shipBId, ShipLightProbe, ShipAnalyticProbe))
+            return SynergyPrecisionSweep;
+        if (IsD1ShipPair(shipAId, shipBId, ShipLightProbe, ShipCargoShip))
+            return SynergyFastConvoy;
+        if (IsD1ShipPair(shipAId, shipBId, ShipExtractorDrone, ShipAnalyticProbe))
+            return SynergyCalibratedRecovery;
+        if (IsD1ShipPair(shipAId, shipBId, ShipExtractorDrone, ShipCargoShip))
+            return SynergyIndustrialHaul;
+        if (IsD1ShipPair(shipAId, shipBId, ShipAnalyticProbe, ShipCargoShip))
+            return SynergyProtectedArchive;
+
+        return "";
+    }
+
+    private static bool IsD1ShipPair(
+        string shipAId,
+        string shipBId,
+        string expectedAId,
+        string expectedBId
+    )
+    {
+        return
+            (shipAId == expectedAId && shipBId == expectedBId) ||
+            (shipAId == expectedBId && shipBId == expectedAId);
+    }
+
+    public static string GetD1SynergyVisualName(string synergyId)
+    {
+        switch (synergyId)
+        {
+            case SynergyRapidExtraction:
+                return "Extraccion Rapida";
+            case SynergyPrecisionSweep:
+                return "Barrido de Precision";
+            case SynergyFastConvoy:
+                return "Convoy Veloz";
+            case SynergyCalibratedRecovery:
+                return "Recuperacion Calibrada";
+            case SynergyIndustrialHaul:
+                return "Arrastre Industrial";
+            case SynergyProtectedArchive:
+                return "Archivo Protegido";
+            default:
+                return "Sin sinergia";
+        }
+    }
+
+    public static string GetD1SynergyDescription(string synergyId)
+    {
+        switch (synergyId)
+        {
+            case SynergyRapidExtraction:
+                return "-10% duracion coordinada.";
+            case SynergyPrecisionSweep:
+                return "+5 puntos porcentuales de Reliquia.";
+            case SynergyFastConvoy:
+                return "+25% metales coordinados.";
+            case SynergyCalibratedRecovery:
+                return "+10 puntos porcentuales de Matriz especifica.";
+            case SynergyIndustrialHaul:
+                return "+50% fragmentos de Matriz Adaptativa.";
+            case SynergyProtectedArchive:
+                return "+5 puntos porcentuales de Reliquia y +5 de Matriz especifica.";
+            default:
+                return "Selecciona dos naves activas distintas.";
+        }
+    }
+
+    private static double GetD1SynergyDurationMultiplier(string synergyId)
+    {
+        return synergyId == SynergyRapidExtraction ? 0.90 : 1.0;
+    }
+
+    private static double GetD1SynergyMetalMultiplier(string synergyId)
+    {
+        return synergyId == SynergyFastConvoy ? 1.25 : 1.0;
+    }
+
+    private static double GetD1SynergyAdaptiveMatrixMultiplier(string synergyId)
+    {
+        return synergyId == SynergyIndustrialHaul ? 1.50 : 1.0;
+    }
+
+    private static float GetD1SynergySpecificMatrixChanceBonus(string synergyId)
+    {
+        if (synergyId == SynergyCalibratedRecovery)
+            return 0.10f;
+        if (synergyId == SynergyProtectedArchive)
+            return 0.05f;
+        return 0.0f;
+    }
+
+    private static float GetD1SynergyRelicChanceBonus(string synergyId)
+    {
+        return synergyId == SynergyPrecisionSweep ||
+            synergyId == SynergyProtectedArchive
+                ? 0.05f
+                : 0.0f;
+    }
+
+    private static float GetD1SupportShipRelicChanceBonus(
+        D1ShipState supportShip,
+        string relicId
+    )
+    {
+        if (supportShip == null)
+            return 0.0f;
+
+        int relicTier = GetDimension1RelicTier(relicId);
+
+        if (supportShip.shipId == ShipAnalyticProbe)
+        {
+            if (relicTier == 2)
+                return Dimension1Tier2AnalyticProbeBonus;
+            if (relicTier == 3)
+                return Dimension1Tier3AnalyticProbeBonus;
+        }
+
+        if (supportShip.shipId == ShipCargoShip && relicTier == 3)
+            return Dimension1Tier3CargoShipBonus;
+
+        return 0.0f;
+    }
+
     public static int ClampDimension1ShipPartLevel(int level)
     {
         return Mathf.Clamp(level, 0, Dimension1ShipPartMaxLevel);
@@ -4061,7 +4286,373 @@ public static class Dimension1System
 
         UpdateActiveScan(state, dt);
         UpdateActiveExplorations(state, dt);
+        UpdateD1ArkProgress(state, dt);
 
+    }
+
+    public static string GetD1CentralSyncMissionName(string missionId)
+    {
+        switch (missionId)
+        {
+            case D1CentralSyncOuter: return "Sincronía Exterior";
+            case D1CentralSyncDebris: return "Sincronía de Restos";
+            case D1CentralSyncAncient: return "Sincronía Antigua";
+            case D1CentralSyncSilent: return "Sincronía Silenciosa";
+            default: return missionId ?? "";
+        }
+    }
+
+    public static string GetD1CentralSyncMissionSectorId(string missionId)
+    {
+        switch (missionId)
+        {
+            case D1CentralSyncOuter: return Sector01OuterRim;
+            case D1CentralSyncDebris: return Sector02DebrisRing;
+            case D1CentralSyncAncient: return Sector03AncientOrbits;
+            case D1CentralSyncSilent: return Sector04SilentFrontier;
+            default: return "";
+        }
+    }
+
+    public static string GetD1CentralSyncMissionShipId(string missionId)
+    {
+        switch (missionId)
+        {
+            case D1CentralSyncOuter: return ShipLightProbe;
+            case D1CentralSyncDebris: return ShipExtractorDrone;
+            case D1CentralSyncAncient: return ShipAnalyticProbe;
+            case D1CentralSyncSilent: return ShipCargoShip;
+            default: return "";
+        }
+    }
+
+    public static D1CentralSyncMissionState GetD1CentralSyncMission(
+        GameState state,
+        string missionId
+    )
+    {
+        if (state == null || state.dimension1CentralSyncMissions == null)
+            return null;
+
+        foreach (D1CentralSyncMissionState mission in state.dimension1CentralSyncMissions)
+        {
+            if (mission != null && mission.missionId == missionId)
+                return mission;
+        }
+
+        return null;
+    }
+
+    public static bool TryInvestigateD1Ark(GameState state)
+    {
+        if (state == null || !state.IsD1SectorUnlocked(Sector05GalacticCenter))
+            return false;
+
+        state.EnsureDimension1State();
+        state.dimension1ArkInvestigated = true;
+        return true;
+    }
+
+    public static bool CanStartD1CentralSyncMission(
+        GameState state,
+        string missionId,
+        out string blockedReason
+    )
+    {
+        blockedReason = "";
+
+        if (state == null || !state.dimension1ArkInvestigated)
+        {
+            blockedReason = "Primero debes investigar Ark.";
+            return false;
+        }
+
+        if (state.dimension1CentralAccessKeyObtained)
+        {
+            blockedReason = "La Clave de Acceso Central ya fue obtenida.";
+            return false;
+        }
+
+        D1CentralSyncMissionState mission = GetD1CentralSyncMission(state, missionId);
+
+        if (mission == null || mission.active || mission.completed)
+        {
+            blockedReason = mission != null && mission.active
+                ? "La sincronía ya está activa."
+                : "La sincronía ya fue completada.";
+            return false;
+        }
+
+        string shipId = GetD1CentralSyncMissionShipId(missionId);
+        D1ShipState ship = FindShipState(state, shipId);
+
+        if (ship == null || !ship.unlocked)
+        {
+            blockedReason = "La nave requerida no está desbloqueada.";
+            return false;
+        }
+
+        if (IsD1ShipBusy(ship))
+        {
+            blockedReason = "La nave requerida está ocupada.";
+            return false;
+        }
+
+        return true;
+    }
+
+    public static bool TryStartD1CentralSyncMission(
+        GameState state,
+        string missionId,
+        out string blockedReason
+    )
+    {
+        if (!CanStartD1CentralSyncMission(state, missionId, out blockedReason))
+            return false;
+
+        D1CentralSyncMissionState mission = GetD1CentralSyncMission(state, missionId);
+        D1ShipState ship = FindShipState(
+            state,
+            GetD1CentralSyncMissionShipId(missionId)
+        );
+
+        mission.active = true;
+        mission.completed = false;
+        mission.totalSeconds = D1CentralSyncMissionDurationSeconds;
+        mission.remainingSeconds = D1CentralSyncMissionDurationSeconds;
+        ship.arkMissionReserved = true;
+        ship.arkMissionId = missionId;
+
+        bool allActive = true;
+
+        foreach (string requiredMissionId in D1CentralSyncMissionIds)
+        {
+            D1CentralSyncMissionState requiredMission =
+                GetD1CentralSyncMission(state, requiredMissionId);
+
+            if (requiredMission == null || !requiredMission.active)
+            {
+                allActive = false;
+                break;
+            }
+        }
+
+        if (allActive)
+            state.dimension1CentralSyncEstablished = true;
+
+        return true;
+    }
+
+    public static List<D1SectorRequirementStatus> GetD1ArkRequirements(GameState state)
+    {
+        var result = new List<D1SectorRequirementStatus>();
+
+        if (state == null)
+            return result;
+
+        AddD1BooleanRequirement(result, "central_key", "Clave de Acceso Central",
+            state.dimension1CentralAccessKeyObtained);
+        AddD1Requirement(result, "scanner_15", "Escáner nivel 15",
+            GetSimpleScannerLevel(state), 15);
+        AddD1BooleanRequirement(result, "fleet_coordination", "Coordinación de Flota comprada",
+            GetD1TreeTierDirect(state, D1TreeFleetCoordination) > 0);
+        AddD1Requirement(result, "relic_reading_3", "Lectura de Reliquias Tier 3 comprada",
+            GetD1TreeTierDirect(state, D1TreeRelicReading), 3);
+        AddD1BooleanRequirement(result, "cargo_ship", "Nave de Carga desbloqueada",
+            IsD1ShipUnlockedDirect(state, ShipCargoShip));
+        AddD1Requirement(result, "relics_10", "10 Reliquias descubiertas",
+            GetD1UnlockedRelicCountDirect(state, "", 0), 10);
+        AddD1Requirement(result, "tier3_relics_3", "3 Reliquias Nivel 3 descubiertas",
+            GetD1UnlockedRelicCountDirect(state, "", 3), 3);
+        AddD1Requirement(result, "relics_level25_4", "4 Reliquias nivel 25+",
+            GetD1RelicsAtOrAboveLevelDirect(state, "", 0, 25), 4);
+        AddD1Requirement(result, "relic_level50_1", "1 Reliquia nivel 50+",
+            GetD1RelicsAtOrAboveLevelDirect(state, "", 0, 50), 1);
+        AddD1Requirement(result, "tree_nodes_8", "8 nodos D1 comprados",
+            GetD1PurchasedTreeNodeCountDirect(state), 8);
+        AddD1Requirement(result, "ship_upgrades_10", "10 mejoras de nave compradas",
+            GetD1PurchasedShipUpgradeCountDirect(state), 10);
+        AddD1Requirement(result, "ships_available_2", "2 naves disponibles",
+            GetD1AvailableActiveShipCount(state), 2);
+
+        return result;
+    }
+
+    public static bool AreD1ArkRequirementsMet(GameState state)
+    {
+        List<D1SectorRequirementStatus> requirements = GetD1ArkRequirements(state);
+
+        if (requirements.Count != 12)
+            return false;
+
+        foreach (D1SectorRequirementStatus requirement in requirements)
+        {
+            if (requirement == null || !requirement.met)
+                return false;
+        }
+
+        return true;
+    }
+
+    public static bool TryStartD1ArkFinalMission(GameState state, out string blockedReason)
+    {
+        blockedReason = "";
+
+        if (state == null || !state.dimension1ArkInvestigated)
+        {
+            blockedReason = "Primero debes investigar Ark.";
+            return false;
+        }
+
+        if (state.dimension1GalacticAnchorDiscovered)
+        {
+            blockedReason = "El Ancla Galáctica ya fue descubierta.";
+            return false;
+        }
+
+        if (state.dimension1ArkFinalMissionActive)
+        {
+            blockedReason = "La misión de Ark ya está activa.";
+            return false;
+        }
+
+        if (!AreD1ArkRequirementsMet(state))
+        {
+            blockedReason = "Todavía faltan requisitos de Ark.";
+            return false;
+        }
+
+        var reservedShips = new List<D1ShipState>();
+
+        foreach (string shipId in Dimension1ActiveShipIds)
+        {
+            D1ShipState ship = FindShipState(state, shipId);
+
+            if (ship == null || !ship.unlocked || IsD1ShipBusy(ship))
+                continue;
+
+            reservedShips.Add(ship);
+
+            if (reservedShips.Count == 2)
+                break;
+        }
+
+        if (reservedShips.Count < 2)
+        {
+            blockedReason = "Se necesitan 2 naves disponibles.";
+            return false;
+        }
+
+        state.dimension1ArkFinalMissionActive = true;
+        state.dimension1ArkFinalMissionTotalSeconds = D1ArkFinalMissionDurationSeconds;
+        state.dimension1ArkFinalMissionRemainingSeconds = D1ArkFinalMissionDurationSeconds;
+        state.dimension1ArkFinalMissionShipIds.Clear();
+
+        foreach (D1ShipState ship in reservedShips)
+        {
+            state.dimension1ArkFinalMissionShipIds.Add(ship.shipId);
+            ship.arkMissionReserved = true;
+            ship.arkMissionId = D1ArkFinalMission;
+        }
+
+        return true;
+    }
+
+    public static int GetD1AvailableActiveShipCount(GameState state)
+    {
+        int count = 0;
+
+        if (state == null)
+            return count;
+
+        foreach (string shipId in Dimension1ActiveShipIds)
+        {
+            D1ShipState ship = FindShipState(state, shipId);
+
+            if (ship != null && ship.unlocked && !IsD1ShipBusy(ship))
+                count++;
+        }
+
+        return count;
+    }
+
+    private static void UpdateD1ArkProgress(GameState state, double dt)
+    {
+        if (state == null || dt <= 0.0)
+            return;
+
+        foreach (D1CentralSyncMissionState mission in state.dimension1CentralSyncMissions)
+        {
+            if (mission == null || !mission.active)
+                continue;
+
+            mission.remainingSeconds -= dt;
+
+            if (mission.remainingSeconds > 0.0)
+                continue;
+
+            mission.active = false;
+            mission.remainingSeconds = 0.0;
+            D1ShipState ship = FindShipState(
+                state,
+                GetD1CentralSyncMissionShipId(mission.missionId)
+            );
+            ReleaseD1ArkShip(ship, mission.missionId);
+
+            if (state.dimension1CentralSyncEstablished)
+                mission.completed = true;
+            else
+                mission.failedAttempts++;
+        }
+
+        if (state.dimension1CentralSyncEstablished &&
+            !state.dimension1CentralAccessKeyObtained)
+        {
+            bool allCompleted = true;
+
+            foreach (string missionId in D1CentralSyncMissionIds)
+            {
+                D1CentralSyncMissionState mission = GetD1CentralSyncMission(state, missionId);
+
+                if (mission == null || !mission.completed)
+                {
+                    allCompleted = false;
+                    break;
+                }
+            }
+
+            if (allCompleted)
+            {
+                state.dimension1CentralAccessKeyObtained = true;
+                state.dimension1CentralAccessKeyLogSeen = false;
+            }
+        }
+
+        if (!state.dimension1ArkFinalMissionActive)
+            return;
+
+        state.dimension1ArkFinalMissionRemainingSeconds -= dt;
+
+        if (state.dimension1ArkFinalMissionRemainingSeconds > 0.0)
+            return;
+
+        state.dimension1ArkFinalMissionActive = false;
+        state.dimension1ArkFinalMissionRemainingSeconds = 0.0;
+        state.dimension1GalacticAnchorDiscovered = true;
+
+        foreach (string shipId in state.dimension1ArkFinalMissionShipIds)
+            ReleaseD1ArkShip(FindShipState(state, shipId), D1ArkFinalMission);
+
+        state.dimension1ArkFinalMissionShipIds.Clear();
+    }
+
+    private static void ReleaseD1ArkShip(D1ShipState ship, string missionId)
+    {
+        if (ship == null || ship.arkMissionId != missionId)
+            return;
+
+        ship.arkMissionReserved = false;
+        ship.arkMissionId = "";
     }
 
     private static void ProducePlanetResources(GameState state, D1PlanetState planet, double dt)
@@ -4827,6 +5418,7 @@ public static class Dimension1System
 
         UpdateActiveScan(state, cappedSeconds);
         UpdateActiveExplorations(state, cappedSeconds);
+        UpdateD1ArkProgress(state, cappedSeconds);
 
         return cappedSeconds;
     }
@@ -7046,7 +7638,7 @@ public static class Dimension1System
         if (ship == null || !ship.unlocked)
             return false;
 
-        if (ship.explorationActive)
+        if (IsD1ShipBusy(ship))
             return false;
 
         D1ScannedDestinationState destination =
@@ -7240,6 +7832,128 @@ public static class Dimension1System
         selected.specialPointId = pool[Random.Range(0, pool.Length)];
 
         return true;
+    }
+
+    public static bool CanStartCoordinatedExploration(
+        GameState state,
+        string mainShipId,
+        string supportShipId,
+        int destinationIndex
+    )
+    {
+        if (state == null || !state.dimension01Unlocked)
+            return false;
+
+        if (!HasD1TreeFleetCoordination(state))
+            return false;
+
+        if (!IsShipActiveInDimension1Base(mainShipId) ||
+            !IsShipActiveInDimension1Base(supportShipId) ||
+            mainShipId == supportShipId ||
+            string.IsNullOrEmpty(GetD1SynergyId(mainShipId, supportShipId)))
+        {
+            return false;
+        }
+
+        state.EnsureDimension1State();
+
+        if (state.dimension1ScanActive)
+            return false;
+
+        D1ShipState mainShip = FindShipState(state, mainShipId);
+        D1ShipState supportShip = FindShipState(state, supportShipId);
+
+        if (mainShip == null || supportShip == null ||
+            !mainShip.unlocked || !supportShip.unlocked ||
+            IsD1ShipBusy(mainShip) || IsD1ShipBusy(supportShip))
+        {
+            return false;
+        }
+
+        D1ScannedDestinationState destination =
+            GetAvailableScannedDestinationByIndex(state, destinationIndex);
+
+        if (destination == null ||
+            destination.sectorId != state.dimension1SelectedSectorId)
+        {
+            return false;
+        }
+
+        return !IsDestinationCurrentlyExplored(
+            state,
+            destination.destinationId,
+            destination.sectorId
+        );
+    }
+
+    public static bool TryStartCoordinatedExploration(
+        GameState state,
+        string mainShipId,
+        string supportShipId,
+        int destinationIndex
+    )
+    {
+        if (!CanStartCoordinatedExploration(
+                state,
+                mainShipId,
+                supportShipId,
+                destinationIndex
+            ))
+        {
+            return false;
+        }
+
+        D1ShipState mainShip = FindShipState(state, mainShipId);
+        D1ShipState supportShip = FindShipState(state, supportShipId);
+        D1ScannedDestinationState destination =
+            GetAvailableScannedDestinationByIndex(state, destinationIndex);
+
+        if (mainShip == null || supportShip == null || destination == null)
+            return false;
+
+        double duration = GetCoordinatedExplorationDurationSeconds(
+            state,
+            destination.destinationId,
+            mainShip,
+            supportShip
+        );
+
+        mainShip.explorationActive = true;
+        mainShip.activeDestinationId = destination.destinationId;
+        mainShip.activeSpecialPointId = destination.specialPointId ?? "";
+        mainShip.activeSectorId = destination.sectorId;
+        mainShip.explorationTotalSeconds = duration;
+        mainShip.explorationRemainingSeconds = duration;
+        mainShip.coordinatedMission = true;
+        mainShip.coordinatedSupportShipId = supportShip.shipId;
+
+        supportShip.coordinatedSupportReserved = true;
+        supportShip.coordinatedMainShipId = mainShip.shipId;
+
+        destination.available = false;
+        return true;
+    }
+
+    public static bool IsD1ShipBusy(D1ShipState ship)
+    {
+        return ship != null &&
+            (ship.explorationActive ||
+             ship.coordinatedSupportReserved ||
+             ship.arkMissionReserved);
+    }
+
+    public static D1ShipState GetD1CoordinatedSupportShip(
+        GameState state,
+        D1ShipState mainShip
+    )
+    {
+        if (state == null || mainShip == null ||
+            !mainShip.coordinatedMission)
+        {
+            return null;
+        }
+
+        return FindShipState(state, mainShip.coordinatedSupportShipId);
     }
 
     public static bool TryForceD1SpecialPointOnFirstCompatibleScannedDestination(
@@ -7681,12 +8395,37 @@ public static class Dimension1System
 
         string destinationId = ship.activeDestinationId;
         string sectorId = ship.activeSectorId;
+        D1ShipState supportShip = GetD1CoordinatedSupportShip(state, ship);
+        bool coordinatedMission =
+            ship.coordinatedMission && supportShip != null;
 
         if (!string.IsNullOrEmpty(destinationId))
         {
-            GrantSimpleExplorationRewards(state, destinationId, ship);
+            if (coordinatedMission)
+            {
+                GrantCoordinatedExplorationRewards(
+                    state,
+                    destinationId,
+                    ship,
+                    supportShip
+                );
+                state.dimension1CompletedCoordinatedMissions =
+                    state.dimension1CompletedCoordinatedMissions >= int.MaxValue
+                        ? int.MaxValue
+                        : Mathf.Max(
+                            0,
+                            state.dimension1CompletedCoordinatedMissions
+                        ) + 1;
+            }
+            else
+            {
+                GrantSimpleExplorationRewards(state, destinationId, ship);
+            }
+
             state.AddD1SectorExplorationCount(sectorId, 1);
         }
+
+        ReleaseD1CoordinatedSupportShip(ship, supportShip);
 
         ship.explorationActive = false;
         ship.activeDestinationId = "";
@@ -7694,6 +8433,8 @@ public static class Dimension1System
         ship.activeSectorId = "";
         ship.explorationRemainingSeconds = 0.0;
         ship.explorationTotalSeconds = 0.0;
+        ship.coordinatedMission = false;
+        ship.coordinatedSupportShipId = "";
 
         if (SaveService.I != null)
             SaveService.I.Save();
@@ -7761,10 +8502,161 @@ public static class Dimension1System
             rewards,
             blueprintFragments,
             state.dimension1LastExplorationSpecificBlueprints,
-            state.dimension1LastExplorationRelics
+            state.dimension1LastExplorationRelics,
+            false,
+            "",
+            ""
         );
 
         ClearD1SpecialPointForDestination(state, destinationId);
+    }
+
+    private static void GrantCoordinatedExplorationRewards(
+        GameState state,
+        string destinationId,
+        D1ShipState mainShip,
+        D1ShipState supportShip
+    )
+    {
+        if (state == null || mainShip == null || supportShip == null)
+            return;
+
+        string synergyId = GetD1SynergyId(mainShip.shipId, supportShip.shipId);
+        List<D1MetalAmount> rewards = new List<D1MetalAmount>();
+
+        double mainMaterialMultiplier = GetShipMaterialRewardMultiplier(
+            state,
+            destinationId,
+            mainShip
+        ) * GetShipArmorRewardPreservationMultiplier(
+            state,
+            destinationId,
+            mainShip
+        );
+        double supportMaterialMultiplier = GetShipMaterialRewardMultiplier(
+            state,
+            destinationId,
+            supportShip
+        ) * GetShipArmorRewardPreservationMultiplier(
+            state,
+            destinationId,
+            supportShip
+        );
+        double materialMultiplier =
+            System.Math.Max(mainMaterialMultiplier, supportMaterialMultiplier) *
+            CoordinatedMetalRewardMultiplier *
+            GetD1SynergyMetalMultiplier(synergyId);
+
+        state.dimension1LastExplorationBlueprintFragments = 0;
+        state.dimension1LastExplorationSpecificBlueprints =
+            new List<D1BlueprintAmount>();
+        state.dimension1LastExplorationRelics =
+            new List<D1RelicRewardEntry>();
+
+        foreach (string metalId in GetExplorationMetalRewardPool(destinationId))
+        {
+            AddExplorationTimedReward(
+                state,
+                rewards,
+                metalId,
+                materialMultiplier
+            );
+        }
+
+        D1ShipState extractorShip = mainShip.shipId == ShipExtractorDrone
+            ? mainShip
+            : supportShip.shipId == ShipExtractorDrone
+                ? supportShip
+                : null;
+
+        if (extractorShip != null)
+        {
+            TryGrantExtractionHookSecondaryMetalReward(
+                state,
+                destinationId,
+                extractorShip,
+                rewards,
+                materialMultiplier
+            );
+        }
+
+        int blueprintFragments = RollSimpleBlueprintFragments(
+            state,
+            destinationId,
+            mainShip
+        );
+
+        if (blueprintFragments > 0)
+        {
+            double fragmentMultiplier =
+                CoordinatedAdaptiveMatrixMultiplier *
+                GetD1SynergyAdaptiveMatrixMultiplier(synergyId);
+            blueprintFragments = Mathf.Max(
+                1,
+                Mathf.RoundToInt((float)(blueprintFragments * fragmentMultiplier))
+            );
+            state.dimension1BlueprintFragments += blueprintFragments;
+            state.dimension1LastExplorationBlueprintFragments =
+                blueprintFragments;
+        }
+
+        TryGrantSpecificBlueprintReward(
+            state,
+            destinationId,
+            mainShip,
+            supportShip,
+            CoordinatedSpecificMatrixChanceBonus +
+                GetD1SynergySpecificMatrixChanceBonus(synergyId)
+        );
+        TryGrantExplorationRelicReward(
+            state,
+            destinationId,
+            mainShip,
+            supportShip,
+            CoordinatedRelicChanceBonus +
+                GetD1SynergyRelicChanceBonus(synergyId)
+        );
+
+        TryApplyD1SpecialPointMineralDepositBonus(
+            state,
+            destinationId,
+            rewards
+        );
+
+        state.dimension1LastExplorationDestinationId = destinationId;
+        state.dimension1LastExplorationRewards = rewards;
+        state.dimension1LastExplorationResultId += 1;
+
+        AddRecentExplorationRecord(
+            state,
+            mainShip.shipId,
+            destinationId,
+            mainShip.activeSectorId,
+            rewards,
+            blueprintFragments,
+            state.dimension1LastExplorationSpecificBlueprints,
+            state.dimension1LastExplorationRelics,
+            true,
+            supportShip.shipId,
+            synergyId
+        );
+
+        ClearD1SpecialPointForDestination(state, destinationId);
+    }
+
+    private static void ReleaseD1CoordinatedSupportShip(
+        D1ShipState mainShip,
+        D1ShipState supportShip
+    )
+    {
+        if (mainShip == null || supportShip == null)
+            return;
+
+        if (supportShip.coordinatedMainShipId != mainShip.shipId)
+            return;
+
+        supportShip.coordinatedSupportReserved = false;
+        supportShip.coordinatedMainShipId = "";
     }
 
     private static void AddRecentExplorationRecord(
@@ -7775,7 +8667,10 @@ public static class Dimension1System
         List<D1MetalAmount> rewards,
         int blueprintFragments,
         List<D1BlueprintAmount> specificBlueprintRewards,
-        List<D1RelicRewardEntry> relicRewards
+        List<D1RelicRewardEntry> relicRewards,
+        bool coordinatedMission,
+        string supportShipId,
+        string synergyId
     )
     {
         if (state == null)
@@ -7793,7 +8688,10 @@ public static class Dimension1System
             rewards = new List<D1MetalAmount>(),
             blueprintFragments = blueprintFragments,
             specificBlueprintRewards = CloneBlueprintRewards(specificBlueprintRewards),
-            relicRewards = CloneRelicRewards(relicRewards)
+            relicRewards = CloneRelicRewards(relicRewards),
+            coordinatedMission = coordinatedMission,
+            supportShipId = supportShipId ?? "",
+            synergyId = synergyId ?? ""
         };
 
         if (rewards != null)
@@ -7928,13 +8826,26 @@ public static class Dimension1System
     private static bool TryGrantSpecificBlueprintReward(
         GameState state,
         string destinationId,
-        D1ShipState ship
+        D1ShipState ship,
+        D1ShipState supportShip = null,
+        float coordinatedChanceBonus = 0.0f
     )
     {
         if (state == null)
             return false;
 
         float chance = GetSpecificBlueprintChance(state, destinationId, ship);
+        chance += coordinatedChanceBonus;
+
+        if (supportShip != null)
+        {
+            chance += GetShipSensorSpecificBlueprintBonus(
+                destinationId,
+                supportShip
+            );
+        }
+
+        chance = Mathf.Clamp(chance, 0.0f, 0.50f);
 
         if (chance <= 0.0f)
             return false;
@@ -7964,7 +8875,9 @@ public static class Dimension1System
     private static void TryGrantExplorationRelicReward(
         GameState state,
         string destinationId,
-        D1ShipState ship
+        D1ShipState ship,
+        D1ShipState supportShip = null,
+        float coordinatedChanceBonus = 0.0f
     )
     {
         if (state == null || string.IsNullOrEmpty(destinationId))
@@ -8023,6 +8936,13 @@ public static class Dimension1System
                 ship,
                 relicId
             );
+
+            chance += coordinatedChanceBonus;
+            chance += GetD1SupportShipRelicChanceBonus(
+                supportShip,
+                relicId
+            );
+            chance = Mathf.Clamp(chance, 0.0f, 0.50f);
 
             if (chance > 0.0f && Random.value <= chance)
             {
@@ -8124,6 +9044,102 @@ public static class Dimension1System
         }
 
         return totalChance / pool.Length;
+    }
+
+    public static float GetCoordinatedExplorationRelicChancePreview(
+        GameState state,
+        string destinationId,
+        D1ShipState mainShip,
+        D1ShipState supportShip
+    )
+    {
+        if (state == null || mainShip == null || supportShip == null)
+            return 0.0f;
+
+        D1ShipState previewShip = new D1ShipState
+        {
+            shipId = mainShip.shipId,
+            unlocked = true,
+            explorationActive = true,
+            activeDestinationId = destinationId,
+            activeSectorId = state.dimension1SelectedSectorId,
+            cargoLevel = mainShip.cargoLevel,
+            speedLevel = mainShip.speedLevel,
+            armorLevel = mainShip.armorLevel,
+            sensorsLevel = mainShip.sensorsLevel,
+            coordinatedMission = true,
+            coordinatedSupportShipId = supportShip.shipId
+        };
+        string sectorId = ResolveD1RelicAttemptSectorId(
+            state,
+            destinationId,
+            previewShip
+        );
+        string[] pool = GetExplorationRelicRewardPool(
+            state,
+            sectorId,
+            destinationId,
+            previewShip
+        );
+
+        if (pool.Length == 0)
+            return 0.0f;
+
+        string synergyId = GetD1SynergyId(mainShip.shipId, supportShip.shipId);
+        float bonus = CoordinatedRelicChanceBonus +
+            GetD1SynergyRelicChanceBonus(synergyId);
+        float totalChance = 0.0f;
+
+        foreach (string relicId in pool)
+        {
+            totalChance += Mathf.Clamp(
+                GetExplorationRelicChanceForRelic(
+                    state,
+                    destinationId,
+                    previewShip,
+                    relicId
+                ) +
+                GetD1SupportShipRelicChanceBonus(supportShip, relicId) +
+                bonus,
+                0.0f,
+                0.50f
+            );
+        }
+
+        return totalChance / pool.Length;
+    }
+
+    public static string[] GetCoordinatedExplorationRelicPoolPreview(
+        GameState state,
+        string destinationId,
+        D1ShipState mainShip,
+        D1ShipState supportShip
+    )
+    {
+        if (state == null || mainShip == null || supportShip == null)
+            return new string[0];
+
+        D1ShipState previewShip = new D1ShipState
+        {
+            shipId = mainShip.shipId,
+            unlocked = true,
+            explorationActive = true,
+            activeDestinationId = destinationId,
+            activeSectorId = state.dimension1SelectedSectorId,
+            coordinatedMission = true,
+            coordinatedSupportShipId = supportShip.shipId
+        };
+        string sectorId = ResolveD1RelicAttemptSectorId(
+            state,
+            destinationId,
+            previewShip
+        );
+        return GetExplorationRelicRewardPool(
+            state,
+            sectorId,
+            destinationId,
+            previewShip
+        );
     }
 
     public static float GetExplorationRelicTierChancePreview(
@@ -8400,7 +9416,12 @@ public static class Dimension1System
 
     private static bool IsD1CoordinatedRelicAttempt(D1ShipState ship)
     {
-        return false;
+        return
+            ship != null &&
+            ship.explorationActive &&
+            ship.coordinatedMission &&
+            IsShipActiveInDimension1Base(ship.coordinatedSupportShipId) &&
+            ship.coordinatedSupportShipId != ship.shipId;
     }
 
     private static int GetD1UnlockedRelicCount(
@@ -8629,6 +9650,31 @@ public static class Dimension1System
 )
     {
         return GetSpecificBlueprintChance(state, destinationId, ship);
+    }
+
+    public static float GetCoordinatedSpecificBlueprintChancePreview(
+        GameState state,
+        string destinationId,
+        D1ShipState mainShip,
+        D1ShipState supportShip
+    )
+    {
+        if (mainShip == null || supportShip == null)
+            return 0.0f;
+
+        string synergyId = GetD1SynergyId(mainShip.shipId, supportShip.shipId);
+        float chance = GetSpecificBlueprintChance(
+            state,
+            destinationId,
+            mainShip
+        );
+        chance += GetShipSensorSpecificBlueprintBonus(
+            destinationId,
+            supportShip
+        );
+        chance += CoordinatedSpecificMatrixChanceBonus;
+        chance += GetD1SynergySpecificMatrixChanceBonus(synergyId);
+        return Mathf.Clamp(chance, 0.0f, 0.50f);
     }
 
     private static float GetSpecificBlueprintChance(
@@ -10024,6 +11070,52 @@ public static class Dimension1System
             shipDuration *
             GetRelicExplorationDurationMultiplier(state, destinationId, ship) *
             GetD1TreeExplorationDurationMultiplier(state, destinationId, ship);
+    }
+
+    public static double GetCoordinatedExplorationDurationPreviewSeconds(
+        GameState state,
+        string destinationId,
+        D1ShipState mainShip,
+        D1ShipState supportShip
+    )
+    {
+        return GetCoordinatedExplorationDurationSeconds(
+            state,
+            destinationId,
+            mainShip,
+            supportShip
+        );
+    }
+
+    private static double GetCoordinatedExplorationDurationSeconds(
+        GameState state,
+        string destinationId,
+        D1ShipState mainShip,
+        D1ShipState supportShip
+    )
+    {
+        if (mainShip == null || supportShip == null)
+            return 0.0;
+
+        double mainDuration = GetSimpleExplorationDurationSeconds(
+            state,
+            destinationId,
+            mainShip
+        );
+        double supportDuration = GetSimpleExplorationDurationSeconds(
+            state,
+            destinationId,
+            supportShip
+        );
+        double formationDuration = (mainDuration + supportDuration) * 0.5;
+        string synergyId = GetD1SynergyId(mainShip.shipId, supportShip.shipId);
+
+        return System.Math.Max(
+            0.1,
+            formationDuration *
+                CoordinatedDurationMultiplier *
+                GetD1SynergyDurationMultiplier(synergyId)
+        );
     }
 
     private static double GetSimpleExplorationBaseDurationSeconds(string destinationId)

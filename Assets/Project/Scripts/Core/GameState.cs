@@ -196,6 +196,26 @@ public class GameState : MonoBehaviour
     [Tooltip("Estado de naves de Dimensión 1.")]
     public List<D1ShipState> dimension1Ships = new List<D1ShipState>();
 
+    [Tooltip("Version interna del estado de misiones coordinadas D1.")]
+    public int dimension1CoordinatedMissionProgressVersion = 0;
+
+    [Tooltip("Total de misiones coordinadas completadas en D1.")]
+    public int dimension1CompletedCoordinatedMissions = 0;
+
+    [Header("D1 - Centro Galactico y Ark")]
+    public int dimension1ArkProgressVersion = 0;
+    public bool dimension1ArkInvestigated = false;
+    public List<D1CentralSyncMissionState> dimension1CentralSyncMissions =
+        new List<D1CentralSyncMissionState>();
+    public bool dimension1CentralSyncEstablished = false;
+    public bool dimension1CentralAccessKeyObtained = false;
+    public bool dimension1CentralAccessKeyLogSeen = false;
+    public bool dimension1ArkFinalMissionActive = false;
+    public double dimension1ArkFinalMissionRemainingSeconds = 0.0;
+    public double dimension1ArkFinalMissionTotalSeconds = 0.0;
+    public List<string> dimension1ArkFinalMissionShipIds = new List<string>();
+    public bool dimension1GalacticAnchorDiscovered = false;
+
     [Tooltip("Destinos detectados por el escáner de Dimensión 1.")]
     public List<D1ScannedDestinationState> dimension1ScannedDestinations = new List<D1ScannedDestinationState>();
 
@@ -1188,6 +1208,12 @@ public class GameState : MonoBehaviour
         if (dimension1Ships == null)
             dimension1Ships = new List<D1ShipState>();
 
+        if (dimension1CentralSyncMissions == null)
+            dimension1CentralSyncMissions = new List<D1CentralSyncMissionState>();
+
+        if (dimension1ArkFinalMissionShipIds == null)
+            dimension1ArkFinalMissionShipIds = new List<string>();
+
         if (dimension1ScannedDestinations == null)
             dimension1ScannedDestinations = new List<D1ScannedDestinationState>();
 
@@ -1229,6 +1255,8 @@ public class GameState : MonoBehaviour
         MigrateDimension1ScannerProgress();
         MigrateDimension1RelicProgress();
         MigrateDimension1TreeProgress();
+        MigrateDimension1CoordinatedMissionProgress();
+        MigrateDimension1ArkProgress();
         SanitizeDimension1StateValues();
         MigrateDimension1LegacyShipIds();
         ClampDimension1ShipPartLevels();
@@ -1275,6 +1303,8 @@ public class GameState : MonoBehaviour
         {
             GetOrCreateD1TreeNode(nodeId);
         }
+
+        EnsureDimension1ArkState();
 
         RefreshD1SectorUnlocksFromProgressInternal();
     }
@@ -1420,6 +1450,28 @@ public class GameState : MonoBehaviour
         {
             entry.resultId = Mathf.Max(0, entry.resultId);
             entry.shipId = entry.shipId ?? "";
+            entry.supportShipId = entry.supportShipId ?? "";
+            entry.synergyId = entry.synergyId ?? "";
+
+            if (entry.coordinatedMission &&
+                string.IsNullOrEmpty(
+                    Dimension1System.GetD1SynergyId(
+                        entry.shipId,
+                        entry.supportShipId
+                    )
+                ))
+            {
+                entry.coordinatedMission = false;
+                entry.supportShipId = "";
+                entry.synergyId = "";
+            }
+            else if (entry.coordinatedMission)
+            {
+                entry.synergyId = Dimension1System.GetD1SynergyId(
+                    entry.shipId,
+                    entry.supportShipId
+                );
+            }
             entry.destinationId = entry.destinationId ?? "";
             entry.sectorId = Dimension1System.IsDimension1ExplorationSectorId(
                 entry.sectorId
@@ -1664,6 +1716,220 @@ public class GameState : MonoBehaviour
             Dimension1System.Dimension1RelicProgressVersion;
     }
 
+    private void MigrateDimension1CoordinatedMissionProgress()
+    {
+        if (dimension1CoordinatedMissionProgressVersion >=
+            Dimension1System.Dimension1CoordinatedMissionProgressVersion)
+        {
+            return;
+        }
+
+        dimension1CompletedCoordinatedMissions = Mathf.Max(
+            0,
+            dimension1CompletedCoordinatedMissions
+        );
+        dimension1CoordinatedMissionProgressVersion =
+            Dimension1System.Dimension1CoordinatedMissionProgressVersion;
+    }
+
+    private void MigrateDimension1ArkProgress()
+    {
+        if (dimension1ArkProgressVersion >=
+            Dimension1System.Dimension1ArkProgressVersion)
+        {
+            return;
+        }
+
+        dimension1ArkFinalMissionRemainingSeconds = System.Math.Max(
+            0.0,
+            dimension1ArkFinalMissionRemainingSeconds
+        );
+        dimension1ArkFinalMissionTotalSeconds = System.Math.Max(
+            dimension1ArkFinalMissionRemainingSeconds,
+            dimension1ArkFinalMissionTotalSeconds
+        );
+        dimension1ArkProgressVersion = Dimension1System.Dimension1ArkProgressVersion;
+    }
+
+    private void EnsureDimension1ArkState()
+    {
+        dimension1CentralSyncMissions.RemoveAll(
+            mission => mission == null ||
+                System.Array.IndexOf(
+                    Dimension1System.D1CentralSyncMissionIds,
+                    mission.missionId
+                ) < 0
+        );
+
+        foreach (string missionId in Dimension1System.D1CentralSyncMissionIds)
+        {
+            D1CentralSyncMissionState selected = null;
+
+            for (int index = dimension1CentralSyncMissions.Count - 1;
+                index >= 0;
+                index--)
+            {
+                D1CentralSyncMissionState mission =
+                    dimension1CentralSyncMissions[index];
+
+                if (mission.missionId != missionId)
+                    continue;
+
+                if (selected == null)
+                {
+                    selected = mission;
+                    continue;
+                }
+
+                selected.active |= mission.active;
+                selected.completed |= mission.completed;
+                selected.failedAttempts = Mathf.Max(
+                    selected.failedAttempts,
+                    mission.failedAttempts
+                );
+                selected.remainingSeconds = System.Math.Max(
+                    selected.remainingSeconds,
+                    mission.remainingSeconds
+                );
+                selected.totalSeconds = System.Math.Max(
+                    selected.totalSeconds,
+                    mission.totalSeconds
+                );
+                dimension1CentralSyncMissions.RemoveAt(index);
+            }
+
+            if (selected == null)
+            {
+                selected = new D1CentralSyncMissionState
+                {
+                    missionId = missionId
+                };
+                dimension1CentralSyncMissions.Add(selected);
+            }
+
+            selected.failedAttempts = Mathf.Max(0, selected.failedAttempts);
+            selected.remainingSeconds = System.Math.Max(0.0, selected.remainingSeconds);
+            selected.totalSeconds = System.Math.Max(
+                selected.remainingSeconds,
+                selected.totalSeconds
+            );
+
+            if (!selected.active)
+            {
+                selected.remainingSeconds = 0.0;
+                selected.totalSeconds = 0.0;
+            }
+        }
+
+        foreach (D1ShipState ship in dimension1Ships)
+        {
+            if (ship == null)
+                continue;
+
+            ship.arkMissionReserved = false;
+            ship.arkMissionId = "";
+        }
+
+        if (dimension1CentralAccessKeyObtained)
+        {
+            dimension1CentralSyncEstablished = true;
+
+            foreach (D1CentralSyncMissionState mission in dimension1CentralSyncMissions)
+            {
+                mission.active = false;
+                mission.completed = true;
+                mission.remainingSeconds = 0.0;
+                mission.totalSeconds = 0.0;
+            }
+        }
+        else
+        {
+            foreach (D1CentralSyncMissionState mission in dimension1CentralSyncMissions)
+            {
+                if (!mission.active)
+                    continue;
+
+                D1ShipState ship = FindD1ShipForCoordination(
+                    Dimension1System.GetD1CentralSyncMissionShipId(mission.missionId)
+                );
+
+                if (ship == null || !ship.unlocked || ship.explorationActive ||
+                    ship.coordinatedSupportReserved)
+                {
+                    mission.active = false;
+                    mission.remainingSeconds = 0.0;
+                    mission.totalSeconds = 0.0;
+                    mission.failedAttempts++;
+                    continue;
+                }
+
+                ship.arkMissionReserved = true;
+                ship.arkMissionId = mission.missionId;
+            }
+        }
+
+        dimension1ArkFinalMissionRemainingSeconds = System.Math.Max(
+            0.0,
+            dimension1ArkFinalMissionRemainingSeconds
+        );
+        dimension1ArkFinalMissionTotalSeconds = System.Math.Max(
+            dimension1ArkFinalMissionRemainingSeconds,
+            dimension1ArkFinalMissionTotalSeconds
+        );
+
+        if (dimension1GalacticAnchorDiscovered)
+            dimension1ArkFinalMissionActive = false;
+
+        var validFinalShips = new List<string>();
+
+        foreach (string shipId in dimension1ArkFinalMissionShipIds)
+        {
+            if (!Dimension1System.IsShipActiveInDimension1Base(shipId) ||
+                validFinalShips.Contains(shipId))
+            {
+                continue;
+            }
+
+            validFinalShips.Add(shipId);
+        }
+
+        dimension1ArkFinalMissionShipIds = validFinalShips;
+
+        if (dimension1ArkFinalMissionActive)
+        {
+            bool validReservation = validFinalShips.Count == 2;
+
+            foreach (string shipId in validFinalShips)
+            {
+                D1ShipState ship = FindD1ShipForCoordination(shipId);
+
+                if (ship == null || !ship.unlocked || ship.explorationActive ||
+                    ship.coordinatedSupportReserved || ship.arkMissionReserved)
+                {
+                    validReservation = false;
+                    continue;
+                }
+
+                ship.arkMissionReserved = true;
+                ship.arkMissionId = Dimension1System.D1ArkFinalMission;
+            }
+
+            if (!validReservation)
+            {
+                dimension1ArkFinalMissionActive = false;
+                dimension1ArkFinalMissionRemainingSeconds = 0.0;
+                dimension1ArkFinalMissionTotalSeconds = 0.0;
+                dimension1ArkFinalMissionShipIds.Clear();
+            }
+        }
+        else
+        {
+            dimension1ArkFinalMissionRemainingSeconds = 0.0;
+            dimension1ArkFinalMissionTotalSeconds = 0.0;
+            dimension1ArkFinalMissionShipIds.Clear();
+        }
+    }
+
     private void MigrateDimension1TreeProgress()
     {
         if (dimension1TreeProgressVersion >=
@@ -1875,6 +2141,16 @@ public class GameState : MonoBehaviour
         dimension1Ships.RemoveAll(ship => ship == null);
         HashSet<string> activeDestinationKeys = new HashSet<string>();
 
+        // Las reservas se reconstruyen desde las naves principales para
+        // reparar guardados interrumpidos o datos anteriores al Bloque 5.
+        foreach (D1ShipState ship in dimension1Ships)
+        {
+            ship.coordinatedSupportShipId =
+                ship.coordinatedSupportShipId ?? "";
+            ship.coordinatedSupportReserved = false;
+            ship.coordinatedMainShipId = "";
+        }
+
         foreach (D1ShipState ship in dimension1Ships)
         {
             ship.shipId = ship.shipId ?? "";
@@ -1926,6 +2202,8 @@ public class GameState : MonoBehaviour
                 ship.activeSectorId = "";
                 ship.explorationRemainingSeconds = 0.0;
                 ship.explorationTotalSeconds = 0.0;
+                ship.coordinatedMission = false;
+                ship.coordinatedSupportShipId = "";
             }
             else
             {
@@ -1934,8 +2212,56 @@ public class GameState : MonoBehaviour
                     ship.explorationTotalSeconds,
                     ship.explorationRemainingSeconds
                 );
+
+                if (ship.coordinatedMission)
+                {
+                    D1ShipState supportShip = FindD1ShipForCoordination(
+                        ship.coordinatedSupportShipId
+                    );
+
+                    bool validSupport =
+                        supportShip != null &&
+                        supportShip != ship &&
+                        supportShip.unlocked &&
+                        Dimension1System.IsShipActiveInDimension1Base(
+                            supportShip.shipId
+                        ) &&
+                        !supportShip.explorationActive &&
+                        !supportShip.coordinatedSupportReserved &&
+                        !string.IsNullOrEmpty(
+                            Dimension1System.GetD1SynergyId(
+                                ship.shipId,
+                                supportShip.shipId
+                            )
+                        );
+
+                    if (validSupport)
+                    {
+                        supportShip.coordinatedSupportReserved = true;
+                        supportShip.coordinatedMainShipId = ship.shipId;
+                    }
+                    else
+                    {
+                        ship.coordinatedMission = false;
+                        ship.coordinatedSupportShipId = "";
+                    }
+                }
             }
         }
+    }
+
+    private D1ShipState FindD1ShipForCoordination(string shipId)
+    {
+        if (string.IsNullOrEmpty(shipId) || dimension1Ships == null)
+            return null;
+
+        foreach (D1ShipState ship in dimension1Ships)
+        {
+            if (ship != null && ship.shipId == shipId)
+                return ship;
+        }
+
+        return null;
     }
 
     private void ClampDimension1RelicLevels()
@@ -2564,6 +2890,20 @@ public class GameState : MonoBehaviour
         dimension1SelectedSectorId = "";
         dimension1ActiveScanSectorId = "";
         dimension1Ships = new List<D1ShipState>();
+        dimension1CoordinatedMissionProgressVersion =
+            Dimension1System.Dimension1CoordinatedMissionProgressVersion;
+        dimension1CompletedCoordinatedMissions = 0;
+        dimension1ArkProgressVersion = Dimension1System.Dimension1ArkProgressVersion;
+        dimension1ArkInvestigated = false;
+        dimension1CentralSyncMissions = new List<D1CentralSyncMissionState>();
+        dimension1CentralSyncEstablished = false;
+        dimension1CentralAccessKeyObtained = false;
+        dimension1CentralAccessKeyLogSeen = false;
+        dimension1ArkFinalMissionActive = false;
+        dimension1ArkFinalMissionRemainingSeconds = 0.0;
+        dimension1ArkFinalMissionTotalSeconds = 0.0;
+        dimension1ArkFinalMissionShipIds = new List<string>();
+        dimension1GalacticAnchorDiscovered = false;
         dimension1ScannedDestinations = new List<D1ScannedDestinationState>();
         dimension1PreviousScannedDestinationIds = new List<string>();
         dimension1ScanActive = false;
@@ -2994,6 +3334,19 @@ public class GameState : MonoBehaviour
         HashSet<string> activeMissionDestinations = new HashSet<string>();
         int activeMissions = 0;
         int frozenFutureMissions = 0;
+        int activeCoordinatedMissions = 0;
+
+        if (Dimension1System.Dimension1SynergyIds.Length != 6)
+            failures.Add("El catálogo no contiene exactamente 6 sinergias.");
+
+        if (dimension1CoordinatedMissionProgressVersion !=
+            Dimension1System.Dimension1CoordinatedMissionProgressVersion)
+        {
+            failures.Add("La migración de misiones coordinadas no está actualizada.");
+        }
+
+        if (dimension1CompletedCoordinatedMissions < 0)
+            failures.Add("El contador de misiones coordinadas es negativo.");
 
         foreach (D1ShipState ship in dimension1Ships)
         {
@@ -3031,6 +3384,155 @@ public class GameState : MonoBehaviour
             {
                 failures.Add("Una misión activa tiene tiempos incoherentes.");
             }
+
+            if (ship.coordinatedMission)
+            {
+                activeCoordinatedMissions++;
+                D1ShipState supportShip = FindD1ShipForCoordination(
+                    ship.coordinatedSupportShipId
+                );
+
+                if (supportShip == null ||
+                    !supportShip.coordinatedSupportReserved ||
+                    supportShip.coordinatedMainShipId != ship.shipId)
+                {
+                    failures.Add("Una misión coordinada no reservó su nave de apoyo.");
+                }
+
+                if (string.IsNullOrEmpty(
+                        Dimension1System.GetD1SynergyId(
+                            ship.shipId,
+                            ship.coordinatedSupportShipId
+                        )
+                    ))
+                {
+                    failures.Add("Una misión coordinada no tiene sinergia válida.");
+                }
+            }
+        }
+
+        foreach (D1ShipState ship in dimension1Ships)
+        {
+            if (ship == null || !ship.coordinatedSupportReserved)
+                continue;
+
+            D1ShipState mainShip = FindD1ShipForCoordination(
+                ship.coordinatedMainShipId
+            );
+
+            if (mainShip == null ||
+                !mainShip.explorationActive ||
+                !mainShip.coordinatedMission ||
+                mainShip.coordinatedSupportShipId != ship.shipId)
+            {
+                failures.Add("Existe una reserva coordinada huérfana.");
+            }
+        }
+
+        var uniqueSynergyIds = new HashSet<string>();
+
+        foreach (string synergyId in Dimension1System.Dimension1SynergyIds)
+        {
+            if (string.IsNullOrEmpty(synergyId) || !uniqueSynergyIds.Add(synergyId))
+                failures.Add("El catalogo contiene una sinergia vacia o duplicada.");
+        }
+
+        if (uniqueSynergyIds.Count != 6)
+            failures.Add("No existen exactamente seis sinergias unicas.");
+
+        if (dimension1ArkProgressVersion !=
+            Dimension1System.Dimension1ArkProgressVersion)
+        {
+            failures.Add("La migracion de Ark D1 no esta actualizada.");
+        }
+
+        if (Dimension1System.D1CentralSyncMissionIds.Length != 4 ||
+            dimension1CentralSyncMissions.Count != 4)
+        {
+            failures.Add("Ark no contiene exactamente cuatro sincronias.");
+        }
+
+        var uniqueSyncIds = new HashSet<string>();
+
+        foreach (D1CentralSyncMissionState mission in dimension1CentralSyncMissions)
+        {
+            if (mission == null ||
+                System.Array.IndexOf(
+                    Dimension1System.D1CentralSyncMissionIds,
+                    mission.missionId
+                ) < 0 ||
+                !uniqueSyncIds.Add(mission.missionId))
+            {
+                failures.Add("Existe una sincronia de Ark nula, desconocida o duplicada.");
+                continue;
+            }
+
+            if (mission.failedAttempts < 0 ||
+                mission.remainingSeconds < 0.0 ||
+                mission.totalSeconds < mission.remainingSeconds)
+            {
+                failures.Add("Una sincronia de Ark tiene estado o tiempos incoherentes.");
+            }
+        }
+
+        if (Dimension1System.GetD1ArkRequirements(this).Count != 12)
+            failures.Add("Ark no contiene exactamente doce requisitos.");
+
+        if (!Mathf.Approximately(
+                (float)Dimension1System.D1CentralSyncMissionDurationSeconds,
+                3600f
+            ) ||
+            !Mathf.Approximately(
+                (float)Dimension1System.D1ArkFinalMissionDurationSeconds,
+                5400f
+            ))
+        {
+            failures.Add("Las duraciones oficiales de Ark no son 60m/90m.");
+        }
+
+        if (dimension1CentralAccessKeyObtained &&
+            !dimension1CentralSyncEstablished)
+        {
+            failures.Add("La Clave Central existe sin sincronia establecida.");
+        }
+
+        if (dimension1GalacticAnchorDiscovered &&
+            !dimension1CentralAccessKeyObtained)
+        {
+            failures.Add("El Ancla Galactica existe sin la Clave Central.");
+        }
+
+        if (System.Array.IndexOf(
+                Dimension1System.Dimension1RelicIds,
+                Dimension1System.D1DiscoveryGalacticAnchor
+            ) >= 0)
+        {
+            failures.Add("El Ancla Galactica fue incluida como Reliquia normal.");
+        }
+
+        int arkReservedShips = 0;
+
+        foreach (D1ShipState ship in dimension1Ships)
+        {
+            if (ship == null || !ship.arkMissionReserved)
+                continue;
+
+            arkReservedShips++;
+
+            if (string.IsNullOrEmpty(ship.arkMissionId))
+                failures.Add("Existe una reserva de Ark sin mision asociada.");
+        }
+
+        if (dimension1ArkFinalMissionActive)
+        {
+            if (dimension1ArkFinalMissionShipIds.Count != 2 ||
+                arkReservedShips != 2 ||
+                dimension1ArkFinalMissionRemainingSeconds <= 0.0 ||
+                dimension1ArkFinalMissionTotalSeconds <
+                    dimension1ArkFinalMissionRemainingSeconds)
+            {
+                failures.Add("La mision final de Ark no conserva dos reservas y tiempos validos.");
+            }
         }
 
         int d1PrestigePoints =
@@ -3046,6 +3548,7 @@ public class GameState : MonoBehaviour
             "[D1 Parte 1 Integrity] " +
             (failures.Count == 0 ? "PASS" : "FAIL") +
             " | Misiones activas: " + activeMissions +
+            " | Coordinadas: " + activeCoordinatedMissions +
             " | Misiones futuras congeladas: " + frozenFutureMissions +
             " | Historial: " + dimension1RecentExplorationRecords.Count + "/" +
             Dimension1System.Dimension1RecentExplorationHistoryLimit +
@@ -4523,6 +5026,530 @@ public class GameState : MonoBehaviour
             "[D1 Relics] Lectura de Reliquias forzada a Tier " +
             targetTier +
             "/3."
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Prepare Coordinated Mission")]
+    private void DebugPrepareD1CoordinatedMission()
+    {
+        EnsureDimension1State();
+
+        GetOrCreateD1TreeNode(
+            Dimension1System.D1TreeFleetCoordination
+        ).tier = 1;
+
+        foreach (string shipId in Dimension1System.Dimension1ActiveShipIds)
+            GetOrCreateD1Ship(shipId).unlocked = true;
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1 Coordinated] Preparación completa: nodo activo y 4 naves desbloqueadas."
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Prepare Tier 3 Relic Test")]
+    private void DebugPrepareD1Tier3RelicTest()
+    {
+        EnsureDimension1State();
+
+        string sectorId = Dimension1System.IsDimension1ExplorationSectorId(
+            dimension1SelectedSectorId
+        )
+            ? dimension1SelectedSectorId
+            : Dimension1System.Sector01OuterRim;
+
+        dimension1SelectedSectorId = sectorId;
+        UnlockD1Sector(sectorId);
+        dimension1ScannerLevel = Dimension1System.SimpleScannerMaxLevel;
+        dimension1ScannerProgressVersion =
+            Dimension1System.SimpleScannerProgressVersion;
+        GetOrCreateD1TreeNode(
+            Dimension1System.D1TreeRelicReading
+        ).tier = 3;
+        GetOrCreateD1TreeNode(
+            Dimension1System.D1TreeFleetCoordination
+        ).tier = 1;
+
+        foreach (string shipId in Dimension1System.Dimension1ActiveShipIds)
+            GetOrCreateD1Ship(shipId).unlocked = true;
+
+        int preparedRelicsAtLevel25 = 0;
+
+        foreach (string relicId in Dimension1System.Dimension1RelicIds)
+        {
+            if (Dimension1System.GetDimension1RelicSectorId(relicId) != sectorId)
+                continue;
+
+            int tier = Dimension1System.GetDimension1RelicTier(relicId);
+
+            if (tier < 1 || tier > 2)
+                continue;
+
+            int targetLevel = preparedRelicsAtLevel25 < 2
+                ? 25
+                : Mathf.Max(1, GetD1RelicLevel(relicId));
+            SetD1RelicLevel(
+                relicId,
+                Mathf.Max(targetLevel, GetD1RelicLevel(relicId))
+            );
+
+            if (GetD1RelicLevel(relicId) >= 25)
+                preparedRelicsAtLevel25++;
+        }
+
+        string destinationId = "";
+        string[] sectorDestinations =
+            Dimension1System.GetDimension1SectorDestinationIds(sectorId);
+
+        foreach (string relicId in Dimension1System.Dimension1RelicIds)
+        {
+            if (Dimension1System.GetDimension1RelicSectorId(relicId) != sectorId ||
+                Dimension1System.GetDimension1RelicTier(relicId) != 3)
+            {
+                continue;
+            }
+
+            foreach (string candidateDestinationId in sectorDestinations)
+            {
+                if (!Dimension1System.IsDimension1RelicStrongDestination(
+                        relicId,
+                        candidateDestinationId
+                    ))
+                {
+                    continue;
+                }
+
+                destinationId = candidateDestinationId;
+                break;
+            }
+
+            if (!string.IsNullOrEmpty(destinationId))
+                break;
+        }
+
+        if (dimension1ScannedDestinations == null)
+            dimension1ScannedDestinations = new List<D1ScannedDestinationState>();
+
+        D1ScannedDestinationState preparedDestination = null;
+
+        foreach (D1ScannedDestinationState destination in dimension1ScannedDestinations)
+        {
+            if (destination != null &&
+                destination.destinationId == destinationId &&
+                destination.sectorId == sectorId)
+            {
+                preparedDestination = destination;
+                break;
+            }
+        }
+
+        if (preparedDestination == null && !string.IsNullOrEmpty(destinationId))
+        {
+            preparedDestination = new D1ScannedDestinationState
+            {
+                destinationId = destinationId,
+                available = true,
+                specialPointId = "",
+                sectorId = sectorId
+            };
+            dimension1ScannedDestinations.Insert(0, preparedDestination);
+        }
+        else if (preparedDestination != null)
+        {
+            preparedDestination.available = true;
+        }
+
+        D1ShipState mainShip = GetOrCreateD1Ship(
+            Dimension1System.ShipAnalyticProbe
+        );
+        D1ShipState supportShip = GetOrCreateD1Ship(
+            Dimension1System.ShipCargoShip
+        );
+        string[] pool = string.IsNullOrEmpty(destinationId)
+            ? new string[0]
+            : Dimension1System.GetCoordinatedExplorationRelicPoolPreview(
+                this,
+                destinationId,
+                mainShip,
+                supportShip
+            );
+        int tier3Count = 0;
+
+        foreach (string relicId in pool)
+        {
+            if (Dimension1System.GetDimension1RelicTier(relicId) == 3)
+                tier3Count++;
+        }
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1 Tier 3 Access] " +
+            (tier3Count > 0 ? "PASS" : "FAIL") +
+            " | Sector=" +
+            Dimension1System.GetDimension1SectorVisualName(sectorId) +
+            " | Destino=" +
+            destinationId +
+            " | Pool Nivel 3=" +
+            tier3Count +
+            " | Usar Sonda Analitica + Nave de Carga."
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Start First Coordinated Mission")]
+    private void DebugStartFirstD1CoordinatedMission()
+    {
+        DebugPrepareD1CoordinatedMission();
+
+        bool started = Dimension1System.TryStartCoordinatedExploration(
+            this,
+            Dimension1System.ShipLightProbe,
+            Dimension1System.ShipExtractorDrone,
+            0
+        );
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1 Coordinated] Inicio Sonda Ligera + Dron Extractor => " +
+            started
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Validate Six Synergies")]
+    private void DebugValidateD1SixSynergies()
+    {
+        EnsureDimension1State();
+        HashSet<string> found = new HashSet<string>();
+        string[] ships = Dimension1System.Dimension1ActiveShipIds;
+
+        for (int first = 0; first < ships.Length; first++)
+        {
+            for (int second = first + 1; second < ships.Length; second++)
+            {
+                string synergyId = Dimension1System.GetD1SynergyId(
+                    ships[first],
+                    ships[second]
+                );
+
+                if (!string.IsNullOrEmpty(synergyId))
+                    found.Add(synergyId);
+            }
+        }
+
+        Debug.Log(
+            "[D1 Coordinated] Sinergias únicas: " +
+            found.Count +
+            "/6 => " +
+            (found.Count == 6 ? "PASS" : "FAIL")
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Force Central Sync Missions")]
+    private void DebugForceD1CentralSyncMissions()
+    {
+        DebugPrepareD1CentralSyncTestState();
+
+        int started = 0;
+
+        foreach (string missionId in Dimension1System.D1CentralSyncMissionIds)
+        {
+            if (Dimension1System.TryStartD1CentralSyncMission(
+                    this,
+                    missionId,
+                    out _
+                ))
+            {
+                started++;
+            }
+        }
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1 Central Sync] Misiones activas=" + started +
+            "/4 | Simultaneidad=" + dimension1CentralSyncEstablished
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Prepare Central Sync Test")]
+    private void DebugPrepareD1CentralSyncTest()
+    {
+        DebugPrepareD1CentralSyncTestState();
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1 Central Sync] Prueba preparada: Centro seleccionado, Ark investigada, 4 naves disponibles."
+        );
+    }
+
+    private void DebugPrepareD1CentralSyncTestState()
+    {
+        EnsureDimension1State();
+        UnlockD1Sector(Dimension1System.Sector05GalacticCenter);
+        dimension1SelectedSectorId = Dimension1System.Sector05GalacticCenter;
+        dimension1ArkInvestigated = true;
+        dimension1CentralSyncEstablished = false;
+        dimension1CentralAccessKeyObtained = false;
+
+        foreach (D1ShipState ship in dimension1Ships)
+        {
+            if (ship == null ||
+                !Dimension1System.IsShipActiveInDimension1Base(ship.shipId))
+            {
+                continue;
+            }
+
+            ship.unlocked = true;
+            ship.explorationActive = false;
+            ship.coordinatedMission = false;
+            ship.coordinatedSupportShipId = "";
+            ship.coordinatedSupportReserved = false;
+            ship.coordinatedMainShipId = "";
+            ship.arkMissionReserved = false;
+            ship.arkMissionId = "";
+        }
+
+        foreach (D1CentralSyncMissionState mission in dimension1CentralSyncMissions)
+        {
+            mission.active = false;
+            mission.completed = false;
+            mission.remainingSeconds = 0.0;
+            mission.totalSeconds = 0.0;
+        }
+    }
+
+    [ContextMenu("D1 DEBUG: Complete Central Sync Missions")]
+    private void DebugCompleteD1CentralSyncMissions()
+    {
+        EnsureDimension1State();
+
+        foreach (D1CentralSyncMissionState mission in dimension1CentralSyncMissions)
+        {
+            if (mission != null && mission.active)
+                mission.remainingSeconds = 0.01;
+        }
+
+        Dimension1System.Tick(this, 1.0);
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        DebugPrintD1CentralSyncState();
+    }
+
+    [ContextMenu("D1 DEBUG: Print Central Sync State")]
+    private void DebugPrintD1CentralSyncState()
+    {
+        EnsureDimension1State();
+        var lines = new List<string>();
+
+        foreach (string missionId in Dimension1System.D1CentralSyncMissionIds)
+        {
+            D1CentralSyncMissionState mission =
+                Dimension1System.GetD1CentralSyncMission(this, missionId);
+            lines.Add(
+                Dimension1System.GetD1CentralSyncMissionName(missionId) +
+                " | Activa=" + (mission != null && mission.active) +
+                " | Completa=" + (mission != null && mission.completed) +
+                " | Restante=" + (mission != null ? mission.remainingSeconds : 0.0) +
+                " | Fallos=" + (mission != null ? mission.failedAttempts : 0)
+            );
+        }
+
+        Debug.Log(
+            "[D1 Central Sync]\n" + string.Join("\n", lines) +
+            "\nEstablecida=" + dimension1CentralSyncEstablished +
+            " | Clave=" + dimension1CentralAccessKeyObtained +
+            " | Registro visto=" + dimension1CentralAccessKeyLogSeen
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Force Central Access Key")]
+    private void DebugForceD1CentralAccessKey()
+    {
+        EnsureDimension1State();
+        UnlockD1Sector(Dimension1System.Sector05GalacticCenter);
+        dimension1ArkInvestigated = true;
+        dimension1CentralSyncEstablished = true;
+        dimension1CentralAccessKeyObtained = true;
+        dimension1CentralAccessKeyLogSeen = false;
+
+        foreach (D1CentralSyncMissionState mission in dimension1CentralSyncMissions)
+        {
+            mission.active = false;
+            mission.completed = true;
+            mission.remainingSeconds = 0.0;
+            mission.totalSeconds = 0.0;
+        }
+
+        EnsureDimension1State();
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log("[D1 Ark] Clave de Acceso Central forzada y registro fijo pendiente.");
+    }
+
+    [ContextMenu("D1 DEBUG: Prepare All Ark Requirements")]
+    private void DebugPrepareAllD1ArkRequirements()
+    {
+        DebugForceD1CentralAccessKey();
+        dimension1ScannerLevel = Dimension1System.SimpleScannerMaxLevel;
+
+        int purchasedNodes = 0;
+        foreach (string nodeId in Dimension1System.Dimension1TreeNodeIds)
+        {
+            if (purchasedNodes >= 8)
+                break;
+
+            GetOrCreateD1TreeNode(nodeId).tier = 1;
+            purchasedNodes++;
+        }
+
+        GetOrCreateD1TreeNode(Dimension1System.D1TreeRelicReading).tier = 3;
+        GetOrCreateD1TreeNode(Dimension1System.D1TreeFleetCoordination).tier = 1;
+
+        int unlockedRelics = 0;
+        int tier3Relics = 0;
+        foreach (string relicId in Dimension1System.Dimension1RelicIds)
+        {
+            bool mustUnlock = unlockedRelics < 10 ||
+                (Dimension1System.GetDimension1RelicTier(relicId) == 3 &&
+                 tier3Relics < 3);
+
+            if (!mustUnlock)
+                continue;
+
+            int targetLevel = unlockedRelics == 0
+                ? 50
+                : unlockedRelics < 4 ? 25 : 1;
+            SetD1RelicLevel(relicId, Mathf.Max(targetLevel, GetD1RelicLevel(relicId)));
+            unlockedRelics++;
+
+            if (Dimension1System.GetDimension1RelicTier(relicId) == 3)
+                tier3Relics++;
+        }
+
+        D1ShipState cargoShip = GetOrCreateD1Ship(Dimension1System.ShipCargoShip);
+        cargoShip.unlocked = true;
+        D1ShipState lightProbe = GetOrCreateD1Ship(Dimension1System.ShipLightProbe);
+        lightProbe.unlocked = true;
+        lightProbe.cargoLevel = 3;
+        lightProbe.speedLevel = 3;
+        lightProbe.armorLevel = 2;
+        lightProbe.sensorsLevel = 2;
+
+        EnsureDimension1State();
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        DebugPrintD1ArkRequirements();
+    }
+
+    [ContextMenu("D1 DEBUG: Print Ark Requirements")]
+    private void DebugPrintD1ArkRequirements()
+    {
+        EnsureDimension1State();
+        var lines = new List<string>();
+
+        foreach (D1SectorRequirementStatus requirement in
+            Dimension1System.GetD1ArkRequirements(this))
+        {
+            lines.Add(
+                (requirement.met ? "[PASS] " : "[FAIL] ") +
+                requirement.label +
+                (requirement.showProgress
+                    ? " " + requirement.currentValue + "/" + requirement.requiredValue
+                    : "")
+            );
+        }
+
+        Debug.Log(
+            "[D1 Ark Requirements] " +
+            (Dimension1System.AreD1ArkRequirementsMet(this) ? "PASS" : "FAIL") +
+            "\n" + string.Join("\n", lines)
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Complete Ark Final Mission")]
+    private void DebugCompleteD1ArkFinalMission()
+    {
+        EnsureDimension1State();
+
+        if (!dimension1ArkFinalMissionActive)
+        {
+            Dimension1System.TryStartD1ArkFinalMission(this, out string reason);
+            Debug.Log("[D1 Ark] Inicio final DEBUG: " + reason);
+        }
+
+        if (dimension1ArkFinalMissionActive)
+        {
+            dimension1ArkFinalMissionRemainingSeconds = 0.01;
+            Dimension1System.Tick(this, 1.0);
+        }
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log(
+            "[D1 Ark] Ancla Galactica descubierta=" +
+            dimension1GalacticAnchorDiscovered
+        );
+    }
+
+    [ContextMenu("D1 DEBUG: Force Galactic Anchor Discovered")]
+    private void DebugForceD1GalacticAnchorDiscovered()
+    {
+        EnsureDimension1State();
+        dimension1ArkInvestigated = true;
+        dimension1CentralSyncEstablished = true;
+        dimension1CentralAccessKeyObtained = true;
+        dimension1GalacticAnchorDiscovered = true;
+        dimension1ArkFinalMissionActive = false;
+        EnsureDimension1State();
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        Debug.Log("[D1 Ark] Descubrimiento Dimensional: Ancla Galactica obtenido.");
+    }
+
+    [ContextMenu("D1 DEBUG: Validate Ark Block")]
+    private void DebugValidateD1ArkBlock()
+    {
+        EnsureDimension1State();
+        var failures = new List<string>();
+
+        if (Dimension1System.D1CentralSyncMissionIds.Length != 4)
+            failures.Add("No existen exactamente cuatro sincronias.");
+        if (Dimension1System.GetD1ArkRequirements(this).Count != 12)
+            failures.Add("Ark no contiene exactamente 12 requisitos.");
+        if (!Mathf.Approximately(
+                (float)Dimension1System.D1CentralSyncMissionDurationSeconds,
+                3600f
+            ))
+            failures.Add("La duracion de sincronias no es 60 minutos.");
+        if (!Mathf.Approximately(
+                (float)Dimension1System.D1ArkFinalMissionDurationSeconds,
+                5400f
+            ))
+            failures.Add("La mision final no dura 90 minutos.");
+        if (dimension1ArkProgressVersion != Dimension1System.Dimension1ArkProgressVersion)
+            failures.Add("La migracion de Ark no esta actualizada.");
+
+        Debug.Log(
+            failures.Count == 0
+                ? "[D1 Ark Validation] PASS | 4 sincronias | 12 requisitos | 60m/90m"
+                : "[D1 Ark Validation] FAIL\n- " + string.Join("\n- ", failures)
         );
     }
 

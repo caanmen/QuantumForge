@@ -29,6 +29,9 @@ public class Dimension1PanelUI : MonoBehaviour
     [SerializeField] private Button scanButton;
     [SerializeField] private TMP_Dropdown destinationDropdown;
     [SerializeField] private TMP_Dropdown shipDropdown;
+    [SerializeField] private TMP_Dropdown supportShipDropdown;
+    [SerializeField] private Button coordinatedModeButton;
+    [SerializeField] private TextMeshProUGUI coordinatedSynergyText;
     [SerializeField] private Button exploreButton;
     [SerializeField] private Button upgradeScannerButton;
 
@@ -115,6 +118,18 @@ public class Dimension1PanelUI : MonoBehaviour
 
     [SerializeField] private Button enterGalaxySectorButton;
 
+    [Header("Centro Galactico / Ark")]
+    [SerializeField] private GameObject arkPanel;
+    [SerializeField] private Button openArkPanelButton;
+    [SerializeField] private Button closeArkPanelButton;
+    [SerializeField] private TextMeshProUGUI arkInfoText;
+    [SerializeField] private Button investigateArkButton;
+    [SerializeField] private Button startOuterSyncButton;
+    [SerializeField] private Button startDebrisSyncButton;
+    [SerializeField] private Button startAncientSyncButton;
+    [SerializeField] private Button startSilentSyncButton;
+    [SerializeField] private Button enterArkButton;
+
     [Header("Rendimiento")]
     [SerializeField] private float refreshInterval = 0.25f;
 
@@ -125,6 +140,10 @@ public class Dimension1PanelUI : MonoBehaviour
     private int selectedShipIndex;
     private string shipDropdownSignature = "";
     private bool isRefreshingShipDropdown;
+    private int selectedSupportShipIndex;
+    private string supportShipDropdownSignature = "";
+    private bool isRefreshingSupportShipDropdown;
+    private bool coordinatedMode;
     private int selectedHangarShipIndex;
     private string hangarShipDropdownSignature = "";
     private bool isRefreshingHangarShipDropdown;
@@ -138,6 +157,8 @@ public class Dimension1PanelUI : MonoBehaviour
     private string dimension1TreeDropdownSignature = "";
     private bool isRefreshingDimension1TreeDropdown;
     private bool galaxyPanelOpen;
+    private bool arkPanelOpen;
+    private string arkFeedbackMessage = "";
     private string galaxyPreviewSectorId =
         Dimension1System.Sector01OuterRim;
     private string galaxyFeedbackMessage = "";
@@ -146,6 +167,7 @@ public class Dimension1PanelUI : MonoBehaviour
     private bool explorationRecordPanelOpen;
     private int lastObservedDestinationDropdownValue = -1;
     private int lastObservedShipDropdownValue = -1;
+    private int lastObservedSupportShipDropdownValue = -1;
 
     private static readonly string[] HangarShipIds =
         Dimension1System.Dimension1ActiveShipIds;
@@ -154,6 +176,11 @@ public class Dimension1PanelUI : MonoBehaviour
     {
         BindGalaxyButtonListeners();
         BindDimension1TreeListeners();
+        BindArkListeners();
+        AddGalaxyButtonListener(
+            coordinatedModeButton,
+            OnClickToggleCoordinatedMode
+        );
         HideFrozenPart2Controls();
         PrimeExplorationResultPanelState();
         RefreshUI();
@@ -163,6 +190,36 @@ public class Dimension1PanelUI : MonoBehaviour
     {
         UnbindGalaxyButtonListeners();
         UnbindDimension1TreeListeners();
+        UnbindArkListeners();
+        RemoveGalaxyButtonListener(
+            coordinatedModeButton,
+            OnClickToggleCoordinatedMode
+        );
+    }
+
+    private void BindArkListeners()
+    {
+        UnbindArkListeners();
+        AddGalaxyButtonListener(openArkPanelButton, OnClickOpenArkPanel);
+        AddGalaxyButtonListener(closeArkPanelButton, OnClickCloseArkPanel);
+        AddGalaxyButtonListener(investigateArkButton, OnClickInvestigateArk);
+        AddGalaxyButtonListener(startOuterSyncButton, OnClickStartOuterSync);
+        AddGalaxyButtonListener(startDebrisSyncButton, OnClickStartDebrisSync);
+        AddGalaxyButtonListener(startAncientSyncButton, OnClickStartAncientSync);
+        AddGalaxyButtonListener(startSilentSyncButton, OnClickStartSilentSync);
+        AddGalaxyButtonListener(enterArkButton, OnClickEnterArk);
+    }
+
+    private void UnbindArkListeners()
+    {
+        RemoveGalaxyButtonListener(openArkPanelButton, OnClickOpenArkPanel);
+        RemoveGalaxyButtonListener(closeArkPanelButton, OnClickCloseArkPanel);
+        RemoveGalaxyButtonListener(investigateArkButton, OnClickInvestigateArk);
+        RemoveGalaxyButtonListener(startOuterSyncButton, OnClickStartOuterSync);
+        RemoveGalaxyButtonListener(startDebrisSyncButton, OnClickStartDebrisSync);
+        RemoveGalaxyButtonListener(startAncientSyncButton, OnClickStartAncientSync);
+        RemoveGalaxyButtonListener(startSilentSyncButton, OnClickStartSilentSync);
+        RemoveGalaxyButtonListener(enterArkButton, OnClickEnterArk);
     }
 
     private void BindGalaxyButtonListeners()
@@ -352,6 +409,20 @@ public class Dimension1PanelUI : MonoBehaviour
             }
         }
 
+        if (supportShipDropdown != null &&
+            !isRefreshingSupportShipDropdown)
+        {
+            int currentSupportValue = supportShipDropdown.value;
+
+            if (lastObservedSupportShipDropdownValue != currentSupportValue)
+            {
+                lastObservedSupportShipDropdownValue = currentSupportValue;
+                selectedSupportShipIndex = currentSupportValue;
+                CloseExplorationOverlayPanels();
+                changed = true;
+            }
+        }
+
         return changed;
     }
 
@@ -393,6 +464,8 @@ public class Dimension1PanelUI : MonoBehaviour
 
         RefreshDestinationDropdown(gs);
         RefreshShipDropdown(gs);
+        RefreshSupportShipDropdown(gs);
+        RefreshCoordinatedMissionControls(gs);
         RefreshButtons(gs);
         UpdateExplorationResultPanelState(gs);
         RefreshExplorationRewardsPanel(gs);
@@ -401,6 +474,7 @@ public class Dimension1PanelUI : MonoBehaviour
         RefreshRelicChamberPanel(gs);
         RefreshGalaxyPanel(gs);
         RefreshDimension1TreePanel(gs);
+        RefreshArkPanel(gs);
 
     }
 
@@ -753,14 +827,46 @@ public class Dimension1PanelUI : MonoBehaviour
                     ? " [P]"
                     : "";
 
-            text +=
-                GetShipVisualName(ship.shipId) +
-                " → " +
-                destinationName +
-                specialPointMarker +
-                " (" +
-                FormatSeconds(ship.explorationRemainingSeconds) +
-                ")";
+            string coordinatedMarker = "";
+
+            if (ship.coordinatedMission)
+            {
+                string synergyId = Dimension1System.GetD1SynergyId(
+                    ship.shipId,
+                    ship.coordinatedSupportShipId
+                );
+                coordinatedMarker =
+                    " + " +
+                    GetShipVisualName(ship.coordinatedSupportShipId) +
+                    " [" +
+                    Dimension1System.GetD1SynergyVisualName(synergyId) +
+                    "]";
+            }
+
+            if (ship.coordinatedMission)
+            {
+                text +=
+                    GetShipVisualName(ship.shipId) +
+                    coordinatedMarker +
+                    "\n→ " +
+                    destinationName +
+                    specialPointMarker +
+                    "\nTiempo restante: " +
+                    FormatSeconds(ship.explorationRemainingSeconds) +
+                    " / " +
+                    FormatSeconds(ship.explorationTotalSeconds);
+            }
+            else
+            {
+                text +=
+                    GetShipVisualName(ship.shipId) +
+                    " → " +
+                    destinationName +
+                    specialPointMarker +
+                    " (" +
+                    FormatSeconds(ship.explorationRemainingSeconds) +
+                    ")";
+            }
 
             hasAny = true;
         }
@@ -776,15 +882,32 @@ public class Dimension1PanelUI : MonoBehaviour
         if (gs == null)
             return "Registro de exploración:\nNo disponible.";
 
-        if (gs.dimension1RecentExplorationRecords == null || gs.dimension1RecentExplorationRecords.Count == 0)
+        bool hasCentralKeyEntry = gs.dimension1CentralAccessKeyObtained;
+
+        if (!hasCentralKeyEntry &&
+            (gs.dimension1RecentExplorationRecords == null ||
+             gs.dimension1RecentExplorationRecords.Count == 0))
+        {
             return "Registro de exploración:\nSin exploraciones completadas.";
+        }
 
         string text = "Registro de exploración:";
         bool hasVisibleEntries = false;
 
-        int startIndex = Mathf.Max(0, gs.dimension1RecentExplorationRecords.Count - 20);
+        if (hasCentralKeyEntry)
+        {
+            text +=
+                "\n\n[REGISTRO FIJO] CLAVE DE ACCESO CENTRAL" +
+                "\nLas cuatro señales fueron sincronizadas. Acceso a Ark autorizado.";
+            hasVisibleEntries = true;
+        }
 
-        for (int i = gs.dimension1RecentExplorationRecords.Count - 1; i >= startIndex; i--)
+        int recordCount = gs.dimension1RecentExplorationRecords != null
+            ? gs.dimension1RecentExplorationRecords.Count
+            : 0;
+        int startIndex = Mathf.Max(0, recordCount - 20);
+
+        for (int i = recordCount - 1; i >= startIndex; i--)
         {
             D1ExplorationRecordEntry entry = gs.dimension1RecentExplorationRecords[i];
 
@@ -796,11 +919,24 @@ public class Dimension1PanelUI : MonoBehaviour
 
             hasVisibleEntries = true;
 
+            string coordinatedRecordText = "";
+
+            if (entry.coordinatedMission)
+            {
+                coordinatedRecordText =
+                    " + " +
+                    GetShipVisualName(entry.supportShipId) +
+                    " [" +
+                    Dimension1System.GetD1SynergyVisualName(entry.synergyId) +
+                    "]";
+            }
+
             text +=
                 "\n\n#" +
                 entry.resultId +
                 " — " +
                 GetShipVisualName(entry.shipId) +
+                coordinatedRecordText +
                 " → " +
                 GetDestinationVisualName(entry.destinationId) +
                 "\n" +
@@ -986,6 +1122,27 @@ public class Dimension1PanelUI : MonoBehaviour
         string selectedShipName = selectedShip != null
             ? GetShipVisualName(selectedShip.shipId)
             : "Ninguna";
+        D1ShipState supportShip = GetSelectedSupportShip(gs);
+        string coordinatedPreview = "";
+
+        if (coordinatedMode)
+        {
+            string synergyId = selectedShip != null && supportShip != null
+                ? Dimension1System.GetD1SynergyId(
+                    selectedShip.shipId,
+                    supportShip.shipId
+                )
+                : "";
+            coordinatedPreview =
+                "\nNave de apoyo: " +
+                (supportShip != null
+                    ? GetShipVisualName(supportShip.shipId)
+                    : "Ninguna") +
+                "\nSinergia: " +
+                Dimension1System.GetD1SynergyVisualName(synergyId) +
+                " - " +
+                Dimension1System.GetD1SynergyDescription(synergyId);
+        }
 
         return
             "Destino seleccionado:\n" +
@@ -1002,7 +1159,8 @@ public class Dimension1PanelUI : MonoBehaviour
             "\nNave seleccionada: " +
             selectedShipName +
             "\nBonus de nave: " +
-            GetShipBonusPreview(selectedShip);
+            GetShipBonusPreview(selectedShip) +
+            coordinatedPreview;
     }
 
     private void RefreshExplorationRewardsPanel(GameState gs)
@@ -1130,11 +1288,18 @@ public class Dimension1PanelUI : MonoBehaviour
     {
         D1ScannedDestinationState destination = GetSelectedAvailableDestination(gs);
         D1ShipState selectedShip = GetSelectedAvailableShip(gs);
+        D1ShipState supportShip = GetSelectedSupportShip(gs);
 
         if (destination == null || selectedShip == null)
             return "";
 
         string destinationId = destination.destinationId;
+        string synergyId = coordinatedMode && supportShip != null
+            ? Dimension1System.GetD1SynergyId(
+                selectedShip.shipId,
+                supportShip.shipId
+            )
+            : "";
 
         string metalRewards =
             GetDestinationRewardPreview(destinationId)
@@ -1148,29 +1313,68 @@ public class Dimension1PanelUI : MonoBehaviour
             );
 
         float specificMatrixChance =
-            Dimension1System.GetSpecificBlueprintChancePreview(
-                gs,
-                destinationId,
-                selectedShip
-            );
+            coordinatedMode && supportShip != null
+                ? Dimension1System.GetCoordinatedSpecificBlueprintChancePreview(
+                    gs,
+                    destinationId,
+                    selectedShip,
+                    supportShip
+                )
+                : Dimension1System.GetSpecificBlueprintChancePreview(
+                    gs,
+                    destinationId,
+                    selectedShip
+                );
 
         float relicChance =
-            Dimension1System.GetExplorationRelicChancePreview(
-                gs,
-                destinationId,
-                selectedShip
-            );
+            coordinatedMode && supportShip != null
+                ? Dimension1System.GetCoordinatedExplorationRelicChancePreview(
+                    gs,
+                    destinationId,
+                    selectedShip,
+                    supportShip
+                )
+                : Dimension1System.GetExplorationRelicChancePreview(
+                    gs,
+                    destinationId,
+                    selectedShip
+                );
 
         string text =
             "Recompensas posibles\n\n" +
-            "Nave: " +
+            (coordinatedMode ? "Nave principal: " : "Nave: ") +
             GetShipVisualName(selectedShip.shipId) +
             "\n" +
             "Tiempo: " +
-            GetDestinationDurationPreview(gs, destinationId, selectedShip) +
+            (coordinatedMode && supportShip != null
+                ? FormatSeconds(
+                    Dimension1System.GetCoordinatedExplorationDurationPreviewSeconds(
+                        gs,
+                        destinationId,
+                        selectedShip,
+                        supportShip
+                    )
+                )
+                : GetDestinationDurationPreview(gs, destinationId, selectedShip)) +
             "\n\n" +
             "Metales:\n" +
             metalRewards;
+
+        if (coordinatedMode)
+        {
+            text +=
+                "\n\nNave de apoyo: " +
+                (supportShip != null
+                    ? GetShipVisualName(supportShip.shipId)
+                    : "Ninguna") +
+                "\nSinergia: " +
+                Dimension1System.GetD1SynergyVisualName(synergyId) +
+                "\n" +
+                Dimension1System.GetD1SynergyDescription(synergyId) +
+                "\nBase coordinada: duración ×2.5, metales ×4, " +
+                "Matriz Adaptativa +150%, Matriz específica +15 pp, " +
+                "Reliquia +8 pp.";
+        }
 
         Dimension1System.GetD1TreePartialRecoveryValues(
             gs,
@@ -1308,7 +1512,17 @@ public class Dimension1PanelUI : MonoBehaviour
         text +=
             "\nPool reliquias:\n" +
             BuildInlineRelicPreviewPoolText(
-                Dimension1System.GetExplorationRelicRewardPoolPreview(gs, destinationId)
+                coordinatedMode && supportShip != null
+                    ? Dimension1System.GetCoordinatedExplorationRelicPoolPreview(
+                        gs,
+                        destinationId,
+                        selectedShip,
+                        supportShip
+                    )
+                    : Dimension1System.GetExplorationRelicRewardPoolPreview(
+                        gs,
+                        destinationId
+                    )
             );
 
         return text;
@@ -1612,8 +1826,45 @@ public class Dimension1PanelUI : MonoBehaviour
         if (gs == null)
             return "";
 
+        D1ExplorationRecordEntry lastRecord = null;
+
+        if (gs.dimension1RecentExplorationRecords != null)
+        {
+            for (int index = gs.dimension1RecentExplorationRecords.Count - 1;
+                 index >= 0;
+                 index--)
+            {
+                D1ExplorationRecordEntry candidate =
+                    gs.dimension1RecentExplorationRecords[index];
+
+                if (candidate != null &&
+                    candidate.resultId == gs.dimension1LastExplorationResultId)
+                {
+                    lastRecord = candidate;
+                    break;
+                }
+            }
+        }
+
+        string missionText = "";
+
+        if (lastRecord != null && lastRecord.coordinatedMission)
+        {
+            missionText =
+                "Misión coordinada: " +
+                GetShipVisualName(lastRecord.shipId) +
+                " + " +
+                GetShipVisualName(lastRecord.supportShipId) +
+                "\nSinergia: " +
+                Dimension1System.GetD1SynergyVisualName(
+                    lastRecord.synergyId
+                ) +
+                "\n\n";
+        }
+
         string text =
             "Exploración completada\n\n" +
+            missionText +
             "Destino:\n" +
             GetDestinationVisualName(gs.dimension1LastExplorationDestinationId) +
             "\n\n" +
@@ -2081,7 +2332,7 @@ public class Dimension1PanelUI : MonoBehaviour
             if (ship == null ||
                 !Dimension1System.IsShipActiveInDimension1Base(ship.shipId) ||
                 !ship.unlocked ||
-                ship.explorationActive)
+                Dimension1System.IsD1ShipBusy(ship))
                 continue;
 
             options.Add(GetShipVisualName(ship.shipId));
@@ -2120,6 +2371,162 @@ public class Dimension1PanelUI : MonoBehaviour
         shipDropdown.interactable = true;
 
         isRefreshingShipDropdown = false;
+    }
+
+    private void RefreshSupportShipDropdown(GameState gs)
+    {
+        if (supportShipDropdown == null)
+            return;
+
+        bool visible =
+            coordinatedMode &&
+            !hangarPanelOpen &&
+            !relicChamberPanelOpen &&
+            !galaxyPanelOpen &&
+            gs != null &&
+            Dimension1System.HasD1TreeFleetCoordination(gs);
+
+        supportShipDropdown.gameObject.SetActive(visible);
+
+        if (!visible)
+            return;
+
+        D1ShipState mainShip = GetSelectedAvailableShip(gs);
+        List<string> options = new List<string> { "Elegir nave de apoyo" };
+
+        if (mainShip != null && gs.dimension1Ships != null)
+        {
+            foreach (D1ShipState ship in gs.dimension1Ships)
+            {
+                if (ship == null ||
+                    ship.shipId == mainShip.shipId ||
+                    !Dimension1System.IsShipActiveInDimension1Base(ship.shipId) ||
+                    !ship.unlocked ||
+                    Dimension1System.IsD1ShipBusy(ship))
+                {
+                    continue;
+                }
+
+                options.Add(GetShipVisualName(ship.shipId));
+            }
+        }
+
+        string newSignature = string.Join("|", options);
+        isRefreshingSupportShipDropdown = true;
+
+        if (newSignature != supportShipDropdownSignature)
+        {
+            supportShipDropdown.ClearOptions();
+            supportShipDropdown.AddOptions(options);
+            supportShipDropdownSignature = newSignature;
+            selectedSupportShipIndex = 0;
+        }
+        else
+        {
+            selectedSupportShipIndex = supportShipDropdown.value;
+        }
+
+        selectedSupportShipIndex = Mathf.Clamp(
+            selectedSupportShipIndex,
+            0,
+            options.Count - 1
+        );
+        supportShipDropdown.SetValueWithoutNotify(selectedSupportShipIndex);
+        supportShipDropdown.RefreshShownValue();
+        supportShipDropdown.interactable = mainShip != null && options.Count > 1;
+        isRefreshingSupportShipDropdown = false;
+    }
+
+    private void RefreshCoordinatedMissionControls(GameState gs)
+    {
+        bool available =
+            gs != null &&
+            Dimension1System.HasD1TreeFleetCoordination(gs);
+
+        if (!available)
+            coordinatedMode = false;
+
+        bool mainView =
+            !hangarPanelOpen &&
+            !relicChamberPanelOpen &&
+            !galaxyPanelOpen;
+
+        if (coordinatedModeButton != null)
+        {
+            coordinatedModeButton.gameObject.SetActive(mainView && available);
+            SetButtonText(
+                coordinatedModeButton,
+                coordinatedMode ? "Coordinada: SI" : "Coordinada: NO"
+            );
+        }
+
+        if (coordinatedSynergyText == null)
+            return;
+
+        bool showSynergy = mainView && coordinatedMode && available;
+        coordinatedSynergyText.gameObject.SetActive(showSynergy);
+
+        if (!showSynergy)
+        {
+            coordinatedSynergyText.text = "";
+            return;
+        }
+
+        D1ShipState mainShip = GetSelectedAvailableShip(gs);
+        D1ShipState supportShip = GetSelectedSupportShip(gs);
+        string synergyId = mainShip != null && supportShip != null
+            ? Dimension1System.GetD1SynergyId(
+                mainShip.shipId,
+                supportShip.shipId
+            )
+            : "";
+
+        coordinatedSynergyText.text =
+            "Sinergia: " +
+            Dimension1System.GetD1SynergyVisualName(synergyId) +
+            "\n" +
+            Dimension1System.GetD1SynergyDescription(synergyId);
+    }
+
+    private D1ShipState GetSelectedSupportShip(GameState gs)
+    {
+        if (!coordinatedMode || gs == null || gs.dimension1Ships == null)
+            return null;
+
+        int dropdownIndex = selectedSupportShipIndex;
+
+        if (supportShipDropdown != null)
+            dropdownIndex = supportShipDropdown.value;
+
+        if (dropdownIndex <= 0)
+            return null;
+
+        D1ShipState mainShip = GetSelectedAvailableShip(gs);
+
+        if (mainShip == null)
+            return null;
+
+        int targetIndex = dropdownIndex - 1;
+        int currentIndex = 0;
+
+        foreach (D1ShipState ship in gs.dimension1Ships)
+        {
+            if (ship == null ||
+                ship.shipId == mainShip.shipId ||
+                !Dimension1System.IsShipActiveInDimension1Base(ship.shipId) ||
+                !ship.unlocked ||
+                Dimension1System.IsD1ShipBusy(ship))
+            {
+                continue;
+            }
+
+            if (currentIndex == targetIndex)
+                return ship;
+
+            currentIndex++;
+        }
+
+        return null;
     }
 
     private int GetAvailableDestinationCount(GameState gs)
@@ -2196,7 +2603,7 @@ public class Dimension1PanelUI : MonoBehaviour
             if (ship != null &&
                 Dimension1System.IsShipActiveInDimension1Base(ship.shipId) &&
                 ship.unlocked &&
-                !ship.explorationActive)
+                !Dimension1System.IsD1ShipBusy(ship))
                 count++;
         }
 
@@ -2224,7 +2631,7 @@ public class Dimension1PanelUI : MonoBehaviour
             if (ship == null ||
                 !Dimension1System.IsShipActiveInDimension1Base(ship.shipId) ||
                 !ship.unlocked ||
-                ship.explorationActive)
+                Dimension1System.IsD1ShipBusy(ship))
                 continue;
 
             if (currentIndex == targetIndex)
@@ -3145,6 +3552,17 @@ public class Dimension1PanelUI : MonoBehaviour
 
     public void OnClickOpenExplorationRecord()
     {
+        GameState gs = GameState.I;
+
+        if (gs != null && gs.dimension1CentralAccessKeyObtained &&
+            !gs.dimension1CentralAccessKeyLogSeen)
+        {
+            gs.dimension1CentralAccessKeyLogSeen = true;
+
+            if (SaveService.I != null)
+                SaveService.I.Save();
+        }
+
         explorationRecordPanelOpen = true;
         hangarPanelOpen = false;
         relicChamberPanelOpen = false;
@@ -3339,6 +3757,7 @@ public class Dimension1PanelUI : MonoBehaviour
     {
         selectedDestinationIndex = 0;
         selectedShipIndex = 0;
+        selectedSupportShipIndex = 0;
 
         if (destinationDropdown != null)
         {
@@ -3350,6 +3769,12 @@ public class Dimension1PanelUI : MonoBehaviour
         {
             shipDropdown.SetValueWithoutNotify(0);
             shipDropdown.RefreshShownValue();
+        }
+
+        if (supportShipDropdown != null)
+        {
+            supportShipDropdown.SetValueWithoutNotify(0);
+            supportShipDropdown.RefreshShownValue();
         }
     }
 
@@ -3403,8 +3828,30 @@ public class Dimension1PanelUI : MonoBehaviour
         if (selectedShip == null)
             return;
 
-        bool explorationStarted =
-            Dimension1System.TryStartExploration(gs, selectedShip.shipId, destinationIndex);
+        D1ShipState supportShip = GetSelectedSupportShip(gs);
+        bool explorationStarted;
+
+        if (coordinatedMode)
+        {
+            if (supportShip == null)
+                return;
+
+            explorationStarted =
+                Dimension1System.TryStartCoordinatedExploration(
+                    gs,
+                    selectedShip.shipId,
+                    supportShip.shipId,
+                    destinationIndex
+                );
+        }
+        else
+        {
+            explorationStarted = Dimension1System.TryStartExploration(
+                gs,
+                selectedShip.shipId,
+                destinationIndex
+            );
+        }
 
         if (!explorationStarted)
         {
@@ -3541,6 +3988,19 @@ public class Dimension1PanelUI : MonoBehaviour
 
         if (shipDropdown != null)
             shipDropdown.gameObject.SetActive(visible);
+
+        if (supportShipDropdown != null)
+            supportShipDropdown.gameObject.SetActive(visible && coordinatedMode);
+
+        if (coordinatedModeButton != null)
+            coordinatedModeButton.gameObject.SetActive(
+                visible &&
+                GameState.I != null &&
+                Dimension1System.HasD1TreeFleetCoordination(GameState.I)
+            );
+
+        if (coordinatedSynergyText != null)
+            coordinatedSynergyText.gameObject.SetActive(visible && coordinatedMode);
 
         if (exploreButton != null)
             exploreButton.gameObject.SetActive(visible);
@@ -3691,13 +4151,34 @@ public class Dimension1PanelUI : MonoBehaviour
         {
             int destinationIndex = GetSelectedAvailableDestinationRealIndex(gs);
             D1ShipState selectedShip = GetSelectedAvailableShip(gs);
+            D1ShipState supportShip = GetSelectedSupportShip(gs);
 
-            exploreButton.interactable =
-                destinationIndex >= 0 &&
-                selectedShip != null &&
-                Dimension1System.CanStartExploration(gs, selectedShip.shipId, destinationIndex);
-
-            SetButtonText(exploreButton, "Explorar");
+            if (coordinatedMode)
+            {
+                exploreButton.interactable =
+                    destinationIndex >= 0 &&
+                    selectedShip != null &&
+                    supportShip != null &&
+                    Dimension1System.CanStartCoordinatedExploration(
+                        gs,
+                        selectedShip.shipId,
+                        supportShip.shipId,
+                        destinationIndex
+                    );
+                SetButtonText(exploreButton, "Iniciar coordinada");
+            }
+            else
+            {
+                exploreButton.interactable =
+                    destinationIndex >= 0 &&
+                    selectedShip != null &&
+                    Dimension1System.CanStartExploration(
+                        gs,
+                        selectedShip.shipId,
+                        destinationIndex
+                    );
+                SetButtonText(exploreButton, "Explorar");
+            }
         }
     }
 
@@ -4466,6 +4947,303 @@ public class Dimension1PanelUI : MonoBehaviour
         );
     }
 
+    public void OnClickOpenArkPanel()
+    {
+        GameState gs = GameState.I;
+
+        if (gs == null || arkPanel == null ||
+            gs.dimension1SelectedSectorId != Dimension1System.Sector05GalacticCenter ||
+            !gs.IsD1SectorUnlocked(Dimension1System.Sector05GalacticCenter))
+        {
+            return;
+        }
+
+        arkPanelOpen = true;
+        arkFeedbackMessage = "";
+        galaxyPanelOpen = false;
+        hangarPanelOpen = false;
+        relicChamberPanelOpen = false;
+        dimension1TreePanelOpen = false;
+        explorationRecordPanelOpen = false;
+        showingExplorationResultPanel = false;
+        RefreshUI();
+    }
+
+    public void OnClickCloseArkPanel()
+    {
+        arkPanelOpen = false;
+        arkFeedbackMessage = "";
+        RefreshUI();
+    }
+
+    public void OnClickInvestigateArk()
+    {
+        GameState gs = GameState.I;
+        bool investigated = Dimension1System.TryInvestigateD1Ark(gs);
+        arkFeedbackMessage = investigated
+            ? "Ark investigada. Las cuatro señales de sincronía han sido localizadas."
+            : "No fue posible investigar Ark.";
+        SaveAndRefreshArk();
+    }
+
+    public void OnClickStartOuterSync()
+    {
+        StartD1CentralSyncMission(Dimension1System.D1CentralSyncOuter);
+    }
+
+    public void OnClickStartDebrisSync()
+    {
+        StartD1CentralSyncMission(Dimension1System.D1CentralSyncDebris);
+    }
+
+    public void OnClickStartAncientSync()
+    {
+        StartD1CentralSyncMission(Dimension1System.D1CentralSyncAncient);
+    }
+
+    public void OnClickStartSilentSync()
+    {
+        StartD1CentralSyncMission(Dimension1System.D1CentralSyncSilent);
+    }
+
+    private void StartD1CentralSyncMission(string missionId)
+    {
+        bool started = Dimension1System.TryStartD1CentralSyncMission(
+            GameState.I,
+            missionId,
+            out string blockedReason
+        );
+        arkFeedbackMessage = started
+            ? Dimension1System.GetD1CentralSyncMissionName(missionId) + " iniciada."
+            : blockedReason;
+        SaveAndRefreshArk();
+    }
+
+    public void OnClickEnterArk()
+    {
+        bool started = Dimension1System.TryStartD1ArkFinalMission(
+            GameState.I,
+            out string blockedReason
+        );
+        arkFeedbackMessage = started
+            ? "Misión final de Ark iniciada. Duración: 90 minutos."
+            : blockedReason;
+        SaveAndRefreshArk();
+    }
+
+    private void SaveAndRefreshArk()
+    {
+        if (SaveService.I != null)
+            SaveService.I.Save();
+
+        RefreshUI();
+    }
+
+    private void RefreshArkPanel(GameState gs)
+    {
+        bool centerSelected =
+            gs != null &&
+            gs.dimension1SelectedSectorId == Dimension1System.Sector05GalacticCenter &&
+            gs.IsD1SectorUnlocked(Dimension1System.Sector05GalacticCenter);
+        bool noOtherPanelOpen =
+            !galaxyPanelOpen &&
+            !hangarPanelOpen &&
+            !relicChamberPanelOpen &&
+            !dimension1TreePanelOpen &&
+            !explorationRecordPanelOpen;
+
+        if (openArkPanelButton != null)
+        {
+            openArkPanelButton.gameObject.SetActive(
+                arkPanel != null && centerSelected && !arkPanelOpen &&
+                noOtherPanelOpen
+            );
+            openArkPanelButton.interactable = centerSelected;
+            SetButtonText(openArkPanelButton, "Investigar Ark");
+        }
+
+        if (arkPanel != null)
+            arkPanel.SetActive(arkPanelOpen);
+
+        if (dimension1MainContentRoot != null && arkPanelOpen)
+            dimension1MainContentRoot.SetActive(false);
+
+        if (arkPanelOpen)
+        {
+            if (openGalaxyPanelButton != null) openGalaxyPanelButton.gameObject.SetActive(false);
+            if (openHangarPanelButton != null) openHangarPanelButton.gameObject.SetActive(false);
+            if (openRelicChamberPanelButton != null) openRelicChamberPanelButton.gameObject.SetActive(false);
+            if (openDimension1TreePanelButton != null) openDimension1TreePanelButton.gameObject.SetActive(false);
+            if (openExplorationRecordButton != null) openExplorationRecordButton.gameObject.SetActive(false);
+            if (explorationRewardsPanel != null) explorationRewardsPanel.SetActive(false);
+            if (explorationRecordPanel != null) explorationRecordPanel.SetActive(false);
+        }
+
+        if (closeArkPanelButton != null)
+        {
+            closeArkPanelButton.gameObject.SetActive(arkPanelOpen);
+            SetButtonText(closeArkPanelButton, "Volver");
+        }
+
+        if (!arkPanelOpen || gs == null)
+            return;
+
+        if (arkInfoText != null)
+            arkInfoText.text = BuildArkInfoText(gs);
+
+        if (investigateArkButton != null)
+        {
+            investigateArkButton.gameObject.SetActive(!gs.dimension1ArkInvestigated);
+            investigateArkButton.interactable = !gs.dimension1ArkInvestigated;
+            SetButtonText(investigateArkButton, "Investigar Ark");
+        }
+
+        RefreshCentralSyncButton(gs, startOuterSyncButton, Dimension1System.D1CentralSyncOuter);
+        RefreshCentralSyncButton(gs, startDebrisSyncButton, Dimension1System.D1CentralSyncDebris);
+        RefreshCentralSyncButton(gs, startAncientSyncButton, Dimension1System.D1CentralSyncAncient);
+        RefreshCentralSyncButton(gs, startSilentSyncButton, Dimension1System.D1CentralSyncSilent);
+
+        if (enterArkButton != null)
+        {
+            bool show = gs.dimension1ArkInvestigated &&
+                !gs.dimension1GalacticAnchorDiscovered;
+            enterArkButton.gameObject.SetActive(show);
+            enterArkButton.interactable = show &&
+                !gs.dimension1ArkFinalMissionActive &&
+                Dimension1System.AreD1ArkRequirementsMet(gs);
+            SetButtonText(
+                enterArkButton,
+                gs.dimension1ArkFinalMissionActive
+                    ? "Ark en curso: " + FormatSeconds(gs.dimension1ArkFinalMissionRemainingSeconds)
+                    : "Entrar a Ark (90 min)"
+            );
+        }
+    }
+
+    private void RefreshCentralSyncButton(
+        GameState gs,
+        Button button,
+        string missionId
+    )
+    {
+        if (button == null)
+            return;
+
+        D1CentralSyncMissionState mission =
+            Dimension1System.GetD1CentralSyncMission(gs, missionId);
+        bool show = gs.dimension1ArkInvestigated &&
+            !gs.dimension1CentralAccessKeyObtained;
+        button.gameObject.SetActive(show);
+
+        if (!show)
+            return;
+
+        bool canStart = Dimension1System.CanStartD1CentralSyncMission(
+            gs,
+            missionId,
+            out _
+        );
+        button.interactable = canStart;
+        string state = mission != null && mission.active
+            ? " — " + FormatSeconds(mission.remainingSeconds)
+            : mission != null && mission.completed
+                ? " — COMPLETADA"
+                : " — Iniciar (60 min)";
+        SetButtonText(
+            button,
+            Dimension1System.GetD1CentralSyncMissionName(missionId) + state
+        );
+    }
+
+    private string BuildArkInfoText(GameState gs)
+    {
+        string text =
+            "ARK — CENTRO GALÁCTICO\n" +
+            "Un hoyo negro domina el centro de la galaxia.\n" +
+            "En su borde permanece Ark, una nave imposible que no responde al escáner normal.";
+
+        if (!gs.dimension1ArkInvestigated)
+            return text + "\n\nInvestiga Ark para revelar su patrón de acceso.";
+
+        text +=
+            "\n\nLa entrada no está rota. Está esperando una coincidencia.\n" +
+            "Cuatro ecos nacen lejos del centro, pero se apagan antes de tocarse.";
+
+        int failedAttempts = 0;
+
+        foreach (string missionId in Dimension1System.D1CentralSyncMissionIds)
+        {
+            D1CentralSyncMissionState mission =
+                Dimension1System.GetD1CentralSyncMission(gs, missionId);
+            failedAttempts += mission != null ? mission.failedAttempts : 0;
+            string missionState = mission == null
+                ? "NO DISPONIBLE"
+                : mission.completed
+                    ? "COMPLETADA"
+                    : mission.active
+                        ? "ACTIVA — " + FormatSeconds(mission.remainingSeconds)
+                        : "PENDIENTE";
+            text +=
+                "\n\n[" + missionState + "] " +
+                Dimension1System.GetD1CentralSyncMissionName(missionId) +
+                "\n" +
+                Dimension1System.GetDimension1SectorVisualName(
+                    Dimension1System.GetD1CentralSyncMissionSectorId(missionId)
+                ) +
+                " — " +
+                GetShipVisualName(
+                    Dimension1System.GetD1CentralSyncMissionShipId(missionId)
+                );
+        }
+
+        if (!gs.dimension1CentralSyncEstablished && failedAttempts > 0)
+        {
+            text += failedAttempts >= 3
+                ? "\n\nLos ecos no parecen fallar por separado. Fallan porque llegan solos."
+                : "\n\nEl eco llegó al centro, pero se extinguió sin respuesta.";
+        }
+
+        text +=
+            "\n\nSincronía central: " +
+            (gs.dimension1CentralSyncEstablished ? "ESTABLECIDA" : "PENDIENTE") +
+            "\nClave de Acceso Central: " +
+            (gs.dimension1CentralAccessKeyObtained ? "OBTENIDA" : "BLOQUEADA");
+
+        text += "\n\nREQUISITOS DE ARK";
+
+        foreach (D1SectorRequirementStatus requirement in
+            Dimension1System.GetD1ArkRequirements(gs))
+        {
+            // Keep status markers ASCII so the default TMP font does not emit warnings.
+            text +=
+                "\n" + (requirement.met ? "[OK] " : "[  ] ") +
+                requirement.label;
+
+            if (requirement.showProgress)
+            {
+                text +=
+                    " (" + requirement.currentValue +
+                    "/" + requirement.requiredValue + ")";
+            }
+        }
+
+        if (gs.dimension1ArkFinalMissionActive)
+        {
+            text +=
+                "\n\nMISIÓN FINAL EN CURSO\nTiempo restante: " +
+                FormatSeconds(gs.dimension1ArkFinalMissionRemainingSeconds) +
+                " / 90m 0s";
+        }
+
+        if (gs.dimension1GalacticAnchorDiscovered)
+            text += "\n\nDESCUBRIMIENTO ÚNICO OBTENIDO: ANCLA GALÁCTICA";
+
+        if (!string.IsNullOrEmpty(arkFeedbackMessage))
+            text += "\n\n" + arkFeedbackMessage;
+
+        return text;
+    }
+
     public void OnClickOpenGalaxyPanel()
     {
         if (galaxyPanel == null)
@@ -4486,6 +5264,37 @@ public class Dimension1PanelUI : MonoBehaviour
         dimension1TreePanelOpen = false;
         CloseExplorationOverlayPanels();
 
+        RefreshUI();
+    }
+
+    public void OnSupportShipDropdownChanged(int index)
+    {
+        if (isRefreshingSupportShipDropdown)
+            return;
+
+        selectedSupportShipIndex = index;
+        lastObservedSupportShipDropdownValue = index;
+        CloseExplorationOverlayPanels();
+        RefreshUI();
+    }
+
+    public void OnClickToggleCoordinatedMode()
+    {
+        GameState gs = GameState.I;
+
+        if (gs == null ||
+            !Dimension1System.HasD1TreeFleetCoordination(gs))
+        {
+            coordinatedMode = false;
+        }
+        else
+        {
+            coordinatedMode = !coordinatedMode;
+        }
+
+        selectedSupportShipIndex = 0;
+        lastObservedSupportShipDropdownValue = -1;
+        CloseExplorationOverlayPanels();
         RefreshUI();
     }
 
@@ -5360,7 +6169,12 @@ public class Dimension1PanelUI : MonoBehaviour
             totalLevel +
             "\nMaximo por reliquia: " +
             Dimension1System.Dimension1RelicMaxLevel +
-            "\n\nSelecciona una reliquia para ver su efecto y coste de mejora.";
+            "\n\nSelecciona una reliquia para ver su efecto y coste de mejora." +
+            "\n\nDESCUBRIMIENTOS DIMENSIONALES" +
+            "\n- Ancla Galáctica: " +
+            (gs.dimension1GalacticAnchorDiscovered ? "DESCUBIERTA" : "???") +
+            "\n- ???" +
+            "\n- ???";
     }
 
     private int GetUnlockedDimension1RelicCount(GameState gs, out int activeCount)
