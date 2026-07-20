@@ -88,6 +88,7 @@ public class SaveData
     public bool dimension01Unlocked;
     public bool dimension02Unlocked;
     public bool dimension03Unlocked;
+    public Dimension2State dimension2;
     public List<D1MetalAmount> dimension1Metals;
     public List<D1PlanetState> dimension1Planets;
     public List<D1SectorState> dimension1Sectors;
@@ -235,6 +236,7 @@ public class SaveService : MonoBehaviour
         dimension01Unlocked = GameState.I.dimension01Unlocked,
         dimension02Unlocked = GameState.I.dimension02Unlocked,
         dimension03Unlocked = GameState.I.dimension03Unlocked,
+        dimension2 = GameState.I.dimension2,
         dimension1Metals = GameState.I.dimension1Metals,
         dimension1Planets = GameState.I.dimension1Planets,
         dimension1Sectors = GameState.I.dimension1Sectors,
@@ -370,6 +372,7 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension01Unlocked = data.dimension01Unlocked;
         GameState.I.dimension02Unlocked = data.dimension02Unlocked;
         GameState.I.dimension03Unlocked = data.dimension03Unlocked;
+        GameState.I.dimension2 = data.dimension2 ?? Dimension2System.CreateInitialState();
         GameState.I.dimension1Metals = data.dimension1Metals ?? new List<D1MetalAmount>();
         GameState.I.dimension1Planets = data.dimension1Planets ?? new List<D1PlanetState>();
         GameState.I.dimension1Sectors = data.dimension1Sectors ?? new List<D1SectorState>();
@@ -417,6 +420,7 @@ public class SaveService : MonoBehaviour
         GameState.I.prestige1Points = data.prestige1Points;
         GameState.I.prestige1BestClaimedPreviewPoints = data.prestige1BestClaimedPreviewPoints;
         GameState.I.EnsureDimension1State();
+        GameState.I.EnsureDimension2State();
 
         // Migración para partidas viejas:
         // si el jugador ya hizo Prestigio 1, el sistema de dimensiones debe quedar preparado.
@@ -489,11 +493,17 @@ public class SaveService : MonoBehaviour
         // Sistema de dimensiones
         // minería offline con cap inicial de 12 horas.
         double d1OfflineApplied = Dimension1System.ApplyOfflineMining(GameState.I, offlineSeconds);
+        double d2OfflineApplied = Dimension2System.ApplyOfflineProgress(GameState.I, offlineSeconds);
 
         #if UNITY_EDITOR
         if (d1OfflineApplied > 0.0)
         {
             Debug.Log("[D1] Offline minería aplicado: " + d1OfflineApplied.ToString("0") + " segundos.");
+        }
+
+        if (d2OfflineApplied > 0.0)
+        {
+            Debug.Log("[D2] Ventana offline preparada: " + d2OfflineApplied.ToString("0") + " segundos.");
         }
         #endif
 
@@ -502,6 +512,8 @@ public class SaveService : MonoBehaviour
         
         {
             tabsUI.RefreshGenerationLayoutFromOutside();
+            tabsUI.RefreshDimension1ButtonVisibility();
+            tabsUI.RefreshDimension2ButtonVisibility();
         }
 
         // Nos aseguramos de que el máximo quede coherente
@@ -547,6 +559,7 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension01Unlocked = false;
         GameState.I.dimension02Unlocked = false;
         GameState.I.dimension03Unlocked = false;
+        GameState.I.dimension2 = Dimension2System.CreateInitialState();
         GameState.I.dimension1Metals = new List<D1MetalAmount>();
         GameState.I.dimension1Planets = new List<D1PlanetState>();
         GameState.I.dimension1Sectors = new List<D1SectorState>();
@@ -595,6 +608,7 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension1LastExplorationBlueprintFragments = 0;
         GameState.I.dimension1LastExplorationResultId = 0;
         GameState.I.EnsureDimension1State();
+        GameState.I.EnsureDimension2State();
 
         GameState.I.fragmentCondensation = 0;
         GameState.I.fragmentConfinement = 0;
@@ -794,6 +808,7 @@ public class SaveService : MonoBehaviour
             {
                 TabsUI.Instance.RefreshRoom2ButtonVisibility();
                 TabsUI.Instance.RefreshDimension1ButtonVisibility();
+                TabsUI.Instance.RefreshDimension2ButtonVisibility();
                 TabsUI.Instance.ShowGeneracion();
                 TabsUI.Instance.RefreshGenerationLayoutFromOutside();
             }

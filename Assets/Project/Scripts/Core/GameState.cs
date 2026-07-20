@@ -178,6 +178,9 @@ public class GameState : MonoBehaviour
     [Tooltip("Indica si la Dimensión 3 está preparada después de Prestigio 1. No tiene UI activa todavía.")]
     public bool dimension03Unlocked = false;
 
+    [Tooltip("Estado persistente raíz de Dimensión 2 y sus tres civilizaciones.")]
+    public Dimension2State dimension2 = new Dimension2State();
+
     [Tooltip("Metales acumulados de Dimensión 1.")]
     public List<D1MetalAmount> dimension1Metals = new List<D1MetalAmount>();
 
@@ -1188,6 +1191,12 @@ public class GameState : MonoBehaviour
         }
 
         EnsureDimension1State();
+        EnsureDimension2State();
+    }
+
+    public void EnsureDimension2State()
+    {
+        Dimension2System.EnsureState(this);
     }
 
     public void EnsureDimension1State()
@@ -2861,6 +2870,7 @@ public class GameState : MonoBehaviour
         dimension03Unlocked = true;
 
         EnsureDimension1State();
+        EnsureDimension2State();
 
         D1PlanetState firstPlanet = GetOrCreateD1Planet(Dimension1System.Planet01);
         firstPlanet.unlocked = true;
@@ -2870,6 +2880,12 @@ public class GameState : MonoBehaviour
 
         D1ShipState lightProbe = GetOrCreateD1Ship(Dimension1System.ShipLightProbe);
         lightProbe.unlocked = true;
+
+        if (TabsUI.Instance != null)
+        {
+            TabsUI.Instance.RefreshDimension1ButtonVisibility();
+            TabsUI.Instance.RefreshDimension2ButtonVisibility();
+        }
     }
 
     // Método temporal de compatibilidad. Borrar cuando no queden referencias antiguas.
@@ -2883,6 +2899,8 @@ public class GameState : MonoBehaviour
         dimension01Unlocked = false;
         dimension02Unlocked = false;
         dimension03Unlocked = false;
+
+        Dimension2System.ResetState(this);
 
         dimension1Metals = new List<D1MetalAmount>();
         dimension1Planets = new List<D1PlanetState>();
@@ -6399,6 +6417,9 @@ public class GameState : MonoBehaviour
     // Dimensión 1: minería planetaria y exploración por segundo.
     Dimension1System.Tick(this, dt);
 
+    // Dimensión 2: coordinación general y sistemas de civilizaciones.
+    Dimension2System.Tick(this, dt);
+
     // 🔹 F7.3: Producir ADP
     double adpPs = CalculateADPps();
     if (adpPs > 0.0)
@@ -7206,6 +7227,7 @@ public class GameState : MonoBehaviour
 
     double room1GlobalFactor = GetMachineRoom1GlobalMultiplier();
     double room1EchoGlobalFactor = GetRoom1EchoGlobalLEMultiplier();
+    double dimension2SanctuaryFactor = GetDimension2SanctuaryLEMultiplier();
 
     double rawTotalBeforeRoom1Echo = ((baseProd + fromBuildings) * triangleImpulseFactor)
                     * multiplier
@@ -7218,7 +7240,8 @@ public class GameState : MonoBehaviour
                     * room1GlobalFactor
                     + flatBonus;
 
-    double rawTotal = rawTotalBeforeRoom1Echo * room1EchoGlobalFactor;
+    double rawTotal = rawTotalBeforeRoom1Echo * room1EchoGlobalFactor *
+        dimension2SanctuaryFactor;
 
     return rawTotal;
     }
@@ -7403,6 +7426,18 @@ private double CalculateEMMultiplier()
         return CalculateTotalLEps();
     }
 
+    public double GetDimension2SanctuaryLEMultiplier()
+    {
+        D2Civilization1State civilization1 = dimension2?.civilization1;
+        return 1.0 + D2BondSystem.GetLuminousEssenceBonus(civilization1);
+    }
+
+    public double GetDimension2TraceMultiplier()
+    {
+        D2Civilization1State civilization1 = dimension2?.civilization1;
+        return 1.0 + D2BondSystem.GetTraceBonus(civilization1);
+    }
+
     public double CalculateTracesPs()
     {
         int casimirLevel = GetBuildingLevel("casimir_panel");
@@ -7430,6 +7465,7 @@ private double CalculateEMMultiplier()
 
         tracesPerSecond *= machineTracesFactor;
         tracesPerSecond *= GetMachineRoom1GlobalMultiplier();
+        tracesPerSecond *= GetDimension2TraceMultiplier();
 
         return tracesPerSecond;
     }
@@ -7756,7 +7792,8 @@ private double CalculateEMMultiplier()
                     * achFactor
                     * prestigeFactor
                     * f2UpgradeFactor
-                    * machineLEFactor;
+                    * machineLEFactor
+                    * GetDimension2SanctuaryLEMultiplier();
 
     if (worldMult <= 0) worldMult = 1.0;
 
@@ -7857,6 +7894,7 @@ if (buildingStates != null)
 
                 tracesPerTick *= machineTracesFactor;
                 tracesPerTick *= GetMachineRoom1GlobalMultiplier();
+                tracesPerTick *= GetDimension2TraceMultiplier();
 
                 double tracesGain = tracesPerTick * ticks;
                 Traces += tracesGain;
@@ -7895,7 +7933,8 @@ if (buildingStates != null)
         // 4) Bonus plano (LE/s constantes)
         if (flatBonus > 0.0)
         {
-            LE += flatBonus * room1EchoGlobalFactor * dt;
+            LE += flatBonus * room1EchoGlobalFactor *
+                GetDimension2SanctuaryLEMultiplier() * dt;
         }
 
     }
