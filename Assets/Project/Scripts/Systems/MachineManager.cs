@@ -13,6 +13,10 @@ public class MachineManager : MonoBehaviour
     private bool _machineUnlocked;
     private bool _machineFusionPanelUnlocked;
     private bool _machineAllZonesUnlocked;
+    private string _analysisNodeId = "";
+    private double _analysisRemainingSeconds;
+
+    public const double BaseNodeAnalysisDurationSeconds = 3.0;
 
     private void Awake()
     {
@@ -26,6 +30,11 @@ public class MachineManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         LoadDefs();
+    }
+
+    private void Update()
+    {
+        AdvanceAnalysis(Time.unscaledDeltaTime);
     }
 
     private void LoadDefs()
@@ -224,6 +233,15 @@ public class MachineManager : MonoBehaviour
         _machineUnlocked = data.machineUnlocked;
         _machineFusionPanelUnlocked = data.machineFusionPanelUnlocked;
         _machineAllZonesUnlocked = data.machineAllZonesUnlocked || data.machineUnlocked;
+        _analysisNodeId = data.machineAnalysisNodeId ?? "";
+        _analysisRemainingSeconds = System.Math.Max(
+            0.0, data.machineAnalysisRemainingSeconds);
+        if (string.IsNullOrWhiteSpace(_analysisNodeId) ||
+            IsNodeAnalyzed(_analysisNodeId) || IsNodeRepaired(_analysisNodeId))
+        {
+            _analysisNodeId = "";
+            _analysisRemainingSeconds = 0.0;
+        }
 
         Debug.Log(
             "[MachineManager] Progreso cargado. Nodos reparados: "
@@ -245,6 +263,8 @@ public class MachineManager : MonoBehaviour
         data.machineUnlocked = _machineUnlocked;
         data.machineFusionPanelUnlocked = _machineFusionPanelUnlocked;
         data.machineAllZonesUnlocked = MachineAllZonesUnlocked;
+        data.machineAnalysisNodeId = _analysisNodeId;
+        data.machineAnalysisRemainingSeconds = _analysisRemainingSeconds;
     }
 
     public bool IsNodeRepaired(string nodeId)
@@ -295,6 +315,81 @@ public class MachineManager : MonoBehaviour
         {
             SaveService.I.Save();
         }
+    }
+
+    public List<MachineNodeDef> GetAllNodes(bool includeHidden = false)
+    {
+        List<MachineNodeDef> result = new();
+        foreach (MachineNodeDef def in _allNodes)
+        {
+            if (def == null || (def.hidden && !includeHidden)) continue;
+            result.Add(def);
+        }
+        return result;
+    }
+
+    public string AnalysisNodeId => _analysisNodeId;
+    public double AnalysisRemainingSeconds => _analysisRemainingSeconds;
+    public bool IsAnalyzingNode => !string.IsNullOrWhiteSpace(_analysisNodeId);
+
+    public bool CanAnalyzeNode(string nodeId, bool requireAutomatable, out string reason)
+    {
+        reason = "";
+        MachineNodeDef def = GetDef(nodeId);
+        if (def == null)
+        {
+            reason = "Nodo no encontrado.";
+            return false;
+        }
+        if (!def.damaged || IsNodeDamageResolved(nodeId) || IsNodeRepaired(nodeId))
+        {
+            reason = "El nodo no requiere análisis.";
+            return false;
+        }
+        if (IsNodeAnalyzed(nodeId))
+        {
+            reason = "Nodo ya analizado.";
+            return false;
+        }
+        if (requireAutomatable && (def.hidden || string.IsNullOrWhiteSpace(def.tierGroup)))
+        {
+            reason = "El nodo no es una acción repetible automatizable.";
+            return false;
+        }
+        if (IsAnalyzingNode)
+        {
+            reason = "Ya existe un análisis en curso.";
+            return false;
+        }
+        return true;
+    }
+
+    public bool TryStartNodeAnalysis(
+        string nodeId, double durationSeconds, bool requireAutomatable,
+        out string reason)
+    {
+        if (!CanAnalyzeNode(nodeId, requireAutomatable, out reason)) return false;
+        _analysisNodeId = nodeId;
+        _analysisRemainingSeconds = System.Math.Max(0.1, durationSeconds);
+        if (SaveService.I != null) SaveService.I.Save();
+        return true;
+    }
+
+    public void AdvanceAnalysis(double seconds)
+    {
+        if (!IsAnalyzingNode || seconds <= 0.0 ||
+            double.IsNaN(seconds) || double.IsInfinity(seconds)) return;
+        _analysisRemainingSeconds = System.Math.Max(
+            0.0, _analysisRemainingSeconds - seconds);
+        if (_analysisRemainingSeconds > 0.0) return;
+        string completedNodeId = _analysisNodeId;
+        _analysisNodeId = "";
+        MarkNodeAnalyzed(completedNodeId);
+    }
+
+    public void ApplyOfflineAnalysis(double offlineSeconds)
+    {
+        AdvanceAnalysis(offlineSeconds);
     }
 
     private string GetNodeAnalysisKey(MachineNodeDef def)
@@ -930,6 +1025,8 @@ public class MachineManager : MonoBehaviour
     public bool MachineIntroSeen => _machineIntroSeen;
     public bool MachineUnlocked => _machineUnlocked;
     public bool MachineFusionPanelUnlocked => _machineFusionPanelUnlocked;
+    public bool NodeAnalysisUnlocked =>
+        GetTotalEffectValue(MachineNodeEffectType.UnlockDiagnostics) > 0.0;
     public bool MachineAllZonesUnlocked => _machineUnlocked || _machineAllZonesUnlocked;
 
     public bool Prestige1Prepared =>
@@ -1150,6 +1247,8 @@ public class MachineManager : MonoBehaviour
         _machineUnlocked = false;
         _machineFusionPanelUnlocked = false;
         _machineAllZonesUnlocked = false;
+        _analysisNodeId = "";
+        _analysisRemainingSeconds = 0.0;
 
         Debug.Log("[MachineManager] Progreso limpiado.");
     }

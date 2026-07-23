@@ -56,14 +56,9 @@ public class MachinePanelUI : MonoBehaviour
     private MachineZoneType _currentZone = MachineZoneType.FusionSector;
     private int _selectedNodeIndex = 0;
     private bool _fusionPanelVisible;
-    private string _lastAnalyzedNodeId = "";
     private readonly Dictionary<MachineZoneType, int> _selectedNodeIndexByZone =
     
     new Dictionary<MachineZoneType, int>();
-
-    private const float NodeAnalysisDurationSeconds = 3f;
-    private string _analyzingNodeId = "";
-    private float _analysisRemainingSeconds = 0f;
 
     private void Awake()
     {
@@ -138,29 +133,8 @@ public class MachinePanelUI : MonoBehaviour
             RefreshSeedsView();
         }
 
-        if (string.IsNullOrWhiteSpace(_analyzingNodeId))
-            return;
-
-        _analysisRemainingSeconds -= Time.deltaTime;
-
-        if (_analysisRemainingSeconds > 0f)
-        {
+        if (MachineManager.I != null && MachineManager.I.IsAnalyzingNode)
             RefreshNodeAnalysis();
-            return;
-        }
-
-        string finishedNodeId = _analyzingNodeId;
-
-        _analyzingNodeId = "";
-        _analysisRemainingSeconds = 0f;
-
-        if (MachineManager.I != null)
-        {
-            MachineManager.I.MarkNodeAnalyzed(finishedNodeId);
-            _lastAnalyzedNodeId = finishedNodeId;
-        }
-
-        Refresh();
     }
 
     public void Refresh()
@@ -262,8 +236,6 @@ public class MachinePanelUI : MonoBehaviour
 
         _currentZone = zone;
         _selectedNodeIndex = GetSavedSelectedNodeIndexForZone(zone);
-        _lastAnalyzedNodeId = "";
-
         _fusionPanelVisible = false;
 
         if (instantSeedsViewRoot != null)
@@ -471,7 +443,6 @@ public class MachinePanelUI : MonoBehaviour
         if (_selectedNodeIndex < 0)
             _selectedNodeIndex = nodes.Count - 1;
 
-        _lastAnalyzedNodeId = "";
         SaveSelectedNodeIndexForCurrentZone();
 
     Refresh();
@@ -490,7 +461,6 @@ public class MachinePanelUI : MonoBehaviour
         if (_selectedNodeIndex >= nodes.Count)
             _selectedNodeIndex = 0;
 
-        _lastAnalyzedNodeId = "";
         SaveSelectedNodeIndexForCurrentZone();
 
         Refresh();
@@ -879,7 +849,7 @@ public class MachinePanelUI : MonoBehaviour
         if (MachineManager.I == null)
             return false;
 
-        return MachineManager.I.GetTotalEffectValue(MachineNodeEffectType.UnlockDiagnostics) > 0.0;
+        return MachineManager.I.NodeAnalysisUnlocked;
     }
 
     private void RefreshNodeAnalysis()
@@ -910,11 +880,11 @@ public class MachinePanelUI : MonoBehaviour
             && !selectedNodeDamageResolved;
 
         bool isAnalyzingAnyNode =
-            !string.IsNullOrWhiteSpace(_analyzingNodeId);
+            MachineManager.I != null && MachineManager.I.IsAnalyzingNode;
 
         bool isSelectedNodeBeingAnalyzed =
             selectedNode != null
-            && _analyzingNodeId == selectedNode.id;
+            && MachineManager.I.AnalysisNodeId == selectedNode.id;
 
         bool canAnalyzeSelectedNode =
             selectedNode != null
@@ -940,7 +910,7 @@ public class MachinePanelUI : MonoBehaviour
 
         if (isSelectedNodeBeingAnalyzed)
         {
-            int seconds = Mathf.CeilToInt(_analysisRemainingSeconds);
+            int seconds = Mathf.CeilToInt((float)MachineManager.I.AnalysisRemainingSeconds);
             nodeAnalysisText.text = "Analizando nodo...\nTiempo restante: " + seconds + "s";
             return;
         }
@@ -966,13 +936,13 @@ public class MachinePanelUI : MonoBehaviour
         if (MachineManager.I.IsNodeAnalyzed(selectedNode.id))
             return;
 
-        if (!string.IsNullOrWhiteSpace(_analyzingNodeId))
+        if (!MachineManager.I.TryStartNodeAnalysis(
+                selectedNode.id, MachineManager.BaseNodeAnalysisDurationSeconds,
+                false, out string reason))
+        {
+            Debug.LogWarning("[MachinePanelUI] " + reason);
             return;
-
-        _analyzingNodeId = selectedNode.id;
-        _analysisRemainingSeconds = NodeAnalysisDurationSeconds;
-        _lastAnalyzedNodeId = "";
-
+        }
         Refresh();
     }
 

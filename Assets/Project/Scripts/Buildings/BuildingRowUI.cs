@@ -676,6 +676,7 @@ public class BuildingRowUI : MonoBehaviour
         }
 
         gameState.SetPhaseModulatorMode(nextMode);
+        D3ConsoleSystem.RecordManualModulatorMode(gameState, nextMode);
 
         _lastStatsLeTick = double.NaN;
         _lastStatsEmTick = double.NaN;
@@ -719,6 +720,7 @@ public class BuildingRowUI : MonoBehaviour
 
         // Subir nivel y recalcular coste
         state.OnPurchased();
+        D3ConsoleSystem.RecordManualBuildingPurchase(gameState, state.def.id);
 
         // Forzar refresh de nivel/coste
         _lastLevel = -1;

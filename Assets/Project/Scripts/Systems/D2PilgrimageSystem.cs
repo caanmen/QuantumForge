@@ -437,7 +437,8 @@ public static class D2PilgrimageSystem
         );
 
         double offeringReward = GetOfferingReward(pilgrimageId) *
-            pilgrimageRewardMultiplier;
+            pilgrimageRewardMultiplier *
+            D2Civilization3System.GetSharedMemoryMultiplier(gameState);
         AddOfferingReward(state, D2AltarSystem.WaxAltarId, offeringReward);
         AddOfferingReward(state, D2AltarSystem.RitualBreadAltarId, offeringReward);
         double trustReward = GetEffectiveTrustReward(state, pilgrimageId);

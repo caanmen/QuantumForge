@@ -90,6 +90,9 @@ public class PrestigeUI : MonoBehaviour
             if (TabsUI.Instance != null)
             {
                 TabsUI.Instance.RefreshDimension1ButtonVisibility();
+                TabsUI.Instance.RefreshDimension2ButtonVisibility();
+                TabsUI.Instance.RefreshDimension3ButtonVisibility();
+                TabsUI.Instance.RefreshPrestigeButtonVisibility();
             }
         }
     }

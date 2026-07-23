@@ -65,6 +65,58 @@ public class D2BondLineState
 
 
 [Serializable]
+public class D2OperationState
+{
+    public string operationId = "";
+    public long membersAssigned;
+}
+
+[Serializable]
+public class D2ResistanceUpgradeState { public string upgradeId = ""; public int level; }
+
+[Serializable]
+public class D2ResistancePactState
+{
+    public string pactId = "";
+    public bool active;
+    public long membersAssigned;
+    public double wearProgressSeconds;
+}
+
+[Serializable]
+public class D2C2MajorPactLineState
+{
+    public string lineId = "";
+    public int level;
+}
+
+[Serializable]
+public class D2ExhaustedMemberBatch
+{
+    public long amount;
+    public double remainingSeconds;
+}
+
+
+[Serializable]
+public class D2RegionState
+{
+    public string regionId = "";
+    public bool unlocked;
+    public double dominance = 100.0;
+    public double threat;
+    public long membersAssigned;
+    public List<D2OperationState> operations = new List<D2OperationState>();
+    public double coverage;
+    public double nextReprisalEspionageReduction;
+    public string weakenedOperationId = "";
+    public double weakenedOperationRemainingSeconds;
+    public long totalReprisals;
+    public bool alertMarked;
+}
+
+
+[Serializable]
 public class D2Civilization1State
 {
     public int progressVersion = Dimension2System.Civilization1ProgressVersion;
@@ -112,6 +164,38 @@ public class D2Civilization1State
 public class D2Civilization2State
 {
     public int progressVersion = Dimension2System.Civilization2ProgressVersion;
+    public bool initialMembersGranted;
+    public long membersAvailable;
+    public long totalMembersRecruited;
+    public double memberProductionProgress;
+    public long controlFragments;
+    public long totalReprisals;
+    public string selectedRegionId = D2Civilization2System.Region1Id;
+    public List<D2RegionState> regions = new List<D2RegionState>();
+    public List<D2ResistanceUpgradeState> resistanceUpgrades = new List<D2ResistanceUpgradeState>();
+    public List<D2ResistancePactState> resistancePacts = new List<D2ResistancePactState>();
+    public List<D2ExhaustedMemberBatch> exhaustedMemberBatches = new List<D2ExhaustedMemberBatch>();
+    public double hiddenSheltersPenaltySeconds;
+    public double silencedBellsPenaltySeconds;
+    public double knivesPenaltySeconds;
+    public bool alertActive;
+    public bool containmentAvailable;
+    public double alertMarkProgressSeconds;
+    public long totalAlertMarks;
+    public string lastAlertResult = "";
+    public bool entityContained;
+    public bool majorPactPrepared;
+    public bool majorPactEstablished;
+    public double containmentStability;
+    public List<D2C2MajorPactLineState> majorPactLines =
+        new List<D2C2MajorPactLineState>();
+    public string lastMajorPactResult = "";
+    public double containmentCooldownSeconds;
+    public long membersAssignedToContainment;
+    public long totalContainmentAttempts;
+    public long totalContainmentFailures;
+    public string lastContainmentResult = "";
+    public string lastResult = "";
 }
 
 
@@ -119,6 +203,65 @@ public class D2Civilization2State
 public class D2Civilization3State
 {
     public int progressVersion = Dimension2System.Civilization3ProgressVersion;
+    public string selectedZoneId = D2Civilization3System.Zone1Id;
+    public List<D2C3ZoneState> zones = new List<D2C3ZoneState>();
+    public double ancientKnowledge;
+    public bool archiveUnlocked;
+    public int archiveLevel;
+    public bool stratifiedCartographyUnlocked;
+    public bool anomalousConcordanceUnlocked;
+    public bool deepExegesisUnlocked;
+    public bool anomalyClueDetectionUnlocked;
+    public bool entityResearchUnlocked;
+    public bool entityResearchActive;
+    public double entityResearchProgress;
+    public bool entityResearchMilestone30Completed;
+    public bool entityResearchMilestone60Completed;
+    public bool entityResearchMilestone85Completed;
+    public bool entityResearchMilestone100Completed;
+    public long entityKnowledge;
+    public bool entityPactAvailable;
+    public bool entityPactEstablished;
+    public List<D2EntityPactLineState> entityPactLines = new List<D2EntityPactLineState>();
+    public string lastEntityPactResult = "";
+    public string lastResult = "";
+}
+
+
+[Serializable]
+public class D2EntityPactLineState
+{
+    public string lineId = "";
+    public int level;
+}
+
+
+[Serializable]
+public class D2C3ZoneState
+{
+    public string zoneId = "";
+    public bool unlocked;
+    public bool excavationActive;
+    public double excavationRemainingSeconds;
+    public long lowQualityRemains;
+    public long mediumQualityRemains;
+    public long highQualityRemains;
+    public long totalExcavationsCompleted;
+    public bool scholarHired;
+    public int scholarLevel;
+    public bool analysisActive;
+    public double analysisRemainingSeconds;
+    public string analysisQualityId = "";
+    public long zoneResourceAmount;
+    public double zoneResourceRewardProgress;
+    public double researchProgress;
+    public long totalAnalysesCompleted;
+    public double bonusRemainsProgress;
+    public long anomalyClues;
+    public double anomalyClueProgress;
+    public bool anomalyRevealed;
+    public bool anomalyRead;
+    public long anomalousData;
 }
 
 

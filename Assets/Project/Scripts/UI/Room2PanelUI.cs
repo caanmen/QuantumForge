@@ -1151,7 +1151,7 @@ public class Room2PanelUI : MonoBehaviour
         : "No hay fragmentos suficientes para este ensayo";            return;
         }
 
-        ExperimentalResultType result = ResolveRecipeResult(
+        ExperimentalResultType result = D3FusionService.ResolveRecipeResult(
             selectedFragmentA,
             selectedFragmentB,
             selectedCatalyst);
@@ -1194,6 +1194,8 @@ public class Room2PanelUI : MonoBehaviour
         }
 
         RegisterCurrentMixResult(result);
+        D3DiagnosticSystem.RegisterManualFusionRecipe(
+            GameState.I, selectedFragmentA, selectedFragmentB, selectedCatalyst);
 
         if (HasSynthesisCore())
         {
@@ -1416,20 +1418,8 @@ public class Room2PanelUI : MonoBehaviour
 
     private bool HasRequiredFragmentsForCurrentSelection()
     {
-        if (GameState.I == null)
-            return false;
-
-        if (selectedFragmentA == ExperimentalFragmentType.None ||
-            selectedFragmentB == ExperimentalFragmentType.None)
-            return false;
-
-        if (selectedFragmentA == selectedFragmentB)
-        {
-            return GameState.I.GetFragmentCount(selectedFragmentA) >= 2;
-        }
-
-        return GameState.I.GetFragmentCount(selectedFragmentA) >= 1 &&
-            GameState.I.GetFragmentCount(selectedFragmentB) >= 1;
+        return D3FusionService.HasRequiredFragments(
+            GameState.I, selectedFragmentA, selectedFragmentB);
     }
 
     private void RegisterCurrentMixResult(ExperimentalResultType result)
@@ -1437,23 +1427,9 @@ public class Room2PanelUI : MonoBehaviour
         if (GameState.I == null)
             return;
 
-        var entry = GameState.I.GetOrCreateExperimentalMixEntry(
-            selectedFragmentA,
-            selectedFragmentB,
-            selectedCatalyst);
-
-        entry.fragmentA = (int)selectedFragmentA;
-        entry.fragmentB = (int)selectedFragmentB;
-        entry.catalyst = (int)selectedCatalyst;
-        entry.lastResult = (int)result;
-
-        if ((int)result > entry.bestResult)
-            entry.bestResult = (int)result;
-
-        entry.timesExecuted += 1;
-
-        if (result != ExperimentalResultType.None)
-            entry.discovered = true;
+        D3FusionService.RegisterMixResult(
+            GameState.I, selectedFragmentA, selectedFragmentB,
+            selectedCatalyst, result);
     }
 
         private List<(ExperimentalFragmentType fragmentA, ExperimentalFragmentType fragmentB, ExperimentalCatalystType catalyst)> GetAllBaseRecipes()

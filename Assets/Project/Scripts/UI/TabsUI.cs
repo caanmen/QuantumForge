@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using TMPro;
 
 
 public class TabsUI : MonoBehaviour
@@ -14,6 +15,7 @@ public class TabsUI : MonoBehaviour
     public Button btnRoom2;
     public Button btnDimension1;
     public Button btnDimension2;
+    public Button btnDimension3;
     public Button btnLogros;
     public Button btnPrestigio;   // 🔹 nuevo
     
@@ -24,6 +26,7 @@ public class TabsUI : MonoBehaviour
     public GameObject room2Panel;
     public GameObject dimension1Panel;
     public GameObject dimension2Panel;
+    public GameObject dimension3Panel;
     public GameObject panelLogros;
     public GameObject prestigePanel;      // 🔹 nuevo
 
@@ -51,6 +54,9 @@ public class TabsUI : MonoBehaviour
         if (btnDimension2 != null)
             btnDimension2.onClick.AddListener(ShowDimension2);
 
+        if (btnDimension3 != null)
+            btnDimension3.onClick.AddListener(ShowDimension3);
+
         if (btnLogros != null)
             btnLogros.onClick.AddListener(ShowLogros);
 
@@ -61,9 +67,12 @@ public class TabsUI : MonoBehaviour
 
     private void Start()
     {
+        RefreshPrestigeButtonVisibility();
+        HideMetaNavigationButton();
         RefreshRoom2ButtonVisibility();
         RefreshDimension1ButtonVisibility();
         RefreshDimension2ButtonVisibility();
+        RefreshDimension3ButtonVisibility();
 
         ShowGeneracion();   // pestaña por defecto
         StartCoroutine(RefreshGenerationLayoutNextFrame());
@@ -86,6 +95,7 @@ public class TabsUI : MonoBehaviour
         if (room2Panel != null)         room2Panel.SetActive(false);
         if (dimension1Panel != null)   dimension1Panel.SetActive(false);
         if (dimension2Panel != null)   dimension2Panel.SetActive(false);
+        if (dimension3Panel != null)   dimension3Panel.SetActive(false);
         if (panelLogros != null)       panelLogros.SetActive(false);
         if (prestigePanel != null)     prestigePanel.SetActive(false);
     }
@@ -138,6 +148,37 @@ public class TabsUI : MonoBehaviour
         btnDimension1.gameObject.SetActive(unlocked);
     }
 
+    public void RefreshPrestigeButtonVisibility()
+    {
+        if (btnPrestigio != null)
+        {
+            bool prestige1Completed = GameState.I != null &&
+                GameState.I.hasDonePrestige1;
+            btnPrestigio.gameObject.SetActive(!prestige1Completed);
+        }
+    }
+
+    private void HideMetaNavigationButton()
+    {
+        Transform navigationParent = btnGeneracion != null
+            ? btnGeneracion.transform.parent
+            : null;
+        if (navigationParent == null)
+            return;
+
+        Button[] navigationButtons = navigationParent.GetComponentsInChildren<Button>(true);
+        for (int i = 0; i < navigationButtons.Length; i++)
+        {
+            Button button = navigationButtons[i];
+            if (button == null) continue;
+            TMP_Text label = button.GetComponentInChildren<TMP_Text>(true);
+            if (label == null) continue;
+            string text = label.text == null ? "" : label.text.ToLowerInvariant();
+            if (text.Contains("meta"))
+                button.gameObject.SetActive(false);
+        }
+    }
+
     public void RefreshDimension2ButtonVisibility()
     {
         if (btnDimension2 == null)
@@ -145,6 +186,15 @@ public class TabsUI : MonoBehaviour
 
         bool unlocked = Dimension2System.CanAccessDimension2(GameState.I);
         btnDimension2.gameObject.SetActive(unlocked);
+    }
+
+    public void RefreshDimension3ButtonVisibility()
+    {
+        if (btnDimension3 == null)
+            return;
+
+        bool unlocked = Dimension3System.CanAccessDimension3(GameState.I);
+        btnDimension3.gameObject.SetActive(unlocked);
     }
 
 
@@ -158,6 +208,8 @@ public class TabsUI : MonoBehaviour
         RefreshRoom2ButtonVisibility();
         RefreshDimension1ButtonVisibility();
         RefreshDimension2ButtonVisibility();
+        RefreshDimension3ButtonVisibility();
+        RefreshPrestigeButtonVisibility();
         RefreshGenerationLayoutState();
     }
 
@@ -191,6 +243,7 @@ public class TabsUI : MonoBehaviour
         RefreshRoom2ButtonVisibility();
         RefreshDimension1ButtonVisibility();
         RefreshDimension2ButtonVisibility();
+        RefreshDimension3ButtonVisibility();
     }
 
     public void ShowDimension2()
@@ -212,6 +265,28 @@ public class TabsUI : MonoBehaviour
         RefreshRoom2ButtonVisibility();
         RefreshDimension1ButtonVisibility();
         RefreshDimension2ButtonVisibility();
+        RefreshDimension3ButtonVisibility();
+    }
+
+    public void ShowDimension3()
+    {
+        if (!Dimension3System.CanAccessDimension3(GameState.I))
+            return;
+
+        HideAll();
+
+        if (dimension3Panel != null)
+        {
+            dimension3Panel.SetActive(true);
+            Dimension3PanelUI panel = dimension3Panel.GetComponent<Dimension3PanelUI>();
+            if (panel != null)
+                panel.OpenFromTab();
+        }
+
+        RefreshRoom2ButtonVisibility();
+        RefreshDimension1ButtonVisibility();
+        RefreshDimension2ButtonVisibility();
+        RefreshDimension3ButtonVisibility();
     }
     private void ShowLogros()
     {

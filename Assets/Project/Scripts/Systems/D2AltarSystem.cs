@@ -64,6 +64,15 @@ public static class D2AltarSystem
 
     public static void Tick(D2Civilization1State civilization1, double seconds)
     {
+        Tick(civilization1, seconds, 1.0);
+    }
+
+    public static void Tick(
+        D2Civilization1State civilization1,
+        double seconds,
+        double externalMultiplier
+    )
+    {
         if (civilization1 == null || seconds <= 0.0 ||
             double.IsNaN(seconds) || double.IsInfinity(seconds))
         {
@@ -76,7 +85,8 @@ public static class D2AltarSystem
             if (altar == null || !altar.unlocked)
                 continue;
 
-            AddOffering(altar, GetOfferingPerSecond(civilization1, altar) * seconds);
+            AddOffering(altar, GetOfferingPerSecond(civilization1, altar) *
+                Math.Max(1.0, externalMultiplier) * seconds);
         }
     }
 

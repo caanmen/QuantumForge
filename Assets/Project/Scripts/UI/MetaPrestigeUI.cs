@@ -12,10 +12,17 @@ public class MetaPrestigeUI : MonoBehaviour
     [Header("Botón")]
     public Button metaPrestigeButton;
 
+    private void Awake()
+    {
+        if (metaPrestigeButton != null)
+            metaPrestigeButton.gameObject.SetActive(false);
+    }
+
     private void Start()
     {
         if (metaPrestigeButton != null)
         {
+            metaPrestigeButton.gameObject.SetActive(false);
             metaPrestigeButton.interactable = false;
         }
 
@@ -50,6 +57,7 @@ public class MetaPrestigeUI : MonoBehaviour
 
         if (metaPrestigeButton != null)
         {
+            metaPrestigeButton.gameObject.SetActive(false);
             metaPrestigeButton.interactable = false;
         }
     }

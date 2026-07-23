@@ -98,6 +98,8 @@ public static class Dimension2Block1UISetup
             valid &= Require(panel.firstEntryRoot, "D2.firstEntryRoot");
             valid &= Require(panel.mapRoot, "D2.mapRoot");
             valid &= Require(panel.civilization1Root, "D2.civilization1Root");
+            valid &= Require(panel.civilization2Root, "D2.civilization2Root");
+            valid &= Require(panel.civilization3Root, "D2.civilization3Root");
             valid &= Require(panel.closeDimension2Button, "D2.closeDimension2Button");
             valid &= Require(panel.continueFirstEntryButton, "D2.continueFirstEntryButton");
             valid &= Require(panel.mapStatusText, "D2.mapStatusText");
@@ -110,6 +112,235 @@ public static class Dimension2Block1UISetup
             valid &= Require(panel.civilization1PlaceholderText, "D2.civilization1PlaceholderText");
             valid &= Require(panel.backToMapButton, "D2.backToMapButton");
             valid &= Require(panel.civilization1PanelUI, "D2.civilization1PanelUI");
+            valid &= Require(panel.civilization2PanelUI, "D2.civilization2PanelUI");
+            valid &= Require(panel.civilization3PanelUI, "D2.civilization3PanelUI");
+
+            D2Civilization3PanelUI civilization3UI = panel.civilization3PanelUI;
+            if (civilization3UI != null)
+            {
+                valid &= Require(civilization3UI.dimension2PanelUI, "D2 Civ3.dimension2PanelUI");
+                valid &= Require(civilization3UI.archaeologySectionRoot, "D2 Civ3.archaeologySectionRoot");
+                valid &= Require(civilization3UI.archiveSectionRoot, "D2 Civ3.archiveSectionRoot");
+                valid &= Require(civilization3UI.entityResearchSectionRoot, "D2 Civ3.entityResearchSectionRoot");
+                valid &= Require(civilization3UI.archivePanelUI, "D2 Civ3.archivePanelUI");
+                valid &= Require(civilization3UI.entityResearchPanelUI, "D2 Civ3.entityResearchPanelUI");
+                valid &= Require(civilization3UI.showEntityResearchButton, "D2 Civ3.showEntityResearchButton");
+                valid &= Require(civilization3UI.showArchiveButton, "D2 Civ3.showArchiveButton");
+                valid &= Require(civilization3UI.zoneText, "D2 Civ3.zoneText");
+                valid &= Require(civilization3UI.lockedZonesText, "D2 Civ3.lockedZonesText");
+                valid &= Require(civilization3UI.excavationText, "D2 Civ3.excavationText");
+                valid &= Require(civilization3UI.excavationSlider, "D2 Civ3.excavationSlider");
+                valid &= Require(civilization3UI.inventoryText, "D2 Civ3.inventoryText");
+                valid &= Require(civilization3UI.analysisText, "D2 Civ3.analysisText");
+                valid &= Require(civilization3UI.analysisSlider, "D2 Civ3.analysisSlider");
+                valid &= Require(civilization3UI.researchText, "D2 Civ3.researchText");
+                valid &= Require(civilization3UI.archiveText, "D2 Civ3.archiveText");
+                valid &= Require(civilization3UI.cluesText, "D2 Civ3.cluesText");
+                valid &= Require(civilization3UI.anomalyText, "D2 Civ3.anomalyText");
+                valid &= Require(civilization3UI.scholarText, "D2 Civ3.scholarText");
+                valid &= Require(civilization3UI.civilization1ResourcesText, "D2 Civ3.civilization1ResourcesText");
+                valid &= Require(civilization3UI.lastResultText, "D2 Civ3.lastResultText");
+                valid &= Require(civilization3UI.excavateButton, "D2 Civ3.excavateButton");
+                valid &= Require(civilization3UI.zone1Button, "D2 Civ3.zone1Button");
+                valid &= Require(civilization3UI.zone2Button, "D2 Civ3.zone2Button");
+                valid &= Require(civilization3UI.zone3Button, "D2 Civ3.zone3Button");
+                valid &= Require(civilization3UI.unlockZone2Button, "D2 Civ3.unlockZone2Button");
+                valid &= Require(civilization3UI.unlockZone3Button, "D2 Civ3.unlockZone3Button");
+                valid &= Require(civilization3UI.analyzeLowButton, "D2 Civ3.analyzeLowButton");
+                valid &= Require(civilization3UI.analyzeMediumButton, "D2 Civ3.analyzeMediumButton");
+                valid &= Require(civilization3UI.analyzeHighButton, "D2 Civ3.analyzeHighButton");
+                valid &= Require(civilization3UI.hireScholarButton, "D2 Civ3.hireScholarButton");
+                valid &= Require(civilization3UI.readAnomalyButton, "D2 Civ3.readAnomalyButton");
+                valid &= Require(civilization3UI.backToMapButton, "D2 Civ3.backToMapButton");
+
+                D2EntityResearchPanelUI entityResearchUI = civilization3UI.entityResearchPanelUI;
+                if (entityResearchUI != null)
+                {
+                    valid &= Require(entityResearchUI.civilization3PanelUI, "D2 Civ3 Entity.civilization3PanelUI");
+                    valid &= Require(entityResearchUI.unlockText, "D2 Civ3 Entity.unlockText");
+                    valid &= Require(entityResearchUI.statusText, "D2 Civ3 Entity.statusText");
+                    valid &= Require(entityResearchUI.progressText, "D2 Civ3 Entity.progressText");
+                    valid &= Require(entityResearchUI.progressSlider, "D2 Civ3 Entity.progressSlider");
+                    valid &= Require(entityResearchUI.milestoneText, "D2 Civ3 Entity.milestoneText");
+                    valid &= Require(entityResearchUI.resourcesText, "D2 Civ3 Entity.resourcesText");
+                    valid &= Require(entityResearchUI.entityKnowledgeText, "D2 Civ3 Entity.entityKnowledgeText");
+                    valid &= Require(entityResearchUI.lastResultText, "D2 Civ3 Entity.lastResultText");
+                    valid &= Require(entityResearchUI.startPauseButton, "D2 Civ3 Entity.startPauseButton");
+                    valid &= Require(entityResearchUI.completeMilestoneButton, "D2 Civ3 Entity.completeMilestoneButton");
+                    valid &= Require(entityResearchUI.resonantExpeditionButton, "D2 Civ3 Entity.resonantExpeditionButton");
+                    valid &= Require(entityResearchUI.endlessArchiveButton, "D2 Civ3 Entity.endlessArchiveButton");
+                    valid &= Require(entityResearchUI.sharedMemoryButton, "D2 Civ3 Entity.sharedMemoryButton");
+                    valid &= Require(entityResearchUI.modulatorResonanceButton, "D2 Civ3 Entity.modulatorResonanceButton");
+                    valid &= Require(entityResearchUI.firstThresholdChronicleButton, "D2 Civ3 Entity.firstThresholdChronicleButton");
+                    valid &= Require(entityResearchUI.backToArchaeologyButton, "D2 Civ3 Entity.backToArchaeologyButton");
+                    valid &= Require(entityResearchUI.backToMapButton, "D2 Civ3 Entity.backToMapButton");
+                }
+
+                D2ArchivePanelUI archiveUI = civilization3UI.archivePanelUI;
+                if (archiveUI != null)
+                {
+                    valid &= Require(archiveUI.civilization3PanelUI, "D2 Civ3 Archivo.civilization3PanelUI");
+                    valid &= Require(archiveUI.stateText, "D2 Civ3 Archivo.stateText");
+                    valid &= Require(archiveUI.resourcesText, "D2 Civ3 Archivo.resourcesText");
+                    valid &= Require(archiveUI.cartographyText, "D2 Civ3 Archivo.cartographyText");
+                    valid &= Require(archiveUI.concordanceText, "D2 Civ3 Archivo.concordanceText");
+                    valid &= Require(archiveUI.exegesisText, "D2 Civ3 Archivo.exegesisText");
+                    valid &= Require(archiveUI.lastResultText, "D2 Civ3 Archivo.lastResultText");
+                    valid &= Require(archiveUI.cartographyButton, "D2 Civ3 Archivo.cartographyButton");
+                    valid &= Require(archiveUI.concordanceButton, "D2 Civ3 Archivo.concordanceButton");
+                    valid &= Require(archiveUI.exegesisButton, "D2 Civ3 Archivo.exegesisButton");
+                    valid &= Require(archiveUI.backToArchaeologyButton, "D2 Civ3 Archivo.backToArchaeologyButton");
+                    valid &= Require(archiveUI.backToMapButton, "D2 Civ3 Archivo.backToMapButton");
+                }
+            }
+
+            D2Civilization2PanelUI civilization2UI = panel.civilization2PanelUI;
+            if (civilization2UI != null)
+            {
+                valid &= Require(civilization2UI.dimension2PanelUI, "D2 Civ2.dimension2PanelUI");
+                valid &= Require(civilization2UI.regionSectionRoot, "D2 Civ2.regionSectionRoot");
+                valid &= Require(civilization2UI.operationsSectionRoot, "D2 Civ2.operationsSectionRoot");
+                valid &= Require(civilization2UI.defenseSectionRoot, "D2 Civ2.defenseSectionRoot");
+                valid &= Require(civilization2UI.resistanceSectionRoot, "D2 Civ2.resistanceSectionRoot");
+                valid &= Require(civilization2UI.alertSectionRoot, "D2 Civ2.alertSectionRoot");
+                valid &= Require(civilization2UI.containmentSectionRoot, "D2 Civ2.containmentSectionRoot");
+                valid &= Require(civilization2UI.showRegionsButton, "D2 Civ2.showRegionsButton");
+                valid &= Require(civilization2UI.showOperationsButton, "D2 Civ2.showOperationsButton");
+                valid &= Require(civilization2UI.showDefenseButton, "D2 Civ2.showDefenseButton");
+                valid &= Require(civilization2UI.showResistanceButton, "D2 Civ2.showResistanceButton");
+                valid &= Require(civilization2UI.showAlertButton, "D2 Civ2.showAlertButton");
+                valid &= Require(civilization2UI.showContainmentButton, "D2 Civ2.showContainmentButton");
+                valid &= Require(civilization2UI.regionDropdown, "D2 Civ2.regionDropdown");
+                valid &= Require(civilization2UI.operationsPanelUI, "D2 Civ2.operationsPanelUI");
+                valid &= Require(civilization2UI.reprisalsPanelUI, "D2 Civ2.reprisalsPanelUI");
+                valid &= Require(civilization2UI.resistancePanelUI, "D2 Civ2.resistancePanelUI");
+                valid &= Require(civilization2UI.alertPanelUI, "D2 Civ2.alertPanelUI");
+                valid &= Require(civilization2UI.containmentPanelUI, "D2 Civ2.containmentPanelUI");
+                valid &= Require(civilization2UI.membersText, "D2 Civ2.membersText");
+                valid &= Require(civilization2UI.dominanceText, "D2 Civ2.dominanceText");
+                valid &= Require(civilization2UI.dominanceSlider, "D2 Civ2.dominanceSlider");
+                valid &= Require(civilization2UI.region1Text, "D2 Civ2.region1Text");
+                valid &= Require(civilization2UI.region2Text, "D2 Civ2.region2Text");
+                valid &= Require(civilization2UI.region3Text, "D2 Civ2.region3Text");
+                valid &= Require(civilization2UI.region4Text, "D2 Civ2.region4Text");
+                valid &= Require(civilization2UI.assignmentText, "D2 Civ2.assignmentText");
+                valid &= Require(civilization2UI.lastResultText, "D2 Civ2.lastResultText");
+                valid &= Require(civilization2UI.assignOneButton, "D2 Civ2.assignOneButton");
+                valid &= Require(civilization2UI.assignTenButton, "D2 Civ2.assignTenButton");
+                valid &= Require(civilization2UI.assignAllButton, "D2 Civ2.assignAllButton");
+                valid &= Require(civilization2UI.releaseOneButton, "D2 Civ2.releaseOneButton");
+                valid &= Require(civilization2UI.releaseAllButton, "D2 Civ2.releaseAllButton");
+                valid &= Require(civilization2UI.backToMapButton, "D2 Civ2.backToMapButton");
+
+                D2OperationsPanelUI operationsUI = civilization2UI.operationsPanelUI;
+                if (operationsUI != null)
+                {
+                    valid &= Require(operationsUI.civilization2PanelUI, "D2 Operaciones.civilization2PanelUI");
+                    valid &= Require(operationsUI.operationDropdown, "D2 Operaciones.operationDropdown");
+                    valid &= Require(operationsUI.operationStateText, "D2 Operaciones.operationStateText");
+                    valid &= Require(operationsUI.effectText, "D2 Operaciones.effectText");
+                    valid &= Require(operationsUI.regionalMembersText, "D2 Operaciones.regionalMembersText");
+                    valid &= Require(operationsUI.assignmentText, "D2 Operaciones.assignmentText");
+                    valid &= Require(operationsUI.assignOneButton, "D2 Operaciones.assignOneButton");
+                    valid &= Require(operationsUI.assignFiveButton, "D2 Operaciones.assignFiveButton");
+                    valid &= Require(operationsUI.assignAllButton, "D2 Operaciones.assignAllButton");
+                    valid &= Require(operationsUI.releaseOneButton, "D2 Operaciones.releaseOneButton");
+                    valid &= Require(operationsUI.releaseAllButton, "D2 Operaciones.releaseAllButton");
+                }
+
+                D2ReprisalsPanelUI reprisalsUI = civilization2UI.reprisalsPanelUI;
+                if (reprisalsUI != null)
+                {
+                    valid &= Require(reprisalsUI.civilization2PanelUI, "D2 Defensa.civilization2PanelUI");
+                    valid &= Require(reprisalsUI.threatText, "D2 Defensa.threatText");
+                    valid &= Require(reprisalsUI.threatSlider, "D2 Defensa.threatSlider");
+                    valid &= Require(reprisalsUI.coverageText, "D2 Defensa.coverageText");
+                    valid &= Require(reprisalsUI.coverageSlider, "D2 Defensa.coverageSlider");
+                    valid &= Require(reprisalsUI.protectionText, "D2 Defensa.protectionText");
+                    valid &= Require(reprisalsUI.fragmentsText, "D2 Defensa.fragmentsText");
+                    valid &= Require(reprisalsUI.weakeningText, "D2 Defensa.weakeningText");
+                    valid &= Require(reprisalsUI.rulesText, "D2 Defensa.rulesText");
+                    valid &= Require(reprisalsUI.lastResultText, "D2 Defensa.lastResultText");
+                }
+
+                D2ResistancePanelUI resistanceUI = civilization2UI.resistancePanelUI;
+                if (resistanceUI != null)
+                {
+                    valid &= Require(resistanceUI.upgradeDropdown, "D2 RED.upgradeDropdown");
+                    valid &= Require(resistanceUI.fragmentsText, "D2 RED.fragmentsText");
+                    valid &= Require(resistanceUI.upgradeText, "D2 RED.upgradeText");
+                    valid &= Require(resistanceUI.upgradeButton, "D2 RED.upgradeButton");
+                    valid &= Require(resistanceUI.pactDropdown, "D2 RED.pactDropdown");
+                    valid &= Require(resistanceUI.pactText, "D2 RED.pactText");
+                    valid &= Require(resistanceUI.pactMembersText, "D2 RED.pactMembersText");
+                    valid &= Require(resistanceUI.exhaustedText, "D2 RED.exhaustedText");
+                    valid &= Require(resistanceUI.penaltiesText, "D2 RED.penaltiesText");
+                    valid &= Require(resistanceUI.activateButton, "D2 RED.activateButton");
+                    valid &= Require(resistanceUI.reinforceOneButton, "D2 RED.reinforceOneButton");
+                    valid &= Require(resistanceUI.reinforceTenButton, "D2 RED.reinforceTenButton");
+                    valid &= Require(resistanceUI.cancelButton, "D2 RED.cancelButton");
+                }
+
+                D2AlertPanelUI alertUI = civilization2UI.alertPanelUI;
+                if (alertUI != null)
+                {
+                    valid &= Require(alertUI.stateText, "D2 Alerta.stateText");
+                    valid &= Require(alertUI.dominanceText, "D2 Alerta.dominanceText");
+                    valid &= Require(alertUI.timerText, "D2 Alerta.timerText");
+                    valid &= Require(alertUI.effectsText, "D2 Alerta.effectsText");
+                    valid &= Require(alertUI.regionsText, "D2 Alerta.regionsText");
+                    valid &= Require(alertUI.unlocksText, "D2 Alerta.unlocksText");
+                    valid &= Require(alertUI.lastResultText, "D2 Alerta.lastResultText");
+                }
+
+                D2ContainmentPanelUI containmentUI = civilization2UI.containmentPanelUI;
+                if (containmentUI != null)
+                {
+                    valid &= Require(containmentUI.containmentAttemptRoot, "D2 Contención.containmentAttemptRoot");
+                    valid &= Require(containmentUI.majorPactRoot, "D2 Contención.majorPactRoot");
+                    valid &= Require(containmentUI.stateText, "D2 Contención.stateText");
+                    valid &= Require(containmentUI.probabilityText, "D2 Contención.probabilityText");
+                    valid &= Require(containmentUI.cooldownText, "D2 Contención.cooldownText");
+                    valid &= Require(containmentUI.rulesText, "D2 Contención.rulesText");
+                    valid &= Require(containmentUI.assignmentText, "D2 Contención.assignmentText");
+                    valid &= Require(containmentUI.attemptsText, "D2 Contención.attemptsText");
+                    valid &= Require(containmentUI.lastResultText, "D2 Contención.lastResultText");
+                    valid &= Require(containmentUI.attemptButton, "D2 Contención.attemptButton");
+                    valid &= Require(containmentUI.assignOneButton, "D2 Contención.assignOneButton");
+                    valid &= Require(containmentUI.assignTenButton, "D2 Contención.assignTenButton");
+                    valid &= Require(containmentUI.assignAllButton, "D2 Contención.assignAllButton");
+                    valid &= Require(containmentUI.releaseOneButton, "D2 Contención.releaseOneButton");
+                    valid &= Require(containmentUI.releaseAllButton, "D2 Contención.releaseAllButton");
+                    valid &= Require(containmentUI.majorPactStateText, "D2 Pacto Mayor Civ2.majorPactStateText");
+                    valid &= Require(containmentUI.stabilityText, "D2 Pacto Mayor Civ2.stabilityText");
+                    valid &= Require(containmentUI.majorPactLineDropdown, "D2 Pacto Mayor Civ2.majorPactLineDropdown");
+                    valid &= Require(containmentUI.majorPactLineText, "D2 Pacto Mayor Civ2.majorPactLineText");
+                    valid &= Require(containmentUI.majorPactLastResultText, "D2 Pacto Mayor Civ2.majorPactLastResultText");
+                    valid &= Require(containmentUI.establishMajorPactButton, "D2 Pacto Mayor Civ2.establishMajorPactButton");
+                    valid &= Require(containmentUI.upgradeMajorPactLineButton, "D2 Pacto Mayor Civ2.upgradeMajorPactLineButton");
+                }
+            }
+
+            if (civilization3UI != null)
+            {
+                Canvas.ForceUpdateCanvases();
+                valid &= ValidateDirectChildrenInside(
+                    civilization3UI.GetComponent<RectTransform>(),
+                    "Civilización 3 general"
+                );
+                valid &= ValidateDirectChildrenInside(
+                    civilization3UI.archaeologySectionRoot.GetComponent<RectTransform>(),
+                    "Civilización 3 Arqueología"
+                );
+                valid &= ValidateDirectChildrenInside(
+                    civilization3UI.archiveSectionRoot.GetComponent<RectTransform>(),
+                    "Civilización 3 Archivo"
+                );
+                valid &= ValidateDirectChildrenInside(
+                    civilization3UI.entityResearchSectionRoot.GetComponent<RectTransform>(),
+                    "Civilización 3 Ente/Pacto"
+                );
+            }
 
             D2Civilization1PanelUI civilization1UI = panel.civilization1PanelUI;
             if (civilization1UI != null)
@@ -251,7 +482,80 @@ public static class Dimension2Block1UISetup
                     valid &= Require(thresholdUI.releaseAcolyteButton, "D2 Umbral.releaseAcolyteButton");
                     valid &= Require(thresholdUI.upgradeLineButton, "D2 Umbral.upgradeLineButton");
                 }
+
+                Canvas.ForceUpdateCanvases();
+                valid &= ValidateDirectChildrenInside(
+                    panel.GetComponent<RectTransform>(),
+                    "Dimensión 2 general"
+                );
+                valid &= ValidateDirectChildrenInside(
+                    civilization1UI.GetComponent<RectTransform>(),
+                    "Civilización 1 general"
+                );
+                valid &= ValidateDirectChildrenInside(
+                    civilization1UI.refugeSectionRoot.GetComponent<RectTransform>(),
+                    "Refugio"
+                );
+                valid &= ValidateDirectChildrenInside(
+                    civilization1UI.altarsSectionRoot.GetComponent<RectTransform>(),
+                    "Altares"
+                );
+                valid &= ValidateDirectChildrenInside(
+                    civilization1UI.pilgrimagesSectionRoot.GetComponent<RectTransform>(),
+                    "Peregrinaciones"
+                );
+                valid &= ValidateDirectChildrenInside(
+                    civilization1UI.novitiateSectionRoot.GetComponent<RectTransform>(),
+                    "Noviciado"
+                );
+                valid &= ValidateDirectChildrenInside(
+                    civilization1UI.ritesSectionRoot.GetComponent<RectTransform>(),
+                    "Ritos"
+                );
+                valid &= ValidateDirectChildrenInside(
+                    civilization1UI.pactsSectionRoot.GetComponent<RectTransform>(),
+                    "Pactos"
+                );
+                valid &= ValidateDirectChildrenInside(
+                    civilization1UI.veiledThresholdSectionRoot.GetComponent<RectTransform>(),
+                    "Umbral"
+                );
             }
+
+            if (civilization2UI != null)
+            {
+                Canvas.ForceUpdateCanvases();
+                valid &= ValidateDirectChildrenInside(
+                    civilization2UI.GetComponent<RectTransform>(),
+                    "Civilización 2 general"
+                );
+                valid &= ValidateDirectChildrenInside(
+                    civilization2UI.regionSectionRoot.GetComponent<RectTransform>(),
+                    "Civilización 2 regiones"
+                );
+                valid &= ValidateDirectChildrenInside(
+                    civilization2UI.operationsSectionRoot.GetComponent<RectTransform>(),
+                    "Civilización 2 operaciones"
+                );
+                valid &= ValidateDirectChildrenInside(
+                    civilization2UI.defenseSectionRoot.GetComponent<RectTransform>(),
+                    "Civilización 2 defensa"
+                );
+                valid &= ValidateDirectChildrenInside(
+                    civilization2UI.resistanceSectionRoot.GetComponent<RectTransform>(),
+                    "Civilización 2 RED"
+                );
+                valid &= ValidateDirectChildrenInside(
+                    civilization2UI.alertSectionRoot.GetComponent<RectTransform>(),
+                    "Civilización 2 Alerta"
+                );
+                valid &= ValidateDirectChildrenInside(
+                    civilization2UI.containmentSectionRoot.GetComponent<RectTransform>(),
+                    "Civilización 2 Contención"
+                );
+            }
+
+            valid &= ValidateDimension2Block5FPresentation(panel);
         }
 
         if (gameState == null)
@@ -269,6 +573,26 @@ public static class Dimension2Block1UISetup
             }
 
             valid &= ValidateCivilization1Logic(gameState);
+            valid &= ValidateCivilization1Block5BLogic(gameState);
+            valid &= ValidateCivilization2Block3ALogic(gameState);
+            valid &= ValidateCivilization2Block3BLogic(gameState);
+            valid &= ValidateCivilization2Block3CLogic(gameState);
+            valid &= ValidateCivilization2Block3DLogic(gameState);
+            valid &= ValidateCivilization2Block3ELogic(gameState);
+            valid &= ValidateCivilization2Block3FLogic(gameState);
+            valid &= ValidateCivilization2Block3GLogic(gameState);
+            valid &= ValidateCivilization2Block5CLogic(gameState);
+            valid &= ValidateCivilization3Block4ALogic(gameState);
+            valid &= ValidateCivilization3Block4BLogic(gameState);
+            valid &= ValidateCivilization3Block4CLogic(gameState);
+            valid &= ValidateCivilization3Block4DLogic(gameState);
+            valid &= ValidateCivilization3Block4ELogic(gameState);
+            valid &= ValidateCivilization3Block4FLogic(gameState);
+            valid &= ValidateCivilization3Block4GLogic(gameState);
+            valid &= ValidateCivilization3Block4HLogic(gameState);
+            valid &= ValidateCivilization3Block5DLogic(gameState);
+            valid &= ValidateDimension2Block5ELogic(gameState);
+            valid &= ValidateDimension2Block5FLogic(gameState);
         }
 
         if (valid)
@@ -346,6 +670,8 @@ public static class Dimension2Block1UISetup
         BuildFirstEntry(panel);
         BuildMap(panel);
         BuildCivilization1Placeholder(panel);
+        BuildCivilization2(panel);
+        BuildCivilization3(panel);
         BuildGlobalCloseButton(panel);
         return panel;
     }
@@ -866,60 +1192,60 @@ public static class Dimension2Block1UISetup
         civilization1UI.veiledThresholdPanelUI = thresholdUI;
         Transform thresholdRoot = civilization1UI.veiledThresholdSectionRoot.transform;
         thresholdUI.titleText = CreateText(
-            "VeiledThresholdTitle", thresholdRoot, "UMBRAL VELADO", 30f,
-            TextAlignmentOptions.Center, new Vector2(0.5f, 0.63f),
+            "VeiledThresholdTitle", thresholdRoot, "PACTO MAYOR — LUGAR DE VÍNCULO", 30f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.70f),
             new Vector2(0.84f, 0.09f)
         );
         thresholdUI.revelationText = CreateText(
             "VeiledThresholdRevelation", thresholdRoot, "ALGO RESPONDE", 25f,
-            TextAlignmentOptions.Center, new Vector2(0.5f, 0.52f),
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.61f),
             new Vector2(0.84f, 0.08f)
         );
         thresholdUI.placeText = CreateText(
             "VeiledThresholdPlace", thresholdRoot,
-            "La civilización ha permitido el acceso al Lugar de Vínculo.", 20f,
-            TextAlignmentOptions.Center, new Vector2(0.5f, 0.40f),
+            "La civilización permite establecer el pacto en el Lugar de Vínculo.", 20f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.52f),
             new Vector2(0.84f, 0.10f)
         );
         thresholdUI.resourcesText = CreateText(
             "BondResources", thresholdRoot, "Recursos del vinculo", 16f,
-            TextAlignmentOptions.Center, new Vector2(0.5f, 0.34f),
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.44f),
             new Vector2(0.92f, 0.05f)
         );
         thresholdUI.acolytesText = CreateText(
             "BondAcolytes", thresholdRoot, "Acolitos del vinculo", 16f,
-            TextAlignmentOptions.Center, new Vector2(0.5f, 0.29f),
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.385f),
             new Vector2(0.82f, 0.045f)
         );
         thresholdUI.prepareButton = CreateButton(
             "Btn_PrepareBondPlace", thresholdRoot, "PREPARAR LUGAR",
-            new Vector2(0.5f, 0.23f), new Vector2(0.22f, 0.055f)
+            new Vector2(0.5f, 0.32f), new Vector2(0.22f, 0.055f)
         );
         thresholdUI.assignAcolyteButton = CreateButton(
             "Btn_BondAssignAcolyte", thresholdRoot, "ACOLITO +1",
-            new Vector2(0.20f, 0.23f), new Vector2(0.15f, 0.05f)
+            new Vector2(0.20f, 0.32f), new Vector2(0.15f, 0.05f)
         );
         thresholdUI.releaseAcolyteButton = CreateButton(
             "Btn_BondReleaseAcolyte", thresholdRoot, "ACOLITO -1",
-            new Vector2(0.80f, 0.23f), new Vector2(0.15f, 0.05f)
+            new Vector2(0.80f, 0.32f), new Vector2(0.15f, 0.05f)
         );
         thresholdUI.lineDropdown = CreateDropdown(
-            "BondLineSelector", thresholdRoot, new Vector2(0.5f, 0.17f),
+            "BondLineSelector", thresholdRoot, new Vector2(0.5f, 0.25f),
             new Vector2(0.40f, 0.055f)
         );
         thresholdUI.lineText = CreateText(
             "BondLineStatus", thresholdRoot, "Linea del vinculo", 15f,
-            TextAlignmentOptions.Center, new Vector2(0.5f, 0.105f),
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.175f),
             new Vector2(0.90f, 0.07f)
         );
         thresholdUI.upgradeLineButton = CreateButton(
-            "Btn_UpgradeBondLine", thresholdRoot, "MEJORAR LINEA",
-            new Vector2(0.5f, 0.045f), new Vector2(0.22f, 0.05f)
+            "Btn_UpgradeBondLine", thresholdRoot, "MEJORAR LÍNEA",
+            new Vector2(0.5f, 0.105f), new Vector2(0.22f, 0.05f)
         );
         thresholdUI.pendingText = CreateText(
             "VeiledThresholdPending", thresholdRoot,
             "Su naturaleza, sus líneas y sus efectos posteriores permanecen ocultos.", 18f,
-            TextAlignmentOptions.Center, new Vector2(0.5f, 0.005f),
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.055f),
             new Vector2(0.84f, 0.035f)
         );
         civilization1UI.veiledThresholdSectionRoot.SetActive(false);
@@ -928,6 +1254,838 @@ public static class Dimension2Block1UISetup
             "Btn_BackToD2Map", root.transform, "VOLVER AL MAPA",
             new Vector2(0.14f, 0.08f), new Vector2(0.20f, 0.07f)
         );
+    }
+
+    private static void BuildCivilization2(Dimension2PanelUI panel)
+    {
+        GameObject root = CreateView("D2_Civilization2", panel.transform);
+        panel.civilization2Root = root;
+
+        D2Civilization2PanelUI civilization2UI = Undo.AddComponent<D2Civilization2PanelUI>(root);
+        panel.civilization2PanelUI = civilization2UI;
+        civilization2UI.dimension2PanelUI = panel;
+
+        CreateText(
+            "Civilization2Title", root.transform,
+            "CIVILIZACIÓN 2 — TERRITORIOS SOMETIDOS", 30f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.92f),
+            new Vector2(0.86f, 0.08f)
+        );
+
+        civilization2UI.showRegionsButton = CreateButton(
+            "Btn_Civ2ShowRegions", root.transform, "REGIONES",
+            new Vector2(0.095f, 0.84f), new Vector2(0.14f, 0.06f)
+        );
+        civilization2UI.showOperationsButton = CreateButton(
+            "Btn_Civ2ShowOperations", root.transform, "OPERACIONES",
+            new Vector2(0.257f, 0.84f), new Vector2(0.14f, 0.06f)
+        );
+        civilization2UI.showDefenseButton = CreateButton(
+            "Btn_Civ2ShowDefense", root.transform, "DEFENSA",
+            new Vector2(0.419f, 0.84f), new Vector2(0.14f, 0.06f)
+        );
+        civilization2UI.showResistanceButton = CreateButton(
+            "Btn_Civ2ShowResistance", root.transform, "RED",
+            new Vector2(0.581f, 0.84f), new Vector2(0.14f, 0.06f)
+        );
+        civilization2UI.showAlertButton = CreateButton(
+            "Btn_Civ2ShowAlert", root.transform, "ALERTA",
+            new Vector2(0.743f, 0.84f), new Vector2(0.14f, 0.06f)
+        );
+        civilization2UI.showContainmentButton = CreateButton(
+            "Btn_Civ2ShowContainment", root.transform, "CONTENCIÓN",
+            new Vector2(0.905f, 0.84f), new Vector2(0.14f, 0.06f)
+        );
+        civilization2UI.regionDropdown = CreateDropdown(
+            "Civ2RegionDropdown", root.transform,
+            new Vector2(0.5f, 0.765f), new Vector2(0.28f, 0.055f)
+        );
+
+        civilization2UI.regionSectionRoot = CreateView(
+            "D2_Civ2_RegionSection", root.transform
+        );
+        Transform regionRoot = civilization2UI.regionSectionRoot.transform;
+        civilization2UI.membersText = CreateText(
+            "ResistanceMembers", regionRoot,
+            "MIEMBROS DE RESISTENCIA", 21f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.69f),
+            new Vector2(0.82f, 0.06f)
+        );
+        civilization2UI.dominanceText = CreateText(
+            "TotalDominance", regionRoot,
+            "DOMINIO TOTAL: 100%", 20f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.625f),
+            new Vector2(0.5f, 0.05f)
+        );
+        civilization2UI.dominanceSlider = CreateProgressSlider(
+            "TotalDominanceSlider", regionRoot,
+            new Vector2(0.5f, 0.585f), new Vector2(0.52f, 0.025f)
+        );
+
+        civilization2UI.region1Text = CreateText(
+            "Region1", regionRoot,
+            "REGIÓN 1 — DISPONIBLE\nDominio: 100% | Amenaza: 0%", 19f,
+            TextAlignmentOptions.Center, new Vector2(0.25f, 0.465f),
+            new Vector2(0.40f, 0.11f)
+        );
+        civilization2UI.region2Text = CreateText(
+            "Region2", regionRoot,
+            "REGIÓN 2 — BLOQUEADA\nSe abre con Dominio total en 80%", 18f,
+            TextAlignmentOptions.Center, new Vector2(0.75f, 0.465f),
+            new Vector2(0.40f, 0.11f)
+        );
+        civilization2UI.region3Text = CreateText(
+            "Region3", regionRoot,
+            "REGIÓN 3 — BLOQUEADA\nSe abre con Dominio total en 60%", 18f,
+            TextAlignmentOptions.Center, new Vector2(0.25f, 0.335f),
+            new Vector2(0.40f, 0.11f)
+        );
+        civilization2UI.region4Text = CreateText(
+            "Region4", regionRoot,
+            "REGIÓN 4 — ACTUALIZACIÓN FUTURA", 18f,
+            TextAlignmentOptions.Center, new Vector2(0.75f, 0.335f),
+            new Vector2(0.40f, 0.11f)
+        );
+
+        civilization2UI.assignmentText = CreateText(
+            "RegionAssignment", regionRoot,
+            "Asignación regional — Región 1: 0 Miembros", 20f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.245f),
+            new Vector2(0.74f, 0.055f)
+        );
+        civilization2UI.assignOneButton = CreateButton(
+            "Btn_Civ2AssignOne", regionRoot, "+1",
+            new Vector2(0.23f, 0.18f), new Vector2(0.12f, 0.06f)
+        );
+        civilization2UI.assignTenButton = CreateButton(
+            "Btn_Civ2AssignTen", regionRoot, "+10",
+            new Vector2(0.365f, 0.18f), new Vector2(0.12f, 0.06f)
+        );
+        civilization2UI.assignAllButton = CreateButton(
+            "Btn_Civ2AssignAll", regionRoot, "ASIGNAR TODO",
+            new Vector2(0.50f, 0.18f), new Vector2(0.15f, 0.06f)
+        );
+        civilization2UI.releaseOneButton = CreateButton(
+            "Btn_Civ2ReleaseOne", regionRoot, "-1",
+            new Vector2(0.65f, 0.18f), new Vector2(0.12f, 0.06f)
+        );
+        civilization2UI.releaseAllButton = CreateButton(
+            "Btn_Civ2ReleaseAll", regionRoot, "RETIRAR TODO",
+            new Vector2(0.79f, 0.18f), new Vector2(0.15f, 0.06f)
+        );
+        civilization2UI.lastResultText = CreateText(
+            "Civ2LastResult", regionRoot,
+            "La Resistencia está preparada para organizar sus primeras operaciones.",
+            17f, TextAlignmentOptions.Center, new Vector2(0.5f, 0.105f),
+            new Vector2(0.72f, 0.065f)
+        );
+
+        civilization2UI.operationsSectionRoot = CreateView(
+            "D2_Civ2_OperationsSection", root.transform
+        );
+        Transform operationsRoot = civilization2UI.operationsSectionRoot.transform;
+        D2OperationsPanelUI operationsUI = Undo.AddComponent<D2OperationsPanelUI>(
+            civilization2UI.operationsSectionRoot
+        );
+        civilization2UI.operationsPanelUI = operationsUI;
+        operationsUI.civilization2PanelUI = civilization2UI;
+        operationsUI.operationDropdown = CreateDropdown(
+            "OperationDropdown", operationsRoot,
+            new Vector2(0.5f, 0.69f), new Vector2(0.42f, 0.07f)
+        );
+        operationsUI.operationStateText = CreateText(
+            "OperationState", operationsRoot,
+            "RESCATE — INACTIVA", 22f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.58f),
+            new Vector2(0.74f, 0.10f)
+        );
+        operationsUI.effectText = CreateText(
+            "OperationEffect", operationsRoot,
+            "Genera Miembros y modifica Dominio y Amenaza.", 18f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.46f),
+            new Vector2(0.78f, 0.12f)
+        );
+        operationsUI.regionalMembersText = CreateText(
+            "OperationRegionalMembers", operationsRoot,
+            "Región 1 — Sin destinar: 0 | En operaciones: 0", 19f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.355f),
+            new Vector2(0.76f, 0.055f)
+        );
+        operationsUI.assignmentText = CreateText(
+            "OperationAssignment", operationsRoot,
+            "Asignados a Rescate: 0", 20f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.29f),
+            new Vector2(0.64f, 0.055f)
+        );
+        operationsUI.assignOneButton = CreateButton(
+            "Btn_OperationAssignOne", operationsRoot, "+1",
+            new Vector2(0.23f, 0.21f), new Vector2(0.12f, 0.065f)
+        );
+        operationsUI.assignFiveButton = CreateButton(
+            "Btn_OperationAssignFive", operationsRoot, "+5",
+            new Vector2(0.365f, 0.21f), new Vector2(0.12f, 0.065f)
+        );
+        operationsUI.assignAllButton = CreateButton(
+            "Btn_OperationAssignAll", operationsRoot, "ASIGNAR TODO",
+            new Vector2(0.50f, 0.21f), new Vector2(0.15f, 0.065f)
+        );
+        operationsUI.releaseOneButton = CreateButton(
+            "Btn_OperationReleaseOne", operationsRoot, "-1",
+            new Vector2(0.65f, 0.21f), new Vector2(0.12f, 0.065f)
+        );
+        operationsUI.releaseAllButton = CreateButton(
+            "Btn_OperationReleaseAll", operationsRoot, "RETIRAR TODO",
+            new Vector2(0.79f, 0.21f), new Vector2(0.15f, 0.065f)
+        );
+
+        civilization2UI.defenseSectionRoot = CreateView(
+            "D2_Civ2_DefenseSection", root.transform
+        );
+        Transform defenseRoot = civilization2UI.defenseSectionRoot.transform;
+        D2ReprisalsPanelUI reprisalsUI = Undo.AddComponent<D2ReprisalsPanelUI>(
+            civilization2UI.defenseSectionRoot
+        );
+        civilization2UI.reprisalsPanelUI = reprisalsUI;
+        reprisalsUI.civilization2PanelUI = civilization2UI;
+        reprisalsUI.threatText = CreateText(
+            "DefenseThreat", defenseRoot, "AMENAZA REGIONAL: 0%", 22f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.70f),
+            new Vector2(0.64f, 0.06f)
+        );
+        reprisalsUI.threatSlider = CreateProgressSlider(
+            "DefenseThreatSlider", defenseRoot,
+            new Vector2(0.5f, 0.65f), new Vector2(0.54f, 0.025f)
+        );
+        reprisalsUI.coverageText = CreateText(
+            "DefenseCoverage", defenseRoot, "COBERTURA: 0 / 60", 22f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.57f),
+            new Vector2(0.64f, 0.06f)
+        );
+        reprisalsUI.coverageSlider = CreateProgressSlider(
+            "DefenseCoverageSlider", defenseRoot,
+            new Vector2(0.5f, 0.52f), new Vector2(0.54f, 0.025f)
+        );
+        reprisalsUI.protectionText = CreateText(
+            "DefenseProtection", defenseRoot,
+            "Pérdida estimada: 8%\nPreparación de Espionaje: NO PREPARADA", 19f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.42f),
+            new Vector2(0.72f, 0.10f)
+        );
+        reprisalsUI.fragmentsText = CreateText(
+            "DefenseFragments", defenseRoot,
+            "FRAGMENTOS DE CONTROL: 0 | Represalias resistidas: 0", 20f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.335f),
+            new Vector2(0.76f, 0.06f)
+        );
+        reprisalsUI.weakeningText = CreateText(
+            "DefenseWeakening", defenseRoot,
+            "Ninguna operación debilitada.", 19f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.27f),
+            new Vector2(0.72f, 0.06f)
+        );
+        reprisalsUI.rulesText = CreateText(
+            "DefenseRules", defenseRoot,
+            "Al llegar a 100% de Amenaza ocurre una Represalia.", 17f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.19f),
+            new Vector2(0.76f, 0.08f)
+        );
+        reprisalsUI.lastResultText = CreateText(
+            "DefenseLastResult", defenseRoot,
+            "Aún no se ha producido ninguna Represalia.", 17f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.12f),
+            new Vector2(0.76f, 0.06f)
+        );
+
+        civilization2UI.resistanceSectionRoot = CreateView(
+            "D2_Civ2_ResistanceSection", root.transform
+        );
+        Transform resistanceRoot = civilization2UI.resistanceSectionRoot.transform;
+        D2ResistancePanelUI resistanceUI = Undo.AddComponent<D2ResistancePanelUI>(
+            civilization2UI.resistanceSectionRoot
+        );
+        civilization2UI.resistancePanelUI = resistanceUI;
+        resistanceUI.upgradeDropdown = CreateDropdown(
+            "ResistanceUpgradeDropdown", resistanceRoot,
+            new Vector2(0.28f, 0.70f), new Vector2(0.38f, 0.06f)
+        );
+        resistanceUI.fragmentsText = CreateText(
+            "ResistanceFragments", resistanceRoot, "FRAGMENTOS DE CONTROL: 0", 18f,
+            TextAlignmentOptions.Center, new Vector2(0.72f, 0.70f),
+            new Vector2(0.36f, 0.055f)
+        );
+        resistanceUI.upgradeText = CreateText(
+            "ResistanceUpgradeState", resistanceRoot,
+            "MEJORA DE LA RED — NIVEL 0/3", 18f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.61f),
+            new Vector2(0.84f, 0.105f)
+        );
+        resistanceUI.upgradeButton = CreateButton(
+            "Btn_ResistanceUpgrade", resistanceRoot, "MEJORAR",
+            new Vector2(0.5f, 0.535f), new Vector2(0.20f, 0.055f)
+        );
+        resistanceUI.pactDropdown = CreateDropdown(
+            "ResistancePactDropdown", resistanceRoot,
+            new Vector2(0.5f, 0.445f), new Vector2(0.42f, 0.06f)
+        );
+        resistanceUI.pactText = CreateText(
+            "ResistancePactState", resistanceRoot,
+            "PACTO DE RESISTENCIA — INACTIVO", 18f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.355f),
+            new Vector2(0.88f, 0.11f)
+        );
+        resistanceUI.pactMembersText = CreateText(
+            "ResistancePactMembers", resistanceRoot,
+            "Comprometidos: 0 | Disponibles: 0", 17f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.285f),
+            new Vector2(0.84f, 0.05f)
+        );
+        resistanceUI.activateButton = CreateButton(
+            "Btn_ActivateResistancePact", resistanceRoot, "ACTIVAR",
+            new Vector2(0.25f, 0.225f), new Vector2(0.16f, 0.055f)
+        );
+        resistanceUI.reinforceOneButton = CreateButton(
+            "Btn_ReinforceResistancePactOne", resistanceRoot, "REFORZAR +1",
+            new Vector2(0.42f, 0.225f), new Vector2(0.16f, 0.055f)
+        );
+        resistanceUI.reinforceTenButton = CreateButton(
+            "Btn_ReinforceResistancePactTen", resistanceRoot, "REFORZAR +10",
+            new Vector2(0.59f, 0.225f), new Vector2(0.16f, 0.055f)
+        );
+        resistanceUI.cancelButton = CreateButton(
+            "Btn_CancelResistancePact", resistanceRoot, "INCUMPLIR",
+            new Vector2(0.76f, 0.225f), new Vector2(0.16f, 0.055f)
+        );
+        resistanceUI.exhaustedText = CreateText(
+            "ResistanceExhaustedMembers", resistanceRoot,
+            "MIEMBROS AGOTADOS: 0", 17f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.155f),
+            new Vector2(0.88f, 0.05f)
+        );
+        resistanceUI.penaltiesText = CreateText(
+            "ResistancePenalties", resistanceRoot,
+            "PENALIZACIONES — ninguna", 16f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.105f),
+            new Vector2(0.90f, 0.05f)
+        );
+        civilization2UI.resistanceSectionRoot.SetActive(false);
+
+        civilization2UI.alertSectionRoot = CreateView(
+            "D2_Civ2_AlertSection", root.transform
+        );
+        Transform alertRoot = civilization2UI.alertSectionRoot.transform;
+        D2AlertPanelUI alertUI = Undo.AddComponent<D2AlertPanelUI>(
+            civilization2UI.alertSectionRoot
+        );
+        civilization2UI.alertPanelUI = alertUI;
+        alertUI.stateText = CreateText(
+            "AlertState", alertRoot, "FASE DE ALERTA — INACTIVA", 27f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.70f),
+            new Vector2(0.82f, 0.07f)
+        );
+        alertUI.dominanceText = CreateText(
+            "AlertDominance", alertRoot,
+            "Dominio total: 100% | Se activa permanentemente al llegar a 30%.", 19f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.625f),
+            new Vector2(0.86f, 0.055f)
+        );
+        alertUI.timerText = CreateText(
+            "AlertTimer", alertRoot, "El Ente todavía no está marcando regiones.", 19f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.555f),
+            new Vector2(0.86f, 0.055f)
+        );
+        alertUI.effectsText = CreateText(
+            "AlertEffects", alertRoot,
+            "Antes de Alerta se mantienen la Amenaza normal y 3 Fragmentos por Represalia.", 18f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.485f),
+            new Vector2(0.88f, 0.07f)
+        );
+        alertUI.regionsText = CreateText(
+            "AlertRegions", alertRoot, "ESTADO DE LAS REGIONES", 18f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.355f),
+            new Vector2(0.86f, 0.17f)
+        );
+        alertUI.unlocksText = CreateText(
+            "AlertUnlocks", alertRoot,
+            "Civilización 3 y Contención permanecen bloqueadas.", 19f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.235f),
+            new Vector2(0.86f, 0.06f)
+        );
+        alertUI.lastResultText = CreateText(
+            "AlertLastResult", alertRoot, "No se han producido ataques de Alerta.", 17f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.155f),
+            new Vector2(0.84f, 0.075f)
+        );
+        civilization2UI.alertSectionRoot.SetActive(false);
+
+        civilization2UI.containmentSectionRoot = CreateView(
+            "D2_Civ2_ContainmentSection", root.transform
+        );
+        Transform containmentRoot = civilization2UI.containmentSectionRoot.transform;
+        D2ContainmentPanelUI containmentUI = Undo.AddComponent<D2ContainmentPanelUI>(
+            civilization2UI.containmentSectionRoot
+        );
+        civilization2UI.containmentPanelUI = containmentUI;
+        containmentUI.containmentAttemptRoot = CreateView(
+            "D2_Civ2_ContainmentAttempt", containmentRoot);
+        containmentUI.majorPactRoot = CreateView(
+            "D2_Civ2_MajorPact", containmentRoot);
+        Transform containmentAttemptRoot = containmentUI.containmentAttemptRoot.transform;
+        Transform majorPactRoot = containmentUI.majorPactRoot.transform;
+        containmentUI.majorPactStateText = CreateText(
+            "MajorPactState", majorPactRoot,
+            "ENTE CONTENIDO — PACTO MAYOR PREPARADO", 27f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.70f),
+            new Vector2(0.86f, 0.07f)
+        );
+        containmentUI.stabilityText = CreateText(
+            "MajorPactStability", majorPactRoot,
+            "ESTABILIDAD DE CONTENCIÓN: 0 | Fragmentos de Control: 0", 19f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.625f),
+            new Vector2(0.86f, 0.055f)
+        );
+        containmentUI.establishMajorPactButton = CreateButton(
+            "Btn_EstablishCiv2MajorPact", majorPactRoot, "ESTABLECER PACTO",
+            new Vector2(0.5f, 0.555f), new Vector2(0.25f, 0.055f)
+        );
+        containmentUI.majorPactLineDropdown = CreateDropdown(
+            "Civ2MajorPactLineSelector", majorPactRoot,
+            new Vector2(0.5f, 0.49f), new Vector2(0.42f, 0.05f)
+        );
+        containmentUI.majorPactLineText = CreateText(
+            "Civ2MajorPactLine", majorPactRoot, "LÍNEA DEL PACTO", 16f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.425f),
+            new Vector2(0.90f, 0.075f)
+        );
+        containmentUI.upgradeMajorPactLineButton = CreateButton(
+            "Btn_UpgradeCiv2MajorPactLine", majorPactRoot, "MEJORAR LÍNEA",
+            new Vector2(0.5f, 0.355f), new Vector2(0.23f, 0.045f)
+        );
+        containmentUI.majorPactLastResultText = CreateText(
+            "Civ2MajorPactLastResult", majorPactRoot,
+            "Establece el pacto y asigna Miembros para generar Estabilidad.", 17f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.145f),
+            new Vector2(0.86f, 0.06f)
+        );
+        containmentUI.majorPactRoot.SetActive(false);
+        containmentUI.stateText = CreateText(
+            "ContainmentState", containmentAttemptRoot, "CONTENCIÓN BLOQUEADA", 27f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.70f),
+            new Vector2(0.84f, 0.07f)
+        );
+        containmentUI.probabilityText = CreateText(
+            "ContainmentProbability", containmentAttemptRoot,
+            "Dominio total: 100% | Probabilidad: 20%", 20f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.625f),
+            new Vector2(0.82f, 0.055f)
+        );
+        containmentUI.cooldownText = CreateText(
+            "ContainmentCooldown", containmentAttemptRoot, "Sin cooldown.", 19f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.565f),
+            new Vector2(0.72f, 0.05f)
+        );
+        containmentUI.attemptButton = CreateButton(
+            "Btn_AttemptContainment", containmentAttemptRoot, "INTENTAR CONTENCIÓN",
+            new Vector2(0.5f, 0.495f), new Vector2(0.28f, 0.065f)
+        );
+        containmentUI.rulesText = CreateText(
+            "ContainmentRules", containmentAttemptRoot,
+            "Fallo: +20% Amenaza y -5% de Miembros regionales sin Protección.", 17f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.42f),
+            new Vector2(0.88f, 0.07f)
+        );
+        containmentUI.assignmentText = CreateText(
+            "ContainmentAssignment", majorPactRoot,
+            "SOSTENIMIENTO — Asignados: 0 | Disponibles: 0", 19f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.295f),
+            new Vector2(0.82f, 0.055f)
+        );
+        containmentUI.assignOneButton = CreateButton(
+            "Btn_ContainmentAssignOne", majorPactRoot, "+1",
+            new Vector2(0.23f, 0.225f), new Vector2(0.12f, 0.055f)
+        );
+        containmentUI.assignTenButton = CreateButton(
+            "Btn_ContainmentAssignTen", majorPactRoot, "+10",
+            new Vector2(0.365f, 0.225f), new Vector2(0.12f, 0.055f)
+        );
+        containmentUI.assignAllButton = CreateButton(
+            "Btn_ContainmentAssignAll", majorPactRoot, "ASIGNAR TODO",
+            new Vector2(0.50f, 0.225f), new Vector2(0.15f, 0.055f)
+        );
+        containmentUI.releaseOneButton = CreateButton(
+            "Btn_ContainmentReleaseOne", majorPactRoot, "-1",
+            new Vector2(0.65f, 0.225f), new Vector2(0.12f, 0.055f)
+        );
+        containmentUI.releaseAllButton = CreateButton(
+            "Btn_ContainmentReleaseAll", majorPactRoot, "RETIRAR TODO",
+            new Vector2(0.79f, 0.225f), new Vector2(0.15f, 0.055f)
+        );
+        containmentUI.attemptsText = CreateText(
+            "ContainmentAttempts", containmentAttemptRoot, "Intentos: 0 | Fallos: 0", 17f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.205f),
+            new Vector2(0.72f, 0.045f)
+        );
+        containmentUI.lastResultText = CreateText(
+            "ContainmentLastResult", containmentAttemptRoot,
+            "Todavía no se ha intentado la Contención.", 17f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.145f),
+            new Vector2(0.86f, 0.06f)
+        );
+        civilization2UI.containmentSectionRoot.SetActive(false);
+
+        civilization2UI.backToMapButton = CreateButton(
+            "Btn_Civ2BackToMap", root.transform, "VOLVER AL MAPA",
+            new Vector2(0.14f, 0.07f), new Vector2(0.22f, 0.07f)
+        );
+
+        EditorUtility.SetDirty(civilization2UI);
+        EditorUtility.SetDirty(operationsUI);
+        EditorUtility.SetDirty(reprisalsUI);
+        EditorUtility.SetDirty(resistanceUI);
+        EditorUtility.SetDirty(alertUI);
+        EditorUtility.SetDirty(containmentUI);
+    }
+
+    private static void BuildCivilization3(Dimension2PanelUI panel)
+    {
+        GameObject root = CreateView("D2_Civilization3", panel.transform);
+        panel.civilization3Root = root;
+        D2Civilization3PanelUI civilization3UI = Undo.AddComponent<D2Civilization3PanelUI>(root);
+        panel.civilization3PanelUI = civilization3UI;
+        civilization3UI.dimension2PanelUI = panel;
+
+        CreateText(
+            "Civilization3Title", root.transform,
+            "CIVILIZACIÓN 3 — RUINAS SEPULTADAS", 30f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.955f),
+            new Vector2(0.86f, 0.045f)
+        );
+        civilization3UI.zone1Button = CreateButton(
+            "Btn_Civ3Zone1", root.transform, "ZONA 1",
+            new Vector2(0.20f, 0.905f), new Vector2(0.15f, 0.045f)
+        );
+        civilization3UI.zone2Button = CreateButton(
+            "Btn_Civ3Zone2", root.transform, "ZONA 2",
+            new Vector2(0.38f, 0.905f), new Vector2(0.15f, 0.045f)
+        );
+        civilization3UI.zone3Button = CreateButton(
+            "Btn_Civ3Zone3", root.transform, "ZONA 3",
+            new Vector2(0.56f, 0.905f), new Vector2(0.15f, 0.045f)
+        );
+        civilization3UI.zoneText = CreateText(
+            "Civ3Zone1", root.transform,
+            "ZONA 1 — ENTRADA SEPULTADA\nRecurso propio: Fragmentos Base", 23f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.845f),
+            new Vector2(0.82f, 0.055f)
+        );
+        civilization3UI.lockedZonesText = CreateText(
+            "Civ3LockedZones", root.transform,
+            "ZONA 2 — GALERÍA DE INSCRIPCIONES: BLOQUEADA\n" +
+            "ZONA 3 — SANTUARIO SELLADO: BLOQUEADA", 17f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.79f),
+            new Vector2(0.9f, 0.05f)
+        );
+        civilization3UI.unlockZone2Button = CreateButton(
+            "Btn_Civ3UnlockZone2", root.transform, "DESTAPAR ZONA 2",
+            new Vector2(0.5f, 0.74f), new Vector2(0.24f, 0.045f)
+        );
+        civilization3UI.unlockZone3Button = CreateButton(
+            "Btn_Civ3UnlockZone3", root.transform, "DESTAPAR ZONA 3",
+            new Vector2(0.5f, 0.74f), new Vector2(0.24f, 0.045f)
+        );
+        civilization3UI.excavationText = CreateText(
+            "Civ3ExcavationState", root.transform,
+            "EXCAVACIÓN DISPONIBLE — duración base 00:30", 21f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.695f),
+            new Vector2(0.76f, 0.045f)
+        );
+        civilization3UI.excavationSlider = CreateProgressSlider(
+            "Civ3ExcavationProgress", root.transform,
+            new Vector2(0.5f, 0.67f), new Vector2(0.52f, 0.018f)
+        );
+        civilization3UI.excavateButton = CreateButton(
+            "Btn_Civ3Excavate", root.transform, "EXCAVAR",
+            new Vector2(0.5f, 0.63f), new Vector2(0.20f, 0.045f)
+        );
+        civilization3UI.inventoryText = CreateText(
+            "Civ3RemainsInventory", root.transform,
+            "RESTOS ARQUEOLÓGICOS — Baja: 0 | Media: 0 | Alta: 0 | Total: 0", 19f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.585f),
+            new Vector2(0.88f, 0.045f)
+        );
+        civilization3UI.analysisText = CreateText(
+            "Civ3AnalysisState", root.transform,
+            "ANÁLISIS BLOQUEADO — requiere Erudito de Campo", 19f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.54f),
+            new Vector2(0.84f, 0.04f)
+        );
+        civilization3UI.analysisSlider = CreateProgressSlider(
+            "Civ3AnalysisProgress", root.transform,
+            new Vector2(0.5f, 0.515f), new Vector2(0.52f, 0.018f)
+        );
+        civilization3UI.analyzeLowButton = CreateButton(
+            "Btn_Civ3AnalyzeLow", root.transform, "ANALIZAR BAJA",
+            new Vector2(0.28f, 0.475f), new Vector2(0.19f, 0.045f)
+        );
+        civilization3UI.analyzeMediumButton = CreateButton(
+            "Btn_Civ3AnalyzeMedium", root.transform, "ANALIZAR MEDIA",
+            new Vector2(0.5f, 0.475f), new Vector2(0.19f, 0.045f)
+        );
+        civilization3UI.analyzeHighButton = CreateButton(
+            "Btn_Civ3AnalyzeHigh", root.transform, "ANALIZAR ALTA",
+            new Vector2(0.72f, 0.475f), new Vector2(0.19f, 0.045f)
+        );
+        civilization3UI.researchText = CreateText(
+            "Civ3Research", root.transform,
+            "INVESTIGACIÓN DE ZONA 1: 0% | Conocimiento Antiguo: 0 | Fragmentos Base: 0", 17f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.425f),
+            new Vector2(0.9f, 0.045f)
+        );
+        civilization3UI.archiveText = CreateText(
+            "Civ3Archive", root.transform,
+            "ARCHIVO DE INTERPRETACIÓN — se desbloquea tras el primer análisis", 16f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.37f),
+            new Vector2(0.9f, 0.06f)
+        );
+        civilization3UI.cluesText = CreateText(
+            "Civ3AnomalyClues", root.transform,
+            "INDICIOS ANÓMALOS — se habilitan con Zona 2 al 20%", 16f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.32f),
+            new Vector2(0.88f, 0.04f)
+        );
+        civilization3UI.anomalyText = CreateText(
+            "Civ3Anomaly", root.transform,
+            "ANOMALÍA — SIN REVELAR", 16f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.275f),
+            new Vector2(0.88f, 0.05f)
+        );
+        civilization3UI.readAnomalyButton = CreateButton(
+            "Btn_Civ3ReadAnomaly", root.transform, "LEER ANOMALÍA",
+            new Vector2(0.5f, 0.225f), new Vector2(0.22f, 0.045f)
+        );
+        civilization3UI.scholarText = CreateText(
+            "Civ3FieldScholar", root.transform,
+            "ERUDITO DE CAMPO — NO CONTRATADO\nCoste: 10 Cera + 10 Pan ritual.", 20f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.17f),
+            new Vector2(0.78f, 0.055f)
+        );
+        civilization3UI.civilization1ResourcesText = CreateText(
+            "Civ3Civilization1Resources", root.transform,
+            "RECURSOS DE CIVILIZACIÓN 1 — Cera: 0 | Pan ritual: 0", 17f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.12f),
+            new Vector2(0.82f, 0.04f)
+        );
+        civilization3UI.backToMapButton = CreateButton(
+            "Btn_Civ3BackToMap", root.transform, "VOLVER AL MAPA",
+            new Vector2(0.14f, 0.055f), new Vector2(0.22f, 0.05f)
+        );
+        civilization3UI.lastResultText = CreateText(
+            "Civ3LastResult", root.transform,
+            "Las ruinas aguardan la primera excavación.", 16f,
+            TextAlignmentOptions.Center, new Vector2(0.45f, 0.055f),
+            new Vector2(0.36f, 0.05f)
+        );
+        civilization3UI.hireScholarButton = CreateButton(
+            "Btn_Civ3HireFieldScholar", root.transform, "CONTRATAR ERUDITO",
+            new Vector2(0.77f, 0.055f), new Vector2(0.24f, 0.05f)
+        );
+
+        int archaeologyChildCount = root.transform.childCount;
+        civilization3UI.archaeologySectionRoot = CreateView(
+            "D2_Civ3_ArchaeologySection", root.transform
+        );
+        for (int i = archaeologyChildCount - 1; i >= 0; i--)
+        {
+            root.transform.GetChild(i).SetParent(
+                civilization3UI.archaeologySectionRoot.transform,
+                false
+            );
+        }
+        civilization3UI.showEntityResearchButton = CreateButton(
+            "Btn_Civ3ShowEntityResearch",
+            civilization3UI.archaeologySectionRoot.transform,
+            "ENTE",
+            new Vector2(0.91f, 0.905f), new Vector2(0.12f, 0.045f)
+        );
+        civilization3UI.showArchiveButton = CreateButton(
+            "Btn_Civ3ShowArchive",
+            civilization3UI.archaeologySectionRoot.transform,
+            "ARCHIVO",
+            new Vector2(0.75f, 0.905f), new Vector2(0.14f, 0.045f)
+        );
+
+        civilization3UI.archiveSectionRoot = CreateView(
+            "D2_Civ3_ArchiveSection", root.transform
+        );
+        D2ArchivePanelUI archiveUI = Undo.AddComponent<D2ArchivePanelUI>(
+            civilization3UI.archiveSectionRoot
+        );
+        civilization3UI.archivePanelUI = archiveUI;
+        archiveUI.civilization3PanelUI = civilization3UI;
+        Transform archiveRoot = civilization3UI.archiveSectionRoot.transform;
+        CreateText(
+            "Civ3ArchiveTitle", archiveRoot, "ARCHIVO DE INTERPRETACIÓN", 30f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.91f),
+            new Vector2(0.84f, 0.07f)
+        );
+        archiveUI.stateText = CreateText(
+            "Civ3ArchiveState", archiveRoot, "ARCHIVO I — MEJORAS PERMANENTES", 22f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.82f),
+            new Vector2(0.82f, 0.06f)
+        );
+        archiveUI.resourcesText = CreateText(
+            "Civ3ArchiveResources", archiveRoot, "RECURSOS DEL ARCHIVO", 18f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.74f),
+            new Vector2(0.88f, 0.075f)
+        );
+        archiveUI.cartographyText = CreateText(
+            "Civ3ArchiveCartography", archiveRoot, "CARTOGRAFÍA ESTRATIFICADA", 18f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.61f),
+            new Vector2(0.86f, 0.10f)
+        );
+        archiveUI.cartographyButton = CreateButton(
+            "Btn_Civ3ArchiveCartography", archiveRoot, "DESBLOQUEAR",
+            new Vector2(0.5f, 0.535f), new Vector2(0.22f, 0.05f)
+        );
+        archiveUI.concordanceText = CreateText(
+            "Civ3ArchiveConcordance", archiveRoot, "CONCORDANCIA ANÓMALA", 18f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.42f),
+            new Vector2(0.86f, 0.10f)
+        );
+        archiveUI.concordanceButton = CreateButton(
+            "Btn_Civ3ArchiveConcordance", archiveRoot, "DESBLOQUEAR",
+            new Vector2(0.5f, 0.345f), new Vector2(0.22f, 0.05f)
+        );
+        archiveUI.exegesisText = CreateText(
+            "Civ3ArchiveExegesis", archiveRoot, "EXÉGESIS PROFUNDA", 18f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.23f),
+            new Vector2(0.86f, 0.10f)
+        );
+        archiveUI.exegesisButton = CreateButton(
+            "Btn_Civ3ArchiveExegesis", archiveRoot, "DESBLOQUEAR",
+            new Vector2(0.5f, 0.155f), new Vector2(0.22f, 0.05f)
+        );
+        archiveUI.lastResultText = CreateText(
+            "Civ3ArchiveLastResult", archiveRoot, "El Archivo aguarda nuevos hallazgos.", 16f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.105f),
+            new Vector2(0.55f, 0.045f)
+        );
+        archiveUI.backToArchaeologyButton = CreateButton(
+            "Btn_Civ3ArchiveBackToArchaeology", archiveRoot, "VOLVER A ARQUEOLOGÍA",
+            new Vector2(0.18f, 0.055f), new Vector2(0.26f, 0.05f)
+        );
+        archiveUI.backToMapButton = CreateButton(
+            "Btn_Civ3ArchiveBackToMap", archiveRoot, "VOLVER AL MAPA",
+            new Vector2(0.82f, 0.055f), new Vector2(0.22f, 0.05f)
+        );
+        civilization3UI.archiveSectionRoot.SetActive(false);
+
+        civilization3UI.entityResearchSectionRoot = CreateView(
+            "D2_Civ3_EntityResearchSection", root.transform
+        );
+        D2EntityResearchPanelUI entityResearchUI = Undo.AddComponent<D2EntityResearchPanelUI>(
+            civilization3UI.entityResearchSectionRoot
+        );
+        civilization3UI.entityResearchPanelUI = entityResearchUI;
+        entityResearchUI.civilization3PanelUI = civilization3UI;
+        Transform entityRoot = civilization3UI.entityResearchSectionRoot.transform;
+        CreateText(
+            "Civ3EntityResearchTitle", entityRoot,
+            "INVESTIGACIÓN DEL ENTE", 30f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.92f),
+            new Vector2(0.82f, 0.07f)
+        );
+        entityResearchUI.unlockText = CreateText(
+            "Civ3EntityResearchUnlock", entityRoot,
+            "BLOQUEADA — requiere los tres Datos Anómalos", 20f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.82f),
+            new Vector2(0.86f, 0.06f)
+        );
+        entityResearchUI.statusText = CreateText(
+            "Civ3EntityResearchStatus", entityRoot,
+            "PAUSADA", 22f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.735f),
+            new Vector2(0.72f, 0.055f)
+        );
+        entityResearchUI.progressText = CreateText(
+            "Civ3EntityResearchProgress", entityRoot,
+            "PROGRESO: 0% | Conocimiento Antiguo: 0", 21f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.66f),
+            new Vector2(0.82f, 0.055f)
+        );
+        entityResearchUI.progressSlider = CreateProgressSlider(
+            "Civ3EntityResearchSlider", entityRoot,
+            new Vector2(0.5f, 0.615f), new Vector2(0.56f, 0.025f)
+        );
+        entityResearchUI.startPauseButton = CreateButton(
+            "Btn_Civ3EntityResearchStart", entityRoot, "INICIAR INVESTIGACIÓN",
+            new Vector2(0.5f, 0.545f), new Vector2(0.28f, 0.06f)
+        );
+        entityResearchUI.resonantExpeditionButton = CreateButton(
+            "Btn_Civ3PactResonantExpedition", entityRoot, "EXPEDICION",
+            new Vector2(0.14f, 0.495f), new Vector2(0.16f, 0.045f)
+        );
+        entityResearchUI.endlessArchiveButton = CreateButton(
+            "Btn_Civ3PactEndlessArchive", entityRoot, "ARCHIVO",
+            new Vector2(0.32f, 0.495f), new Vector2(0.16f, 0.045f)
+        );
+        entityResearchUI.sharedMemoryButton = CreateButton(
+            "Btn_Civ3PactSharedMemory", entityRoot, "MEMORIA",
+            new Vector2(0.5f, 0.495f), new Vector2(0.16f, 0.045f)
+        );
+        entityResearchUI.modulatorResonanceButton = CreateButton(
+            "Btn_Civ3PactModulatorResonance", entityRoot, "MODULADOR",
+            new Vector2(0.68f, 0.495f), new Vector2(0.16f, 0.045f)
+        );
+        entityResearchUI.firstThresholdChronicleButton = CreateButton(
+            "Btn_Civ3PactFirstThresholdChronicle", entityRoot, "UMBRAL P1",
+            new Vector2(0.86f, 0.495f), new Vector2(0.16f, 0.045f)
+        );
+        entityResearchUI.resonantExpeditionButton.gameObject.SetActive(false);
+        entityResearchUI.endlessArchiveButton.gameObject.SetActive(false);
+        entityResearchUI.sharedMemoryButton.gameObject.SetActive(false);
+        entityResearchUI.modulatorResonanceButton.gameObject.SetActive(false);
+        entityResearchUI.firstThresholdChronicleButton.gameObject.SetActive(false);
+        entityResearchUI.milestoneText = CreateText(
+            "Civ3EntityResearchMilestone", entityRoot,
+            "PRÓXIMO HITO 30%", 19f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.455f),
+            new Vector2(0.9f, 0.075f)
+        );
+        entityResearchUI.completeMilestoneButton = CreateButton(
+            "Btn_Civ3EntityResearchMilestone", entityRoot, "COMPLETAR HITO",
+            new Vector2(0.5f, 0.385f), new Vector2(0.24f, 0.055f)
+        );
+        entityResearchUI.resourcesText = CreateText(
+            "Civ3EntityResearchResources", entityRoot,
+            "RECURSOS Y DATOS", 18f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.295f),
+            new Vector2(0.9f, 0.09f)
+        );
+        entityResearchUI.entityKnowledgeText = CreateText(
+            "Civ3EntityKnowledge", entityRoot,
+            "CONOCIMIENTO DEL ENTE: 0/6", 20f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.205f),
+            new Vector2(0.84f, 0.055f)
+        );
+        entityResearchUI.lastResultText = CreateText(
+            "Civ3EntityResearchLastResult", entityRoot,
+            "La investigación todavía no ha comenzado.", 17f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.135f),
+            new Vector2(0.68f, 0.06f)
+        );
+        entityResearchUI.backToArchaeologyButton = CreateButton(
+            "Btn_Civ3BackToArchaeology", entityRoot, "VOLVER A ARQUEOLOGÍA",
+            new Vector2(0.2f, 0.055f), new Vector2(0.28f, 0.055f)
+        );
+        entityResearchUI.backToMapButton = CreateButton(
+            "Btn_Civ3EntityBackToMap", entityRoot, "VOLVER AL MAPA",
+            new Vector2(0.8f, 0.055f), new Vector2(0.22f, 0.055f)
+        );
+        civilization3UI.entityResearchSectionRoot.SetActive(false);
+
+        EditorUtility.SetDirty(civilization3UI);
+        EditorUtility.SetDirty(archiveUI);
+        EditorUtility.SetDirty(entityResearchUI);
     }
 
     private static void BuildCivilization1PlaceholderLegacy(Dimension2PanelUI panel)
@@ -1313,6 +2471,97 @@ public static class Dimension2Block1UISetup
 
         Debug.LogError("[D2 Block 1] Referencia faltante: " + label);
         return false;
+    }
+
+    private static bool ValidateDirectChildrenInside(
+        RectTransform container,
+        string label
+    )
+    {
+        if (container == null || container.rect.width <= 0f || container.rect.height <= 0f)
+        {
+            Debug.LogError("[D2 Layout] Contenedor sin tamaño válido: " + label + ".");
+            return false;
+        }
+
+        Rect bounds = container.rect;
+        Vector3[] worldCorners = new Vector3[4];
+        const float tolerance = 1f;
+        bool valid = true;
+        for (int i = 0; i < container.childCount; i++)
+        {
+            RectTransform child = container.GetChild(i) as RectTransform;
+            if (child == null)
+                continue;
+
+            child.GetWorldCorners(worldCorners);
+            for (int cornerIndex = 0; cornerIndex < worldCorners.Length; cornerIndex++)
+                worldCorners[cornerIndex] = container.InverseTransformPoint(worldCorners[cornerIndex]);
+
+            float minX = Mathf.Min(worldCorners[0].x, worldCorners[2].x);
+            float maxX = Mathf.Max(worldCorners[0].x, worldCorners[2].x);
+            float minY = Mathf.Min(worldCorners[0].y, worldCorners[2].y);
+            float maxY = Mathf.Max(worldCorners[0].y, worldCorners[2].y);
+            if (minX < bounds.xMin - tolerance || maxX > bounds.xMax + tolerance ||
+                minY < bounds.yMin - tolerance || maxY > bounds.yMax + tolerance)
+            {
+                Debug.LogError(
+                    "[D2 Layout] " + label + "/" + child.name +
+                    " queda fuera de su panel."
+                );
+                valid = false;
+            }
+        }
+
+        if (valid)
+            Debug.Log("[D2 Layout] " + label + ": controles dentro del panel.");
+        return valid;
+    }
+
+    private static bool ValidateDimension2Block5FPresentation(Dimension2PanelUI panel)
+    {
+        if (panel == null)
+            return false;
+        bool valid = true;
+        string[] damagedMarkers = { "Ã", "Â", "�" };
+        string[] unaccentedTokens =
+        {
+            "CONTENCION", "INVESTIGACION", "MEJORAR LINEA", "NIVEL MAXIMO"
+        };
+        TMP_Text[] texts = panel.GetComponentsInChildren<TMP_Text>(true);
+        foreach (TMP_Text textComponent in texts)
+        {
+            if (textComponent == null || string.IsNullOrEmpty(textComponent.text))
+                continue;
+            foreach (string marker in damagedMarkers)
+            {
+                if (!textComponent.text.Contains(marker))
+                    continue;
+                Debug.LogError(
+                    "[D2 Block 5F] Texto dañado en " + textComponent.name +
+                    ": " + textComponent.text
+                );
+                valid = false;
+            }
+            foreach (string token in unaccentedTokens)
+            {
+                if (!textComponent.text.Contains(token))
+                    continue;
+                Debug.LogError(
+                    "[D2 Block 5F] Texto sin localizar en " + textComponent.name +
+                    ": " + token
+                );
+                valid = false;
+            }
+        }
+        if (valid)
+        {
+            Debug.Log(
+                "[D2 Block 5F] VALIDACIÓN DE PRESENTACIÓN OK: referencias, " +
+                "límites de panel, acentos y textos principales."
+            );
+        }
+        return valid;
     }
 
     private static bool ValidateCivilization1Logic(GameState gameState)
@@ -2004,6 +3253,2660 @@ public static class Dimension2Block1UISetup
             gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
             gameState.EnsureDimension2State();
         }
+    }
+
+    private static bool ValidateCivilization2Block3ALogic(GameState gameState)
+    {
+        string originalStateJson = JsonUtility.ToJson(gameState.dimension2);
+        bool originalDimension2Unlocked = gameState.dimension02Unlocked;
+
+        try
+        {
+            gameState.dimension02Unlocked = true;
+            Dimension2System.ResetState(gameState);
+            gameState.dimension2.civilization2Unlocked = true;
+            D2Civilization2State state = gameState.dimension2.civilization2;
+            D2Civilization2System.EnsureState(state);
+
+            if (state.membersAvailable != D2Civilization2System.InitialMembers ||
+                D2Civilization2System.GetTotalMembers(state) !=
+                D2Civilization2System.InitialMembers)
+            {
+                return FailCivilization2Validation("paquete inicial de Miembros incorrecto");
+            }
+
+            if (state.regions == null ||
+                state.regions.Count != D2Civilization2System.RegionIds.Length)
+            {
+                return FailCivilization2Validation("catálogo regional incorrecto");
+            }
+
+            D2RegionState region1 = D2Civilization2System.GetRegion(
+                state,
+                D2Civilization2System.Region1Id
+            );
+            if (region1 == null || !region1.unlocked ||
+                region1.dominance != D2Civilization2System.InitialDominance ||
+                region1.threat != D2Civilization2System.InitialThreat ||
+                D2Civilization2System.GetTotalDominance(state) != 100.0)
+            {
+                return FailCivilization2Validation("estado inicial de Región 1 incorrecto");
+            }
+
+            if (D2Civilization2System.TryAssignMembers(
+                gameState,
+                D2Civilization2System.Region2Id,
+                1L
+            ))
+            {
+                return FailCivilization2Validation("una región bloqueada aceptó Miembros");
+            }
+
+            if (!D2Civilization2System.TryAssignMembers(
+                    gameState,
+                    D2Civilization2System.Region1Id,
+                    4L
+                ) ||
+                state.membersAvailable != 6L || region1.membersAssigned != 4L ||
+                D2Civilization2System.GetTotalMembers(state) !=
+                D2Civilization2System.InitialMembers)
+            {
+                return FailCivilization2Validation("asignación exclusiva a Región 1 incorrecta");
+            }
+
+            if (!D2Civilization2System.TryAssignAllMembers(
+                    gameState,
+                    D2Civilization2System.Region1Id
+                ) ||
+                state.membersAvailable != 0L || region1.membersAssigned != 10L)
+            {
+                return FailCivilization2Validation("asignación total incorrecta");
+            }
+
+            if (!D2Civilization2System.TryReleaseMembers(
+                    gameState,
+                    D2Civilization2System.Region1Id,
+                    3L
+                ) ||
+                state.membersAvailable != 3L || region1.membersAssigned != 7L ||
+                !D2Civilization2System.TryReleaseAllMembers(
+                    gameState,
+                    D2Civilization2System.Region1Id
+                ) ||
+                state.membersAvailable != 10L || region1.membersAssigned != 0L)
+            {
+                return FailCivilization2Validation("retorno de Miembros incorrecto");
+            }
+
+            string serialized = JsonUtility.ToJson(state);
+            D2Civilization2State restored = JsonUtility.FromJson<D2Civilization2State>(serialized);
+            if (!D2Civilization2System.ValidateState(restored, out _ ) ||
+                restored.membersAvailable != 10L || restored.regions.Count != 4)
+            {
+                return FailCivilization2Validation("serialización de estado incorrecta");
+            }
+
+            D2Civilization2State migrated = JsonUtility.FromJson<D2Civilization2State>(
+                "{\"progressVersion\":1}"
+            );
+            D2Civilization2System.EnsureState(migrated);
+            if (migrated.membersAvailable != D2Civilization2System.InitialMembers ||
+                migrated.progressVersion != Dimension2System.Civilization2ProgressVersion)
+            {
+                return FailCivilization2Validation("migración desde el estado reservado incorrecta");
+            }
+
+            Debug.Log(
+                "[D2 Block 3A] VALIDACIÓN LÓGICA OK: Miembros iniciales, catálogo " +
+                "regional, asignaciones exclusivas, migración y serialización."
+            );
+            return true;
+        }
+        finally
+        {
+            gameState.dimension02Unlocked = originalDimension2Unlocked;
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
+            gameState.EnsureDimension2State();
+        }
+    }
+
+    private static bool FailCivilization2Validation(string reason)
+    {
+        Debug.LogError("[D2 Block 3A] Validación lógica fallida: " + reason + ".");
+        return false;
+    }
+
+    private static bool ValidateCivilization2Block3BLogic(GameState gameState)
+    {
+        string originalStateJson = JsonUtility.ToJson(gameState.dimension2);
+        bool originalDimension2Unlocked = gameState.dimension02Unlocked;
+
+        try
+        {
+            gameState.dimension02Unlocked = true;
+            Dimension2System.ResetState(gameState);
+            gameState.dimension2.civilization2Unlocked = true;
+            D2Civilization2State state = gameState.dimension2.civilization2;
+            state.membersAvailable = 50L;
+            state.totalMembersRecruited = 50L;
+            D2Civilization2System.EnsureState(state);
+
+            D2RegionState region = D2Civilization2System.GetRegion(
+                state,
+                D2Civilization2System.Region1Id
+            );
+            if (region == null || region.operations == null ||
+                region.operations.Count != D2Civilization2System.OperationIds.Length)
+            {
+                return FailCivilization2Block3BValidation("catálogo de operaciones incorrecto");
+            }
+
+            if (!D2Civilization2System.TryAssignAllMembers(
+                    gameState,
+                    D2Civilization2System.Region1Id
+                ) ||
+                region.membersAssigned != 50L || state.membersAvailable != 0L)
+            {
+                return FailCivilization2Block3BValidation("asignación regional previa incorrecta");
+            }
+
+            bool assignedAllOperations =
+                D2Civilization2System.TryAssignMembersToOperation(
+                    gameState, D2Civilization2System.Region1Id,
+                    D2Civilization2System.RescueOperationId, 5L
+                ) &&
+                D2Civilization2System.TryAssignMembersToOperation(
+                    gameState, D2Civilization2System.Region1Id,
+                    D2Civilization2System.ProtectionOperationId, 5L
+                ) &&
+                D2Civilization2System.TryAssignMembersToOperation(
+                    gameState, D2Civilization2System.Region1Id,
+                    D2Civilization2System.EspionageOperationId, 10L
+                ) &&
+                D2Civilization2System.TryAssignMembersToOperation(
+                    gameState, D2Civilization2System.Region1Id,
+                    D2Civilization2System.SabotageOperationId, 20L
+                );
+            if (!assignedAllOperations ||
+                D2Civilization2System.GetMembersAssignedToOperations(region) != 40L ||
+                D2Civilization2System.GetRegionIdleMembers(region) != 10L)
+            {
+                return FailCivilization2Block3BValidation("simultaneidad o exclusividad incorrecta");
+            }
+
+            foreach (string operationId in D2Civilization2System.OperationIds)
+            {
+                if (!D2Civilization2System.IsOperationActive(
+                    D2Civilization2System.GetOperation(region, operationId)
+                ))
+                {
+                    return FailCivilization2Block3BValidation(
+                        "una operación con requisito completo quedó inactiva"
+                    );
+                }
+            }
+
+            long totalBeforeProgress = D2Civilization2System.GetTotalMembers(state);
+            D2Civilization2System.ApplyOfflineProgress(gameState, 120.0);
+            if (System.Math.Abs(region.dominance - 99.02) > 0.000001 ||
+                System.Math.Abs(region.threat - 1.40) > 0.000001 ||
+                state.membersAvailable != 1L ||
+                D2Civilization2System.GetTotalMembers(state) != totalBeforeProgress + 1L)
+            {
+                return FailCivilization2Block3BValidation(
+                    "progreso simultáneo online/offline incorrecto"
+                );
+            }
+
+            if (!D2Civilization2System.TryReleaseAllMembersFromOperation(
+                    gameState,
+                    D2Civilization2System.Region1Id,
+                    D2Civilization2System.RescueOperationId
+                ) ||
+                D2Civilization2System.GetRegionIdleMembers(region) != 15L ||
+                !D2Civilization2System.TryReleaseAllMembers(
+                    gameState,
+                    D2Civilization2System.Region1Id
+                ) ||
+                region.membersAssigned != 35L || state.membersAvailable != 16L)
+            {
+                return FailCivilization2Block3BValidation(
+                    "retorno exclusivo desde operaciones o región incorrecto"
+                );
+            }
+
+            string serialized = JsonUtility.ToJson(state);
+            D2Civilization2State restored = JsonUtility.FromJson<D2Civilization2State>(serialized);
+            if (!D2Civilization2System.ValidateState(restored, out _) ||
+                D2Civilization2System.GetOperation(
+                    D2Civilization2System.GetRegion(
+                        restored,
+                        D2Civilization2System.Region1Id
+                    ),
+                    D2Civilization2System.SabotageOperationId
+                ).membersAssigned != 20L)
+            {
+                return FailCivilization2Block3BValidation(
+                    "serialización de operaciones incorrecta"
+                );
+            }
+
+            Debug.Log(
+                "[D2 Block 3B] VALIDACIÓN LÓGICA OK: cuatro operaciones " +
+                "simultáneas, asignación exclusiva, Dominio, Amenaza, producción, " +
+                "progreso offline y serialización."
+            );
+            return true;
+        }
+        finally
+        {
+            gameState.dimension02Unlocked = originalDimension2Unlocked;
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
+            gameState.EnsureDimension2State();
+        }
+    }
+
+    private static bool FailCivilization2Block3BValidation(string reason)
+    {
+        Debug.LogError("[D2 Block 3B] Validación lógica fallida: " + reason + ".");
+        return false;
+    }
+
+    private static bool ValidateCivilization2Block3CLogic(GameState gameState)
+    {
+        string originalStateJson = JsonUtility.ToJson(gameState.dimension2);
+        bool originalDimension2Unlocked = gameState.dimension02Unlocked;
+
+        try
+        {
+            gameState.dimension02Unlocked = true;
+            Dimension2System.ResetState(gameState);
+            gameState.dimension2.civilization2Unlocked = true;
+            D2Civilization2State state = gameState.dimension2.civilization2;
+            state.membersAvailable = 100L;
+            state.totalMembersRecruited = 100L;
+            D2Civilization2System.EnsureState(state);
+
+            D2RegionState region = D2Civilization2System.GetRegion(
+                state,
+                D2Civilization2System.Region1Id
+            );
+            if (!D2Civilization2System.TryAssignAllMembers(
+                    gameState,
+                    D2Civilization2System.Region1Id
+                ) ||
+                !D2Civilization2System.TryAssignMembersToOperation(
+                    gameState, D2Civilization2System.Region1Id,
+                    D2Civilization2System.ProtectionOperationId, 5L
+                ) ||
+                !D2Civilization2System.TryAssignMembersToOperation(
+                    gameState, D2Civilization2System.Region1Id,
+                    D2Civilization2System.EspionageOperationId, 10L
+                ) ||
+                !D2Civilization2System.TryAssignMembersToOperation(
+                    gameState, D2Civilization2System.Region1Id,
+                    D2Civilization2System.SabotageOperationId, 20L
+                ))
+            {
+                return FailCivilization2Block3CValidation(
+                    "preparación de operaciones para Represalia incorrecta"
+                );
+            }
+
+            region.coverage = 20.0;
+            region.threat = 99.4;
+            D2Civilization2System.ApplyOfflineProgress(gameState, 120.0);
+
+            if (state.totalReprisals != 1L || region.totalReprisals != 1L ||
+                state.controlFragments != D2Civilization2System.ControlFragmentsPerReprisal ||
+                D2Civilization2System.GetTotalMembers(state) != 98L ||
+                region.membersAssigned != 98L)
+            {
+                return FailCivilization2Block3CValidation(
+                    "pérdidas, conteo o Fragmentos de Represalia incorrectos"
+                );
+            }
+
+            if (region.coverage < 10.0 || region.coverage > 11.0 ||
+                region.threat < 25.0 || region.threat > 26.0 ||
+                System.Math.Abs(
+                    region.nextReprisalEspionageReduction -
+                    D2Civilization2System.EspionageReprisalReduction
+                ) > 0.000001)
+            {
+                return FailCivilization2Block3CValidation(
+                    "Cobertura, reinicio de Amenaza o protección de Espionaje incorrectos"
+                );
+            }
+
+            if (string.IsNullOrEmpty(region.weakenedOperationId) ||
+                region.weakenedOperationRemainingSeconds < 131.9 ||
+                region.weakenedOperationRemainingSeconds > 132.1 ||
+                D2Civilization2System.GetOperation(
+                    region,
+                    region.weakenedOperationId
+                ) == null)
+            {
+                return FailCivilization2Block3CValidation(
+                    "selección o duración del debilitamiento incorrecta"
+                );
+            }
+
+            if (System.Math.Abs(
+                    D2Civilization2System.GetExpectedReprisalLossFraction(state, region) -
+                    D2Civilization2System.MinimumReprisalLossFraction
+                ) > 0.000001)
+            {
+                return FailCivilization2Block3CValidation(
+                    "límite mínimo de pérdidas incorrecto"
+                );
+            }
+
+            D2Civilization2System.ApplyOfflineProgress(gameState, 132.1);
+            if (!string.IsNullOrEmpty(region.weakenedOperationId) ||
+                region.weakenedOperationRemainingSeconds != 0.0 ||
+                state.totalReprisals != 1L)
+            {
+                return FailCivilization2Block3CValidation(
+                    "finalización offline del debilitamiento incorrecta"
+                );
+            }
+
+            string serialized = JsonUtility.ToJson(state);
+            D2Civilization2State restored = JsonUtility.FromJson<D2Civilization2State>(serialized);
+            if (!D2Civilization2System.ValidateState(restored, out _) ||
+                restored.controlFragments != 3L || restored.totalReprisals != 1L)
+            {
+                return FailCivilization2Block3CValidation(
+                    "serialización de Represalias incorrecta"
+                );
+            }
+
+            Debug.Log(
+                "[D2 Block 3C] VALIDACIÓN LÓGICA OK: Cobertura, Espionaje, " +
+                "Represalias, pérdidas, debilitamiento, Fragmentos, progreso " +
+                "offline y serialización."
+            );
+            return true;
+        }
+        finally
+        {
+            gameState.dimension02Unlocked = originalDimension2Unlocked;
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
+            gameState.EnsureDimension2State();
+        }
+    }
+
+    private static bool FailCivilization2Block3CValidation(string reason)
+    {
+        Debug.LogError("[D2 Block 3C] Validación lógica fallida: " + reason + ".");
+        return false;
+    }
+
+    private static bool ValidateCivilization2Block3DLogic(GameState gameState)
+    {
+        string originalStateJson = JsonUtility.ToJson(gameState.dimension2);
+        bool originalDimension2Unlocked = gameState.dimension02Unlocked;
+
+        try
+        {
+            gameState.dimension02Unlocked = true;
+            Dimension2System.ResetState(gameState);
+            gameState.dimension2.civilization2Unlocked = true;
+            D2Civilization2State state = gameState.dimension2.civilization2;
+            state.membersAvailable = 30L;
+            state.totalMembersRecruited = 30L;
+            D2Civilization2System.EnsureState(state);
+
+            D2RegionState region1 = D2Civilization2System.GetRegion(
+                state,
+                D2Civilization2System.Region1Id
+            );
+            D2RegionState region2 = D2Civilization2System.GetRegion(
+                state,
+                D2Civilization2System.Region2Id
+            );
+            D2RegionState region3 = D2Civilization2System.GetRegion(
+                state,
+                D2Civilization2System.Region3Id
+            );
+            if (!D2Civilization2System.TryAssignAllMembers(
+                    gameState,
+                    D2Civilization2System.Region1Id
+                ) ||
+                !D2Civilization2System.TryAssignMembersToOperation(
+                    gameState,
+                    D2Civilization2System.Region1Id,
+                    D2Civilization2System.SabotageOperationId,
+                    20L
+                ))
+            {
+                return FailCivilization2Block3DValidation(
+                    "preparación regional para desbloqueos incorrecta"
+                );
+            }
+
+            region1.dominance = 80.05;
+            D2Civilization2System.ApplyOfflineProgress(gameState, 20.0);
+            if (!region2.unlocked || region3.unlocked ||
+                System.Math.Abs(region2.dominance - 100.0) > 0.000001 ||
+                D2Civilization2System.GetTotalDominance(state) <= 80.0)
+            {
+                return FailCivilization2Block3DValidation(
+                    "desbloqueo offline o repunte de Región 2 incorrecto"
+                );
+            }
+
+            if (!D2Civilization2System.TrySelectRegion(
+                    gameState,
+                    D2Civilization2System.Region2Id
+                ) ||
+                state.selectedRegionId != D2Civilization2System.Region2Id ||
+                D2Civilization2System.TrySelectRegion(
+                    gameState,
+                    D2Civilization2System.Region4Id
+                ))
+            {
+                return FailCivilization2Block3DValidation(
+                    "selección de regiones desbloqueadas incorrecta"
+                );
+            }
+
+            region1.dominance = 20.10;
+            region2.dominance = 100.0;
+            D2Civilization2System.ApplyOfflineProgress(gameState, 20.0);
+            double dominanceAfterRegion3 = D2Civilization2System.GetTotalDominance(state);
+            if (!region3.unlocked ||
+                System.Math.Abs(region3.dominance - 100.0) > 0.000001 ||
+                dominanceAfterRegion3 < 73.2 || dominanceAfterRegion3 > 73.5)
+            {
+                return FailCivilization2Block3DValidation(
+                    "desbloqueo offline o repunte de Región 3 incorrecto"
+                );
+            }
+
+            if (!D2Civilization2System.TrySelectRegion(
+                    gameState,
+                    D2Civilization2System.Region3Id
+                ) ||
+                D2Civilization2System.GetSelectedRegion(state) != region3)
+            {
+                return FailCivilization2Block3DValidation(
+                    "selección de Región 3 incorrecta"
+                );
+            }
+
+            region1.dominance = 100.0;
+            region2.dominance = 100.0;
+            region3.dominance = 100.0;
+            D2Civilization2System.EnsureState(state);
+            if (!region2.unlocked || !region3.unlocked ||
+                D2Civilization2System.GetTotalDominance(state) != 100.0)
+            {
+                return FailCivilization2Block3DValidation(
+                    "permanencia de desbloqueos o promedio total incorrecto"
+                );
+            }
+
+            string serialized = JsonUtility.ToJson(state);
+            D2Civilization2State restored = JsonUtility.FromJson<D2Civilization2State>(serialized);
+            D2Civilization2System.EnsureState(restored);
+            if (!D2Civilization2System.ValidateState(restored, out _) ||
+                !D2Civilization2System.GetRegion(
+                    restored,
+                    D2Civilization2System.Region2Id
+                ).unlocked ||
+                !D2Civilization2System.GetRegion(
+                    restored,
+                    D2Civilization2System.Region3Id
+                ).unlocked ||
+                restored.selectedRegionId != D2Civilization2System.Region3Id)
+            {
+                return FailCivilization2Block3DValidation(
+                    "serialización de regiones o selección incorrecta"
+                );
+            }
+
+            Debug.Log(
+                "[D2 Block 3D] VALIDACIÓN LÓGICA OK: Región 2, Región 3, " +
+                "promedio, repunte, selección, permanencia, offline y serialización."
+            );
+            return true;
+        }
+        finally
+        {
+            gameState.dimension02Unlocked = originalDimension2Unlocked;
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
+            gameState.EnsureDimension2State();
+        }
+    }
+
+    private static bool FailCivilization2Block3DValidation(string reason)
+    {
+        Debug.LogError("[D2 Block 3D] Validación lógica fallida: " + reason + ".");
+        return false;
+    }
+
+    private static bool ValidateCivilization2Block3ELogic(GameState gameState)
+    {
+        string originalStateJson = JsonUtility.ToJson(gameState.dimension2);
+        bool originalDimension2Unlocked = gameState.dimension02Unlocked;
+
+        try
+        {
+            gameState.dimension02Unlocked = true;
+            Dimension2System.ResetState(gameState);
+            gameState.dimension2.civilization2Unlocked = true;
+            D2Civilization2State state = gameState.dimension2.civilization2;
+            state.membersAvailable = 120L;
+            state.totalMembersRecruited = 120L;
+            state.controlFragments = 30L;
+            D2Civilization2System.EnsureState(state);
+
+            if (!D2Civilization2System.TryUpgradeResistance(gameState, D2Civilization2System.RescueUpgradeId) ||
+                !D2Civilization2System.TryUpgradeResistance(gameState, D2Civilization2System.RescueUpgradeId) ||
+                !D2Civilization2System.TryUpgradeResistance(gameState, D2Civilization2System.RescueUpgradeId) ||
+                D2Civilization2System.GetUpgradeLevel(state, D2Civilization2System.RescueUpgradeId) != 3 ||
+                state.controlFragments != 12L)
+            {
+                return FailCivilization2Block3EValidation("niveles o costes 3/6/9 de mejoras incorrectos");
+            }
+
+            if (!D2Civilization2System.TryActivateResistancePact(gameState, D2Civilization2System.HiddenSheltersPactId) ||
+                !D2Civilization2System.TryActivateResistancePact(gameState, D2Civilization2System.SilencedBellsPactId) ||
+                !D2Civilization2System.TryActivateResistancePact(gameState, D2Civilization2System.KnivesPactId) ||
+                state.membersAvailable != 25L ||
+                D2Civilization2System.GetMembersAssignedToPacts(state) != 95L ||
+                D2Civilization2System.GetTotalMembers(state) != 120L)
+            {
+                return FailCivilization2Block3EValidation("activación simultánea o conservación inicial incorrecta");
+            }
+
+            D2RegionState region = D2Civilization2System.GetRegion(state, D2Civilization2System.Region1Id);
+            double protectedLoss = D2Civilization2System.GetExpectedReprisalLossFraction(state, region);
+            if (System.Math.Abs(protectedLoss - 0.064) > 0.000001)
+                return FailCivilization2Block3EValidation("beneficio de Refugios Ocultos incorrecto");
+
+            D2Civilization2System.ApplyOfflineProgress(gameState, 120.0);
+            if (D2Civilization2System.GetExhaustedMembers(state) != 3L ||
+                D2Civilization2System.GetMembersAssignedToPacts(state) != 92L ||
+                D2Civilization2System.GetTotalMembers(state) != 120L)
+            {
+                return FailCivilization2Block3EValidation("desgaste offline o conservación de Miembros incorrecta");
+            }
+
+            if (!D2Civilization2System.TryReinforceResistancePact(gameState, D2Civilization2System.KnivesPactId, 1L) ||
+                !D2Civilization2System.TryCancelResistancePact(gameState, D2Civilization2System.HiddenSheltersPactId) ||
+                !D2Civilization2System.TryCancelResistancePact(gameState, D2Civilization2System.SilencedBellsPactId) ||
+                !D2Civilization2System.TryCancelResistancePact(gameState, D2Civilization2System.KnivesPactId) ||
+                state.hiddenSheltersPenaltySeconds != 300.0 ||
+                state.silencedBellsPenaltySeconds != 300.0 ||
+                state.knivesPenaltySeconds != 300.0 ||
+                D2Civilization2System.GetTotalMembers(state) != 120L)
+            {
+                return FailCivilization2Block3EValidation("refuerzo, incumplimiento o penalizaciones incorrectos");
+            }
+
+            D2Civilization2System.ApplyOfflineProgress(gameState, 300.0);
+            if (D2Civilization2System.GetExhaustedMembers(state) != 0L ||
+                state.hiddenSheltersPenaltySeconds != 0.0 ||
+                state.silencedBellsPenaltySeconds != 0.0 ||
+                state.knivesPenaltySeconds != 0.0 ||
+                state.membersAvailable != 120L ||
+                D2Civilization2System.GetTotalMembers(state) != 120L)
+            {
+                return FailCivilization2Block3EValidation("recuperación o vencimiento offline a 5 minutos incorrecto");
+            }
+
+            string serialized = JsonUtility.ToJson(state);
+            D2Civilization2State restored = JsonUtility.FromJson<D2Civilization2State>(serialized);
+            D2Civilization2System.EnsureState(restored);
+            if (!D2Civilization2System.ValidateState(restored, out _) ||
+                D2Civilization2System.GetUpgradeLevel(restored, D2Civilization2System.RescueUpgradeId) != 3 ||
+                D2Civilization2System.GetTotalMembers(restored) != 120L)
+            {
+                return FailCivilization2Block3EValidation("serialización de mejoras, pactos o recuperación incorrecta");
+            }
+
+            Debug.Log(
+                "[D2 Block 3E] VALIDACIÓN LÓGICA OK: mejoras, tres pactos simultáneos, " +
+                "beneficios, refuerzo, desgaste, recuperación, incumplimiento, " +
+                "penalizaciones, offline y serialización."
+            );
+            return true;
+        }
+        finally
+        {
+            gameState.dimension02Unlocked = originalDimension2Unlocked;
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
+            gameState.EnsureDimension2State();
+        }
+    }
+
+    private static bool FailCivilization2Block3EValidation(string reason)
+    {
+        Debug.LogError("[D2 Block 3E] Validación lógica fallida: " + reason + ".");
+        return false;
+    }
+
+    private static bool ValidateCivilization2Block3FLogic(GameState gameState)
+    {
+        string originalStateJson = JsonUtility.ToJson(gameState.dimension2);
+        bool originalDimension2Unlocked = gameState.dimension02Unlocked;
+
+        try
+        {
+            gameState.dimension02Unlocked = true;
+            Dimension2System.ResetState(gameState);
+            gameState.dimension2.civilization2Unlocked = true;
+            D2Civilization2State state = gameState.dimension2.civilization2;
+            state.membersAvailable = 100L;
+            state.totalMembersRecruited = 100L;
+
+            foreach (string regionId in new[]
+            {
+                D2Civilization2System.Region1Id,
+                D2Civilization2System.Region2Id,
+                D2Civilization2System.Region3Id
+            })
+            {
+                D2RegionState region = D2Civilization2System.GetRegion(state, regionId);
+                region.unlocked = true;
+                region.dominance = 30.0;
+            }
+
+            gameState.EnsureDimension2State();
+            if (!state.alertActive || !state.containmentAvailable ||
+                !gameState.dimension2.civilization3Unlocked ||
+                D2Civilization2System.GetTotalDominance(state) != 30.0)
+            {
+                return FailCivilization2Block3FValidation(
+                    "activación permanente, Contención o desbloqueo de Civilización 3 incorrectos"
+                );
+            }
+
+            foreach (string regionId in new[]
+            {
+                D2Civilization2System.Region1Id,
+                D2Civilization2System.Region2Id,
+                D2Civilization2System.Region3Id
+            })
+            {
+                D2RegionState region = D2Civilization2System.GetRegion(state, regionId);
+                region.membersAssigned = 5L;
+                D2Civilization2System.GetOperation(
+                    region,
+                    D2Civilization2System.ProtectionOperationId
+                ).membersAssigned = 5L;
+            }
+            state.alertMarkProgressSeconds = 599.0;
+            D2Civilization2System.ApplyOfflineProgress(gameState, 1.0);
+            if (state.totalAlertMarks != 1L || CountAlertMarkedRegions(state) != 0L)
+            {
+                return FailCivilization2Block3FValidation(
+                    "mitigación de marca mediante Protección incorrecta"
+                );
+            }
+
+            foreach (string regionId in new[]
+            {
+                D2Civilization2System.Region1Id,
+                D2Civilization2System.Region2Id,
+                D2Civilization2System.Region3Id
+            })
+            {
+                D2RegionState region = D2Civilization2System.GetRegion(state, regionId);
+                region.membersAssigned = 0L;
+                D2Civilization2System.GetOperation(
+                    region,
+                    D2Civilization2System.ProtectionOperationId
+                ).membersAssigned = 0L;
+            }
+
+            D2RegionState region1 = D2Civilization2System.GetRegion(
+                state,
+                D2Civilization2System.Region1Id
+            );
+            region1.membersAssigned = 20L;
+            region1.threat = 0.0;
+            D2Civilization2System.GetOperation(
+                region1,
+                D2Civilization2System.SabotageOperationId
+            ).membersAssigned = 20L;
+            D2Civilization2System.ApplyOfflineProgress(gameState, 60.0);
+            if (region1.threat < 0.899 || region1.threat > 0.901)
+            {
+                return FailCivilization2Block3FValidation(
+                    "multiplicador de +50% de Amenaza durante Alerta incorrecto"
+                );
+            }
+
+            D2Civilization2System.GetOperation(
+                region1,
+                D2Civilization2System.SabotageOperationId
+            ).membersAssigned = 0L;
+            region1.membersAssigned = 0L;
+            state.alertMarkProgressSeconds = 599.0;
+            D2Civilization2System.ApplyOfflineProgress(gameState, 1.0);
+            D2RegionState markedRegion = FindAlertMarkedRegion(state);
+            if (state.totalAlertMarks != 2L || markedRegion == null ||
+                CountAlertMarkedRegions(state) != 1L)
+            {
+                return FailCivilization2Block3FValidation(
+                    "marca no acumulable o selección de región desbloqueada incorrecta"
+                );
+            }
+
+            markedRegion.membersAssigned = 100L;
+            markedRegion.threat = 100.0;
+            double markedLoss = D2Civilization2System.GetExpectedReprisalLossFraction(
+                state,
+                markedRegion
+            );
+            state.controlFragments = 0L;
+            D2Civilization2System.ApplyOfflineProgress(gameState, 0.1);
+            if (System.Math.Abs(markedLoss - 0.11) > 0.000001 ||
+                markedRegion.alertMarked || state.controlFragments != 6L ||
+                markedRegion.membersAssigned != 89L)
+            {
+                return FailCivilization2Block3FValidation(
+                    "pérdida marcada, consumo de marca o recompensa de 6 Fragmentos incorrectos"
+                );
+            }
+
+            foreach (D2RegionState region in state.regions)
+                if (region != null && region.regionId != D2Civilization2System.Region4Id)
+                    region.dominance = 100.0;
+            gameState.EnsureDimension2State();
+            if (!state.alertActive || !gameState.dimension2.civilization3Unlocked)
+            {
+                return FailCivilization2Block3FValidation(
+                    "Alerta o desbloqueo dejaron de ser permanentes"
+                );
+            }
+
+            string serialized = JsonUtility.ToJson(state);
+            D2Civilization2State restored = JsonUtility.FromJson<D2Civilization2State>(serialized);
+            D2Civilization2System.EnsureState(restored);
+            if (!D2Civilization2System.ValidateState(restored, out _) ||
+                !restored.alertActive || !restored.containmentAvailable ||
+                restored.totalAlertMarks != 2L)
+            {
+                return FailCivilization2Block3FValidation(
+                    "serialización de Alerta y marcas incorrecta"
+                );
+            }
+
+            Debug.Log(
+                "[D2 Block 3F] VALIDACIÓN LÓGICA OK: umbral 30%, Alerta permanente, " +
+                "Amenaza +50%, seis Fragmentos, marcas, Protección, consumo, " +
+                "Civilización 3, Contención, offline y serialización."
+            );
+            return true;
+        }
+        finally
+        {
+            gameState.dimension02Unlocked = originalDimension2Unlocked;
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
+            gameState.EnsureDimension2State();
+        }
+    }
+
+    private static long CountAlertMarkedRegions(D2Civilization2State state)
+    {
+        long count = 0L;
+        foreach (D2RegionState region in state.regions)
+            if (region != null && region.alertMarked) count++;
+        return count;
+    }
+
+    private static D2RegionState FindAlertMarkedRegion(D2Civilization2State state)
+    {
+        foreach (D2RegionState region in state.regions)
+            if (region != null && region.alertMarked) return region;
+        return null;
+    }
+
+    private static bool FailCivilization2Block3FValidation(string reason)
+    {
+        Debug.LogError("[D2 Block 3F] Validación lógica fallida: " + reason + ".");
+        return false;
+    }
+
+    private static bool ValidateCivilization2Block3GLogic(GameState gameState)
+    {
+        string originalStateJson = JsonUtility.ToJson(gameState.dimension2);
+        bool originalDimension2Unlocked = gameState.dimension02Unlocked;
+
+        try
+        {
+            gameState.dimension02Unlocked = true;
+            Dimension2System.ResetState(gameState);
+            gameState.dimension2.civilization2Unlocked = true;
+            D2Civilization2State state = gameState.dimension2.civilization2;
+            state.membersAvailable = 100L;
+            state.totalMembersRecruited = 100L;
+            foreach (string regionId in new[]
+            {
+                D2Civilization2System.Region1Id,
+                D2Civilization2System.Region2Id,
+                D2Civilization2System.Region3Id
+            })
+            {
+                D2RegionState region = D2Civilization2System.GetRegion(state, regionId);
+                region.unlocked = true;
+                region.dominance = 30.0;
+            }
+            gameState.EnsureDimension2State();
+
+            double[] dominancePoints = { 30.0, 20.0, 10.0, 0.0 };
+            double[] expectedProbabilities = { 0.20, 0.45, 0.70, 1.00 };
+            for (int i = 0; i < dominancePoints.Length; i++)
+            {
+                foreach (D2RegionState region in state.regions)
+                    if (region != null && region.regionId != D2Civilization2System.Region4Id)
+                        region.dominance = dominancePoints[i];
+                double probability = D2Civilization2System.GetContainmentSuccessProbability(state);
+                if (System.Math.Abs(probability - expectedProbabilities[i]) > 0.000001)
+                    return FailCivilization2Block3GValidation("interpolación de probabilidades incorrecta");
+            }
+
+            foreach (D2RegionState region in state.regions)
+                if (region != null && region.regionId != D2Civilization2System.Region4Id)
+                    region.dominance = 30.0;
+            D2RegionState region1 = D2Civilization2System.GetRegion(state, D2Civilization2System.Region1Id);
+            D2RegionState region2 = D2Civilization2System.GetRegion(state, D2Civilization2System.Region2Id);
+            D2RegionState region3 = D2Civilization2System.GetRegion(state, D2Civilization2System.Region3Id);
+            region1.membersAssigned = 100L;
+            region2.membersAssigned = 100L;
+            region1.threat = 10.0;
+            region2.threat = 80.0;
+            region3.threat = 0.0;
+            D2Civilization2System.GetOperation(
+                region2,
+                D2Civilization2System.ProtectionOperationId
+            ).membersAssigned = 5L;
+
+            if (!D2Civilization2System.TryAttemptContainment(gameState, 0.99) ||
+                state.entityContained || state.totalContainmentAttempts != 1L ||
+                state.totalContainmentFailures != 1L ||
+                state.containmentCooldownSeconds != 600.0 ||
+                region1.threat != 30.0 || region2.threat != 100.0 || region3.threat != 20.0 ||
+                region1.membersAssigned != 95L || region2.membersAssigned != 100L ||
+                D2Civilization2System.TryAttemptContainment(gameState, 0.0))
+            {
+                return FailCivilization2Block3GValidation(
+                    "fallo, Protección, pérdidas, Amenaza o bloqueo por cooldown incorrectos"
+                );
+            }
+
+            D2Civilization2System.GetOperation(
+                region2,
+                D2Civilization2System.ProtectionOperationId
+            ).membersAssigned = 0L;
+            D2Civilization2System.ApplyOfflineProgress(gameState, 600.0);
+            if (state.containmentCooldownSeconds != 0.0)
+                return FailCivilization2Block3GValidation("cooldown offline incorrecto");
+
+            foreach (D2RegionState region in state.regions)
+            {
+                if (region == null || region.regionId == D2Civilization2System.Region4Id)
+                    continue;
+                region.dominance = 0.0;
+                region.alertMarked = true;
+            }
+            if (!D2Civilization2System.TryAttemptContainment(gameState, 0.99) ||
+                !state.entityContained || !state.majorPactPrepared ||
+                state.totalContainmentAttempts != 2L || CountAlertMarkedRegions(state) != 0L)
+            {
+                return FailCivilization2Block3GValidation(
+                    "éxito permanente, limpieza de marcas o preparación del pacto mayor incorrectos"
+                );
+            }
+
+            region3.membersAssigned = 20L;
+            region3.threat = 0.0;
+            D2Civilization2System.GetOperation(
+                region3,
+                D2Civilization2System.SabotageOperationId
+            ).membersAssigned = 20L;
+            D2Civilization2System.ApplyOfflineProgress(gameState, 60.0);
+            if (region3.threat < 0.599 || region3.threat > 0.601 ||
+                CountAlertMarkedRegions(state) != 0L)
+            {
+                return FailCivilization2Block3GValidation(
+                    "fin del aumento de Amenaza o de nuevas marcas incorrecto"
+                );
+            }
+
+            long totalBeforeSustain = D2Civilization2System.GetTotalMembers(state);
+            if (!D2Civilization2System.TryAssignMembersToContainment(gameState, 10L) ||
+                !D2Civilization2System.TryReleaseMembersFromContainment(gameState, 1L) ||
+                state.membersAssignedToContainment != 9L ||
+                D2Civilization2System.GetTotalMembers(state) != totalBeforeSustain)
+            {
+                return FailCivilization2Block3GValidation(
+                    "asignación, retiro o conservación del sostenimiento incorrectos"
+                );
+            }
+
+            string serialized = JsonUtility.ToJson(state);
+            D2Civilization2State restored = JsonUtility.FromJson<D2Civilization2State>(serialized);
+            D2Civilization2System.EnsureState(restored);
+            if (!D2Civilization2System.ValidateState(restored, out _) ||
+                !restored.entityContained || !restored.majorPactPrepared ||
+                restored.membersAssignedToContainment != 9L ||
+                restored.totalContainmentAttempts != 2L ||
+                restored.totalContainmentFailures != 1L)
+            {
+                return FailCivilization2Block3GValidation(
+                    "serialización del resultado o sostenimiento incorrecta"
+                );
+            }
+
+            Debug.Log(
+                "[D2 Block 3G] VALIDACIÓN LÓGICA OK: tabla interpolada, fallo, " +
+                "Protección, pérdidas, cooldown offline, éxito, marcas, fin del aumento " +
+                "de Amenaza, pacto mayor, sostenimiento y serialización."
+            );
+            return true;
+        }
+        finally
+        {
+            gameState.dimension02Unlocked = originalDimension2Unlocked;
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
+            gameState.EnsureDimension2State();
+        }
+    }
+
+    private static bool FailCivilization2Block3GValidation(string reason)
+    {
+        Debug.LogError("[D2 Block 3G] Validación lógica fallida: " + reason + ".");
+        return false;
+    }
+
+    private static bool ValidateCivilization2Block5CLogic(GameState gameState)
+    {
+        string originalStateJson = JsonUtility.ToJson(gameState.dimension2);
+        bool originalDimension2Unlocked = gameState.dimension02Unlocked;
+
+        try
+        {
+            gameState.dimension02Unlocked = true;
+            Dimension2System.ResetState(gameState);
+            gameState.dimension2.civilization2Unlocked = true;
+            D2Civilization2State state = gameState.dimension2.civilization2;
+            D2Civilization2System.EnsureState(state);
+
+            if (D2Civilization2System.TryEstablishMajorPact(gameState))
+                return FailCivilization2Block5CValidation("el pacto se estableció antes de contener al Ente");
+
+            state.entityContained = true;
+            D2Civilization2System.EnsureState(state);
+            long membersBeforePact = state.membersAvailable;
+            long fragmentsBeforePact = state.controlFragments;
+            double stabilityBeforePact = state.containmentStability;
+            if (!D2Civilization2System.TryEstablishMajorPact(gameState) ||
+                state.membersAvailable != membersBeforePact ||
+                state.controlFragments != fragmentsBeforePact ||
+                state.containmentStability != stabilityBeforePact)
+            {
+                return FailCivilization2Block5CValidation(
+                    "establecimiento sin coste o requisito de Contención incorrecto"
+                );
+            }
+
+            if (!D2Civilization2System.TryAssignMembersToContainment(gameState, 4L))
+                return FailCivilization2Block5CValidation("asignación al sostenimiento incorrecta");
+            D2Civilization2System.ApplyOfflineProgress(gameState, 60.0);
+            if (System.Math.Abs(state.containmentStability - 2.0) > 0.000001)
+                return FailCivilization2Block5CValidation("generación offline de Estabilidad incorrecta");
+
+            string firstLine = D2Civilization2System.ReconstitutedNetworkLineId;
+            if (D2Civilization2System.TryUpgradeMajorPactLine(gameState, firstLine))
+                return FailCivilization2Block5CValidation("una línea ignoró sus costes");
+
+            state.containmentStability = 120.0;
+            state.controlFragments = 18L;
+            for (int expectedLevel = 1; expectedLevel <= 3; expectedLevel++)
+            {
+                if (!D2Civilization2System.TryUpgradeMajorPactLine(gameState, firstLine) ||
+                    D2Civilization2System.GetMajorPactLineLevel(state, firstLine) != expectedLevel)
+                {
+                    return FailCivilization2Block5CValidation("progresión de niveles o costes incorrecta");
+                }
+            }
+            if (System.Math.Abs(state.containmentStability) > 0.000001 ||
+                state.controlFragments != 0L ||
+                D2Civilization2System.TryUpgradeMajorPactLine(gameState, firstLine))
+            {
+                return FailCivilization2Block5CValidation("coste acumulado o nivel máximo incorrecto");
+            }
+
+            state.containmentStability = 1000.0;
+            state.controlFragments = 1000L;
+            for (int i = 1; i < D2Civilization2System.MajorPactLineIds.Length; i++)
+            {
+                string lineId = D2Civilization2System.MajorPactLineIds[i];
+                for (int level = 1; level <= 3; level++)
+                    if (!D2Civilization2System.TryUpgradeMajorPactLine(gameState, lineId))
+                        return FailCivilization2Block5CValidation("mejora de las cinco líneas incorrecta");
+            }
+
+            D2RegionState region = D2Civilization2System.GetRegion(
+                state, D2Civilization2System.Region1Id);
+            if (System.Math.Abs(D2Civilization2System.GetMajorPactMemberMultiplier(state) - 1.15) > 0.000001 ||
+                System.Math.Abs(D2Civilization2System.GetMajorPactDominanceMultiplier(state) - 1.15) > 0.000001 ||
+                System.Math.Abs(D2Civilization2System.GetMajorPactCoverageMultiplier(state) - 1.15) > 0.000001 ||
+                System.Math.Abs(D2Civilization2System.GetExpectedReprisalLossFraction(state, region) - 0.05) > 0.000001 ||
+                System.Math.Abs(gameState.GetDimension2ArtifactProductionMultiplier("vacuum_observer") - 1.06) > 0.000001 ||
+                System.Math.Abs(gameState.GetDimension2ArtifactProductionMultiplier("basic_generator") - 1.0) > 0.000001 ||
+                System.Math.Abs(gameState.GetDimension2TriangleEffectMultiplier() - 1.06) > 0.000001)
+            {
+                return FailCivilization2Block5CValidation("efectos internos o externos incorrectos");
+            }
+
+            string serialized = JsonUtility.ToJson(state);
+            D2Civilization2State restored = JsonUtility.FromJson<D2Civilization2State>(serialized);
+            D2Civilization2System.EnsureState(restored);
+            if (!D2Civilization2System.ValidateState(restored, out _) ||
+                !restored.majorPactEstablished ||
+                restored.progressVersion != Dimension2System.Civilization2ProgressVersion ||
+                restored.majorPactLines == null ||
+                restored.majorPactLines.Count != D2Civilization2System.MajorPactLineIds.Length)
+            {
+                return FailCivilization2Block5CValidation("serialización del pacto mayor incorrecta");
+            }
+
+            Debug.Log(
+                "[D2 Block 5C] VALIDACIÓN LÓGICA OK: establecimiento, Estabilidad " +
+                "online/offline, cinco líneas, costes, efectos y serialización."
+            );
+            return true;
+        }
+        finally
+        {
+            gameState.dimension02Unlocked = originalDimension2Unlocked;
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
+            gameState.EnsureDimension2State();
+        }
+    }
+
+    private static bool FailCivilization2Block5CValidation(string reason)
+    {
+        Debug.LogError("[D2 Block 5C] Validación lógica fallida: " + reason + ".");
+        return false;
+    }
+
+    private static bool ValidateCivilization3Block4ALogic(GameState gameState)
+    {
+        string originalStateJson = JsonUtility.ToJson(gameState.dimension2);
+        bool originalDimension2Unlocked = gameState.dimension02Unlocked;
+
+        try
+        {
+            gameState.dimension02Unlocked = true;
+            Dimension2System.ResetState(gameState);
+            gameState.dimension2.civilization3Unlocked = true;
+            D2Civilization3State state = gameState.dimension2.civilization3;
+            D2Civilization3System.EnsureState(state);
+            D2C3ZoneState zone1 = D2Civilization3System.GetZone(
+                state,
+                D2Civilization3System.Zone1Id
+            );
+            if (zone1 == null || !zone1.unlocked ||
+                D2Civilization3System.GetZone(state, D2Civilization3System.Zone2Id).unlocked ||
+                D2Civilization3System.GetZone(state, D2Civilization3System.Zone3Id).unlocked ||
+                state.zones.Count != 3)
+            {
+                return FailCivilization3Block4AValidation("catálogo o desbloqueos iniciales incorrectos");
+            }
+
+            if (D2Civilization3System.GetQualityForRoll(D2Civilization3System.Zone1Id, 0.69) !=
+                    D2Civilization3System.LowQualityId ||
+                D2Civilization3System.GetQualityForRoll(D2Civilization3System.Zone1Id, 0.70) !=
+                    D2Civilization3System.MediumQualityId ||
+                D2Civilization3System.GetQualityForRoll(D2Civilization3System.Zone1Id, 0.95) !=
+                    D2Civilization3System.HighQualityId)
+            {
+                return FailCivilization3Block4AValidation("distribución 70/25/5 de calidad incorrecta");
+            }
+
+            if (!D2Civilization3System.TryStartExcavation(
+                    gameState,
+                    D2Civilization3System.Zone1Id
+                ))
+            {
+                return FailCivilization3Block4AValidation("inicio manual de excavación incorrecto");
+            }
+            D2Civilization3System.ApplyOfflineProgress(gameState, 29.0);
+            if (!zone1.excavationActive || zone1.totalExcavationsCompleted != 0L ||
+                zone1.excavationRemainingSeconds < 0.999 ||
+                zone1.excavationRemainingSeconds > 1.001)
+            {
+                return FailCivilization3Block4AValidation("progreso parcial offline incorrecto");
+            }
+            D2Civilization3System.ApplyOfflineProgress(gameState, 1.0);
+            if (zone1.excavationActive || zone1.totalExcavationsCompleted != 1L ||
+                D2Civilization3System.GetTotalRemains(zone1) != 1L)
+            {
+                return FailCivilization3Block4AValidation("finalización manual o inventario incorrectos");
+            }
+
+            D2AltarState wax = D2AltarSystem.GetAltar(
+                gameState.dimension2.civilization1,
+                D2AltarSystem.WaxAltarId
+            );
+            D2AltarState bread = D2AltarSystem.GetAltar(
+                gameState.dimension2.civilization1,
+                D2AltarSystem.RitualBreadAltarId
+            );
+            wax.offeringAmount = 10.0;
+            bread.offeringAmount = 10.0;
+            if (!D2Civilization3System.TryHireFieldScholar(gameState) ||
+                !zone1.scholarHired || wax.offeringAmount != 0.0 ||
+                bread.offeringAmount != 0.0 ||
+                D2Civilization3System.TryHireFieldScholar(gameState))
+            {
+                return FailCivilization3Block4AValidation("contratación o coste del Erudito incorrectos");
+            }
+
+            string serialized = JsonUtility.ToJson(state);
+            D2Civilization3State restored = JsonUtility.FromJson<D2Civilization3State>(serialized);
+            D2Civilization3System.EnsureState(restored);
+            D2C3ZoneState restoredZone = D2Civilization3System.GetZone(
+                restored,
+                D2Civilization3System.Zone1Id
+            );
+            if (!D2Civilization3System.ValidateState(restored, out _) ||
+                restoredZone == null || !restoredZone.scholarHired ||
+                restoredZone.totalExcavationsCompleted != 1L ||
+                D2Civilization3System.GetTotalRemains(restoredZone) != 1L)
+            {
+                return FailCivilization3Block4AValidation("serialización de Zona 1 incorrecta");
+            }
+
+            Debug.Log(
+                "[D2 Block 4A] VALIDACIÓN LÓGICA OK: estado, tres zonas, Entrada " +
+                "Sepultada, calidad 70/25/5, excavación exclusivamente manual, " +
+                "inventario, offline, Erudito de Campo, costes y serialización."
+            );
+            return true;
+        }
+        finally
+        {
+            gameState.dimension02Unlocked = originalDimension2Unlocked;
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
+            gameState.EnsureDimension2State();
+        }
+    }
+
+    private static bool FailCivilization3Block4AValidation(string reason)
+    {
+        Debug.LogError("[D2 Block 4A] Validación lógica fallida: " + reason + ".");
+        return false;
+    }
+
+    private static bool ValidateCivilization3Block4BLogic(GameState gameState)
+    {
+        string originalStateJson = JsonUtility.ToJson(gameState.dimension2);
+        bool originalDimension2Unlocked = gameState.dimension02Unlocked;
+
+        try
+        {
+            gameState.dimension02Unlocked = true;
+            Dimension2System.ResetState(gameState);
+            gameState.dimension2.civilization3Unlocked = true;
+            D2Civilization3State state = gameState.dimension2.civilization3;
+            D2Civilization3System.EnsureState(state);
+            D2C3ZoneState zone1 = D2Civilization3System.GetZone(
+                state,
+                D2Civilization3System.Zone1Id
+            );
+            zone1.lowQualityRemains = 2L;
+            zone1.mediumQualityRemains = 1L;
+            zone1.highQualityRemains = 2L;
+
+            if (D2Civilization3System.TryStartAnalysis(
+                    gameState,
+                    D2Civilization3System.Zone1Id,
+                    D2Civilization3System.LowQualityId
+                ))
+            {
+                return FailCivilization3Block4BValidation("análisis permitido sin Erudito");
+            }
+            zone1.scholarHired = true;
+            if (!D2Civilization3System.TryStartAnalysis(
+                    gameState,
+                    D2Civilization3System.Zone1Id,
+                    D2Civilization3System.LowQualityId
+                ) ||
+                zone1.lowQualityRemains != 1L ||
+                D2Civilization3System.TryStartAnalysis(
+                    gameState,
+                    D2Civilization3System.Zone1Id,
+                    D2Civilization3System.MediumQualityId
+                ))
+            {
+                return FailCivilization3Block4BValidation("inicio, consumo o exclusividad incorrectos");
+            }
+            D2Civilization3System.ApplyOfflineProgress(gameState, 29.0);
+            if (!zone1.analysisActive || zone1.analysisRemainingSeconds < 0.999 ||
+                zone1.analysisRemainingSeconds > 1.001)
+            {
+                return FailCivilization3Block4BValidation("progreso parcial offline incorrecto");
+            }
+            D2Civilization3System.ApplyOfflineProgress(gameState, 1.0);
+            if (zone1.analysisActive || state.ancientKnowledge != 1.0 ||
+                zone1.zoneResourceAmount != 1L || zone1.researchProgress != 1.0 ||
+                !state.archiveUnlocked || state.archiveLevel != 1)
+            {
+                return FailCivilization3Block4BValidation("recompensa Baja o Archivo I incorrectos");
+            }
+
+            D2Civilization3System.TryStartAnalysis(
+                gameState,
+                D2Civilization3System.Zone1Id,
+                D2Civilization3System.MediumQualityId
+            );
+            D2Civilization3System.ApplyOfflineProgress(gameState, 30.0);
+            D2Civilization3System.TryStartAnalysis(
+                gameState,
+                D2Civilization3System.Zone1Id,
+                D2Civilization3System.HighQualityId
+            );
+            D2Civilization3System.ApplyOfflineProgress(gameState, 30.0);
+            if (state.ancientKnowledge != 12.0 || zone1.zoneResourceAmount != 7L ||
+                zone1.researchProgress != 12.0 || zone1.totalAnalysesCompleted != 3L)
+            {
+                return FailCivilization3Block4BValidation("recompensas Media o Alta incorrectas");
+            }
+
+            zone1.researchProgress = 20.0;
+            zone1.bonusRemainsProgress = 0.95;
+            long remainsBeforeBonus = D2Civilization3System.GetTotalRemains(zone1);
+            D2Civilization3System.TryStartExcavation(
+                gameState,
+                D2Civilization3System.Zone1Id
+            );
+            D2Civilization3System.ApplyOfflineProgress(gameState, 30.0);
+            if (D2Civilization3System.GetTotalRemains(zone1) != remainsBeforeBonus + 2L ||
+                zone1.bonusRemainsProgress > 0.000001)
+            {
+                return FailCivilization3Block4BValidation("hito de restos al 20% incorrecto");
+            }
+
+            zone1.researchProgress = 40.0;
+            zone1.lowQualityRemains++;
+            if (!D2Civilization3System.TryStartAnalysis(
+                    gameState,
+                    D2Civilization3System.Zone1Id,
+                    D2Civilization3System.LowQualityId
+                ) ||
+                System.Math.Abs(zone1.analysisRemainingSeconds - 28.5) > 0.000001)
+            {
+                return FailCivilization3Block4BValidation("hito de velocidad al 40% incorrecto");
+            }
+            D2Civilization3System.ApplyOfflineProgress(gameState, 28.5);
+
+            zone1.researchProgress = 80.0;
+            zone1.highQualityRemains++;
+            double knowledgeBeforeBonus = state.ancientKnowledge;
+            D2Civilization3System.TryStartAnalysis(
+                gameState,
+                D2Civilization3System.Zone1Id,
+                D2Civilization3System.HighQualityId
+            );
+            D2Civilization3System.ApplyOfflineProgress(gameState, 28.5);
+            if (System.Math.Abs(state.ancientKnowledge - knowledgeBeforeBonus - 8.8) > 0.000001 ||
+                zone1.researchProgress != 88.0)
+            {
+                return FailCivilization3Block4BValidation("hito de Conocimiento al 80% incorrecto");
+            }
+
+            string serialized = JsonUtility.ToJson(state);
+            D2Civilization3State restored = JsonUtility.FromJson<D2Civilization3State>(serialized);
+            D2Civilization3System.EnsureState(restored);
+            D2C3ZoneState restoredZone = D2Civilization3System.GetZone(
+                restored,
+                D2Civilization3System.Zone1Id
+            );
+            if (!D2Civilization3System.ValidateState(restored, out _) ||
+                !restored.archiveUnlocked || restored.archiveLevel != 2 ||
+                restoredZone == null || restoredZone.researchProgress != 88.0 ||
+                restoredZone.zoneResourceAmount != 12L ||
+                restoredZone.totalAnalysesCompleted != 5L)
+            {
+                return FailCivilization3Block4BValidation("serialización de análisis incorrecta");
+            }
+
+            Debug.Log(
+                "[D2 Block 4B] VALIDACIÓN LÓGICA OK: análisis manual, calidades, " +
+                "consumo, recompensas, Investigación, hitos 20/40/60/80, Archivo I, " +
+                "progreso offline y serialización."
+            );
+            return true;
+        }
+        finally
+        {
+            gameState.dimension02Unlocked = originalDimension2Unlocked;
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
+            gameState.EnsureDimension2State();
+        }
+    }
+
+    private static bool FailCivilization3Block4BValidation(string reason)
+    {
+        Debug.LogError("[D2 Block 4B] Validación lógica fallida: " + reason + ".");
+        return false;
+    }
+
+    private static bool ValidateCivilization3Block4CLogic(GameState gameState)
+    {
+        string originalStateJson = JsonUtility.ToJson(gameState.dimension2);
+        bool originalDimension2Unlocked = gameState.dimension02Unlocked;
+
+        try
+        {
+            gameState.dimension02Unlocked = true;
+            Dimension2System.ResetState(gameState);
+            gameState.dimension2.civilization3Unlocked = true;
+            D2Civilization3State state = gameState.dimension2.civilization3;
+            D2Civilization3System.EnsureState(state);
+            D2C3ZoneState zone1 = D2Civilization3System.GetZone(
+                state, D2Civilization3System.Zone1Id);
+            D2C3ZoneState zone2 = D2Civilization3System.GetZone(
+                state, D2Civilization3System.Zone2Id);
+
+            if (D2Civilization3System.GetQualityForRoll(D2Civilization3System.Zone2Id, 0.49) !=
+                    D2Civilization3System.LowQualityId ||
+                D2Civilization3System.GetQualityForRoll(D2Civilization3System.Zone2Id, 0.50) !=
+                    D2Civilization3System.MediumQualityId ||
+                D2Civilization3System.GetQualityForRoll(D2Civilization3System.Zone2Id, 0.85) !=
+                    D2Civilization3System.HighQualityId)
+            {
+                return FailCivilization3Block4CValidation("distribución 50/35/15 incorrecta");
+            }
+
+            D2AltarState incense = D2AltarSystem.GetAltar(
+                gameState.dimension2.civilization1, D2AltarSystem.IncenseAltarId);
+            D2AltarState cloth = D2AltarSystem.GetAltar(
+                gameState.dimension2.civilization1, D2AltarSystem.SacredClothAltarId);
+            incense.offeringAmount = 25.0;
+            cloth.offeringAmount = 25.0;
+            if (D2Civilization3System.TryUnlockZone2(gameState))
+                return FailCivilization3Block4CValidation("Zona 2 abierta antes del 60%");
+            zone1.researchProgress = 60.0;
+            incense.offeringAmount = 24.0;
+            if (D2Civilization3System.TryUnlockZone2(gameState))
+                return FailCivilization3Block4CValidation("Zona 2 abierta sin recursos");
+            incense.offeringAmount = 25.0;
+            if (!D2Civilization3System.TryUnlockZone2(gameState) || !zone2.unlocked ||
+                state.selectedZoneId != D2Civilization3System.Zone2Id ||
+                incense.offeringAmount != 0.0 || cloth.offeringAmount != 0.0 ||
+                D2Civilization3System.TryUnlockZone2(gameState) ||
+                !state.archiveUnlocked || state.archiveLevel != 2)
+            {
+                return FailCivilization3Block4CValidation("pago, selección o Archivo II incorrectos");
+            }
+
+            if (!D2Civilization3System.TryStartExcavation(
+                    gameState, D2Civilization3System.Zone1Id) ||
+                !D2Civilization3System.TryStartExcavation(
+                    gameState, D2Civilization3System.Zone2Id))
+            {
+                return FailCivilization3Block4CValidation("excavaciones paralelas no permitidas");
+            }
+            D2Civilization3System.ApplyOfflineProgress(gameState, 30.0);
+            if (zone1.totalExcavationsCompleted != 1L ||
+                zone2.totalExcavationsCompleted != 1L ||
+                zone1.excavationActive || zone2.excavationActive)
+            {
+                return FailCivilization3Block4CValidation("progreso paralelo offline incorrecto");
+            }
+
+            D2AltarState wax = D2AltarSystem.GetAltar(
+                gameState.dimension2.civilization1, D2AltarSystem.WaxAltarId);
+            D2AltarState bread = D2AltarSystem.GetAltar(
+                gameState.dimension2.civilization1, D2AltarSystem.RitualBreadAltarId);
+            wax.offeringAmount = 19.0;
+            bread.offeringAmount = 20.0;
+            if (D2Civilization3System.TryHireScholar(gameState, D2Civilization3System.Zone2Id))
+                return FailCivilization3Block4CValidation("Erudito 2 contratado sin coste completo");
+            wax.offeringAmount = 20.0;
+            if (!D2Civilization3System.TryHireScholar(
+                    gameState, D2Civilization3System.Zone2Id) ||
+                !zone2.scholarHired || wax.offeringAmount != 0.0 ||
+                bread.offeringAmount != 0.0)
+            {
+                return FailCivilization3Block4CValidation("contratación del Erudito 2 incorrecta");
+            }
+
+            zone2.highQualityRemains++;
+            if (!D2Civilization3System.TryStartAnalysis(
+                    gameState,
+                    D2Civilization3System.Zone2Id,
+                    D2Civilization3System.HighQualityId))
+            {
+                return FailCivilization3Block4CValidation("análisis de Zona 2 no iniciado");
+            }
+            D2Civilization3System.ApplyOfflineProgress(gameState, 30.0);
+            if (state.ancientKnowledge != 8.0 || zone2.zoneResourceAmount != 4L ||
+                zone2.researchProgress != 8.0 || zone2.anomalyClues != 0L ||
+                state.anomalyClueDetectionUnlocked)
+            {
+                return FailCivilization3Block4CValidation("recompensas previas a Indicios incorrectas");
+            }
+
+            zone2.researchProgress = 20.0;
+            zone2.anomalyClueProgress = 0.82;
+            zone2.highQualityRemains++;
+            D2Civilization3System.EnsureState(state);
+            D2Civilization3System.TryStartAnalysis(
+                gameState,
+                D2Civilization3System.Zone2Id,
+                D2Civilization3System.HighQualityId);
+            D2Civilization3System.ApplyOfflineProgress(gameState, 30.0);
+            if (!state.anomalyClueDetectionUnlocked || zone2.anomalyClues != 1L ||
+                zone2.anomalyClueProgress > 0.000001)
+            {
+                return FailCivilization3Block4CValidation("Indicio Simbólico acumulado incorrecto");
+            }
+
+            zone1.scholarHired = true;
+            zone1.lowQualityRemains++;
+            zone1.anomalyClueProgress = 0.97;
+            D2Civilization3System.TryStartAnalysis(
+                gameState,
+                D2Civilization3System.Zone1Id,
+                D2Civilization3System.LowQualityId);
+            D2Civilization3System.ApplyOfflineProgress(gameState, 28.5);
+            if (zone1.anomalyClues != 1L || zone1.anomalyClueProgress > 0.000001)
+            {
+                return FailCivilization3Block4CValidation("Indicio Básico acumulado incorrecto");
+            }
+
+            string serialized = JsonUtility.ToJson(state);
+            D2Civilization3State restored = JsonUtility.FromJson<D2Civilization3State>(serialized);
+            D2Civilization3System.EnsureState(restored);
+            D2C3ZoneState restoredZone2 = D2Civilization3System.GetZone(
+                restored, D2Civilization3System.Zone2Id);
+            if (!D2Civilization3System.ValidateState(restored, out _) ||
+                restoredZone2 == null || !restoredZone2.unlocked ||
+                !restoredZone2.scholarHired || restoredZone2.anomalyClues != 1L ||
+                !restored.anomalyClueDetectionUnlocked || restored.archiveLevel != 2)
+            {
+                return FailCivilization3Block4CValidation("serialización de Zona 2 incorrecta");
+            }
+
+            Debug.Log(
+                "[D2 Block 4C] VALIDACIÓN LÓGICA OK: Zona 2, pago 25/25, " +
+                "calidad 50/35/15, simultaneidad entre zonas, Erudito 20/20, " +
+                "Archivo II, Indicios Básicos/Simbólicos, acumulación, offline y serialización."
+            );
+            return true;
+        }
+        finally
+        {
+            gameState.dimension02Unlocked = originalDimension2Unlocked;
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
+            gameState.EnsureDimension2State();
+        }
+    }
+
+    private static bool FailCivilization3Block4CValidation(string reason)
+    {
+        Debug.LogError("[D2 Block 4C] Validación lógica fallida: " + reason + ".");
+        return false;
+    }
+
+    private static bool ValidateCivilization3Block4DLogic(GameState gameState)
+    {
+        string originalStateJson = JsonUtility.ToJson(gameState.dimension2);
+        bool originalDimension2Unlocked = gameState.dimension02Unlocked;
+
+        try
+        {
+            gameState.dimension02Unlocked = true;
+            Dimension2System.ResetState(gameState);
+            gameState.dimension2.civilization3Unlocked = true;
+            D2Civilization3State state = gameState.dimension2.civilization3;
+            D2Civilization3System.EnsureState(state);
+            D2C3ZoneState zone1 = D2Civilization3System.GetZone(
+                state, D2Civilization3System.Zone1Id);
+            D2C3ZoneState zone2 = D2Civilization3System.GetZone(
+                state, D2Civilization3System.Zone2Id);
+            D2C3ZoneState zone3 = D2Civilization3System.GetZone(
+                state, D2Civilization3System.Zone3Id);
+
+            zone2.unlocked = true;
+            state.anomalyClueDetectionUnlocked = true;
+            state.archiveUnlocked = true;
+            state.archiveLevel = 2;
+            zone1.scholarHired = true;
+            zone2.scholarHired = true;
+            zone1.anomalyClues = 7L;
+            zone2.anomalyClues = 9L;
+            zone1.anomalyClueProgress = 0.97;
+            zone2.anomalyClueProgress = 0.97;
+            zone1.lowQualityRemains = 1L;
+            zone2.lowQualityRemains = 1L;
+            zone2.researchProgress = 39.0;
+            D2Civilization3System.EnsureState(state);
+
+            if (zone1.anomalyRevealed || zone2.anomalyRevealed || state.archiveLevel != 2)
+                return FailCivilization3Block4DValidation("revelado o Archivo III anticipado");
+            if (!D2Civilization3System.TryStartAnalysis(
+                    gameState, D2Civilization3System.Zone1Id,
+                    D2Civilization3System.LowQualityId) ||
+                !D2Civilization3System.TryStartAnalysis(
+                    gameState, D2Civilization3System.Zone2Id,
+                    D2Civilization3System.LowQualityId))
+            {
+                return FailCivilization3Block4DValidation("análisis paralelos de preparación no iniciados");
+            }
+
+            D2Civilization3System.ApplyOfflineProgress(gameState, 30.0);
+            if (!zone1.anomalyRevealed || zone1.anomalyClues != 8L ||
+                !zone2.anomalyRevealed || zone2.anomalyClues != 10L ||
+                state.archiveLevel != 3 || zone2.researchProgress != 40.0)
+            {
+                return FailCivilization3Block4DValidation(
+                    "revelado 8/10, progreso offline o Archivo III incorrecto");
+            }
+
+            state.ancientKnowledge = 65.0;
+            zone1.zoneResourceAmount = 15L;
+            zone2.zoneResourceAmount = 24L;
+            if (!D2Civilization3System.TryReadAnomaly(
+                    gameState, D2Civilization3System.Zone1Id) ||
+                !zone1.anomalyRead || zone1.anomalousData != 1L ||
+                state.ancientKnowledge != 40.0 || zone1.zoneResourceAmount != 0L ||
+                zone1.anomalyClues != 8L)
+            {
+                return FailCivilization3Block4DValidation(
+                    "lectura, coste o conservación de Indicios Básicos incorrectos");
+            }
+            if (D2Civilization3System.TryReadAnomaly(
+                    gameState, D2Civilization3System.Zone1Id) ||
+                D2Civilization3System.TryReadAnomaly(
+                    gameState, D2Civilization3System.Zone2Id))
+            {
+                return FailCivilization3Block4DValidation(
+                    "relectura única o bloqueo por coste Simbólico incorrecto");
+            }
+
+            zone2.zoneResourceAmount = 25L;
+            if (!D2Civilization3System.TryReadAnomaly(
+                    gameState, D2Civilization3System.Zone2Id) ||
+                !zone2.anomalyRead || zone2.anomalousData != 1L ||
+                state.ancientKnowledge != 0.0 || zone2.zoneResourceAmount != 0L ||
+                zone2.anomalyClues != 10L ||
+                D2Civilization3System.CanReadAnomaly(
+                    gameState, D2Civilization3System.Zone3Id))
+            {
+                return FailCivilization3Block4DValidation(
+                    "lectura Simbólica, costes o reserva Profunda incorrectos");
+            }
+
+            string serialized = JsonUtility.ToJson(state);
+            D2Civilization3State restored = JsonUtility.FromJson<D2Civilization3State>(serialized);
+            D2Civilization3System.EnsureState(restored);
+            D2C3ZoneState restoredZone1 = D2Civilization3System.GetZone(
+                restored, D2Civilization3System.Zone1Id);
+            D2C3ZoneState restoredZone2 = D2Civilization3System.GetZone(
+                restored, D2Civilization3System.Zone2Id);
+            if (!D2Civilization3System.ValidateState(restored, out _) ||
+                restored.progressVersion != Dimension2System.Civilization3ProgressVersion ||
+                restored.archiveLevel != 3 || !restoredZone1.anomalyRead ||
+                restoredZone1.anomalousData != 1L || !restoredZone2.anomalyRead ||
+                restoredZone2.anomalousData != 1L || zone3.anomalyRead)
+            {
+                return FailCivilization3Block4DValidation(
+                    "migración o serialización de Anomalías incorrecta");
+            }
+
+            Debug.Log(
+                "[D2 Block 4D] VALIDACIÓN LÓGICA OK: revelado único 8/10, " +
+                "Archivo III, lecturas únicas, costes 25+15/40+25, Datos Anómalos, " +
+                "conservación de Indicios, offline, migración y serialización."
+            );
+            return true;
+        }
+        finally
+        {
+            gameState.dimension02Unlocked = originalDimension2Unlocked;
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
+            gameState.EnsureDimension2State();
+        }
+    }
+
+    private static bool FailCivilization3Block4DValidation(string reason)
+    {
+        Debug.LogError("[D2 Block 4D] Validación lógica fallida: " + reason + ".");
+        return false;
+    }
+
+    private static bool ValidateCivilization3Block4ELogic(GameState gameState)
+    {
+        string originalStateJson = JsonUtility.ToJson(gameState.dimension2);
+        bool originalDimension2Unlocked = gameState.dimension02Unlocked;
+
+        try
+        {
+            gameState.dimension02Unlocked = true;
+            Dimension2System.ResetState(gameState);
+            gameState.dimension2.civilization3Unlocked = true;
+            D2Civilization3State state = gameState.dimension2.civilization3;
+            D2Civilization3System.EnsureState(state);
+            D2C3ZoneState zone1 = D2Civilization3System.GetZone(
+                state, D2Civilization3System.Zone1Id);
+            D2C3ZoneState zone2 = D2Civilization3System.GetZone(
+                state, D2Civilization3System.Zone2Id);
+            D2C3ZoneState zone3 = D2Civilization3System.GetZone(
+                state, D2Civilization3System.Zone3Id);
+            D2AltarState incense = D2AltarSystem.GetAltar(
+                gameState.dimension2.civilization1, D2AltarSystem.IncenseAltarId);
+            D2AltarState cloth = D2AltarSystem.GetAltar(
+                gameState.dimension2.civilization1, D2AltarSystem.SacredClothAltarId);
+            D2AltarState stone = D2AltarSystem.GetAltar(
+                gameState.dimension2.civilization1, D2AltarSystem.CarvedStoneAltarId);
+
+            zone1.researchProgress = 60.0;
+            incense.offeringAmount = 25.0;
+            cloth.offeringAmount = 25.0;
+            if (!D2Civilization3System.TryUnlockZone2(gameState))
+                return FailCivilization3Block4EValidation("preparación de Zona 2 incorrecta");
+
+            if (D2Civilization3System.GetQualityForRoll(D2Civilization3System.Zone3Id, 0.29) !=
+                    D2Civilization3System.LowQualityId ||
+                D2Civilization3System.GetQualityForRoll(D2Civilization3System.Zone3Id, 0.30) !=
+                    D2Civilization3System.MediumQualityId ||
+                D2Civilization3System.GetQualityForRoll(D2Civilization3System.Zone3Id, 0.75) !=
+                    D2Civilization3System.HighQualityId)
+            {
+                return FailCivilization3Block4EValidation("distribución 30/45/25 incorrecta");
+            }
+
+            zone2.researchProgress = 59.0;
+            incense.offeringAmount = 50.0;
+            cloth.offeringAmount = 50.0;
+            stone.offeringAmount = 50.0;
+            if (D2Civilization3System.TryUnlockZone3(gameState))
+                return FailCivilization3Block4EValidation("Zona 3 abierta antes del 60%");
+            zone2.researchProgress = 60.0;
+            stone.offeringAmount = 49.0;
+            if (D2Civilization3System.TryUnlockZone3(gameState))
+                return FailCivilization3Block4EValidation("Zona 3 abierta sin coste completo");
+            stone.offeringAmount = 50.0;
+            if (!D2Civilization3System.TryUnlockZone3(gameState) || !zone3.unlocked ||
+                state.selectedZoneId != D2Civilization3System.Zone3Id ||
+                incense.offeringAmount != 0.0 || cloth.offeringAmount != 0.0 ||
+                stone.offeringAmount != 0.0 ||
+                D2Civilization3System.TryUnlockZone3(gameState))
+            {
+                return FailCivilization3Block4EValidation(
+                    "desbloqueo, costes 50/50/50 o selección incorrectos");
+            }
+
+            if (!D2Civilization3System.TryStartExcavation(
+                    gameState, D2Civilization3System.Zone1Id) ||
+                !D2Civilization3System.TryStartExcavation(
+                    gameState, D2Civilization3System.Zone2Id) ||
+                !D2Civilization3System.TryStartExcavation(
+                    gameState, D2Civilization3System.Zone3Id))
+            {
+                return FailCivilization3Block4EValidation(
+                    "excavaciones simultáneas entre tres zonas no permitidas");
+            }
+            D2Civilization3System.ApplyOfflineProgress(gameState, 30.0);
+            if (zone1.totalExcavationsCompleted != 1L ||
+                zone2.totalExcavationsCompleted != 1L ||
+                zone3.totalExcavationsCompleted != 1L || zone3.excavationActive)
+            {
+                return FailCivilization3Block4EValidation(
+                    "progreso paralelo u offline de Zona 3 incorrecto");
+            }
+
+            D2AltarState wax = D2AltarSystem.GetAltar(
+                gameState.dimension2.civilization1, D2AltarSystem.WaxAltarId);
+            D2AltarState bread = D2AltarSystem.GetAltar(
+                gameState.dimension2.civilization1, D2AltarSystem.RitualBreadAltarId);
+            wax.offeringAmount = 29.0;
+            bread.offeringAmount = 30.0;
+            if (D2Civilization3System.TryHireScholar(
+                    gameState, D2Civilization3System.Zone3Id))
+            {
+                return FailCivilization3Block4EValidation(
+                    "Erudito de Sellos contratado sin coste completo");
+            }
+            wax.offeringAmount = 30.0;
+            if (!D2Civilization3System.TryHireScholar(
+                    gameState, D2Civilization3System.Zone3Id) ||
+                !zone3.scholarHired || wax.offeringAmount != 0.0 ||
+                bread.offeringAmount != 0.0)
+            {
+                return FailCivilization3Block4EValidation(
+                    "contratación 30/30 del Erudito de Sellos incorrecta");
+            }
+
+            state.anomalyClueDetectionUnlocked = true;
+            state.archiveUnlocked = true;
+            state.archiveLevel = 3;
+            zone3.researchProgress = 29.0;
+            zone3.anomalyClues = 11L;
+            zone3.anomalyClueProgress = 0.97;
+            zone3.lowQualityRemains = 1L;
+            if (!D2Civilization3System.TryStartAnalysis(
+                    gameState, D2Civilization3System.Zone3Id,
+                    D2Civilization3System.LowQualityId))
+            {
+                return FailCivilization3Block4EValidation("análisis Profundo no iniciado");
+            }
+            D2Civilization3System.ApplyOfflineProgress(gameState, 30.0);
+            if (zone3.researchProgress != 30.0 || state.archiveLevel != 4 ||
+                zone3.anomalyClues != 12L || !zone3.anomalyRevealed ||
+                zone3.zoneResourceAmount < 1L)
+            {
+                return FailCivilization3Block4EValidation(
+                    "Archivo IV, Sellos, 12 Indicios o revelado Profundo incorrectos");
+            }
+
+            state.ancientKnowledge = 60.0;
+            zone3.zoneResourceAmount = 35L;
+            if (!D2Civilization3System.TryReadAnomaly(
+                    gameState, D2Civilization3System.Zone3Id) ||
+                !zone3.anomalyRead || zone3.anomalousData != 1L ||
+                state.ancientKnowledge != 0.0 || zone3.zoneResourceAmount != 0L ||
+                zone3.anomalyClues != 12L ||
+                D2Civilization3System.TryReadAnomaly(
+                    gameState, D2Civilization3System.Zone3Id))
+            {
+                return FailCivilization3Block4EValidation(
+                    "lectura única, coste 60+35 o Dato Profundo incorrecto");
+            }
+
+            string serialized = JsonUtility.ToJson(state);
+            D2Civilization3State restored = JsonUtility.FromJson<D2Civilization3State>(serialized);
+            D2Civilization3System.EnsureState(restored);
+            D2C3ZoneState restoredZone3 = D2Civilization3System.GetZone(
+                restored, D2Civilization3System.Zone3Id);
+            if (!D2Civilization3System.ValidateState(restored, out _) ||
+                restored.progressVersion != Dimension2System.Civilization3ProgressVersion ||
+                restoredZone3 == null || !restoredZone3.unlocked ||
+                !restoredZone3.scholarHired || restored.archiveLevel != 4 ||
+                !restoredZone3.anomalyRead || restoredZone3.anomalousData != 1L)
+            {
+                return FailCivilization3Block4EValidation(
+                    "migración o serialización de Zona 3 incorrecta");
+            }
+
+            Debug.Log(
+                "[D2 Block 4E] VALIDACIÓN LÓGICA OK: Zona 3, costes 50/50/50, " +
+                "calidad 30/45/25, simultaneidad, Erudito 30/30, Sellos, Archivo IV, " +
+                "12 Indicios, Anomalía y Dato Profundos, offline, migración y serialización."
+            );
+            return true;
+        }
+        finally
+        {
+            gameState.dimension02Unlocked = originalDimension2Unlocked;
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
+            gameState.EnsureDimension2State();
+        }
+    }
+
+    private static bool FailCivilization3Block4EValidation(string reason)
+    {
+        Debug.LogError("[D2 Block 4E] Validación lógica fallida: " + reason + ".");
+        return false;
+    }
+
+    private static bool ValidateCivilization3Block4FLogic(GameState gameState)
+    {
+        string originalStateJson = JsonUtility.ToJson(gameState.dimension2);
+        bool originalDimension2Unlocked = gameState.dimension02Unlocked;
+
+        try
+        {
+            gameState.dimension02Unlocked = true;
+            Dimension2System.ResetState(gameState);
+            gameState.dimension2.civilization3Unlocked = true;
+            D2Civilization3State state = gameState.dimension2.civilization3;
+            D2Civilization3System.EnsureState(state);
+            D2C3ZoneState zone1 = D2Civilization3System.GetZone(
+                state, D2Civilization3System.Zone1Id);
+            D2C3ZoneState zone2 = D2Civilization3System.GetZone(
+                state, D2Civilization3System.Zone2Id);
+            D2C3ZoneState zone3 = D2Civilization3System.GetZone(
+                state, D2Civilization3System.Zone3Id);
+
+            if (state.entityResearchUnlocked ||
+                D2Civilization3System.TryStartEntityResearch(gameState))
+            {
+                return FailCivilization3Block4FValidation(
+                    "Investigación desbloqueada sin los tres Datos");
+            }
+            zone1.anomalousData = 1L;
+            zone2.anomalousData = 1L;
+            zone3.anomalousData = 1L;
+            D2Civilization3System.EnsureState(state);
+            if (!state.entityResearchUnlocked)
+                return FailCivilization3Block4FValidation("desbloqueo con tres Datos incorrecto");
+
+            state.ancientKnowledge = 40.0;
+            if (!D2Civilization3System.TryStartEntityResearch(gameState))
+                return FailCivilization3Block4FValidation("inicio manual incorrecto");
+            D2Civilization3System.ApplyOfflineProgress(gameState, 300.0);
+            if (System.Math.Abs(state.entityResearchProgress - 10.0) > 0.000001 ||
+                System.Math.Abs(state.ancientKnowledge - 30.0) > 0.000001 ||
+                !state.entityResearchActive)
+            {
+                return FailCivilization3Block4FValidation(
+                    "conversión, velocidad o progreso offline incorrectos");
+            }
+            if (!D2Civilization3System.TryPauseEntityResearch(gameState))
+                return FailCivilization3Block4FValidation("pausa manual incorrecta");
+            D2Civilization3System.ApplyOfflineProgress(gameState, 300.0);
+            if (System.Math.Abs(state.entityResearchProgress - 10.0) > 0.000001)
+                return FailCivilization3Block4FValidation("progreso durante pausa incorrecto");
+
+            D2Civilization3System.TryStartEntityResearch(gameState);
+            D2Civilization3System.ApplyOfflineProgress(gameState, 600.0);
+            if (System.Math.Abs(state.entityResearchProgress - 30.0) > 0.000001 ||
+                System.Math.Abs(state.ancientKnowledge - 10.0) > 0.000001 ||
+                state.entityResearchActive ||
+                D2Civilization3System.TryStartEntityResearch(gameState))
+            {
+                return FailCivilization3Block4FValidation(
+                    "detención exacta o bloqueo del hito 30 incorrecto");
+            }
+            if (D2Civilization3System.TryPayEntityResearchMilestone(gameState))
+                return FailCivilization3Block4FValidation("hito 30 pagado sin recursos");
+            zone1.zoneResourceAmount = 25L;
+            if (!D2Civilization3System.TryPayEntityResearchMilestone(gameState) ||
+                !state.entityResearchMilestone30Completed ||
+                zone1.zoneResourceAmount != 0L || zone1.anomalousData != 0L ||
+                state.entityKnowledge != 1L)
+            {
+                return FailCivilization3Block4FValidation("coste o recompensa del hito 30 incorrectos");
+            }
+
+            state.ancientKnowledge = 0.0;
+            if (!D2Civilization3System.TryStartEntityResearch(gameState))
+                return FailCivilization3Block4FValidation("inicio sin combustible incorrecto");
+            D2Civilization3System.ApplyOfflineProgress(gameState, 600.0);
+            if (state.entityResearchProgress != 30.0 || !state.entityResearchActive)
+                return FailCivilization3Block4FValidation("espera sin combustible incorrecta");
+            state.ancientKnowledge = 30.0;
+            D2Civilization3System.ApplyOfflineProgress(gameState, 900.0);
+            if (state.entityResearchProgress != 60.0 || state.ancientKnowledge != 0.0 ||
+                state.entityResearchActive)
+            {
+                return FailCivilization3Block4FValidation(
+                    "reanudación automática o hito 60 incorrecto");
+            }
+            zone2.zoneResourceAmount = 35L;
+            if (!D2Civilization3System.TryPayEntityResearchMilestone(gameState) ||
+                zone2.zoneResourceAmount != 0L || zone2.anomalousData != 0L ||
+                state.entityKnowledge != 3L)
+            {
+                return FailCivilization3Block4FValidation("coste o recompensa del hito 60 incorrectos");
+            }
+
+            state.ancientKnowledge = 25.0;
+            D2Civilization3System.TryStartEntityResearch(gameState);
+            D2Civilization3System.ApplyOfflineProgress(gameState, 750.0);
+            zone3.zoneResourceAmount = 45L;
+            if (state.entityResearchProgress != 85.0 ||
+                !D2Civilization3System.TryPayEntityResearchMilestone(gameState) ||
+                zone3.zoneResourceAmount != 0L || zone3.anomalousData != 0L ||
+                state.entityKnowledge != 6L)
+            {
+                return FailCivilization3Block4FValidation("hito 85 incorrecto");
+            }
+
+            state.ancientKnowledge = 15.0;
+            D2Civilization3System.TryStartEntityResearch(gameState);
+            D2Civilization3System.ApplyOfflineProgress(gameState, 450.0);
+            zone1.zoneResourceAmount = 50L;
+            zone2.zoneResourceAmount = 50L;
+            zone3.zoneResourceAmount = 49L;
+            if (state.entityResearchProgress != 100.0 ||
+                D2Civilization3System.TryPayEntityResearchMilestone(gameState))
+            {
+                return FailCivilization3Block4FValidation("hito 100 aceptado sin recursos");
+            }
+            zone3.zoneResourceAmount = 50L;
+            if (!D2Civilization3System.TryPayEntityResearchMilestone(gameState) ||
+                !state.entityResearchMilestone100Completed || !state.entityPactAvailable ||
+                zone1.zoneResourceAmount != 0L || zone2.zoneResourceAmount != 0L ||
+                zone3.zoneResourceAmount != 0L || state.entityKnowledge != 6L ||
+                D2Civilization3System.TryPayEntityResearchMilestone(gameState))
+            {
+                return FailCivilization3Block4FValidation(
+                    "coste, permanencia o preparación del Pacto al 100% incorrectos");
+            }
+
+            string serialized = JsonUtility.ToJson(state);
+            D2Civilization3State restored = JsonUtility.FromJson<D2Civilization3State>(serialized);
+            D2Civilization3System.EnsureState(restored);
+            if (!D2Civilization3System.ValidateState(restored, out _) ||
+                restored.progressVersion != Dimension2System.Civilization3ProgressVersion ||
+                !restored.entityResearchUnlocked || restored.entityResearchProgress != 100.0 ||
+                restored.entityKnowledge != 6L || !restored.entityPactAvailable ||
+                !restored.entityResearchMilestone100Completed)
+            {
+                return FailCivilization3Block4FValidation(
+                    "migración o serialización de Investigación incorrecta");
+            }
+
+            Debug.Log(
+                "[D2 Block 4F] VALIDACIÓN LÓGICA OK: desbloqueo con tres Datos, " +
+                "conversión 1:1, 1%/30 s, inicio/pausa/espera, offline, hitos " +
+                "30/60/85/100, costes, Conocimiento 1+2+3, Pacto preparado, migración y serialización."
+            );
+            return true;
+        }
+        finally
+        {
+            gameState.dimension02Unlocked = originalDimension2Unlocked;
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
+            gameState.EnsureDimension2State();
+        }
+    }
+
+    private static bool FailCivilization3Block4FValidation(string reason)
+    {
+        Debug.LogError("[D2 Block 4F] Validación lógica fallida: " + reason + ".");
+        return false;
+    }
+
+    private static bool ValidateCivilization3Block4GLogic(GameState gameState)
+    {
+        string originalStateJson = JsonUtility.ToJson(gameState.dimension2);
+        bool originalDimension2Unlocked = gameState.dimension02Unlocked;
+        try
+        {
+            gameState.dimension02Unlocked = true;
+            Dimension2System.ResetState(gameState);
+            gameState.dimension2.civilization3Unlocked = true;
+            D2Civilization3State state = gameState.dimension2.civilization3;
+            D2Civilization3System.EnsureState(state);
+            state.entityPactAvailable = true;
+            state.entityResearchMilestone100Completed = true;
+            state.entityResearchProgress = 100.0;
+            D2Civilization3System.EnsureState(state);
+
+            if (!D2Civilization3System.TryEstablishEntityPact(gameState) ||
+                !state.entityPactEstablished ||
+                D2Civilization3System.TryEstablishEntityPact(gameState))
+            {
+                return FailCivilization3Block4GValidation("establecimiento del Pacto incorrecto");
+            }
+
+            state.entityKnowledge = 0L;
+            state.ancientKnowledge = 1000.0;
+            foreach (string zoneId in D2Civilization3System.ZoneIds)
+                D2Civilization3System.GetZone(state, zoneId).zoneResourceAmount = 1000L;
+            if (D2Civilization3System.TryUpgradeEntityPactLine(
+                gameState, D2Civilization3System.ResonantExpeditionLineId))
+            {
+                return FailCivilization3Block4GValidation("umbral no gastable ignorado");
+            }
+
+            state.entityKnowledge = 6L;
+            state.ancientKnowledge = 300.0;
+            foreach (string zoneId in D2Civilization3System.ZoneIds)
+                D2Civilization3System.GetZone(state, zoneId).zoneResourceAmount = 150L;
+            for (int level = 1; level <= 3; level++)
+            {
+                if (!D2Civilization3System.TryUpgradeEntityPactLine(
+                    gameState, D2Civilization3System.ResonantExpeditionLineId))
+                {
+                    return FailCivilization3Block4GValidation("mejora de Expedicion incorrecta");
+                }
+            }
+            if (state.entityKnowledge != 6L || state.ancientKnowledge != 0.0 ||
+                D2Civilization3System.GetZone(state, D2Civilization3System.Zone1Id)
+                    .zoneResourceAmount != 0L ||
+                D2Civilization3System.GetEntityPactLineLevel(
+                    state, D2Civilization3System.ResonantExpeditionLineId) != 3)
+            {
+                return FailCivilization3Block4GValidation("costes o permanencia incorrectos");
+            }
+
+            foreach (D2EntityPactLineState line in state.entityPactLines)
+            {
+                if (line.lineId == D2Civilization3System.EndlessArchiveLineId)
+                    line.level = 2;
+                else if (line.lineId == D2Civilization3System.SharedMemoryLineId)
+                    line.level = 3;
+            }
+            foreach (string zoneId in D2Civilization3System.ZoneIds)
+                D2Civilization3System.GetZone(state, zoneId).researchProgress = 100.0;
+            D2C3ZoneState zone1 = D2Civilization3System.GetZone(
+                state, D2Civilization3System.Zone1Id);
+            if (System.Math.Abs(D2Civilization3System.GetSharedMemoryMultiplier(gameState) - 1.09) > 0.000001 ||
+                System.Math.Abs(D2Civilization3System.GetAnalysisRewardMultiplier(state) - 1.30) > 0.000001 ||
+                System.Math.Abs(D2Civilization3System.GetAnalysisDuration(state, zone1) - 25.65) > 0.000001 ||
+                System.Math.Abs(D2Civilization3System.GetExtraRemainsProgressPerExcavation(state, zone1) - 0.45) > 0.000001)
+            {
+                return FailCivilization3Block4GValidation("bonos de lineas o Zonas 100 incorrectos");
+            }
+
+            D2Civilization1State civ1 = gameState.dimension2.civilization1;
+            double initialArrivalProgress = civ1.followerArrivalProgress;
+            long initialFollowers = civ1.totalFollowersReceived;
+            double baseArrival = D2Civilization1System.GetFollowerArrivalPerSecond(civ1);
+            D2Civilization1System.Tick(gameState, 10.0);
+            double produced = (civ1.totalFollowersReceived - initialFollowers) +
+                (civ1.followerArrivalProgress - initialArrivalProgress);
+            if (System.Math.Abs(produced - baseArrival * 1.09 * 10.0) > 0.000001)
+                return FailCivilization3Block4GValidation("Memoria no alcanzo llegada de Seguidores");
+
+            string serialized = JsonUtility.ToJson(state);
+            D2Civilization3State restored = JsonUtility.FromJson<D2Civilization3State>(serialized);
+            D2Civilization3System.EnsureState(restored);
+            if (!D2Civilization3System.ValidateState(restored, out _) ||
+                restored.progressVersion != Dimension2System.Civilization3ProgressVersion ||
+                !restored.entityPactEstablished ||
+                D2Civilization3System.GetEntityPactLineLevel(
+                    restored, D2Civilization3System.SharedMemoryLineId) != 3)
+            {
+                return FailCivilization3Block4GValidation("serializacion del Pacto incorrecta");
+            }
+
+            Debug.Log("[D2 Block 4G] VALIDACION LOGICA OK: Pacto, tres lineas, niveles 1/3/6, costes, bonos de Zonas 100, Memoria Compartida y serializacion.");
+            return true;
+        }
+        finally
+        {
+            gameState.dimension02Unlocked = originalDimension2Unlocked;
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
+            gameState.EnsureDimension2State();
+        }
+    }
+
+    private static bool FailCivilization3Block4GValidation(string reason)
+    {
+        Debug.LogError("[D2 Block 4G] Validacion logica fallida: " + reason + ".");
+        return false;
+    }
+
+    private static bool ValidateCivilization3Block4HLogic(GameState gameState)
+    {
+        string originalStateJson = JsonUtility.ToJson(gameState.dimension2);
+        bool originalDimension2Unlocked = gameState.dimension02Unlocked;
+        try
+        {
+            gameState.dimension02Unlocked = true;
+            Dimension2System.ResetState(gameState);
+            gameState.dimension2.civilization3Unlocked = true;
+            D2Civilization3State state = gameState.dimension2.civilization3;
+            D2Civilization3System.EnsureState(state);
+            state.archiveUnlocked = true;
+            state.archiveLevel = 4;
+            state.entityKnowledge = 6L;
+            state.ancientKnowledge = 315.0;
+            D2C3ZoneState zone1 = D2Civilization3System.GetZone(
+                state, D2Civilization3System.Zone1Id);
+            D2C3ZoneState zone2 = D2Civilization3System.GetZone(
+                state, D2Civilization3System.Zone2Id);
+            D2C3ZoneState zone3 = D2Civilization3System.GetZone(
+                state, D2Civilization3System.Zone3Id);
+            zone2.unlocked = true;
+            zone3.unlocked = true;
+            zone1.scholarHired = true;
+            zone1.scholarLevel = 1;
+            zone2.scholarHired = true;
+            zone2.scholarLevel = 1;
+            zone3.scholarHired = true;
+            zone3.scholarLevel = 1;
+            zone1.zoneResourceAmount = 85L;
+            zone2.zoneResourceAmount = 35L;
+            zone3.zoneResourceAmount = 50L;
+            D2Civilization3System.EnsureState(state);
+
+            if (!D2Civilization3System.TryUpgradeScholar(
+                    gameState, D2Civilization3System.Zone1Id) ||
+                !D2Civilization3System.TryUpgradeScholar(
+                    gameState, D2Civilization3System.Zone1Id) ||
+                zone1.scholarLevel != 3 || state.entityKnowledge != 6L ||
+                System.Math.Abs(state.ancientKnowledge - 225.0) > 0.000001 ||
+                zone1.zoneResourceAmount != 25L ||
+                System.Math.Abs(D2Civilization3System.GetAnalysisDuration(state, zone1) - 27.0) > 0.000001 ||
+                System.Math.Abs(D2Civilization3System.GetScholarRewardMultiplier(zone1) - 1.10) > 0.000001)
+            {
+                return FailCivilization3Block4HValidation(
+                    "niveles, costes o efectos del Erudito incorrectos");
+            }
+
+            foreach (string upgradeId in D2Civilization3System.ArchiveUpgradeIds)
+            {
+                if (!D2Civilization3System.TryUnlockArchiveUpgrade(gameState, upgradeId))
+                    return FailCivilization3Block4HValidation(
+                        "desbloqueo o coste de una mejora del Archivo incorrecto");
+            }
+            if (state.entityKnowledge != 6L || state.ancientKnowledge != 0.0 ||
+                zone1.zoneResourceAmount != 0L || zone2.zoneResourceAmount != 0L ||
+                zone3.zoneResourceAmount != 0L ||
+                System.Math.Abs(D2Civilization3System.GetExcavationDuration(state) - 28.5) > 0.000001 ||
+                System.Math.Abs(D2Civilization3System.GetEffectiveAnomalyKnowledgeCost(
+                    state, D2Civilization3System.Zone1Id) - 22.5) > 0.000001 ||
+                D2Civilization3System.GetEffectiveAnomalyResourceCost(
+                    state, D2Civilization3System.Zone1Id) != 14L)
+            {
+                return FailCivilization3Block4HValidation(
+                    "efectos, costes o permanencia del Conocimiento del Ente incorrectos");
+            }
+
+            zone2.highQualityRemains = 1L;
+            zone2.anomalyClueProgress = 0.0;
+            state.anomalyClueDetectionUnlocked = true;
+            if (!D2Civilization3System.TryStartAnalysis(
+                    gameState, D2Civilization3System.Zone2Id,
+                    D2Civilization3System.HighQualityId))
+            {
+                return FailCivilization3Block4HValidation(
+                    "análisis para Concordancia no iniciado");
+            }
+            D2Civilization3System.ApplyOfflineProgress(
+                gameState, D2Civilization3System.GetAnalysisDuration(state, zone2));
+            if (System.Math.Abs(zone2.anomalyClueProgress - 0.198) > 0.000001)
+                return FailCivilization3Block4HValidation(
+                    "Concordancia Anómala no mejoró los Indicios offline");
+
+            string serialized = JsonUtility.ToJson(state);
+            D2Civilization3State restored = JsonUtility.FromJson<D2Civilization3State>(serialized);
+            D2Civilization3System.EnsureState(restored);
+            if (!D2Civilization3System.ValidateState(restored, out _) ||
+                restored.progressVersion != Dimension2System.Civilization3ProgressVersion ||
+                !restored.stratifiedCartographyUnlocked ||
+                !restored.anomalousConcordanceUnlocked ||
+                !restored.deepExegesisUnlocked ||
+                D2Civilization3System.GetZone(
+                    restored, D2Civilization3System.Zone1Id).scholarLevel != 3)
+            {
+                return FailCivilization3Block4HValidation(
+                    "serialización de Eruditos o Archivo incorrecta");
+            }
+
+            D2C3ZoneState legacyScholar = D2Civilization3System.GetZone(
+                restored, D2Civilization3System.Zone2Id);
+            legacyScholar.scholarHired = true;
+            legacyScholar.scholarLevel = 0;
+            restored.progressVersion = 10;
+            D2Civilization3System.EnsureState(restored);
+            if (legacyScholar.scholarLevel != 1 ||
+                restored.progressVersion != Dimension2System.Civilization3ProgressVersion)
+            {
+                return FailCivilization3Block4HValidation(
+                    "migración de Eruditos contratados incorrecta");
+            }
+
+            Debug.Log(
+                "[D2 Block 4H] VALIDACIÓN LÓGICA OK: Eruditos 1-3, Archivo, " +
+                "costes, efectos, offline, migración y serialización."
+            );
+            return true;
+        }
+        finally
+        {
+            gameState.dimension02Unlocked = originalDimension2Unlocked;
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
+            gameState.EnsureDimension2State();
+        }
+    }
+
+    private static bool FailCivilization3Block4HValidation(string reason)
+    {
+        Debug.LogError("[D2 Block 4H] Validación lógica fallida: " + reason + ".");
+        return false;
+    }
+
+    private static bool ValidateCivilization3Block5DLogic(GameState gameState)
+    {
+        string originalStateJson = JsonUtility.ToJson(gameState.dimension2);
+        bool originalDimension2Unlocked = gameState.dimension02Unlocked;
+        bool originalDimension1Unlocked = gameState.dimension01Unlocked;
+        int originalPrestige1Points = gameState.prestige1Points;
+        double originalMaxLE = gameState.maxLEAlcanzado;
+        double originalLE = gameState.LE;
+
+        try
+        {
+            gameState.dimension02Unlocked = true;
+            gameState.dimension01Unlocked = false;
+            gameState.maxLEAlcanzado = 0.0;
+            gameState.LE = 0.0;
+            gameState.prestige1Points = 0;
+            Dimension2System.ResetState(gameState);
+            gameState.dimension2.civilization3Unlocked = true;
+            D2Civilization3State state = gameState.dimension2.civilization3;
+            D2Civilization3System.EnsureState(state);
+            state.entityPactAvailable = true;
+            state.entityResearchMilestone100Completed = true;
+            state.entityResearchProgress = 100.0;
+            D2Civilization3System.EnsureState(state);
+
+            if (!D2Civilization3System.TryEstablishEntityPact(gameState) ||
+                state.entityPactLines.Count != 5)
+            {
+                return FailCivilization3Block5DValidation(
+                    "establecimiento o catálogo de cinco líneas incorrecto");
+            }
+
+            state.entityKnowledge = 6L;
+            state.ancientKnowledge = 600.0;
+            foreach (string zoneId in D2Civilization3System.ZoneIds)
+                D2Civilization3System.GetZone(state, zoneId).zoneResourceAmount = 300L;
+
+            foreach (string lineId in new[]
+            {
+                D2Civilization3System.ModulatorResonanceLineId,
+                D2Civilization3System.FirstThresholdChronicleLineId
+            })
+            {
+                for (int expectedLevel = 1; expectedLevel <= 3; expectedLevel++)
+                {
+                    if (!D2Civilization3System.TryUpgradeEntityPactLine(gameState, lineId) ||
+                        D2Civilization3System.GetEntityPactLineLevel(state, lineId) != expectedLevel)
+                    {
+                        return FailCivilization3Block5DValidation(
+                            "costes, umbrales o niveles de una línea externa incorrectos");
+                    }
+                }
+            }
+
+            if (state.entityKnowledge != 6L || state.ancientKnowledge != 0.0 ||
+                D2Civilization3System.GetZone(state, D2Civilization3System.Zone1Id)
+                    .zoneResourceAmount != 0L ||
+                System.Math.Abs(
+                    D2Civilization3System.GetModulatorCalibrationMultiplier(gameState) - 1.15
+                ) > 0.000001 ||
+                D2Civilization3System.GetPrestige1PreviewBonus(gameState) != 3 ||
+                Dimension1System.CalculatePrestige1PointsPreview(gameState) != 3 ||
+                gameState.prestige1Points != 0)
+            {
+                return FailCivilization3Block5DValidation(
+                    "efectos externos, permanencia del umbral o cobro anticipado incorrectos");
+            }
+
+            string serialized = JsonUtility.ToJson(state);
+            D2Civilization3State restored = JsonUtility.FromJson<D2Civilization3State>(serialized);
+            D2Civilization3System.EnsureState(restored);
+            if (!D2Civilization3System.ValidateState(restored, out _) ||
+                restored.progressVersion != Dimension2System.Civilization3ProgressVersion ||
+                restored.entityPactLines.Count != 5 ||
+                D2Civilization3System.GetEntityPactLineLevel(
+                    restored, D2Civilization3System.ModulatorResonanceLineId) != 3 ||
+                D2Civilization3System.GetEntityPactLineLevel(
+                    restored, D2Civilization3System.FirstThresholdChronicleLineId) != 3)
+            {
+                return FailCivilization3Block5DValidation(
+                    "serialización de las cinco líneas incorrecta");
+            }
+
+            restored.entityPactLines.RemoveAll(line =>
+                line != null &&
+                (line.lineId == D2Civilization3System.ModulatorResonanceLineId ||
+                 line.lineId == D2Civilization3System.FirstThresholdChronicleLineId));
+            restored.progressVersion = 9;
+            D2Civilization3System.EnsureState(restored);
+            if (restored.progressVersion != Dimension2System.Civilization3ProgressVersion ||
+                restored.entityPactLines.Count != 5 ||
+                D2Civilization3System.GetEntityPactLineLevel(
+                    restored, D2Civilization3System.ResonantExpeditionLineId) != 0 ||
+                D2Civilization3System.GetEntityPactLineLevel(
+                    restored, D2Civilization3System.ModulatorResonanceLineId) != 0)
+            {
+                return FailCivilization3Block5DValidation(
+                    "migración de tres a cinco líneas incorrecta");
+            }
+
+            Debug.Log(
+                "[D2 Block 5D] VALIDACIÓN LÓGICA OK: cinco líneas, costes, " +
+                "calibración del Modulador, vista previa P1, migración y serialización."
+            );
+            return true;
+        }
+        finally
+        {
+            gameState.dimension02Unlocked = originalDimension2Unlocked;
+            gameState.dimension01Unlocked = originalDimension1Unlocked;
+            gameState.prestige1Points = originalPrestige1Points;
+            gameState.maxLEAlcanzado = originalMaxLE;
+            gameState.LE = originalLE;
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
+            gameState.EnsureDimension2State();
+        }
+    }
+
+    private static bool FailCivilization3Block5DValidation(string reason)
+    {
+        Debug.LogError("[D2 Block 5D] Validación lógica fallida: " + reason + ".");
+        return false;
+    }
+
+    private static bool ValidateDimension2Block5ELogic(GameState gameState)
+    {
+        string originalStateJson = JsonUtility.ToJson(gameState.dimension2);
+        bool originalDimension2Unlocked = gameState.dimension02Unlocked;
+        try
+        {
+            gameState.dimension02Unlocked = true;
+            Dimension2System.ResetState(gameState);
+            gameState.dimension2.civilization2Unlocked = true;
+            gameState.dimension2.civilization3Unlocked = true;
+            gameState.EnsureDimension2State();
+
+            D2Civilization1State civ1 = gameState.dimension2.civilization1;
+            D2Civilization2State civ2 = gameState.dimension2.civilization2;
+            D2Civilization3State civ3 = gameState.dimension2.civilization3;
+
+            civ1.entityContactAvailable = true;
+            civ1.bondPlacePrepared = true;
+            civ1.acolytesAssignedToBond = 4L;
+            civ1.followersAvailable = 96L;
+            civ1.followersAssignedToRefuge = 4L;
+            civ1.totalFollowersReceived = 100L;
+            D2AltarState wax = D2AltarSystem.GetAltar(civ1, D2AltarSystem.WaxAltarId);
+            wax.unlocked = true;
+            wax.followersAssigned = 4L;
+            foreach (D2BondLineState line in civ1.bondLines)
+            {
+                if (line.lineId == D2BondSystem.SanctuaryEchoId ||
+                    line.lineId == D2BondSystem.TraceLiturgyId)
+                {
+                    line.level = 3;
+                }
+            }
+
+            civ2.entityContained = true;
+            civ2.majorPactPrepared = true;
+            civ2.majorPactEstablished = true;
+            civ2.membersAvailable = 92L;
+            civ2.membersAssignedToContainment = 4L;
+            civ2.totalMembersRecruited = 100L;
+            D2RegionState region1 = D2Civilization2System.GetRegion(
+                civ2, D2Civilization2System.Region1Id);
+            region1.membersAssigned = 4L;
+            D2Civilization2System.GetOperation(
+                region1, D2Civilization2System.RescueOperationId).membersAssigned = 4L;
+            foreach (D2C2MajorPactLineState line in civ2.majorPactLines)
+                line.level = 3;
+
+            civ3.entityPactAvailable = true;
+            civ3.entityPactEstablished = true;
+            civ3.entityResearchUnlocked = true;
+            civ3.entityResearchActive = true;
+            civ3.entityResearchProgress = 0.0;
+            civ3.ancientKnowledge = 20.0;
+            foreach (D2EntityPactLineState line in civ3.entityPactLines)
+                line.level = 3;
+            gameState.EnsureDimension2State();
+
+            if (System.Math.Abs(gameState.GetDimension2SanctuaryLEMultiplier() - 1.03) > 0.000001 ||
+                System.Math.Abs(gameState.GetDimension2TraceMultiplier() - 1.03) > 0.000001 ||
+                System.Math.Abs(gameState.GetDimension2ArtifactProductionMultiplier(
+                    "vacuum_observer") - 1.06) > 0.000001 ||
+                System.Math.Abs(gameState.GetDimension2TriangleEffectMultiplier() - 1.06) > 0.000001 ||
+                System.Math.Abs(D2Civilization3System.GetSharedMemoryMultiplier(gameState) - 1.09) > 0.000001 ||
+                System.Math.Abs(D2Civilization3System.GetModulatorCalibrationMultiplier(gameState) - 1.15) > 0.000001 ||
+                D2Civilization3System.GetPrestige1PreviewBonus(gameState) != 3)
+            {
+                return FailDimension2Block5EValidation(
+                    "matriz combinada de conexiones cruzadas incorrecta");
+            }
+
+            string baselineJson = JsonUtility.ToJson(gameState.dimension2);
+            Dimension2System.Tick(gameState, 600.0);
+            long onlineFollowers = civ1.followersAvailable;
+            double onlineFollowerProgress = civ1.followerArrivalProgress;
+            double onlineWax = wax.offeringAmount;
+            double onlineBond = civ1.bondProgress;
+            double onlineDominance = region1.dominance;
+            double onlineThreat = region1.threat;
+            double onlineMemberProgress = civ2.memberProductionProgress;
+            double onlineStability = civ2.containmentStability;
+            double onlineEntityResearch = civ3.entityResearchProgress;
+            double onlineAncientKnowledge = civ3.ancientKnowledge;
+
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(baselineJson);
+            gameState.EnsureDimension2State();
+            double applied = Dimension2System.ApplyOfflineProgress(gameState, 600.0);
+            civ1 = gameState.dimension2.civilization1;
+            civ2 = gameState.dimension2.civilization2;
+            civ3 = gameState.dimension2.civilization3;
+            wax = D2AltarSystem.GetAltar(civ1, D2AltarSystem.WaxAltarId);
+            region1 = D2Civilization2System.GetRegion(civ2, D2Civilization2System.Region1Id);
+
+            if (System.Math.Abs(applied - 600.0) > 0.000001 ||
+                civ1.followersAvailable != onlineFollowers ||
+                System.Math.Abs(civ1.followerArrivalProgress - onlineFollowerProgress) > 0.000001 ||
+                System.Math.Abs(wax.offeringAmount - onlineWax) > 0.000001 ||
+                System.Math.Abs(civ1.bondProgress - onlineBond) > 0.000001 ||
+                System.Math.Abs(region1.dominance - onlineDominance) > 0.000001 ||
+                System.Math.Abs(region1.threat - onlineThreat) > 0.000001 ||
+                System.Math.Abs(civ2.memberProductionProgress - onlineMemberProgress) > 0.000001 ||
+                System.Math.Abs(civ2.containmentStability - onlineStability) > 0.000001 ||
+                System.Math.Abs(civ3.entityResearchProgress - onlineEntityResearch) > 0.000001 ||
+                System.Math.Abs(civ3.ancientKnowledge - onlineAncientKnowledge) > 0.000001)
+            {
+                return FailDimension2Block5EValidation(
+                    "simulación simultánea online/offline no equivalente");
+            }
+
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(baselineJson);
+            gameState.EnsureDimension2State();
+            double capped = Dimension2System.ApplyOfflineProgress(gameState, 100000.0);
+            if (System.Math.Abs(capped - Dimension2System.OfflineProgressCapSeconds) > 0.000001)
+                return FailDimension2Block5EValidation("límite offline de 12 horas incorrecto");
+
+            string roundTrip = JsonUtility.ToJson(gameState.dimension2);
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(roundTrip);
+            gameState.EnsureDimension2State();
+            if (!Dimension2System.ValidateState(gameState, out _))
+                return FailDimension2Block5EValidation(
+                    "estado combinado inválido después de guardar y cargar");
+
+            Debug.Log(
+                "[D2 Block 5E] VALIDACIÓN LÓGICA OK: tres civilizaciones " +
+                "simultáneas, conexiones cruzadas, equivalencia online/offline, " +
+                "límite de 12 horas y guardado integral."
+            );
+            return true;
+        }
+        finally
+        {
+            gameState.dimension02Unlocked = originalDimension2Unlocked;
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
+            gameState.EnsureDimension2State();
+        }
+    }
+
+    private static bool FailDimension2Block5EValidation(string reason)
+    {
+        Debug.LogError("[D2 Block 5E] Validación lógica fallida: " + reason + ".");
+        return false;
+    }
+
+    private static bool ValidateDimension2Block5FLogic(GameState gameState)
+    {
+        string originalStateJson = JsonUtility.ToJson(gameState.dimension2);
+        bool originalDimension2Unlocked = gameState.dimension02Unlocked;
+        try
+        {
+            gameState.dimension02Unlocked = true;
+            Dimension2System.ResetState(gameState);
+            if (!Dimension2System.ValidateState(gameState, out _) ||
+                gameState.dimension2.civilization1.progressVersion !=
+                    Dimension2System.Civilization1ProgressVersion ||
+                gameState.dimension2.civilization2.progressVersion !=
+                    Dimension2System.Civilization2ProgressVersion ||
+                gameState.dimension2.civilization3.progressVersion !=
+                    Dimension2System.Civilization3ProgressVersion)
+            {
+                return FailDimension2Block5FValidation(
+                    "partida nueva o versiones de progreso incorrectas");
+            }
+
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(
+                "{\"progressVersion\":0,\"selectedTerritoryId\":\"legacy_unknown\"," +
+                "\"civilization1Unlocked\":false}"
+            );
+            gameState.EnsureDimension2State();
+            D2Civilization3State migratedCiv3 = gameState.dimension2.civilization3;
+            if (!Dimension2System.ValidateState(gameState, out _) ||
+                gameState.dimension2.selectedTerritoryId !=
+                    Dimension2System.Civilization1TerritoryId ||
+                !gameState.dimension2.civilization1Unlocked ||
+                gameState.dimension2.civilization1.bondLines.Count != 5 ||
+                gameState.dimension2.civilization2.majorPactLines.Count != 5 ||
+                migratedCiv3.entityPactLines.Count != 5 ||
+                migratedCiv3.zones.Count != 3)
+            {
+                return FailDimension2Block5FValidation(
+                    "migración desde una partida anterior a Dimensión 2 incorrecta");
+            }
+
+            foreach (D2C3ZoneState zone in migratedCiv3.zones)
+            {
+                if (zone == null || zone.scholarLevel != 0 || zone.scholarHired)
+                    return FailDimension2Block5FValidation(
+                        "estado inicial migrado de Eruditos incorrecto");
+            }
+
+            string stableJson = JsonUtility.ToJson(gameState.dimension2);
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(stableJson);
+            gameState.EnsureDimension2State();
+            if (!Dimension2System.ValidateState(gameState, out _))
+                return FailDimension2Block5FValidation(
+                    "segunda carga de la partida migrada no fue estable");
+
+            Debug.Log(
+                "[D2 Block 5F] VALIDACIÓN LÓGICA OK: partida nueva, partida " +
+                "anterior a D2, migración estable, catálogos y versiones finales."
+            );
+            return true;
+        }
+        finally
+        {
+            gameState.dimension02Unlocked = originalDimension2Unlocked;
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
+            gameState.EnsureDimension2State();
+        }
+    }
+
+    private static bool FailDimension2Block5FValidation(string reason)
+    {
+        Debug.LogError("[D2 Block 5F] Validación lógica fallida: " + reason + ".");
+        return false;
+    }
+
+    private static bool ValidateCivilization1Block5BLogic(GameState gameState)
+    {
+        string originalStateJson = JsonUtility.ToJson(gameState.dimension2);
+        bool originalDimension2Unlocked = gameState.dimension02Unlocked;
+        try
+        {
+            gameState.dimension02Unlocked = true;
+            Dimension2System.ResetState(gameState);
+            D2Civilization1State state = gameState.dimension2.civilization1;
+            D2Civilization1System.EnsureState(state);
+            if (D2BondSystem.IsMajorPactEstablished(state) ||
+                D2BondSystem.CanPrepare(gameState))
+            {
+                return FailCivilization1Block5BValidation(
+                    "pacto disponible antes del contacto");
+            }
+
+            state.trust = D2VeiledThresholdSystem.UnlockTrustRequired;
+            state.novitiateLevel = D2CivilizationPactSystem.UnlockNovitiateLevelRequired;
+            state.totalAcolytesCreated = 1L;
+            D2VeiledThresholdSystem.EnsureState(state);
+            D2AltarSystem.EnsureState(state);
+            foreach (string altarId in new[]
+            {
+                D2AltarSystem.IncenseAltarId,
+                D2AltarSystem.SacredClothAltarId,
+                D2AltarSystem.CarvedStoneAltarId
+            })
+            {
+                D2AltarSystem.GetAltar(state, altarId).offeringAmount = 100.0;
+            }
+            bool canPrepareMajorPact = D2BondSystem.CanPrepare(gameState);
+            if (!canPrepareMajorPact || !D2BondSystem.TryPrepare(gameState) ||
+                !D2BondSystem.IsMajorPactEstablished(state))
+            {
+                D2AltarState debugIncense = D2AltarSystem.GetAltar(
+                    state, D2AltarSystem.IncenseAltarId);
+                D2AltarState debugCloth = D2AltarSystem.GetAltar(
+                    state, D2AltarSystem.SacredClothAltarId);
+                D2AltarState debugStone = D2AltarSystem.GetAltar(
+                    state, D2AltarSystem.CarvedStoneAltarId);
+                return FailCivilization1Block5BValidation(
+                    "establecimiento incorrecto: acceso=" + gameState.dimension02Unlocked +
+                    ", contacto=" + state.entityContactAvailable +
+                    ", incienso=" + debugIncense.unlocked + "/" + debugIncense.offeringAmount +
+                    ", tela=" + debugCloth.unlocked + "/" + debugCloth.offeringAmount +
+                    ", piedra=" + debugStone.unlocked + "/" + debugStone.offeringAmount);
+            }
+
+            state.acolytesAvailable = 4L;
+            if (!D2BondSystem.TryAssignAcolytes(gameState, 4L))
+                return FailCivilization1Block5BValidation("asignacion de Acolitos incorrecta");
+            D2BondSystem.Tick(state, 60.0);
+            if (System.Math.Abs(state.bondProgress - 2.0) > 0.000001)
+                return FailCivilization1Block5BValidation("progreso del vinculo incorrecto");
+
+            state.bondProgress = D2BondSystem.GetProgressCost(1);
+            foreach (string altarId in new[]
+            {
+                D2AltarSystem.IncenseAltarId,
+                D2AltarSystem.SacredClothAltarId,
+                D2AltarSystem.CarvedStoneAltarId
+            })
+            {
+                D2AltarSystem.GetAltar(state, altarId).offeringAmount =
+                    D2BondSystem.GetOfferingCost(1);
+            }
+            if (!D2BondSystem.TryUpgrade(gameState, D2BondSystem.SanctuaryEchoId) ||
+                System.Math.Abs(gameState.GetDimension2SanctuaryLEMultiplier() - 1.01) > 0.000001 ||
+                state.bondProgress != 0.0)
+            {
+                return FailCivilization1Block5BValidation(
+                    "coste o conexion externa de LE incorrectos");
+            }
+
+            string serialized = JsonUtility.ToJson(state);
+            D2Civilization1State restored = JsonUtility.FromJson<D2Civilization1State>(serialized);
+            D2Civilization1System.EnsureState(restored);
+            if (!D2Civilization1System.ValidateState(restored, out _) ||
+                !D2BondSystem.IsMajorPactEstablished(restored) ||
+                restored.bondLines.Count != D2BondSystem.LineIds.Length ||
+                D2BondSystem.GetLevel(restored, D2BondSystem.SanctuaryEchoId) != 1)
+            {
+                return FailCivilization1Block5BValidation(
+                    "catalogo o serializacion del pacto incorrectos");
+            }
+
+            Debug.Log("[D2 Block 5B] VALIDACION LOGICA OK: pacto mayor de Civ1, cinco lineas, Acolitos, progreso, costes, LE y serializacion.");
+            return true;
+        }
+        finally
+        {
+            gameState.dimension02Unlocked = originalDimension2Unlocked;
+            gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
+            gameState.EnsureDimension2State();
+        }
+    }
+
+    private static bool FailCivilization1Block5BValidation(string reason)
+    {
+        Debug.LogError("[D2 Block 5B] Validacion logica fallida: " + reason + ".");
+        return false;
     }
 
     private static bool FailCivilization1Validation(string reason)

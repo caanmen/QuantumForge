@@ -9,6 +9,8 @@ public class Dimension2PanelUI : MonoBehaviour
     public GameObject firstEntryRoot;
     public GameObject mapRoot;
     public GameObject civilization1Root;
+    public GameObject civilization2Root;
+    public GameObject civilization3Root;
     public Button closeDimension2Button;
 
     [Header("Entrada")]
@@ -27,6 +29,12 @@ public class Dimension2PanelUI : MonoBehaviour
     public TMP_Text civilization1PlaceholderText;
     public Button backToMapButton;
     public D2Civilization1PanelUI civilization1PanelUI;
+
+    [Header("Civilización 2")]
+    public D2Civilization2PanelUI civilization2PanelUI;
+
+    [Header("Civilización 3")]
+    public D2Civilization3PanelUI civilization3PanelUI;
 
     private void Awake()
     {
@@ -69,7 +77,7 @@ public class Dimension2PanelUI : MonoBehaviour
 
     public void ShowFirstEntry()
     {
-        SetView(firstEntry: true, map: false, civilization1: false);
+        SetView(firstEntry: true, map: false, civilization1: false, civilization2: false, civilization3: false);
         Refresh();
     }
 
@@ -84,7 +92,7 @@ public class Dimension2PanelUI : MonoBehaviour
         if (!Dimension2System.CanAccessDimension2(GameState.I))
             return;
 
-        SetView(firstEntry: false, map: true, civilization1: false);
+        SetView(firstEntry: false, map: true, civilization1: false, civilization2: false, civilization3: false);
         Refresh();
     }
 
@@ -140,10 +148,14 @@ public class Dimension2PanelUI : MonoBehaviour
 
         if (mapStatusText != null)
         {
+            string availability = civilization3Unlocked
+                ? "Los tres territorios están disponibles."
+                : civilization2Unlocked
+                    ? "El Santuario y los Territorios Sometidos están disponibles."
+                    : "El Santuario de Peregrinos es el único punto de entrada disponible.";
             mapStatusText.text =
                 "DIMENSIÓN DE LOS PACTOS\n" +
-                "Tres territorios guardan respuestas distintas. " +
-                "Civilización 1 es el único punto de entrada disponible.";
+                "Tres territorios guardan respuestas distintas. " + availability;
         }
 
         if (civilization1PlaceholderText != null)
@@ -154,6 +166,11 @@ public class Dimension2PanelUI : MonoBehaviour
 
         if (civilization1PanelUI != null)
             civilization1PanelUI.Refresh();
+
+        if (civilization2PanelUI != null)
+            civilization2PanelUI.Refresh();
+        if (civilization3PanelUI != null)
+            civilization3PanelUI.Refresh();
     }
 
     private void OpenTerritory(string territoryId)
@@ -166,22 +183,28 @@ public class Dimension2PanelUI : MonoBehaviour
 
         if (territoryId == Dimension2System.Civilization1TerritoryId)
         {
-            SetView(firstEntry: false, map: false, civilization1: true);
+            SetView(firstEntry: false, map: false, civilization1: true, civilization2: false, civilization3: false);
             Refresh();
         }
-        else
+        else if (territoryId == Dimension2System.Civilization2TerritoryId)
         {
-            ShowMap();
-            if (mapStatusText != null)
-            {
-                mapStatusText.text =
-                    Dimension2System.GetTerritoryDisplayName(territoryId) +
-                    "\nDESBLOQUEADA — su contenido se implementará en el bloque correspondiente.";
-            }
+            SetView(firstEntry: false, map: false, civilization1: false, civilization2: true, civilization3: false);
+            Refresh();
+        }
+        else if (territoryId == Dimension2System.Civilization3TerritoryId)
+        {
+            SetView(firstEntry: false, map: false, civilization1: false, civilization2: false, civilization3: true);
+            Refresh();
         }
     }
 
-    private void SetView(bool firstEntry, bool map, bool civilization1)
+    private void SetView(
+        bool firstEntry,
+        bool map,
+        bool civilization1,
+        bool civilization2,
+        bool civilization3
+    )
     {
         if (firstEntryRoot != null)
             firstEntryRoot.SetActive(firstEntry);
@@ -191,6 +214,12 @@ public class Dimension2PanelUI : MonoBehaviour
 
         if (civilization1Root != null)
             civilization1Root.SetActive(civilization1);
+
+        if (civilization2Root != null)
+            civilization2Root.SetActive(civilization2);
+
+        if (civilization3Root != null)
+            civilization3Root.SetActive(civilization3);
     }
 
     private static void SetButtonState(Button button, bool unlocked)

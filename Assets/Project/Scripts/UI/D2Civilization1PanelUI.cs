@@ -182,7 +182,12 @@ public class D2Civilization1PanelUI : MonoBehaviour
             pactsPanelUI.Refresh();
 
         if (showVeiledThresholdButton != null)
+        {
             SetInteractable(showVeiledThresholdButton, veiledThresholdUnlocked);
+            TMP_Text label = showVeiledThresholdButton.GetComponentInChildren<TMP_Text>(true);
+            if (label != null)
+                label.text = D2BondSystem.IsMajorPactEstablished(state) ? "PACTO" : "UMBRAL";
+        }
 
         if (veiledThresholdPanelUI != null)
             veiledThresholdPanelUI.Refresh();

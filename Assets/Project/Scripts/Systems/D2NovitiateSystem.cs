@@ -91,7 +91,7 @@ public static class D2NovitiateSystem
             active.remainingSeconds - (seconds * progressMultiplier)
         );
         if (active.remainingSeconds <= 0.0)
-            CompleteTraining(state);
+            CompleteTraining(state, D2Civilization3System.GetSharedMemoryMultiplier(gameState));
     }
 
     public static bool CanStartTraining(GameState gameState)
@@ -215,6 +215,25 @@ public static class D2NovitiateSystem
             duration *= 1.0 + D2CivilizationPactSystem.ConsecrationDurationIncrease;
         }
         return duration;
+    }
+
+    public static double GetDisplayedRemainingSeconds(D2Civilization1State state)
+    {
+        D2NovitiateTrainingState active = state?.activeNovitiateTraining;
+        if (active == null || !active.active)
+            return 0.0;
+
+        double displayedSeconds = active.remainingSeconds * (1.0 -
+            GetCombinedDurationReduction(state, active.supportFollowersCommitted));
+        if (D2CivilizationPactSystem.IsPactActive(
+            state,
+            D2CivilizationPactSystem.ConsecrationId
+        ))
+        {
+            displayedSeconds *= 1.0 +
+                D2CivilizationPactSystem.ConsecrationDurationIncrease;
+        }
+        return Math.Max(0.0, displayedSeconds);
     }
 
     public static double GetCurrentAcolytesPerBatch(
@@ -341,7 +360,10 @@ public static class D2NovitiateSystem
         return true;
     }
 
-    private static void CompleteTraining(D2Civilization1State state)
+    private static void CompleteTraining(
+        D2Civilization1State state,
+        double externalMultiplier
+    )
     {
         D2NovitiateTrainingState active = state.activeNovitiateTraining;
         double creationMultiplier = D2CivilizationPactSystem.IsPactActive(
@@ -351,7 +373,8 @@ public static class D2NovitiateSystem
             ? 1.0 + D2CivilizationPactSystem.ConsecrationAcolyteBonus
             : 1.0;
         double accumulated = state.pactConsecrationAcolyteProgress +
-            (active.acolytesToCreate * creationMultiplier);
+            (active.acolytesToCreate * creationMultiplier *
+             Math.Max(1.0, externalMultiplier));
         long created = SafeFloorToLong(accumulated);
         state.pactConsecrationAcolyteProgress = accumulated - created;
         state.followersAvailable = SaturatingAdd(

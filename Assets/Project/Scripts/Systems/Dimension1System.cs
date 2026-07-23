@@ -66,6 +66,9 @@ public class D1ShipState
     public bool arkMissionReserved;
     public string arkMissionId;
 
+    // El Puerto usa este indicador para no registrar como manual una ruta automática.
+    public bool explorationStartedByAutomation;
+
 }
 
 [System.Serializable]
@@ -146,6 +149,7 @@ public class D1TreeNodeState
 public static class Dimension1System
 {
     public const string DimensionId = "dimension_01";
+    public const int Dimension1AutomationHistoryProgressVersion = 1;
 
     // Sectores de Dimensión 1 - Parte 1
     public const string Sector01OuterRim = "d1_sector_01_outer_rim";
@@ -2576,7 +2580,8 @@ public static class Dimension1System
 
         return
             CalculatePrestige1PointsFromBaseGame(state) +
-            CalculatePrestige1PointsFromDimension1(state);
+            CalculatePrestige1PointsFromDimension1(state) +
+            D2Civilization3System.GetPrestige1PreviewBonus(state);
     }
 
     public static int CalculateClaimablePrestige1Points(GameState state)
@@ -5354,6 +5359,18 @@ public static class Dimension1System
 
     public static bool TryUpgradeExtractor(GameState state, string planetId)
     {
+        return TryUpgradeExtractorInternal(state, planetId, true);
+    }
+
+    public static bool TryUpgradeExtractorAutomated(
+        GameState state, string planetId)
+    {
+        return TryUpgradeExtractorInternal(state, planetId, false);
+    }
+
+    private static bool TryUpgradeExtractorInternal(
+        GameState state, string planetId, bool registerManualExecution)
+    {
         if (state == null)
             return false;
 
@@ -5384,6 +5401,8 @@ public static class Dimension1System
             return false;
 
         planet.extractorTier += 1;
+        if (registerManualExecution)
+            state.RegisterManualD1ExtractorUpgrade(planetId);
         return true;
     }
 
@@ -7583,6 +7602,17 @@ public static class Dimension1System
 
     public static bool TryScanSimpleDestination(GameState state)
     {
+        return TryScanSimpleDestinationInternal(state, true);
+    }
+
+    public static bool TryScanSimpleDestinationAutomated(GameState state)
+    {
+        return TryScanSimpleDestinationInternal(state, false);
+    }
+
+    private static bool TryScanSimpleDestinationInternal(
+        GameState state, bool registerManualExecution)
+    {
         if (!CanScanSimpleDestination(state))
             return false;
 
@@ -7600,6 +7630,9 @@ public static class Dimension1System
         state.dimension1ActiveScanSectorId = state.dimension1SelectedSectorId;
         state.dimension1ScanTotalSeconds = scanDuration;
         state.dimension1ScanRemainingSeconds = scanDuration;
+
+        if (registerManualExecution)
+            state.dimension1ManualSimpleScanCompleted = true;
 
         return true;
     }
@@ -7669,6 +7702,30 @@ public static class Dimension1System
 
     public static bool TryStartExploration(GameState state, string shipId, int destinationIndex)
     {
+        return TryStartExplorationInternal(
+            state, shipId, destinationIndex, false);
+    }
+
+    public static bool CanStartExplorationByDestinationId(
+        GameState state, string shipId, string destinationId)
+    {
+        int index = GetAvailableDestinationIndex(state, destinationId);
+        return index >= 0 && CanStartExploration(state, shipId, index);
+    }
+
+    public static bool TryStartExplorationByDestinationId(
+        GameState state, string shipId, string destinationId,
+        bool startedByAutomation)
+    {
+        int index = GetAvailableDestinationIndex(state, destinationId);
+        return index >= 0 && TryStartExplorationInternal(
+            state, shipId, index, startedByAutomation);
+    }
+
+    private static bool TryStartExplorationInternal(
+        GameState state, string shipId, int destinationIndex,
+        bool startedByAutomation)
+    {
         if (!CanStartExploration(state, shipId, destinationIndex))
             return false;
 
@@ -7691,6 +7748,7 @@ public static class Dimension1System
         ship.activeSectorId = destination.sectorId;
         ship.explorationTotalSeconds = duration;
         ship.explorationRemainingSeconds = duration;
+        ship.explorationStartedByAutomation = startedByAutomation;
 
         destination.available = false;
 
@@ -7832,6 +7890,23 @@ public static class Dimension1System
         selected.specialPointId = pool[Random.Range(0, pool.Length)];
 
         return true;
+    }
+
+    private static int GetAvailableDestinationIndex(
+        GameState state, string destinationId)
+    {
+        if (state == null || state.dimension1ScannedDestinations == null ||
+            string.IsNullOrWhiteSpace(destinationId)) return -1;
+        int availableIndex = 0;
+        for (int i = 0; i < state.dimension1ScannedDestinations.Count; i++)
+        {
+            D1ScannedDestinationState destination =
+                state.dimension1ScannedDestinations[i];
+            if (destination == null || !destination.available) continue;
+            if (destination.destinationId == destinationId) return availableIndex;
+            availableIndex++;
+        }
+        return -1;
     }
 
     public static bool CanStartCoordinatedExploration(
@@ -8420,6 +8495,12 @@ public static class Dimension1System
             else
             {
                 GrantSimpleExplorationRewards(state, destinationId, ship);
+                state.dimension1CompletedSimpleExplorations =
+                    state.dimension1CompletedSimpleExplorations >= int.MaxValue
+                        ? int.MaxValue
+                        : state.dimension1CompletedSimpleExplorations + 1;
+                if (!ship.explorationStartedByAutomation)
+                    state.RegisterManualD1SimpleDestination(destinationId);
             }
 
             state.AddD1SectorExplorationCount(sectorId, 1);
@@ -8435,6 +8516,7 @@ public static class Dimension1System
         ship.explorationTotalSeconds = 0.0;
         ship.coordinatedMission = false;
         ship.coordinatedSupportShipId = "";
+        ship.explorationStartedByAutomation = false;
 
         if (SaveService.I != null)
             SaveService.I.Save();

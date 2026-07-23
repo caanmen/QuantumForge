@@ -70,14 +70,15 @@ public static class D2Civilization1System
 
         Dimension2System.EnsureState(gameState);
         D2Civilization1State civilization1 = gameState.dimension2.civilization1;
-        D2AltarSystem.Tick(civilization1, dt);
+        double sharedMemoryMultiplier = D2Civilization3System.GetSharedMemoryMultiplier(gameState);
+        D2AltarSystem.Tick(civilization1, dt, sharedMemoryMultiplier);
         double hospitalitySeconds = D2CivilizationPactSystem
             .ConsumeHospitalityMaintenance(civilization1, dt);
-        ProduceFollowers(civilization1, hospitalitySeconds, true);
-        ProduceFollowers(civilization1, dt - hospitalitySeconds, false);
+        ProduceFollowers(civilization1, hospitalitySeconds, true, sharedMemoryMultiplier);
+        ProduceFollowers(civilization1, dt - hospitalitySeconds, false, sharedMemoryMultiplier);
         D2PilgrimageSystem.Tick(gameState, dt);
         D2NovitiateSystem.Tick(gameState, dt);
-        D2BondSystem.Tick(civilization1, dt);
+        D2BondSystem.Tick(civilization1, dt, sharedMemoryMultiplier);
     }
 
     public static void ApplyOfflineProgress(GameState gameState, double offlineSeconds)
@@ -90,14 +91,15 @@ public static class D2Civilization1System
 
         Dimension2System.EnsureState(gameState);
         D2Civilization1State civilization1 = gameState.dimension2.civilization1;
-        D2AltarSystem.Tick(civilization1, offlineSeconds);
+        double sharedMemoryMultiplier = D2Civilization3System.GetSharedMemoryMultiplier(gameState);
+        D2AltarSystem.Tick(civilization1, offlineSeconds, sharedMemoryMultiplier);
         double hospitalitySeconds = D2CivilizationPactSystem
             .ConsumeHospitalityMaintenance(civilization1, offlineSeconds);
-        ProduceFollowers(civilization1, hospitalitySeconds, true);
-        ProduceFollowers(civilization1, offlineSeconds - hospitalitySeconds, false);
+        ProduceFollowers(civilization1, hospitalitySeconds, true, sharedMemoryMultiplier);
+        ProduceFollowers(civilization1, offlineSeconds - hospitalitySeconds, false, sharedMemoryMultiplier);
         D2PilgrimageSystem.Tick(gameState, offlineSeconds);
         D2NovitiateSystem.Tick(gameState, offlineSeconds);
-        D2BondSystem.Tick(civilization1, offlineSeconds);
+        D2BondSystem.Tick(civilization1, offlineSeconds, sharedMemoryMultiplier);
     }
 
     public static double GetFollowerArrivalPerSecond(D2Civilization1State state)
@@ -328,14 +330,16 @@ public static class D2Civilization1System
     private static void ProduceFollowers(
         D2Civilization1State state,
         double seconds,
-        bool hospitalitySupported
+        bool hospitalitySupported,
+        double externalMultiplier
     )
     {
         if (state == null || seconds <= 0.0)
             return;
 
         EnsureState(state);
-        double produced = GetFollowerArrivalPerSecond(state, hospitalitySupported) * seconds;
+        double produced = GetFollowerArrivalPerSecond(state, hospitalitySupported) *
+            Math.Max(1.0, externalMultiplier) * seconds;
         if (double.IsNaN(produced) || produced <= 0.0)
             return;
 

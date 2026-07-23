@@ -60,15 +60,18 @@ public class D2VeiledThresholdPanelUI : MonoBehaviour
         gameState.EnsureDimension2State();
         D2Civilization1State state = gameState.dimension2.civilization1;
         bool unlocked = D2VeiledThresholdSystem.IsUnlocked(state);
-        bool prepared = state.bondPlacePrepared;
+        bool prepared = D2BondSystem.IsMajorPactEstablished(state);
 
-        SetText(titleText, unlocked ? "UMBRAL VELADO" : "ALGO PERMANECE EN SILENCIO");
-        SetText(revelationText, unlocked ? "ALGO RESPONDE" :
+        SetText(titleText, unlocked ? "PACTO MAYOR — LUGAR DE VÍNCULO" :
+            "ALGO PERMANECE EN SILENCIO");
+        SetText(revelationText, unlocked
+            ? prepared ? "PACTO ESTABLECIDO" : "EL ENTE RESPONDE"
+            :
             "Confianza: " + state.trust.ToString("0.##") + "/" +
             D2VeiledThresholdSystem.UnlockTrustRequired.ToString("0"));
         SetText(placeText, unlocked
-            ? prepared ? "El Lugar de Vínculo está preparado."
-                : "La civilización ha permitido preparar el Lugar de Vínculo."
+            ? prepared ? "Los Acólitos sostienen el pacto y desarrollan sus cinco líneas."
+                : "La civilización permite establecer el pacto en el Lugar de Vínculo."
             : "El Lugar de Vínculo todavía no se ha manifestado.");
 
         D2AltarState incense = D2AltarSystem.GetAltar(state, D2AltarSystem.IncenseAltarId);
@@ -102,7 +105,12 @@ public class D2VeiledThresholdPanelUI : MonoBehaviour
                 : "Se manifestará al alcanzar 500 de Confianza."
             : state.lastBondResult);
 
+        SetActive(prepareButton, unlocked && !prepared);
+        SetActive(assignAcolyteButton, prepared);
+        SetActive(releaseAcolyteButton, prepared);
         SetActive(lineDropdown, prepared);
+        SetActive(lineText, prepared);
+        SetActive(upgradeLineButton, prepared);
         SetInteractable(prepareButton, D2BondSystem.CanPrepare(gameState));
         SetInteractable(assignAcolyteButton, prepared && state.acolytesAvailable > 0L);
         SetInteractable(releaseAcolyteButton, prepared && state.acolytesAssignedToBond > 0L);

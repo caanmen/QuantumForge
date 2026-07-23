@@ -68,6 +68,15 @@ public static class D2BondSystem
 
     public static void Tick(D2Civilization1State state, double seconds)
     {
+        Tick(state, seconds, 1.0);
+    }
+
+    public static void Tick(
+        D2Civilization1State state,
+        double seconds,
+        double externalMultiplier
+    )
+    {
         if (state == null || seconds <= 0.0 || double.IsNaN(seconds) ||
             double.IsInfinity(seconds))
         {
@@ -82,7 +91,8 @@ public static class D2BondSystem
             D2CivilizationPactSystem.InnerDoorId
         ) ? 1.0 + D2CivilizationPactSystem.InnerDoorBondProgressBonus : 1.0;
         state.bondProgress += Math.Sqrt(state.acolytesAssignedToBond) *
-            BaseProgressPerMinuteFactor * multiplier * (seconds / 60.0);
+            BaseProgressPerMinuteFactor * multiplier * Math.Max(1.0, externalMultiplier) *
+            (seconds / 60.0);
     }
 
     public static bool CanPrepare(GameState gameState)
@@ -98,6 +108,11 @@ public static class D2BondSystem
             HasOffering(state, D2AltarSystem.CarvedStoneAltarId, PrepareCarvedStoneCost);
     }
 
+    public static bool IsMajorPactEstablished(D2Civilization1State state)
+    {
+        return state != null && state.entityContactAvailable && state.bondPlacePrepared;
+    }
+
     public static bool TryPrepare(GameState gameState)
     {
         if (!CanPrepare(gameState))
@@ -107,7 +122,7 @@ public static class D2BondSystem
         SpendOffering(state, D2AltarSystem.SacredClothAltarId, PrepareSacredClothCost);
         SpendOffering(state, D2AltarSystem.CarvedStoneAltarId, PrepareCarvedStoneCost);
         state.bondPlacePrepared = true;
-        state.lastBondResult = "Lugar de Vínculo preparado.";
+        state.lastBondResult = "Pacto mayor establecido en el Lugar de Vínculo.";
         return true;
     }
 

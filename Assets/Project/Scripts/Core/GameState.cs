@@ -181,6 +181,9 @@ public class GameState : MonoBehaviour
     [Tooltip("Estado persistente raíz de Dimensión 2 y sus tres civilizaciones.")]
     public Dimension2State dimension2 = new Dimension2State();
 
+    [Tooltip("Estado persistente raíz de Dimensión 3 / Fábrica.")]
+    public Dimension3State dimension3 = new Dimension3State();
+
     [Tooltip("Metales acumulados de Dimensión 1.")]
     public List<D1MetalAmount> dimension1Metals = new List<D1MetalAmount>();
 
@@ -290,6 +293,14 @@ public class GameState : MonoBehaviour
 
     [Tooltip("Contador interno para detectar nuevas exploraciones completadas en la UI.")]
     public int dimension1LastExplorationResultId = 0;
+
+    [Header("D1 - Historial manual seguro para automatización D3")]
+    public bool dimension1ManualSimpleScanCompleted;
+    public List<string> dimension1ManualSimpleDestinationIds = new List<string>();
+    public string dimension1LastManualSimpleDestinationId = "";
+    public List<string> dimension1ManualExtractorUpgradePlanetIds = new List<string>();
+    public int dimension1AutomationHistoryProgressVersion;
+    public int dimension1CompletedSimpleExplorations;
 
     [Header("Recursos avanzados (placeholder)")]
     [Tooltip("Recurso para el futuro sistema de BEC (aún sin implementar).")]
@@ -1192,11 +1203,17 @@ public class GameState : MonoBehaviour
 
         EnsureDimension1State();
         EnsureDimension2State();
+        EnsureDimension3State();
     }
 
     public void EnsureDimension2State()
     {
         Dimension2System.EnsureState(this);
+    }
+
+    public void EnsureDimension3State()
+    {
+        Dimension3System.EnsureState(this);
     }
 
     public void EnsureDimension1State()
@@ -1241,6 +1258,14 @@ public class GameState : MonoBehaviour
         if (dimension1RecentExplorationRecords == null)
             dimension1RecentExplorationRecords = new List<D1ExplorationRecordEntry>();
 
+        if (dimension1ManualSimpleDestinationIds == null)
+            dimension1ManualSimpleDestinationIds = new List<string>();
+        if (dimension1LastManualSimpleDestinationId == null)
+            dimension1LastManualSimpleDestinationId = "";
+
+        if (dimension1ManualExtractorUpgradePlanetIds == null)
+            dimension1ManualExtractorUpgradePlanetIds = new List<string>();
+
         if (dimension1Blueprints == null)
             dimension1Blueprints = new List<D1BlueprintAmount>();
 
@@ -1266,6 +1291,7 @@ public class GameState : MonoBehaviour
         MigrateDimension1TreeProgress();
         MigrateDimension1CoordinatedMissionProgress();
         MigrateDimension1ArkProgress();
+        MigrateDimension1AutomationHistory();
         SanitizeDimension1StateValues();
         MigrateDimension1LegacyShipIds();
         ClampDimension1ShipPartLevels();
@@ -1370,6 +1396,8 @@ public class GameState : MonoBehaviour
             0,
             dimension1LastExplorationResultId
         );
+        dimension1CompletedSimpleExplorations = Mathf.Max(
+            0, dimension1CompletedSimpleExplorations);
         prestige1Points = Mathf.Max(0, prestige1Points);
         prestige1BestClaimedPreviewPoints = Mathf.Max(
             0,
@@ -1449,6 +1477,59 @@ public class GameState : MonoBehaviour
         }
 
         SanitizeD1ExplorationHistory();
+        SanitizeD1AutomationManualHistory();
+    }
+
+    private void SanitizeD1AutomationManualHistory()
+    {
+        for (int i = dimension1ManualSimpleDestinationIds.Count - 1;
+             i >= 0; i--)
+        {
+            string destinationId = dimension1ManualSimpleDestinationIds[i];
+            if (!D3AutomationCatalog.IsRepeatableSafeDestination(destinationId) ||
+                dimension1ManualSimpleDestinationIds.IndexOf(destinationId) != i)
+                dimension1ManualSimpleDestinationIds.RemoveAt(i);
+        }
+        if (string.IsNullOrWhiteSpace(dimension1LastManualSimpleDestinationId) ||
+            !dimension1ManualSimpleDestinationIds.Contains(
+                dimension1LastManualSimpleDestinationId) ||
+            !D3AutomationCatalog.IsRepeatableSafeDestination(
+                dimension1LastManualSimpleDestinationId))
+            dimension1LastManualSimpleDestinationId =
+                dimension1ManualSimpleDestinationIds.Count == 0 ? "" :
+                dimension1ManualSimpleDestinationIds[
+                    dimension1ManualSimpleDestinationIds.Count - 1];
+
+        for (int i = dimension1ManualExtractorUpgradePlanetIds.Count - 1;
+             i >= 0; i--)
+        {
+            string planetId = dimension1ManualExtractorUpgradePlanetIds[i];
+            if (string.IsNullOrWhiteSpace(
+                    Dimension1System.GetDimension1PlanetSectorId(planetId)) ||
+                dimension1ManualExtractorUpgradePlanetIds.IndexOf(planetId) != i)
+                dimension1ManualExtractorUpgradePlanetIds.RemoveAt(i);
+        }
+    }
+
+    private void MigrateDimension1AutomationHistory()
+    {
+        if (dimension1AutomationHistoryProgressVersion >=
+            Dimension1System.Dimension1AutomationHistoryProgressVersion) return;
+        long totalExplorations = 0L;
+        if (dimension1Sectors != null)
+            for (int i = 0; i < dimension1Sectors.Count; i++)
+                if (dimension1Sectors[i] != null)
+                    totalExplorations += Mathf.Max(
+                        0, dimension1Sectors[i].completedExplorations);
+        totalExplorations = System.Math.Max(
+            0L, totalExplorations - Mathf.Max(
+                0, dimension1CompletedCoordinatedMissions));
+        dimension1CompletedSimpleExplorations = totalExplorations > int.MaxValue
+            ? int.MaxValue
+            : Mathf.Max(
+                dimension1CompletedSimpleExplorations, (int)totalExplorations);
+        dimension1AutomationHistoryProgressVersion =
+            Dimension1System.Dimension1AutomationHistoryProgressVersion;
     }
 
     private void SanitizeD1ExplorationHistory()
@@ -2854,6 +2935,43 @@ public class GameState : MonoBehaviour
         return true;
     }
 
+    public bool HasManualD1SimpleDestination(string destinationId)
+    {
+        EnsureDimension1State();
+        return D3AutomationCatalog.IsRepeatableSafeDestination(destinationId) &&
+               dimension1ManualSimpleDestinationIds.Contains(destinationId);
+    }
+
+    public bool RegisterManualD1SimpleDestination(string destinationId)
+    {
+        EnsureDimension1State();
+        if (!D3AutomationCatalog.IsRepeatableSafeDestination(destinationId))
+            return false;
+        if (!dimension1ManualSimpleDestinationIds.Contains(destinationId))
+            dimension1ManualSimpleDestinationIds.Add(destinationId);
+        dimension1LastManualSimpleDestinationId = destinationId;
+        return true;
+    }
+
+    public bool HasManualD1ExtractorUpgrade(string planetId)
+    {
+        EnsureDimension1State();
+        return !string.IsNullOrWhiteSpace(
+                   Dimension1System.GetDimension1PlanetSectorId(planetId)) &&
+               dimension1ManualExtractorUpgradePlanetIds.Contains(planetId);
+    }
+
+    public bool RegisterManualD1ExtractorUpgrade(string planetId)
+    {
+        EnsureDimension1State();
+        if (string.IsNullOrWhiteSpace(
+                Dimension1System.GetDimension1PlanetSectorId(planetId)))
+            return false;
+        if (!dimension1ManualExtractorUpgradePlanetIds.Contains(planetId))
+            dimension1ManualExtractorUpgradePlanetIds.Add(planetId);
+        return true;
+    }
+
     public bool AddPrestige1Points(int amount)
     {
         if (amount <= 0)
@@ -2871,6 +2989,7 @@ public class GameState : MonoBehaviour
 
         EnsureDimension1State();
         EnsureDimension2State();
+        EnsureDimension3State();
 
         D1PlanetState firstPlanet = GetOrCreateD1Planet(Dimension1System.Planet01);
         firstPlanet.unlocked = true;
@@ -2885,6 +3004,7 @@ public class GameState : MonoBehaviour
         {
             TabsUI.Instance.RefreshDimension1ButtonVisibility();
             TabsUI.Instance.RefreshDimension2ButtonVisibility();
+            TabsUI.Instance.RefreshDimension3ButtonVisibility();
         }
     }
 
@@ -2901,6 +3021,7 @@ public class GameState : MonoBehaviour
         dimension03Unlocked = false;
 
         Dimension2System.ResetState(this);
+        Dimension3System.ResetState(this);
 
         dimension1Metals = new List<D1MetalAmount>();
         dimension1Planets = new List<D1PlanetState>();
@@ -2948,6 +3069,13 @@ public class GameState : MonoBehaviour
         dimension1BlueprintFragments = 0;
         dimension1LastExplorationBlueprintFragments = 0;
         dimension1LastExplorationResultId = 0;
+        dimension1ManualSimpleScanCompleted = false;
+        dimension1ManualSimpleDestinationIds = new List<string>();
+        dimension1LastManualSimpleDestinationId = "";
+        dimension1ManualExtractorUpgradePlanetIds = new List<string>();
+        dimension1AutomationHistoryProgressVersion =
+            Dimension1System.Dimension1AutomationHistoryProgressVersion;
+        dimension1CompletedSimpleExplorations = 0;
 
         EnsureDimension1State();
     }
@@ -6420,6 +6548,9 @@ public class GameState : MonoBehaviour
     // Dimensión 2: coordinación general y sistemas de civilizaciones.
     Dimension2System.Tick(this, dt);
 
+    // Dimensión 3: colas y procesos internos de la Fábrica.
+    Dimension3System.Tick(this, dt);
+
     // 🔹 F7.3: Producir ADP
     double adpPs = CalculateADPps();
     if (adpPs > 0.0)
@@ -6569,6 +6700,20 @@ public class GameState : MonoBehaviour
         }
 
         return factor;
+    }
+
+    public double GetDimension2ArtifactProductionMultiplier(string buildingId)
+    {
+        if (!IsRoom1LEArtifactBuilding(buildingId))
+            return 1.0;
+        return D2Civilization2System.GetMajorPactArtifactMultiplier(
+            dimension2?.civilization2);
+    }
+
+    public double GetDimension2TriangleEffectMultiplier()
+    {
+        return D2Civilization2System.GetMajorPactTriangleMultiplier(
+            dimension2?.civilization2);
     }
 
     private bool IsRoom1LEArtifactBuilding(string buildingId)
@@ -6775,7 +6920,8 @@ public class GameState : MonoBehaviour
                 break;
         }
 
-        return 1.0 + ((baseMultiplier - 1.0) * GetMachineTriangleBonusMultiplier());
+        return 1.0 + ((baseMultiplier - 1.0) * GetMachineTriangleBonusMultiplier() *
+            GetDimension2TriangleEffectMultiplier());
     }
 
     public double GetTriangleSynergyBuildingMultiplier(string buildingId)
@@ -6807,7 +6953,8 @@ public class GameState : MonoBehaviour
                 break;
         }
 
-        return 1.0 + ((value - 1.0) * GetMachineTriangleBonusMultiplier());   
+        return 1.0 + ((value - 1.0) * GetMachineTriangleBonusMultiplier() *
+            GetDimension2TriangleEffectMultiplier());
     }
 
     public double GetTriangleSynergyModulatorMultiplier()
@@ -6836,7 +6983,8 @@ public class GameState : MonoBehaviour
                 break;
         }
 
-        return 1.0 + ((baseMultiplier - 1.0) * GetMachineTriangleBonusMultiplier());
+        return 1.0 + ((baseMultiplier - 1.0) * GetMachineTriangleBonusMultiplier() *
+            GetDimension2TriangleEffectMultiplier());
     }
 
 
@@ -6849,9 +6997,10 @@ public class GameState : MonoBehaviour
         switch (tier)
         {
             case 2:
-                return 14400.0; // 4 horas
+                return 14400.0 * GetDimension2TriangleEffectMultiplier(); // 4 horas
             default:
-                return trianglePersistenceReserveBaseMaxSeconds; // 3 horas
+                return trianglePersistenceReserveBaseMaxSeconds *
+                    GetDimension2TriangleEffectMultiplier(); // 3 horas
         }
     }
 
@@ -6865,9 +7014,10 @@ public class GameState : MonoBehaviour
         {
             case 1:
             case 2:
-                return 12600.0; // 3h30m offline = 1h reserva
+                return 12600.0 / GetDimension2TriangleEffectMultiplier(); // 3h30m offline = 1h reserva
             default:
-                return trianglePersistenceOfflineSecondsPerReserveHour; // 4h offline = 1h reserva
+                return trianglePersistenceOfflineSecondsPerReserveHour /
+                    GetDimension2TriangleEffectMultiplier(); // 4h offline = 1h reserva
         }
     }
 
@@ -6889,7 +7039,8 @@ public class GameState : MonoBehaviour
         if (buildingId == "casimir_panel")
             baseMultiplier = trianglePersistenceBuffTetraMultiplier;
 
-        return 1.0 + ((baseMultiplier - 1.0) * GetMachineTriangleBonusMultiplier());
+        return 1.0 + ((baseMultiplier - 1.0) * GetMachineTriangleBonusMultiplier() *
+            GetDimension2TriangleEffectMultiplier());
     }
 
     public void ApplyOfflineTrianglePersistenceReserve(double offlineSeconds)
@@ -7008,7 +7159,8 @@ public class GameState : MonoBehaviour
         triangleAlterationBuildingId = "";
     }
 
-    public bool AssignTriangleBuilding(TriangleSlotRole role, string buildingId)
+    public bool AssignTriangleBuilding(
+        TriangleSlotRole role, string buildingId, bool recordManual = true)
     {
         if (!triangleSystemUnlocked)
             return false;
@@ -7031,7 +7183,10 @@ public class GameState : MonoBehaviour
 
         // Si ya está en el mismo slot, no hacemos nada
         if (sourceRole.HasValue && sourceRole.Value == role)
+        {
+            if (recordManual) D3ConsoleSystem.RecordManualTriangleConfiguration(this);
             return true;
+        }
 
         // Caso 1: el artefacto viene de otro slot del triángulo
         // -> hacemos intercambio (swap) con lo que haya en el slot destino
@@ -7039,6 +7194,7 @@ public class GameState : MonoBehaviour
         {
             SetTriangleBuildingId(sourceRole.Value, targetCurrent);
             SetTriangleBuildingId(role, buildingId);
+            if (recordManual) D3ConsoleSystem.RecordManualTriangleConfiguration(this);
             return true;
         }
 
@@ -7046,6 +7202,7 @@ public class GameState : MonoBehaviour
         // -> solo asignamos al slot destino
         // si el destino ya tenía algo, ese artefacto "vuelve al drawer"
         SetTriangleBuildingId(role, buildingId);
+        if (recordManual) D3ConsoleSystem.RecordManualTriangleConfiguration(this);
         return true;
     }
 
@@ -7095,7 +7252,9 @@ public class GameState : MonoBehaviour
             return;
         }
 
-        phaseModulatorCalibration += phaseModulatorCalibrationPerSecond * (float)dt;
+        phaseModulatorCalibration += phaseModulatorCalibrationPerSecond *
+            (float)D2Civilization3System.GetModulatorCalibrationMultiplier(this) *
+            (float)dt;
         if (phaseModulatorCalibration > 1f)
             phaseModulatorCalibration = 1f;
     }
@@ -7174,6 +7333,7 @@ public class GameState : MonoBehaviour
 
         // Máquina / Zona 1: Calibración de Artefactos
         buildingProd *= GetMachineArtifactProductionMultiplier(b.def.id);
+        buildingProd *= GetDimension2ArtifactProductionMultiplier(b.def.id);
         buildingProd *= GetRoom1EchoArtifactLEMultiplier(b.def.id);
 
         fromBuildings += buildingProd;
@@ -7451,6 +7611,7 @@ private double CalculateEMMultiplier()
 
         // Máquina / Zona 1: Calibración de Artefactos también afecta al Núcleo Tetraquark
         tracesPerSecond *= GetMachineArtifactProductionMultiplier("casimir_panel");
+        tracesPerSecond *= GetDimension2ArtifactProductionMultiplier("casimir_panel");
 
         if (F2UpgradeManager.I != null)
         {
@@ -7487,6 +7648,18 @@ private double CalculateEMMultiplier()
         }
 
         return 0;
+    }
+
+    public BuildingState GetBuildingState(string id)
+    {
+        if (string.IsNullOrEmpty(id) || buildingStates == null) return null;
+        for (int i = 0; i < buildingStates.Count; i++)
+        {
+            BuildingState building = buildingStates[i];
+            if (building != null && building.def != null && building.def.id == id)
+                return building;
+        }
+        return null;
     }
 
 
@@ -7847,6 +8020,7 @@ if (buildingStates != null)
 
             // Máquina / Zona 1: Calibración de Artefactos
             lePerTick *= GetMachineArtifactProductionMultiplier(def.id);
+            lePerTick *= GetDimension2ArtifactProductionMultiplier(def.id);
             lePerTick *= GetRoom1EchoArtifactLEMultiplier(def.id);
 
             if (F2UpgradeManager.I != null)
@@ -7880,6 +8054,7 @@ if (buildingStates != null)
 
                 // Máquina / Zona 1: Calibración de Artefactos también afecta al Núcleo Tetraquark
                 tracesPerTick *= GetMachineArtifactProductionMultiplier(def.id);
+                tracesPerTick *= GetDimension2ArtifactProductionMultiplier(def.id);
 
                 if (F2UpgradeManager.I != null)
                 {
@@ -7923,6 +8098,7 @@ if (buildingStates != null)
             if (def.baseLEps > 0.0)
             {
                 double leps = def.baseLEps * b.level;
+                leps *= GetDimension2ArtifactProductionMultiplier(def.id);
                 leps *= GetRoom1EchoArtifactLEMultiplier(def.id);
                 LE += leps * worldMult * room1EchoGlobalFactor * dt;
             }

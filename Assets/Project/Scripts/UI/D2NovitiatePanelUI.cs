@@ -105,7 +105,9 @@ public class D2NovitiatePanelUI : MonoBehaviour
         SetText(
             activeTrainingText,
             active.active
-                ? "Formación en curso — Restante: " + FormatTime(active.remainingSeconds) +
+                ? "Formación en curso — Restante: " + FormatTime(
+                    D2NovitiateSystem.GetDisplayedRemainingSeconds(state)
+                  ) +
                   " — Resultado: " + active.acolytesToCreate.ToString("N0") + " Acólitos" +
                   (active.supportFollowersCommitted > 0L
                       ? " — Apoyo: " + active.supportFollowersCommitted.ToString("N0")

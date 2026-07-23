@@ -6,8 +6,8 @@ public static class Dimension2System
 {
     public const int ProgressVersion = 1;
     public const int Civilization1ProgressVersion = 9;
-    public const int Civilization2ProgressVersion = 1;
-    public const int Civilization3ProgressVersion = 1;
+    public const int Civilization2ProgressVersion = 9;
+    public const int Civilization3ProgressVersion = 11;
 
     public const string Civilization1TerritoryId = "d2_civilization_1";
     public const string Civilization2TerritoryId = "d2_civilization_2";
@@ -44,10 +44,11 @@ public static class Dimension2System
             dimension2.civilization3 = new D2Civilization3State();
 
         D2Civilization1System.EnsureState(dimension2.civilization1);
+        D2Civilization2System.EnsureState(dimension2.civilization2);
+        D2Civilization2System.SyncAlertUnlocks(state);
         D2PilgrimageSystem.EnsureState(state);
         D2VeiledThresholdSystem.EnsureState(dimension2.civilization1);
-        dimension2.civilization2.progressVersion = Civilization2ProgressVersion;
-        dimension2.civilization3.progressVersion = Civilization3ProgressVersion;
+        D2Civilization3System.EnsureState(dimension2.civilization3);
 
         if (!IsTerritoryId(dimension2.selectedTerritoryId) ||
             !IsTerritoryUnlocked(dimension2, dimension2.selectedTerritoryId))
@@ -161,6 +162,8 @@ public static class Dimension2System
         EnsureState(state);
 
         D2Civilization1System.Tick(state, dt);
+        D2Civilization2System.Tick(state, dt);
+        D2Civilization3System.Tick(state, dt);
     }
 
     public static double ApplyOfflineProgress(GameState state, double offlineSeconds)
@@ -171,6 +174,8 @@ public static class Dimension2System
         EnsureState(state);
         double appliedSeconds = Math.Min(offlineSeconds, OfflineProgressCapSeconds);
         D2Civilization1System.ApplyOfflineProgress(state, appliedSeconds);
+        D2Civilization2System.ApplyOfflineProgress(state, appliedSeconds);
+        D2Civilization3System.ApplyOfflineProgress(state, appliedSeconds);
         return appliedSeconds;
     }
 
@@ -224,6 +229,12 @@ public static class Dimension2System
             return false;
 
         if (!D2VeiledThresholdSystem.ValidateState(dimension2.civilization1, out result))
+            return false;
+
+        if (!D2Civilization2System.ValidateState(dimension2.civilization2, out result))
+            return false;
+
+        if (!D2Civilization3System.ValidateState(dimension2.civilization3, out result))
             return false;
 
         result = "Estado de Dimensión 2 válido.";
