@@ -149,6 +149,7 @@ public class F2UpgradeManager : MonoBehaviour
         if (GameState.I != null)
         {
             GameState.I.triangleSystemUnlocked = GetPurchasedTierCount("triangle_unlock_1") > 0;
+            GameState.I.SanitizeTriangleCircuit(false);
         }
 
         return true;
@@ -189,6 +190,7 @@ public class F2UpgradeManager : MonoBehaviour
         }
             if (GameState.I != null)
 {           GameState.I.triangleSystemUnlocked = GetPurchasedTierCount("triangle_unlock_1") > 0;
+            GameState.I.SanitizeTriangleCircuit(false);
 }
     }
 
@@ -325,6 +327,8 @@ public class F2UpgradeManager : MonoBehaviour
         if (GameState.I != null)
         {
             GameState.I.triangleSystemUnlocked = false;
+            GameState.I.triangleActiveCircuit = TriangleCircuitType.None;
+            GameState.I.triangleSynchronization = 0f;
         }
 
         TabsUI tabsUI = FindFirstObjectByType<TabsUI>(FindObjectsInactive.Include);

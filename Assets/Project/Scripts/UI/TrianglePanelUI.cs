@@ -68,25 +68,21 @@ public class TrianglePanelUI : MonoBehaviour
             return;
         }
 
-        string primaryId = GameState.I.GetTriangleBuildingId(TriangleSlotRole.Primary);
-        string reinforcementId = GameState.I.GetTriangleBuildingId(TriangleSlotRole.Reinforcement);
-        string alterationId = GameState.I.GetTriangleBuildingId(TriangleSlotRole.Alteration);
-
         SetLabelIfChanged(
             assignedLabelPrimary,
-            GetShortName(primaryId),
+            GetCircuitButtonText(TriangleCircuitType.Energy),
             ref lastPrimaryId,
             force);
 
         SetLabelIfChanged(
             assignedLabelReinforcement,
-            GetShortName(reinforcementId),
+            GetCircuitButtonText(TriangleCircuitType.Experimental),
             ref lastReinforcementId,
             force);
 
         SetLabelIfChanged(
             assignedLabelAlteration,
-            GetShortName(alterationId),
+            GetCircuitButtonText(TriangleCircuitType.Phase),
             ref lastAlterationId,
             force);
 
@@ -125,19 +121,19 @@ public class TrianglePanelUI : MonoBehaviour
         label.text = displayText;
     }
 
-    private string GetShortName(string buildingId)
+    private string GetCircuitButtonText(TriangleCircuitType circuit)
     {
-        switch (buildingId)
+        var lm = LocalizationManager.I;
+        switch (circuit)
         {
-            case "vacuum_observer":
-                return "Higgs";
-
-            case "casimir_panel":
-                return "Tetra";
-
-            case "fluctuation_antenna":
-                return "Modulator";
-
+            case TriangleCircuitType.Energy:
+                return lm != null ? lm.T("triangle.circuit.energy.button") : "ENERGÍA\nHiggs + Modulador";
+            case TriangleCircuitType.Experimental:
+                return lm != null ? lm.T("triangle.circuit.experimental.button") : "EXPERIMENTAL\nHiggs + Tetra";
+            case TriangleCircuitType.Phase:
+                if (GameState.I != null && !GameState.I.IsTrianglePhaseUnlocked())
+                    return lm != null ? lm.T("triangle.circuit.phase.locked_button") : "FASE\nBloqueado: Máquina";
+                return lm != null ? lm.T("triangle.circuit.phase.button") : "FASE\nTetra + Modulador";
             default:
                 return "";
         }
@@ -148,8 +144,8 @@ public class TrianglePanelUI : MonoBehaviour
         var lm = LocalizationManager.I;
 
         string label = lm != null
-            ? lm.T("triangle.protocol.label")
-            : "Protocolo";
+            ? lm.T("triangle.circuit.label")
+            : "Circuito";
 
         string protocolName;
 
@@ -161,24 +157,24 @@ public class TrianglePanelUI : MonoBehaviour
         }
         else
         {
-            switch (GameState.I.GetActiveTriangleProtocol())
+            switch (GameState.I.triangleActiveCircuit)
             {
-                case TriangleProtocolType.Impulso:
+                case TriangleCircuitType.Energy:
                     protocolName = lm != null
-                        ? lm.T("triangle.protocol.impulso")
-                        : "Impulso";
+                        ? lm.T("triangle.circuit.energy")
+                        : "Energía";
                     break;
 
-                case TriangleProtocolType.Sinergia:
+                case TriangleCircuitType.Experimental:
                     protocolName = lm != null
-                        ? lm.T("triangle.protocol.sinergia")
-                        : "Sinergia";
+                        ? lm.T("triangle.circuit.experimental")
+                        : "Experimental";
                     break;
 
-                case TriangleProtocolType.Persistencia:
+                case TriangleCircuitType.Phase:
                     protocolName = lm != null
-                        ? lm.T("triangle.protocol.persistencia")
-                        : "Persistencia";
+                        ? lm.T("triangle.circuit.phase")
+                        : "Fase";
                     break;
 
                 default:
@@ -197,40 +193,15 @@ public class TrianglePanelUI : MonoBehaviour
         var lm = LocalizationManager.I;
 
         string label = lm != null
-            ? lm.T("triangle.modulator.mode.label")
-            : "Fase";
+            ? lm.T("triangle.synchronization.label")
+            : "Sincronización";
 
         if (GameState.I == null || !GameState.I.IsPhaseModulatorOwned())
         {
-            string inactive = lm != null
-                ? lm.T("triangle.modulator.mode.none")
-                : "Inactiva";
-
-            return $"{label}: {inactive}";
+            return $"{label}: 0%";
         }
-
-        string modeName;
-        switch (GameState.I.phaseModulatorMode)
-        {
-            case PhaseModulatorMode.Expansion:
-                modeName = lm != null ? lm.T("triangle.modulator.mode.expansion") : "Expansión";
-                break;
-
-            case PhaseModulatorMode.Conservation:
-                modeName = lm != null ? lm.T("triangle.modulator.mode.conservation") : "Conservación";
-                break;
-
-            case PhaseModulatorMode.Attunement:
-                modeName = lm != null ? lm.T("triangle.modulator.mode.attunement") : "Sintonía";
-                break;
-
-            default:
-                modeName = lm != null ? lm.T("triangle.modulator.mode.none") : "Inactiva";
-                break;
-        }
-
-        int calibrationPercent = Mathf.RoundToInt(GameState.I.phaseModulatorCalibration * 100f);
-        return $"{label}: {modeName} ({calibrationPercent}%)";
+        int synchronizationPercent = Mathf.RoundToInt(GameState.I.triangleSynchronization * 100f);
+        return $"{label}: {synchronizationPercent}%";
     }
 
     private string GetModulatorEffectText()
@@ -238,7 +209,7 @@ public class TrianglePanelUI : MonoBehaviour
         var lm = LocalizationManager.I;
 
         string label = lm != null
-            ? lm.T("triangle.modulator.effect.label")
+            ? lm.T("triangle.circuit.effect.label")
             : "Efecto";
 
         if (GameState.I == null || !GameState.I.IsPhaseModulatorOwned())
@@ -250,32 +221,33 @@ public class TrianglePanelUI : MonoBehaviour
             return $"{label}: {inactive}";
         }
 
-        switch (GameState.I.phaseModulatorMode)
+        switch (GameState.I.triangleActiveCircuit)
         {
-            case PhaseModulatorMode.Expansion:
+            case TriangleCircuitType.Energy:
             {
-                float bonusPercent = GameState.I.GetPhaseModulatorExpansionTickBonus() * 100f;
-                string prefix = lm != null
-                    ? lm.T("triangle.modulator.effect.expansion")
-                    : "Ticks más rápidos";
-                return $"{label}: {prefix} +{bonusPercent:0.0}%";
+                double leBonus = (GameState.I.GetTriangleLEMultiplier() - 1.0) * 100.0;
+                string format = lm != null
+                    ? lm.T("triangle.circuit.energy.effect_format")
+                    : "Efecto: +{0:0.#}% LE · -10% Trazas";
+                return string.Format(format, leBonus);
             }
-
-            case PhaseModulatorMode.Conservation:
+            case TriangleCircuitType.Experimental:
             {
-                float discountPercent = GameState.I.GetPhaseModulatorConservationDiscount() * 100f;
-                string prefix = lm != null
-                    ? lm.T("triangle.modulator.effect.conservation")
-                    : "Costes reducidos";
-                return $"{label}: {prefix} -{discountPercent:0.0}%";
+                double tracesBonus = (GameState.I.GetTriangleTracesMultiplier() - 1.0) * 100.0;
+                double fragmentsBonus = (GameState.I.GetTriangleFragmentMultiplier() - 1.0) * 100.0;
+                string format = lm != null
+                    ? lm.T("triangle.circuit.experimental.effect_format")
+                    : "Efecto: +{0:0.#}% Trazas · +{1:0.#}% fragmentos · -10% LE";
+                return string.Format(format, tracesBonus, fragmentsBonus);
             }
-
-            case PhaseModulatorMode.Attunement:
+            case TriangleCircuitType.Phase:
             {
-                string reserved = lm != null
-                    ? lm.T("triangle.modulator.effect.attunement")
-                    : "Reservado para Prestigio 1";
-                return $"{label}: {reserved}";
+                double analysisBonus = (GameState.I.GetTrianglePhaseAnalysisSpeedMultiplier() - 1.0) * 100.0;
+                double routineBonus = (GameState.I.GetTriangleD3RoutineSpeedMultiplier() - 1.0) * 100.0;
+                string format = lm != null
+                    ? lm.T("triangle.circuit.phase.effect_format")
+                    : "Efecto: +{0:0.#}% análisis · +{1:0.#}% rutinas N3 · -10% LE/Trazas";
+                return string.Format(format, analysisBonus, routineBonus);
             }
 
             default:

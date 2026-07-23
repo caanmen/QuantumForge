@@ -20,38 +20,28 @@ public class TriangleArtifactCardUI : MonoBehaviour, IPointerClickHandler, IBegi
     private void Awake()
     {
         SetSelected(false);
+        if (backgroundImage != null)
+            backgroundImage.raycastTarget = false;
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (selectionUI == null)
-            return;
-
-        selectionUI.SelectCard(this);
+        // Los artefactos son vértices fijos en el Triángulo rediseñado.
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if (selectionUI == null)
-            return;
-
-        selectionUI.BeginCardDrag(this, eventData.position);
+        // Sin arrastre.
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (selectionUI == null)
-            return;
-
-        selectionUI.UpdateDragVisualPosition(eventData.position);
+        // Sin arrastre.
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        if (selectionUI == null)
-            return;
-
-        selectionUI.EndCardDrag();
+        // Sin arrastre.
     }
 
     public void SetSelected(bool selected)

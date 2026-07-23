@@ -34,7 +34,10 @@ public class MachineManager : MonoBehaviour
 
     private void Update()
     {
-        AdvanceAnalysis(Time.unscaledDeltaTime);
+        double analysisSeconds = Time.unscaledDeltaTime;
+        if (GameState.I != null)
+            analysisSeconds *= GameState.I.GetTrianglePhaseAnalysisSpeedMultiplier();
+        AdvanceAnalysis(analysisSeconds);
     }
 
     private void LoadDefs()
@@ -76,10 +79,18 @@ public class MachineManager : MonoBehaviour
         Debug.Log("[MachineManager] Nodos cargados: " + _allNodes.Count);
     }
 
+    private void EnsureDefsLoaded()
+    {
+        if (_allNodes.Count == 0)
+            LoadDefs();
+    }
+
     public MachineNodeDef GetDef(string id)
     {
         if (string.IsNullOrWhiteSpace(id))
             return null;
+
+        EnsureDefsLoaded();
 
         _defsById.TryGetValue(id, out MachineNodeDef def);
         return def;
@@ -87,6 +98,7 @@ public class MachineManager : MonoBehaviour
 
     public List<MachineNodeDef> GetNodesByZone(MachineZoneType zone, bool includeHidden = false)
     {
+        EnsureDefsLoaded();
         List<MachineNodeDef> result = new();
 
         foreach (MachineNodeDef def in _allNodes)
@@ -110,6 +122,7 @@ public class MachineManager : MonoBehaviour
 
     public List<MachineNodeDef> GetDisplayNodesByZone(MachineZoneType zone, bool includeHidden = false)
     {
+        EnsureDefsLoaded();
         List<MachineNodeDef> result = new();
         Dictionary<string, List<MachineNodeDef>> tierGroups = new();
         HashSet<string> addedTierGroups = new();
@@ -319,6 +332,7 @@ public class MachineManager : MonoBehaviour
 
     public List<MachineNodeDef> GetAllNodes(bool includeHidden = false)
     {
+        EnsureDefsLoaded();
         List<MachineNodeDef> result = new();
         foreach (MachineNodeDef def in _allNodes)
         {
@@ -1035,6 +1049,7 @@ public class MachineManager : MonoBehaviour
 
     public double GetTotalMachineRepairProgress01()
     {
+        EnsureDefsLoaded();
         int total = 0;
         int repaired = 0;
 
@@ -1077,6 +1092,9 @@ public class MachineManager : MonoBehaviour
         _machineAllZonesUnlocked = true;
 
         Debug.Log("[MachineManager] Intro vista. Máquina desbloqueada con todas sus zonas visibles.");
+
+        if (TabsUI.Instance != null)
+            TabsUI.Instance.RefreshPrestigeButtonVisibility();
 
         if (SaveService.I != null)
         {

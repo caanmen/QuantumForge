@@ -3,6 +3,73 @@ using System.Collections.Generic;
 
 public static class D3AutomationSystem
 {
+    public static void MigrateLegacyTriangleRoutines(Dimension3State state)
+    {
+        if (state == null) return;
+        MigrateLegacyTriangleRoutineList(
+            state.automationRoutines, state.consoleSettings);
+        if (state.automationProfiles == null) return;
+        for (int i = 0; i < state.automationProfiles.Count; i++)
+        {
+            D3AutomationProfileState profile = state.automationProfiles[i];
+            if (profile == null) continue;
+            MigrateLegacyTriangleRoutineList(
+                profile.savedRoutines, profile.savedConsoleSettings);
+        }
+    }
+
+    private static void MigrateLegacyTriangleRoutineList(
+        List<D3AutomationRoutineState> routines,
+        D3ConsoleSettingsState settings)
+    {
+        if (routines == null) return;
+        bool hasLegacyTriangleRoutine = false;
+        for (int i = 0; i < routines.Count; i++)
+            if (routines[i] != null && routines[i].actionId ==
+                D3AutomationCatalog.ActionConsoleTriangle)
+                hasLegacyTriangleRoutine = true;
+
+        for (int i = 0; i < routines.Count; i++)
+        {
+            D3AutomationRoutineState routine = routines[i];
+            if (routine == null) continue;
+            if (routine.actionId == D3AutomationCatalog.ActionConsoleTriangle)
+            {
+                D3TrianglePresetState preset = D3ConsoleSystem.GetPreset(
+                    settings, routine.targetId);
+                TriangleCircuitType circuit =
+                    D3ConsoleSystem.GetCircuitFromLegacyPreset(preset);
+                routine.actionId = D3AutomationCatalog.ActionConsoleCircuit;
+                routine.targetId = ((int)circuit).ToString();
+                if (circuit == TriangleCircuitType.None)
+                {
+                    routine.enabled = false;
+                    routine.lastResult = "Migrada y pausada: configuración antigua inválida.";
+                }
+                else
+                    routine.lastResult = "Migrada al selector de circuitos.";
+            }
+            else if (routine.actionId == D3AutomationCatalog.ActionConsoleModulator)
+            {
+                TriangleCircuitType circuit = TriangleCircuitType.None;
+                if (int.TryParse(routine.targetId, out int rawMode))
+                    circuit = D3ConsoleSystem.CircuitFromLegacyMode(
+                        (PhaseModulatorMode)rawMode);
+                routine.actionId = D3AutomationCatalog.ActionConsoleCircuit;
+                routine.targetId = ((int)circuit).ToString();
+                if (hasLegacyTriangleRoutine || circuit == TriangleCircuitType.None)
+                {
+                    routine.enabled = false;
+                    routine.lastResult = hasLegacyTriangleRoutine
+                        ? "Migrada y pausada: la configuración triangular antigua tiene prioridad."
+                        : "Migrada y pausada: fase antigua inválida.";
+                }
+                else
+                    routine.lastResult = "Migrada al selector de circuitos.";
+            }
+        }
+    }
+
     public static bool TryCreateRoutine(
         GameState gameState, string actionId, string targetId,
         IList<string> orderedTargetIds, int priority, double leReserve,
@@ -394,7 +461,14 @@ public static class D3AutomationSystem
                 routine.lastResult = "Espera: accion no autorizada offline.";
                 continue;
             }
-            routine.evaluationRemainingSeconds -= dt;
+            double routineProgressSeconds = dt;
+            if (gameState != null)
+            {
+                routineProgressSeconds *= offline
+                    ? gameState.GetTriangleD3RoutineSpeedMultiplierForPeriod(dt)
+                    : gameState.GetTriangleD3RoutineSpeedMultiplier();
+            }
+            routine.evaluationRemainingSeconds -= routineProgressSeconds;
             if (routine.evaluationRemainingSeconds > 0.0) continue;
             routine.evaluationRemainingSeconds = GetEvaluationInterval(
                 gameState.dimension3, definition);
@@ -503,29 +577,18 @@ public static class D3AutomationSystem
                     routine.tracesReserve, out result)) return false;
             return true;
         }
-        if (routine.actionId == D3AutomationCatalog.ActionConsoleModulator)
+        if (routine.actionId == D3AutomationCatalog.ActionConsoleCircuit)
         {
-            if (!int.TryParse(routine.targetId, out int rawMode) ||
-                !Enum.IsDefined(typeof(PhaseModulatorMode), rawMode)) return false;
-            PhaseModulatorMode mode = (PhaseModulatorMode)rawMode;
-            if (gameState.phaseModulatorMode == mode)
+            if (!int.TryParse(routine.targetId, out int rawCircuit) ||
+                !Enum.IsDefined(typeof(TriangleCircuitType), rawCircuit)) return false;
+            TriangleCircuitType circuit = (TriangleCircuitType)rawCircuit;
+            if (gameState.triangleActiveCircuit == circuit)
             {
-                result = "Fase preferida ya activa.";
+                result = "Circuito preferido ya activo.";
                 return false;
             }
-            return D3ConsoleSystem.TryApplyPreferredPhase(gameState, mode, out result);
-        }
-        if (routine.actionId == D3AutomationCatalog.ActionConsoleTriangle)
-        {
-            D3TrianglePresetState preset = D3ConsoleSystem.GetPreset(
-                gameState.dimension3.consoleSettings, routine.targetId);
-            if (D3ConsoleSystem.IsTrianglePresetApplied(gameState, preset))
-            {
-                result = "Configuración básica ya aplicada.";
-                return false;
-            }
-            return D3ConsoleSystem.TryApplyTrianglePreset(
-                gameState, routine.targetId, out result);
+            return D3ConsoleSystem.TryApplyPreferredCircuit(
+                gameState, circuit, out result);
         }
         return false;
     }
@@ -579,14 +642,11 @@ public static class D3AutomationSystem
         if (actionId == D3AutomationCatalog.ActionConsoleBuyTetraquark)
             return D3ConsoleSystem.HasManualBuildingAuthorization(
                 gameState.dimension3, D3ConsoleSystem.BuildingTetraquark);
-        if (actionId == D3AutomationCatalog.ActionConsoleModulator &&
-            int.TryParse(targetId, out int mode))
-            return Enum.IsDefined(typeof(PhaseModulatorMode), mode) &&
-                D3ConsoleSystem.HasManualPhaseAuthorization(
-                    gameState, (PhaseModulatorMode)mode);
-        if (actionId == D3AutomationCatalog.ActionConsoleTriangle)
-            return D3ConsoleSystem.GetPreset(
-                gameState.dimension3.consoleSettings, targetId) != null;
+        if (actionId == D3AutomationCatalog.ActionConsoleCircuit &&
+            int.TryParse(targetId, out int circuit))
+            return Enum.IsDefined(typeof(TriangleCircuitType), circuit) &&
+                D3ConsoleSystem.HasManualCircuitAuthorization(
+                    gameState, (TriangleCircuitType)circuit);
         return false;
     }
 

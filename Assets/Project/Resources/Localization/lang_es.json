@@ -119,7 +119,7 @@
   "room2.slot.no_catalyst": "Sin catalizador",
   "room2.intro_locked": "La cámara permanece sellada. Se requiere una keycard para habilitar el acceso al Cuarto 2.",
   "room2.mix.button": "Ejecutar mezcla",
-  "triangle.protocol.label": "Protocolo",
+  "triangle.protocol.label": "Circuito",
   "triangle.protocol.none": "Inactivo",
   "triangle.protocol.impulso": "Impulso",
   "triangle.protocol.sinergia": "Sinergia",
@@ -133,6 +133,22 @@
   "triangle.modulator.effect.inactive": "Sin efecto",
   "triangle.modulator.effect.expansion": "Ticks más rápidos",
   "triangle.modulator.effect.conservation": "Costes reducidos",
-  "triangle.modulator.effect.attunement": "Reservado para Prestigio 1"
+  "triangle.modulator.effect.attunement": "Reservado para Prestigio 1",
+  "triangle.circuit.label": "Circuito",
+  "triangle.circuit.energy": "Energía",
+  "triangle.circuit.experimental": "Experimental",
+  "triangle.circuit.phase": "Fase",
+  "triangle.circuit.energy.button": "ENERGÍA\nHiggs + Modulador",
+  "triangle.circuit.experimental.button": "EXPERIMENTAL\nHiggs + Tetra",
+  "triangle.circuit.phase.button": "FASE\nTetra + Modulador",
+  "triangle.circuit.phase.locked_button": "FASE\nBloqueado: Máquina",
+  "triangle.synchronization.label": "Sincronización",
+  "triangle.circuit.effect.label": "Efecto",
+  "triangle.circuit.energy.effect": "Efecto: +12% LE · -10% Trazas",
+  "triangle.circuit.experimental.effect": "Efecto: +10% Trazas · +6% fragmentos · -10% LE",
+  "triangle.circuit.phase.effect": "Efecto: +15% análisis · +10% rutinas N3 · -10% LE/Trazas",
+  "triangle.circuit.energy.effect_format": "Efecto: +{0:0.#}% LE · -10% Trazas",
+  "triangle.circuit.experimental.effect_format": "Efecto: +{0:0.#}% Trazas · +{1:0.#}% fragmentos · -10% LE",
+  "triangle.circuit.phase.effect_format": "Efecto: +{0:0.#}% análisis · +{1:0.#}% rutinas N3 · -10% LE/Trazas"
 
 }

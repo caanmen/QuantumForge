@@ -57,6 +57,8 @@ public class D3ConsolePanelUI : MonoBehaviour
 
     private void Configure()
     {
+        if (recordPhaseButton != null)
+            recordPhaseButton.gameObject.SetActive(false);
         SetOptions(policyDropdown, new[] { "Prioridad LE", "Prioridad Trazas", "Equilibrio" });
         SetOptions(leReserveDropdown,
             new[] { "Reserva LE 0", "Reserva LE 1K", "Reserva LE 10K", "Reserva LE 100K", "Reserva LE 1M" });
@@ -97,19 +99,16 @@ public class D3ConsolePanelUI : MonoBehaviour
                 state, D3ConsoleSystem.BuildingHiggs) ? "Sí" : "No");
             b.Append(" | Tetra: ").Append(D3ConsoleSystem.HasManualBuildingAuthorization(
                 state, D3ConsoleSystem.BuildingTetraquark) ? "Sí" : "No");
-            b.Append("\nFases registradas: ").Append(
-                settings.manuallySelectedModulatorModes.Count);
-            b.Append(" | Triángulos básicos: ").Append(settings.manualTrianglePresets.Count);
+            b.Append("\nCircuitos registrados: ").Append(
+                settings.manuallySelectedTriangleCircuits.Count);
             b.Append("\nN3 MEJORAS BÁSICAS: BLOQUEADO — falta lista cerrada de diseño.");
             historyText.text = b.ToString();
         }
         SetInteractable(savePolicyButton,
             D3FacilitySystem.IsFunctionActive(state,
                 Dimension3Catalog.FacilityProductionConsole, 2));
-        SetInteractable(recordPhaseButton, level >= 4 &&
-            GameState.I.phaseModulatorMode != PhaseModulatorMode.None);
         SetInteractable(recordTriangleButton, level >= 5 &&
-            GameState.I.IsTriangleFullyConfiguredWithBaseArtifacts());
+            GameState.I.IsTriangleSystemActive());
         SetInteractable(openRoutinesButton, level >= 1);
     }
 
@@ -128,16 +127,17 @@ public class D3ConsolePanelUI : MonoBehaviour
 
     private void RecordPhase()
     {
-        D3ConsoleSystem.RecordManualModulatorMode(
-            GameState.I, GameState.I.phaseModulatorMode);
-        Notice("Fase actual registrada como elegida manualmente.");
+        D3ConsoleSystem.RecordManualTriangleCircuit(
+            GameState.I, GameState.I.triangleActiveCircuit);
+        Notice("Circuito actual registrado como elegido manualmente.");
         Refresh();
     }
 
     private void RecordTriangle()
     {
-        D3ConsoleSystem.RecordManualTriangleConfiguration(GameState.I);
-        Notice("Configuración básica actual registrada.");
+        D3ConsoleSystem.RecordManualTriangleCircuit(
+            GameState.I, GameState.I.triangleActiveCircuit);
+        Notice("Circuito actual registrado para automatización.");
         Refresh();
     }
 

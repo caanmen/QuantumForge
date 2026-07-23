@@ -82,17 +82,17 @@ public class F2UpgradeRowUI : MonoBehaviour
             case "triangle_impulse_tuning":
                 switch (purchasedTiers)
                 {
-                    case 0: return "Tier 1: Impulso +16% LE";
-                    case 1: return "Tier 2: Impulso +20% LE";
-                    default: return "Máx: Impulso +20% LE";
+                    case 0: return "Tier 1: Energía +16% LE";
+                    case 1: return "Tier 2: Energía +20% LE";
+                    default: return "Máx: Energía +20% LE";
                 }
 
             case "triangle_synergy_resonance":
                 switch (purchasedTiers)
                 {
-                    case 0: return "Tier 1: sinergia Higgs/Tetra +13%, Modulador +8%";
-                    case 1: return "Tier 2: sinergia Higgs/Tetra +15%, Modulador +10%";
-                    default: return "Máx: sinergia Higgs/Tetra +15%, Modulador +10%";
+                    case 0: return "Tier 1: Experimental +13% Trazas y +8% fragmentos";
+                    case 1: return "Tier 2: Experimental +15% Trazas y +10% fragmentos";
+                    default: return "Máx: Experimental +15% Trazas y +10% fragmentos";
                 }
 
         case "triangle_persistence_anchor":

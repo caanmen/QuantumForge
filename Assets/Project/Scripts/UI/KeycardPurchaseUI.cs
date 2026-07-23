@@ -42,7 +42,8 @@ public class KeycardPurchaseUI : MonoBehaviour
         if (GameState.I == null) return;
 
         bool unlocked = GameState.I.experimentalChamberUnlocked;
-        bool hasReq = GameState.I.HasExperimentalChamberKeycardRequirements();
+        bool hasArtifacts = GameState.I.HasExperimentalChamberArtifactRequirements();
+        bool hasTriangle = GameState.I.HasExperimentalChamberTriangleRequirement();
         bool canBuy = GameState.I.CanBuyExperimentalChamberKeycard();
 
         if (nameText != null)
@@ -54,9 +55,19 @@ public class KeycardPurchaseUI : MonoBehaviour
             {
                 descText.text = "Acceso habilitado al Cuarto 2.";
             }
+            else if (!hasArtifacts)
+            {
+                descText.text =
+                    "Requiere Condensador de Higgs, Núcleo Tetraquark y Modulador de Fase.";
+            }
+            else if (!hasTriangle)
+            {
+                descText.text =
+                    "Activa un circuito del Triángulo para estabilizar el acceso al Cuarto 2.";
+            }
             else
             {
-                descText.text = "Abre la puerta del Cuarto 2.";
+                descText.text = "Requisitos completos. La keycard puede construirse.";
             }
         }
 

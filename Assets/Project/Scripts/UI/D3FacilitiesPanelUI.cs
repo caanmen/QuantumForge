@@ -22,6 +22,7 @@ public class D3FacilitiesPanelUI : MonoBehaviour
     public Button toggleAutoAnalyzeButton;
     public Button toggleAutoRepairButton;
     public Button openAutomationButton;
+    public Button integrateAutonomyCoreButton;
     public D3AutomationPanelUI automationPanel;
     public Button openConsoleButton;
     public D3ConsolePanelUI consolePanel;
@@ -39,6 +40,7 @@ public class D3FacilitiesPanelUI : MonoBehaviour
         Add(toggleAutoAnalyzeButton, ToggleAutoAnalyze);
         Add(toggleAutoRepairButton, ToggleAutoRepair);
         Add(openAutomationButton, OpenAutomation);
+        Add(integrateAutonomyCoreButton, IntegrateAutonomyCore);
         Add(openConsoleButton, OpenConsole);
         Add(openDiagnosticButton, OpenDiagnostic);
         if (facilityDropdown != null)
@@ -175,6 +177,22 @@ public class D3FacilitiesPanelUI : MonoBehaviour
         if (openAutomationButton != null)
             openAutomationButton.gameObject.SetActive(automation);
         SetInteractable(openAutomationButton, automation && level >= 1);
+        bool autonomyCore = facilityId == Dimension3Catalog.FacilityAutomationCore;
+        if (integrateAutonomyCoreButton != null)
+            integrateAutonomyCoreButton.gameObject.SetActive(autonomyCore);
+        if (autonomyCore)
+        {
+            bool canIntegrate = D3AutonomyCoreSystem.CanIntegrate(GameState.I,
+                out string integrationReason);
+            SetInteractable(integrateAutonomyCoreButton, canIntegrate);
+            SetLabel(integrateAutonomyCoreButton,
+                state.autonomyCoreIntegrated
+                    ? "NÚCLEO DE AUTONOMÍA INTEGRADO"
+                    : "INTEGRAR NÚCLEO DE AUTONOMÍA");
+            if (!state.autonomyCoreIntegrated && !canIntegrate && noticeText != null &&
+                string.IsNullOrEmpty(noticeText.text))
+                noticeText.text = integrationReason;
+        }
         bool console = facilityId == Dimension3Catalog.FacilityProductionConsole;
         if (openConsoleButton != null) openConsoleButton.gameObject.SetActive(console);
         SetInteractable(openConsoleButton, console && level >= 1);
@@ -230,6 +248,13 @@ public class D3FacilitiesPanelUI : MonoBehaviour
     private void OpenAutomation()
     {
         if (automationPanel != null) automationPanel.Open();
+    }
+
+    private void IntegrateAutonomyCore()
+    {
+        D3AutonomyCoreSystem.TryIntegrate(GameState.I, out string reason);
+        SetNotice(reason);
+        Refresh();
     }
 
     private void OpenConsole()

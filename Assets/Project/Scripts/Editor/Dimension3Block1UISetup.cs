@@ -209,6 +209,8 @@ public static class Dimension3Block1UISetup
                     "D3.Facilities.factoryRoot");
                 valid &= Require(panel.facilitiesPanel.openAutomationButton,
                     "D3.Facilities.openAutomationButton");
+                valid &= Require(panel.facilitiesPanel.integrateAutonomyCoreButton,
+                    "D3.Facilities.integrateAutonomyCoreButton");
                 valid &= Require(panel.facilitiesPanel.automationPanel,
                     "D3.Facilities.automationPanel");
             }
@@ -690,8 +692,11 @@ public static class Dimension3Block1UISetup
             "AUTORREPARACIÓN: OFF", new Vector2(0.85f, 0.25f),
             new Vector2(0.21f, 0.06f));
         ui.openAutomationButton = CreateButton("D3_OpenAutomation", root.transform,
-            "RUTINAS Y PERFILES", new Vector2(0.75f, 0.14f),
+            "RUTINAS Y PERFILES", new Vector2(0.75f, 0.22f),
             new Vector2(0.25f, 0.06f));
+        ui.integrateAutonomyCoreButton = CreateButton("D3_IntegrateAutonomyCore",
+            root.transform, "INTEGRAR NÚCLEO DE AUTONOMÍA",
+            new Vector2(0.75f, 0.14f), new Vector2(0.30f, 0.06f));
         ui.openConsoleButton = CreateButton("D3_OpenConsole", root.transform,
             "CONTROL DE CONSOLA", new Vector2(0.75f, 0.14f),
             new Vector2(0.25f, 0.06f));

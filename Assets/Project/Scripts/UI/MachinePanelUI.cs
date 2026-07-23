@@ -516,8 +516,9 @@ public class MachinePanelUI : MonoBehaviour
         {
             AchievementPopupUI.I.ShowPopup(
                 "Convergencia detectada",
-                "La Máquina ha alcanzado una estabilidad suficiente para preparar el Prestigio 1.\n\n" +
-                "La apertura dimensional todavía no se ejecutará automáticamente."
+                "El Canal de Convergencia está activo.\n\n" +
+                "Cuando la reparación total alcance el 80%, podrás ejecutar manualmente " +
+                "el Prestigio 1 desde su pestaña."
             );
             return;
         }
@@ -1008,7 +1009,10 @@ public class MachinePanelUI : MonoBehaviour
 
         if (MachineManager.I.Prestige1Prepared)
         {
-            machineNoticeText.text = "Convergencia estable: apertura dimensional preparada. Falta conectar el sistema definitivo.";
+            double repairPct = MachineManager.I.GetTotalMachineRepairProgress01() * 100.0;
+            machineNoticeText.text = MachineManager.I.HasEnoughRepairForPrestige1()
+                ? "Convergencia estable: Prestigio 1 disponible en su pestaña."
+                : $"Canal de Convergencia activo. Reparación total: {repairPct:0}% / 80%.";
             return;
         }
 

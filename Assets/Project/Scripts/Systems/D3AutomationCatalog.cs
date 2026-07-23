@@ -111,6 +111,8 @@ public static class D3AutomationCatalog
         "d3.console.set_modulator_phase";
     public const string ActionConsoleTriangle =
         "d3.console.apply_basic_triangle";
+    public const string ActionConsoleCircuit =
+        "d3.console.set_triangle_circuit";
     public const string ActionConsoleBuyModulator =
         "d3.console.buy_phase_modulator";
     public const string ActionPortScan = "d3.port.scan_simple_destinations";
@@ -208,16 +210,11 @@ public static class D3AutomationCatalog
             D3AutomationCatalogStatus.PendingDesign,
             D3AutomationActionKind.Repeatable, true, false,
             "Blocked until closed safe list exists"),
-        Def(ActionConsoleModulator, "room1_modulator",
-            Dimension3Catalog.FacilityProductionConsole, 4,
-            D3AutomationCatalogStatus.Authorized,
-            D3AutomationActionKind.StrategicPreset, true, true,
-            "D3ConsoleSystem.TryApplyPreferredPhase"),
-        Def(ActionConsoleTriangle, "room1_triangle",
+        Def(ActionConsoleCircuit, "room1_triangle",
             Dimension3Catalog.FacilityProductionConsole, 5,
             D3AutomationCatalogStatus.Authorized,
             D3AutomationActionKind.StrategicPreset, true, true,
-            "D3ConsoleSystem.TryApplyTrianglePreset"),
+            "D3ConsoleSystem.TryApplyPreferredCircuit"),
         Def(ActionConsoleBuyModulator, "room1_buildings",
             Dimension3Catalog.FacilityProductionConsole, 0,
             D3AutomationCatalogStatus.Prohibited,

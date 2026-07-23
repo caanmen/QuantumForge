@@ -424,6 +424,7 @@ public static class Dimension3System
         if (state.consoleSettings == null)
             state.consoleSettings = new D3ConsoleSettingsState();
         D3ConsoleSystem.NormalizeSettings(state.consoleSettings);
+        D3AutomationSystem.MigrateLegacyTriangleRoutines(state);
         if (state.totalAssembledByMk == null)
             state.totalAssembledByMk = new List<D3MkAssemblyCountState>();
 

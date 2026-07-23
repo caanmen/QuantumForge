@@ -152,10 +152,20 @@ public class TabsUI : MonoBehaviour
     {
         if (btnPrestigio != null)
         {
-            bool prestige1Completed = GameState.I != null &&
-                GameState.I.hasDonePrestige1;
-            btnPrestigio.gameObject.SetActive(!prestige1Completed);
+            btnPrestigio.gameObject.SetActive(
+                ShouldShowPrestige1Button(GameState.I, MachineManager.I));
         }
+    }
+
+    public static bool ShouldShowPrestige1Button(
+        GameState gameState, MachineManager machineManager)
+    {
+        return gameState != null &&
+            machineManager != null &&
+            machineManager.MachineUnlocked &&
+            gameState.HasAvailableDimensionForPrestige1Selection() &&
+            (gameState.prestige1Count <= 0 ||
+             gameState.HasDimensionMilestoneForNextPrestige1());
     }
 
     private void HideMetaNavigationButton()
@@ -223,6 +233,11 @@ public class TabsUI : MonoBehaviour
     {
         if (GameState.I == null || !GameState.I.experimentalChamberUnlocked)
             return;
+
+        // También migra partidas antiguas que ya tenían el Cuarto 2 abierto,
+        // pero quedaron con la Máquina bloqueada por falta del disparador normal.
+        GameState.I.TryUnlockMachineFromExperimentalChamber();
+        RefreshPrestigeButtonVisibility();
 
         HideAll();
 

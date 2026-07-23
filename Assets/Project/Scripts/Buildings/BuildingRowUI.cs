@@ -197,7 +197,7 @@ public class BuildingRowUI : MonoBehaviour
             {
                 if (state.def.id == "fluctuation_antenna" && gameState != null)
                 {
-                    int pct = Mathf.RoundToInt(gameState.phaseModulatorCalibration * 100f);
+                    int pct = Mathf.RoundToInt(gameState.triangleSynchronization * 100f);
                     shownName = $"{_cachedName} — {pct}%";
                 }
                 else
@@ -285,7 +285,7 @@ public class BuildingRowUI : MonoBehaviour
         if (buyButton != null)
         {
             if (state.def.id == "fluctuation_antenna" && state.level > 0)
-                buyButton.interactable = true;
+                buyButton.interactable = false;
             else
                 buyButton.interactable = canAfford;
         }
@@ -354,37 +354,37 @@ public class BuildingRowUI : MonoBehaviour
 
     private string GetPhaseModulatorModeLabel()
     {
-        if (gameState == null) return "Sin fase";
+        if (gameState == null) return "Sin circuito";
 
-        switch (gameState.phaseModulatorMode)
+        switch (gameState.triangleActiveCircuit)
         {
-            case PhaseModulatorMode.Expansion:
-                return "Expansión";
-            case PhaseModulatorMode.Conservation:
-                return "Conservación";
-            case PhaseModulatorMode.Attunement:
-                return gameState.IsAttunementUnlocked() ? "Sintonía" : "Sintonía bloqueada";
+            case TriangleCircuitType.Energy:
+                return "Energía";
+            case TriangleCircuitType.Experimental:
+                return "Experimental";
+            case TriangleCircuitType.Phase:
+                return gameState.IsTrianglePhaseUnlocked() ? "Fase" : "Fase bloqueado";
             default:
-                return "Sin fase";
+                return "Sin circuito";
         }
     }
 
     private string GetPhaseModulatorDescription()
     {
-        if (gameState == null) return "Sin fase seleccionada.";
+        if (gameState == null) return "Sin circuito seleccionado.";
 
-        switch (gameState.phaseModulatorMode)
+        switch (gameState.triangleActiveCircuit)
         {
-            case PhaseModulatorMode.Expansion:
-                return "Expansión: prioriza ritmo y crecimiento.";
-            case PhaseModulatorMode.Conservation:
-                return "Conservación: prioriza ahorro y eficiencia.";
-            case PhaseModulatorMode.Attunement:
-                return gameState.IsAttunementUnlocked()
-                    ? "Sintonía: fase avanzada desbloqueada por prestigio."
-                    : "Sintonía: bloqueada hasta Prestigio 1.";
+            case TriangleCircuitType.Energy:
+                return "Energía: prioriza LE.";
+            case TriangleCircuitType.Experimental:
+                return "Experimental: prioriza Trazas y fragmentos.";
+            case TriangleCircuitType.Phase:
+                return gameState.IsTrianglePhaseUnlocked()
+                    ? "Fase: acelera análisis y rutinas compatibles."
+                    : "Fase: bloqueado hasta desbloquear la Máquina.";
             default:
-                return "Sin fase seleccionada.";
+                return "Sin circuito seleccionado.";
         }
     }
 
@@ -400,7 +400,7 @@ public class BuildingRowUI : MonoBehaviour
             state.level > 0;
 
         if (modulatorBought)
-            return "Cambiar fase";
+            return "Gestionar en el Triángulo";
 
         return (LocalizationManager.I != null)
             ? LocalizationManager.I.T("ui.buy")
@@ -491,6 +491,7 @@ public class BuildingRowUI : MonoBehaviour
     baseLeTick *= gameState.GetTrianglePersistenceReserveBuildingMultiplier(def.id);
 
     double leTickReal = baseLeTick * worldMult;
+    leTickReal *= gameState.GetTriangleLEMultiplier();
 
     double emTick = 0.0;
     double tracesPs = 0.0;
@@ -504,6 +505,7 @@ public class BuildingRowUI : MonoBehaviour
             tracesPerTick *= (1.0 + F2UpgradeManager.I.GetResidualAnalysisBonus());
         }
 
+        tracesPerTick *= gameState.GetTriangleTracesMultiplier();
         tracesPs = shownInterval > 0.0 ? (tracesPerTick / shownInterval) : 0.0;
     }
 
@@ -564,18 +566,13 @@ public class BuildingRowUI : MonoBehaviour
         }
     else if (def.id == "fluctuation_antenna")
     {
-        int pct = Mathf.RoundToInt(gameState.phaseModulatorCalibration * 100f);
+        int pct = Mathf.RoundToInt(gameState.triangleSynchronization * 100f);
 
         string modeLabel = GetPhaseModulatorModeLabel();
 
-        if (gameState.phaseModulatorMode == PhaseModulatorMode.Conservation)
-        {
-            modeLabel += $" | Desc: {(float)(conservationDiscount * 100f):0}%";
-        }
-
         statsText.SetText(
             $"{costLine}\n" +
-            $"Fase: {modeLabel} | Cal: {pct}%"
+            $"Circuito: {modeLabel} | Sincronización: {pct}%"
         );
     }
     else
@@ -699,10 +696,9 @@ public class BuildingRowUI : MonoBehaviour
         if (!BuildingUnlock.IsUnlocked(state.def))
             return;
 
-        // Si el Modulador ya fue comprado, el botón ahora cicla la fase
+        // El Modulador es un vértice fijo; los circuitos se cambian en el Triángulo.
         if (state.def.id == "fluctuation_antenna" && state.level > 0)
         {
-            CyclePhaseModulatorMode();
             return;
         }
 

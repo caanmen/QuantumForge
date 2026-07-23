@@ -61,7 +61,7 @@
     {
       "id": "triangle_unlock_1",
       "name": "Acople de Vértices",
-      "description": "Desbloquea la configuración triangular del Cuarto 1.",
+      "description": "Desbloquea los circuitos de vértices fijos del Triángulo.",
       "currency": 1,
       "effectType": 0,
       "tiers": [
@@ -72,7 +72,7 @@
     {
       "id": "triangle_impulse_tuning",
       "name": "Impulso Dirigido",
-      "description": "Refuerza el protocolo Impulso.",
+      "description": "Refuerza la potencia de LE del Circuito de Energía.",
       "currency": 1,
       "effectType": 0,
       "tiers": [
@@ -83,7 +83,7 @@
     {
       "id": "triangle_synergy_resonance",
       "name": "Enlace Resonante",
-      "description": "Refuerza el protocolo Sinergia.",
+      "description": "Refuerza Trazas y fragmentos del Circuito Experimental.",
       "currency": 1,
       "effectType": 0,
       "tiers": [
@@ -94,7 +94,7 @@
     {
       "id": "triangle_persistence_anchor",
       "name": "Anclaje Persistente",
-      "description": "Refuerza el protocolo Persistencia.",
+      "description": "Refuerza la sincronización y autonomía del Triángulo.",
       "currency": 1,
       "effectType": 0,
       "tiers": [

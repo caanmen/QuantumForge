@@ -125,7 +125,7 @@
   "room2.slot.no_catalyst": "No catalyst",
   "room2.intro_locked": "The chamber remains sealed. A keycard is required to enable access to Room 2.",
   "room2.mix.button": "Run trial",
-  "triangle.protocol.label": "Protocol",
+  "triangle.protocol.label": "Circuit",
   "triangle.protocol.none": "Inactive",
   "triangle.protocol.impulso": "Impulse",
   "triangle.protocol.sinergia": "Synergy",
@@ -139,6 +139,22 @@
   "triangle.modulator.effect.inactive": "No effect",
   "triangle.modulator.effect.expansion": "Faster ticks",
   "triangle.modulator.effect.conservation": "Reduced costs",
-  "triangle.modulator.effect.attunement": "Reserved for Prestige 1"
+  "triangle.modulator.effect.attunement": "Reserved for Prestige 1",
+  "triangle.circuit.label": "Circuit",
+  "triangle.circuit.energy": "Energy",
+  "triangle.circuit.experimental": "Experimental",
+  "triangle.circuit.phase": "Phase",
+  "triangle.circuit.energy.button": "ENERGY\nHiggs + Modulator",
+  "triangle.circuit.experimental.button": "EXPERIMENTAL\nHiggs + Tetra",
+  "triangle.circuit.phase.button": "PHASE\nTetra + Modulator",
+  "triangle.circuit.phase.locked_button": "PHASE\nLocked: Machine",
+  "triangle.synchronization.label": "Synchronization",
+  "triangle.circuit.effect.label": "Effect",
+  "triangle.circuit.energy.effect": "Effect: +12% LE · -10% Traces",
+  "triangle.circuit.experimental.effect": "Effect: +10% Traces · +6% fragments · -10% LE",
+  "triangle.circuit.phase.effect": "Effect: +15% analysis · +10% D3 routines · -10% LE/Traces",
+  "triangle.circuit.energy.effect_format": "Effect: +{0:0.#}% LE · -10% Traces",
+  "triangle.circuit.experimental.effect_format": "Effect: +{0:0.#}% Traces · +{1:0.#}% fragments · -10% LE",
+  "triangle.circuit.phase.effect_format": "Effect: +{0:0.#}% analysis · +{1:0.#}% D3 routines · -10% LE/Traces"
 
 }

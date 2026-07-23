@@ -16,7 +16,7 @@ public static class Dimension3Block7BValidation
         ValidateProfilesOfflineAndJson(failures);
         if (failures.Count == 0)
             Debug.Log("[D3 Block 7B] PASS | N1 compras | N2 políticas/reservas | " +
-                "N3 bloqueado | N4 fase | N5 Triángulo/perfiles/offline | JSON");
+                "N3 bloqueado | N5 circuito del Triángulo/perfiles/offline | JSON");
         else Debug.LogError("[D3 Block 7B] FAIL\n- " + string.Join("\n- ", failures));
     }
 
@@ -34,6 +34,10 @@ public static class Dimension3Block7BValidation
                 D3AutomationCatalog.ActionConsoleBuyModulator).status ==
               D3AutomationCatalogStatus.Prohibited,
             "La compra única del Modulador no quedó prohibida.", failures);
+        Check(D3AutomationCatalog.GetAction(
+                D3AutomationCatalog.ActionConsoleCircuit).status ==
+              D3AutomationCatalogStatus.Authorized,
+            "El selector automático de circuito no quedó autorizado.", failures);
 
         GameState state = CreateState("D3 B7B Manual", 1);
         try
@@ -109,30 +113,13 @@ public static class Dimension3Block7BValidation
             AddBuilding(state, D3ConsoleSystem.BuildingTetraquark, 10, 2, 1);
             AddBuilding(state, "fluctuation_antenna", 10, 2, 1);
             state.triangleSystemUnlocked = true;
-            state.SetPhaseModulatorMode(PhaseModulatorMode.Expansion);
-            D3ConsoleSystem.RecordManualModulatorMode(
-                state, PhaseModulatorMode.Expansion);
-            state.SetPhaseModulatorMode(PhaseModulatorMode.Conservation);
-            Check(D3ConsoleSystem.TryApplyPreferredPhase(
-                    state, PhaseModulatorMode.Expansion, out string reason) &&
-                  state.phaseModulatorMode == PhaseModulatorMode.Expansion,
-                "N4 no mantiene fase manual autorizada: " + reason, failures);
-
-            state.AssignTriangleBuilding(TriangleSlotRole.Primary,
-                D3ConsoleSystem.BuildingHiggs);
-            state.AssignTriangleBuilding(TriangleSlotRole.Reinforcement,
-                D3ConsoleSystem.BuildingTetraquark);
-            state.AssignTriangleBuilding(TriangleSlotRole.Alteration,
-                "fluctuation_antenna");
-            D3TrianglePresetState preset =
-                state.dimension3.consoleSettings.manualTrianglePresets[0];
-            state.ClearTriangleConfiguration();
-            state.AssignTriangleBuilding(TriangleSlotRole.Primary,
-                "fluctuation_antenna", false);
-            Check(D3ConsoleSystem.TryApplyTrianglePreset(
-                    state, preset.presetId, out reason) &&
-                  D3ConsoleSystem.IsTrianglePresetApplied(state, preset),
-                "N5 no aplica preset manual básico: " + reason, failures);
+            state.SanitizeTriangleCircuit(false);
+            state.SetTriangleCircuit(TriangleCircuitType.Energy);
+            state.SetTriangleCircuit(TriangleCircuitType.Experimental);
+            Check(D3ConsoleSystem.TryApplyPreferredCircuit(
+                    state, TriangleCircuitType.Energy, out string reason) &&
+                  state.triangleActiveCircuit == TriangleCircuitType.Energy,
+                "N5 no mantiene el circuito manual autorizado: " + reason, failures);
         }
         finally { UnityEngine.Object.DestroyImmediate(state.gameObject); }
     }
@@ -177,6 +164,7 @@ public static class Dimension3Block7BValidation
             Check(loaded != null && loaded.consoleSettings != null &&
                   loaded.consoleSettings.manuallyPurchasedBuildingIds.Contains(
                     D3ConsoleSystem.BuildingHiggs) &&
+                  loaded.consoleSettings.manuallySelectedTriangleCircuits != null &&
                   loaded.automationProfiles.Count == 1 &&
                   loaded.automationProfiles[0].savedConsoleSettings != null,
                 "Historial, ajustes o perfil no sobreviven JSON.", failures);

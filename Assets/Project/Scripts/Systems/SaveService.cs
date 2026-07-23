@@ -11,6 +11,9 @@ public class SaveData
     public int fragmentCondensation;
     public int fragmentConfinement;
     public int fragmentResidualInterference;
+    public double fragmentCondensationProgress;
+    public double fragmentConfinementProgress;
+    public double fragmentResidualInterferenceProgress;
 
     public int experimentalHallazgos;
     public int experimentalMuestras;
@@ -31,6 +34,9 @@ public class SaveData
 
         // Cuarto 1 - sistema triangular
     public bool triangleSystemUnlocked;
+    public int triangleCircuitSaveVersion;
+    public int triangleActiveCircuit;
+    public float triangleSynchronization;
     public string trianglePrimaryBuildingId;
     public string triangleReinforcementBuildingId;
     public string triangleAlterationBuildingId;
@@ -60,6 +66,7 @@ public class SaveData
     public bool hasDonePrestige1;
     public int prestige1Points;
     public int prestige1BestClaimedPreviewPoints;
+    public int prestige1CurrentDimensionId;
     // F6.1: Máximo LE alcanzado en el run
     public double maxLEAlcanzado;
     public List<SavedF2UpgradeTier> f2UpgradeTiers = new();
@@ -214,12 +221,16 @@ public class SaveService : MonoBehaviour
         phaseModulatorMode = (int)GameState.I.phaseModulatorMode,
         phaseModulatorCalibration = GameState.I.phaseModulatorCalibration,
         trianglePersistenceReserveSeconds = GameState.I.trianglePersistenceReserveSeconds,
+        triangleCircuitSaveVersion = 1,
+        triangleActiveCircuit = (int)GameState.I.triangleActiveCircuit,
+        triangleSynchronization = GameState.I.triangleSynchronization,
 
         // Prestigio 1 - Convergencia
         prestige1Count = GameState.I.prestige1Count,
         hasDonePrestige1 = GameState.I.hasDonePrestige1,
         prestige1Points = GameState.I.prestige1Points,
         prestige1BestClaimedPreviewPoints = GameState.I.prestige1BestClaimedPreviewPoints,
+        prestige1CurrentDimensionId = GameState.I.prestige1CurrentDimensionId,
 
             // F6.1: prestigio viejo
         maxLEAlcanzado = GameState.I.maxLEAlcanzado,
@@ -297,6 +308,9 @@ public class SaveService : MonoBehaviour
         fragmentCondensation = GameState.I.fragmentCondensation,
         fragmentConfinement = GameState.I.fragmentConfinement,
         fragmentResidualInterference = GameState.I.fragmentResidualInterference,
+        fragmentCondensationProgress = GameState.I.fragmentCondensationProgress,
+        fragmentConfinementProgress = GameState.I.fragmentConfinementProgress,
+        fragmentResidualInterferenceProgress = GameState.I.fragmentResidualInterferenceProgress,
 
         experimentalHallazgos = GameState.I.experimentalHallazgos,
         experimentalMuestras = GameState.I.experimentalMuestras,
@@ -380,6 +394,8 @@ public class SaveService : MonoBehaviour
         GameState.I.baseLEps = data.baseLEps;
         GameState.I.phaseModulatorMode = (PhaseModulatorMode)data.phaseModulatorMode;
         GameState.I.phaseModulatorCalibration = data.phaseModulatorCalibration;
+        GameState.I.triangleActiveCircuit = (TriangleCircuitType)data.triangleActiveCircuit;
+        GameState.I.triangleSynchronization = data.triangleSynchronization;
         // GameState.I.trianglePersistenceMaturation = data.trianglePersistenceMaturation;
         GameState.I.trianglePersistenceReserveSeconds = data.trianglePersistenceReserveSeconds;
         GameState.I.experimentalChamberUnlocked = data.experimentalChamberUnlocked;
@@ -443,15 +459,37 @@ public class SaveService : MonoBehaviour
         GameState.I.hasDonePrestige1 = data.hasDonePrestige1;
         GameState.I.prestige1Points = data.prestige1Points;
         GameState.I.prestige1BestClaimedPreviewPoints = data.prestige1BestClaimedPreviewPoints;
+        GameState.I.prestige1CurrentDimensionId = Mathf.Clamp(
+            data.prestige1CurrentDimensionId, 0, 3);
+
+        // Compatibilidad con saves antiguos que registraron el contador antes
+        // de que existiera la bandera explícita de Prestigio 1 completado.
+        if (GameState.I.prestige1Count > 0)
+            GameState.I.hasDonePrestige1 = true;
+
         GameState.I.EnsureDimension1State();
         GameState.I.EnsureDimension2State();
         GameState.I.EnsureDimension3State();
 
-        // Migración para partidas viejas:
-        // si el jugador ya hizo Prestigio 1, el sistema de dimensiones debe quedar preparado.
-        if (GameState.I.hasDonePrestige1)
+        // Migración para partidas previas a la selección de una sola dimensión.
+        // Las partidas nuevas conservan exactamente qué dimensiones revelaron.
+        if (GameState.I.hasDonePrestige1 &&
+            !GameState.I.dimension01Unlocked &&
+            !GameState.I.dimension02Unlocked &&
+            !GameState.I.dimension03Unlocked)
         {
             GameState.I.UnlockDimensionSystemAfterPrestige1();
+        }
+
+        if (GameState.I.prestige1CurrentDimensionId == 0)
+        {
+            int unlockedCount = (GameState.I.dimension01Unlocked ? 1 : 0) +
+                (GameState.I.dimension02Unlocked ? 1 : 0) +
+                (GameState.I.dimension03Unlocked ? 1 : 0);
+            if (unlockedCount == 1)
+                GameState.I.prestige1CurrentDimensionId =
+                    GameState.I.dimension01Unlocked ? 1 :
+                    (GameState.I.dimension02Unlocked ? 2 : 3);
         }
 
         // F6.1: prestigio viejo
@@ -474,6 +512,12 @@ public class SaveService : MonoBehaviour
         GameState.I.fragmentCondensation = data.fragmentCondensation;
         GameState.I.fragmentConfinement = data.fragmentConfinement;
         GameState.I.fragmentResidualInterference = data.fragmentResidualInterference;
+        GameState.I.fragmentCondensationProgress = System.Math.Max(
+            0.0, data.fragmentCondensationProgress);
+        GameState.I.fragmentConfinementProgress = System.Math.Max(
+            0.0, data.fragmentConfinementProgress);
+        GameState.I.fragmentResidualInterferenceProgress = System.Math.Max(
+            0.0, data.fragmentResidualInterferenceProgress);
 
         GameState.I.experimentalHallazgos = data.experimentalHallazgos;
         GameState.I.experimentalMuestras = data.experimentalMuestras;
@@ -503,7 +547,7 @@ public class SaveService : MonoBehaviour
             MachineManager.I.LoadProgressFromSave(data);
         }
 
-        
+        GameState.I.SanitizeTriangleCircuit(data.triangleCircuitSaveVersion < 1);
 
         if (F2UpgradeManager.I != null)
         {
@@ -512,11 +556,15 @@ public class SaveService : MonoBehaviour
 
         long nowUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         double offlineSeconds = Math.Max(0.0, nowUnix - data.lastUnix);
+        double baseOfflineApplied = Math.Min(
+            offlineSeconds, Dimension1System.DefaultOfflineCapSeconds);
+        bool machineWasAnalyzing = MachineManager.I != null &&
+            MachineManager.I.IsAnalyzingNode;
+        double phaseAnalysisMultiplier =
+            GameState.I.GetTrianglePhaseAnalysisSpeedMultiplierForPeriod(baseOfflineApplied);
 
         if (MachineManager.I != null)
-            MachineManager.I.ApplyOfflineAnalysis(offlineSeconds);
-
-        GameState.I.ApplyOfflineTrianglePersistenceReserve(offlineSeconds);
+            MachineManager.I.ApplyOfflineAnalysis(baseOfflineApplied * phaseAnalysisMultiplier);
 
         // Sistema de dimensiones
         // minería offline con cap inicial de 12 horas.
@@ -527,6 +575,11 @@ public class SaveService : MonoBehaviour
             : Dimension1System.ApplyOfflineMining(GameState.I, offlineSeconds);
         double d2OfflineApplied = Dimension2System.ApplyOfflineProgress(GameState.I, offlineSeconds);
         double d3OfflineApplied = Dimension3System.ApplyOfflineProgress(GameState.I, offlineSeconds);
+
+        GameState.I.ApplyOfflineBaseProgress(baseOfflineApplied);
+        if (machineWasAnalyzing)
+            GameState.I.RecordOfflinePhaseAnalysisSeconds(
+                baseOfflineApplied * phaseAnalysisMultiplier);
 
         #if UNITY_EDITOR
         if (d1OfflineApplied > 0.0)
@@ -593,6 +646,8 @@ public class SaveService : MonoBehaviour
         GameState.I.phaseModulatorMode = PhaseModulatorMode.None;
         GameState.I.phaseModulatorCalibration = 0f;
         GameState.I.trianglePersistenceReserveSeconds = 0.0;
+        GameState.I.triangleActiveCircuit = TriangleCircuitType.None;
+        GameState.I.triangleSynchronization = 0f;
         GameState.I.experimentalChamberUnlocked = false;
         GameState.I.experimentalChamberInitialPackGranted = false;
         // Sistema de dimensiones
@@ -670,12 +725,15 @@ public class SaveService : MonoBehaviour
         GameState.I.experimentalMixLog = new List<ExperimentalMixLogEntry>();
         GameState.I.guidedSynthesisIntent = 0;
         GameState.I.triangleSystemUnlocked = false;
+        GameState.I.triangleActiveCircuit = TriangleCircuitType.None;
+        GameState.I.triangleSynchronization = 0f;
         GameState.I.trianglePrimaryBuildingId = "";
         GameState.I.triangleReinforcementBuildingId = "";
         GameState.I.triangleAlterationBuildingId = "";
 
         GameState.I.prestige1Count = 0;
         GameState.I.hasDonePrestige1 = false;
+        GameState.I.prestige1CurrentDimensionId = 0;
 
         GameState.I.maxLEAlcanzado = 0.0;
 
@@ -739,6 +797,8 @@ public class SaveService : MonoBehaviour
             GameState.I.experimentalMixLog = new List<ExperimentalMixLogEntry>();
             GameState.I.guidedSynthesisIntent = 0;
             GameState.I.triangleSystemUnlocked = false;
+            GameState.I.triangleActiveCircuit = TriangleCircuitType.None;
+            GameState.I.triangleSynchronization = 0f;
             GameState.I.trianglePrimaryBuildingId = "";
             GameState.I.triangleReinforcementBuildingId = "";
             GameState.I.triangleAlterationBuildingId = "";

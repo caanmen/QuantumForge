@@ -191,6 +191,10 @@ public class D3ConsoleSettingsState
     public string purchasePolicy = "balanced";
     public double leReserve;
     public double tracesReserve;
+    public int triangleCircuitVersion;
+    public int preferredTriangleCircuit;
+    public List<int> manuallySelectedTriangleCircuits = new List<int>();
+    // Campos heredados conservados para migrar partidas y perfiles antiguos.
     public int preferredModulatorMode;
     public string preferredTrianglePresetId = "";
     public List<string> manuallyPurchasedBuildingIds = new List<string>();
@@ -256,6 +260,8 @@ public class Dimension3State
     public int progressVersion = Dimension3System.ProgressVersion;
     public bool initialized;
     public bool firstEntrySeen;
+    // Hito único manual de D3. No consume al MK6 ni se ejecuta por automatización.
+    public bool autonomyCoreIntegrated;
     public string selectedInstallationId = Dimension3Catalog.FacilityProcessBank;
     public long nextJobSequence = 1;
     public long nextAutomationSequence = 1;

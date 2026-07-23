@@ -39,7 +39,7 @@
     {
       "id": "fluctuation_antenna",
       "displayName": "Modulador de Fase",
-      "description": "Artefacto único del Cuarto 1. Permite elegir una fase de operación y calibrarla gradualmente.",
+      "description": "Vértice temporal del Triángulo. Controla la sincronización de los circuitos y los procesos compatibles.",
       "baseCost": 10000.0,
       "costMult": 1.0,
       "baseLEps": 0.0,

@@ -21,6 +21,8 @@ public static class D3ConsoleSystem
         settings.tracesReserve = Math.Max(0.0, settings.tracesReserve);
         if (settings.manuallyPurchasedBuildingIds == null)
             settings.manuallyPurchasedBuildingIds = new List<string>();
+        if (settings.manuallySelectedTriangleCircuits == null)
+            settings.manuallySelectedTriangleCircuits = new List<int>();
         if (settings.manuallySelectedModulatorModes == null)
             settings.manuallySelectedModulatorModes = new List<int>();
         if (settings.manualTrianglePresets == null)
@@ -31,6 +33,8 @@ public static class D3ConsoleSystem
             if (preset == null || string.IsNullOrWhiteSpace(preset.presetId))
                 settings.manualTrianglePresets.RemoveAt(i);
         }
+        if (settings.triangleCircuitVersion < 1)
+            MigrateLegacyCircuitSettings(settings);
     }
 
     public static void RecordManualBuildingPurchase(
@@ -54,6 +58,20 @@ public static class D3ConsoleSystem
             .manuallySelectedModulatorModes;
         int value = (int)mode;
         if (!history.Contains(value)) history.Add(value);
+        RecordManualTriangleCircuit(gameState, CircuitFromLegacyMode(mode));
+    }
+
+    public static void RecordManualTriangleCircuit(
+        GameState gameState, TriangleCircuitType circuit)
+    {
+        if (gameState == null || circuit == TriangleCircuitType.None) return;
+        if (circuit == TriangleCircuitType.Phase && !gameState.IsTrianglePhaseUnlocked())
+            return;
+        Dimension3System.EnsureState(gameState);
+        List<int> history = gameState.dimension3.consoleSettings
+            .manuallySelectedTriangleCircuits;
+        int value = (int)circuit;
+        if (!history.Contains(value)) history.Add(value);
     }
 
     public static void RecordManualTriangleConfiguration(GameState gameState)
@@ -62,6 +80,7 @@ public static class D3ConsoleSystem
             return;
         Dimension3System.EnsureState(gameState);
         D3ConsoleSettingsState settings = gameState.dimension3.consoleSettings;
+        RecordManualTriangleCircuit(gameState, gameState.triangleActiveCircuit);
         string id = BuildPresetId(gameState.trianglePrimaryBuildingId,
             gameState.triangleReinforcementBuildingId,
             gameState.triangleAlterationBuildingId);
@@ -91,6 +110,16 @@ public static class D3ConsoleSystem
             gameState.dimension3.consoleSettings.manuallySelectedModulatorModes != null &&
             gameState.dimension3.consoleSettings.manuallySelectedModulatorModes
                 .Contains((int)mode);
+    }
+
+    public static bool HasManualCircuitAuthorization(
+        GameState gameState, TriangleCircuitType circuit)
+    {
+        return gameState != null && gameState.dimension3 != null &&
+            gameState.dimension3.consoleSettings != null &&
+            gameState.dimension3.consoleSettings.manuallySelectedTriangleCircuits != null &&
+            gameState.dimension3.consoleSettings.manuallySelectedTriangleCircuits
+                .Contains((int)circuit);
     }
 
     public static bool TrySetPolicyAndReserves(
@@ -173,20 +202,31 @@ public static class D3ConsoleSystem
     public static bool TryApplyPreferredPhase(
         GameState gameState, PhaseModulatorMode mode, out string reason)
     {
+        return TryApplyPreferredCircuit(
+            gameState, CircuitFromLegacyMode(mode), out reason);
+    }
+
+    public static bool TryApplyPreferredCircuit(
+        GameState gameState, TriangleCircuitType circuit, out string reason)
+    {
         reason = "";
-        if (!CanUseFunction(gameState, 4, out reason)) return false;
-        if (mode == PhaseModulatorMode.None ||
-            !HasManualPhaseAuthorization(gameState, mode) ||
-            !gameState.IsPhaseModulatorOwned() ||
-            (mode == PhaseModulatorMode.Attunement && !gameState.IsAttunementUnlocked()))
+        if (!CanUseFunction(gameState, 5, out reason)) return false;
+        if (circuit == TriangleCircuitType.None ||
+            !HasManualCircuitAuthorization(gameState, circuit) ||
+            !gameState.IsTriangleFullyConfiguredWithBaseArtifacts() ||
+            (circuit == TriangleCircuitType.Phase && !gameState.IsTrianglePhaseUnlocked()))
         {
-            reason = "La fase no está desbloqueada o no tiene historial manual.";
+            reason = "El circuito no está disponible o no tiene historial manual.";
             return false;
         }
-        gameState.dimension3.consoleSettings.preferredModulatorMode = (int)mode;
-        if (gameState.phaseModulatorMode != mode)
-            gameState.SetPhaseModulatorMode(mode);
-        reason = "Fase preferida mantenida: " + mode + ".";
+
+        gameState.dimension3.consoleSettings.preferredTriangleCircuit = (int)circuit;
+        if (!gameState.SetTriangleCircuit(circuit, false))
+        {
+            reason = "No se pudo activar el circuito preferido.";
+            return false;
+        }
+        reason = "Circuito preferido mantenido: " + circuit + ".";
         return true;
     }
 
@@ -197,29 +237,14 @@ public static class D3ConsoleSystem
         if (!CanUseFunction(gameState, 5, out reason)) return false;
         D3ConsoleSettingsState settings = gameState.dimension3.consoleSettings;
         D3TrianglePresetState preset = GetPreset(settings, presetId);
-        if (preset == null || !gameState.triangleSystemUnlocked ||
-            gameState.GetBuildingLevel(BuildingHiggs) <= 0 ||
-            gameState.GetBuildingLevel(BuildingTetraquark) <= 0 ||
-            gameState.GetBuildingLevel("fluctuation_antenna") <= 0)
+        TriangleCircuitType circuit = GetCircuitFromLegacyPreset(preset);
+        if (preset == null || circuit == TriangleCircuitType.None)
         {
             reason = "La configuración básica no está disponible o no fue aplicada manualmente.";
             return false;
         }
-        gameState.ClearTriangleConfiguration();
-        bool applied = gameState.AssignTriangleBuilding(TriangleSlotRole.Primary,
-                preset.primaryBuildingId, false) &&
-            gameState.AssignTriangleBuilding(TriangleSlotRole.Reinforcement,
-                preset.reinforcementBuildingId, false) &&
-            gameState.AssignTriangleBuilding(TriangleSlotRole.Alteration,
-                preset.alterationBuildingId, false);
-        if (!applied || !gameState.IsTriangleFullyConfiguredWithBaseArtifacts())
-        {
-            reason = "No se pudo aplicar la configuración básica.";
-            return false;
-        }
-        settings.preferredTrianglePresetId = presetId;
-        reason = "Configuración básica del Triángulo aplicada.";
-        return true;
+        RecordManualTriangleCircuit(gameState, circuit);
+        return TryApplyPreferredCircuit(gameState, circuit, out reason);
     }
 
     public static D3TrianglePresetState GetPreset(
@@ -250,9 +275,13 @@ public static class D3ConsoleSystem
         clone.purchasePolicy = source.purchasePolicy;
         clone.leReserve = source.leReserve;
         clone.tracesReserve = source.tracesReserve;
+        clone.triangleCircuitVersion = source.triangleCircuitVersion;
+        clone.preferredTriangleCircuit = source.preferredTriangleCircuit;
         clone.preferredModulatorMode = source.preferredModulatorMode;
         clone.preferredTrianglePresetId = source.preferredTrianglePresetId ?? "";
         clone.manuallyPurchasedBuildingIds.AddRange(source.manuallyPurchasedBuildingIds);
+        clone.manuallySelectedTriangleCircuits.AddRange(
+            source.manuallySelectedTriangleCircuits);
         clone.manuallySelectedModulatorModes.AddRange(source.manuallySelectedModulatorModes);
         for (int i = 0; i < source.manualTrianglePresets.Count; i++)
         {
@@ -286,6 +315,12 @@ public static class D3ConsoleSystem
             int mode = source.manuallySelectedModulatorModes[i];
             if (!target.manuallySelectedModulatorModes.Contains(mode))
                 target.manuallySelectedModulatorModes.Add(mode);
+        }
+        for (int i = 0; i < source.manuallySelectedTriangleCircuits.Count; i++)
+        {
+            int circuit = source.manuallySelectedTriangleCircuits[i];
+            if (!target.manuallySelectedTriangleCircuits.Contains(circuit))
+                target.manuallySelectedTriangleCircuits.Add(circuit);
         }
         for (int i = 0; i < source.manualTrianglePresets.Count; i++)
         {
@@ -354,5 +389,61 @@ public static class D3ConsoleSystem
         string primary, string reinforcement, string alteration)
     {
         return "triangle_" + primary + "_" + reinforcement + "_" + alteration;
+    }
+
+    public static TriangleCircuitType GetCircuitFromLegacyPreset(
+        D3TrianglePresetState preset)
+    {
+        if (preset == null) return TriangleCircuitType.None;
+        if (preset.primaryBuildingId == "fluctuation_antenna")
+            return TriangleCircuitType.Energy;
+        if (preset.reinforcementBuildingId == "fluctuation_antenna")
+            return TriangleCircuitType.Experimental;
+        if (preset.alterationBuildingId == "fluctuation_antenna")
+            return TriangleCircuitType.Phase;
+        return TriangleCircuitType.None;
+    }
+
+    public static TriangleCircuitType CircuitFromLegacyMode(PhaseModulatorMode mode)
+    {
+        if (mode == PhaseModulatorMode.Expansion) return TriangleCircuitType.Energy;
+        if (mode == PhaseModulatorMode.Conservation) return TriangleCircuitType.Experimental;
+        if (mode == PhaseModulatorMode.Attunement) return TriangleCircuitType.Phase;
+        return TriangleCircuitType.None;
+    }
+
+    private static void MigrateLegacyCircuitSettings(D3ConsoleSettingsState settings)
+    {
+        TriangleCircuitType preferred = TriangleCircuitType.None;
+        D3TrianglePresetState preferredPreset = GetPreset(
+            settings, settings.preferredTrianglePresetId);
+        if (preferredPreset != null)
+            preferred = GetCircuitFromLegacyPreset(preferredPreset);
+
+        for (int i = 0; i < settings.manualTrianglePresets.Count; i++)
+        {
+            TriangleCircuitType circuit = GetCircuitFromLegacyPreset(
+                settings.manualTrianglePresets[i]);
+            int value = (int)circuit;
+            if (circuit != TriangleCircuitType.None &&
+                !settings.manuallySelectedTriangleCircuits.Contains(value))
+                settings.manuallySelectedTriangleCircuits.Add(value);
+        }
+
+        for (int i = 0; i < settings.manuallySelectedModulatorModes.Count; i++)
+        {
+            TriangleCircuitType circuit = CircuitFromLegacyMode(
+                (PhaseModulatorMode)settings.manuallySelectedModulatorModes[i]);
+            int value = (int)circuit;
+            if (circuit != TriangleCircuitType.None &&
+                !settings.manuallySelectedTriangleCircuits.Contains(value))
+                settings.manuallySelectedTriangleCircuits.Add(value);
+        }
+
+        if (preferred == TriangleCircuitType.None)
+            preferred = CircuitFromLegacyMode(
+                (PhaseModulatorMode)settings.preferredModulatorMode);
+        settings.preferredTriangleCircuit = (int)preferred;
+        settings.triangleCircuitVersion = 1;
     }
 }

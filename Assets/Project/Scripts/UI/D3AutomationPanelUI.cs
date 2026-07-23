@@ -36,8 +36,7 @@ public class D3AutomationPanelUI : MonoBehaviour
         D3AutomationCatalog.ActionPortExtractor,
         D3AutomationCatalog.ActionConsoleBuyHiggs,
         D3AutomationCatalog.ActionConsoleBuyTetraquark,
-        D3AutomationCatalog.ActionConsoleModulator,
-        D3AutomationCatalog.ActionConsoleTriangle
+        D3AutomationCatalog.ActionConsoleCircuit
     };
 
     private void Awake()
@@ -81,7 +80,7 @@ public class D3AutomationPanelUI : MonoBehaviour
         {
             "Barrido simple", "Repetir ruta", "Rutas prioritarias",
             "Ruta segura", "Mejorar extractor", "Comprar Higgs",
-            "Comprar Tetraquark", "Mantener fase", "Aplicar Triángulo"
+            "Comprar Tetraquark", "Mantener circuito"
         });
         SetOptions(priorityDropdown,
             new[] { "Prioridad 0", "Prioridad 1", "Prioridad 2", "Prioridad 3" });
@@ -97,21 +96,9 @@ public class D3AutomationPanelUI : MonoBehaviour
     private void RefreshTargets()
     {
         string actionId = GetActionId();
-        if (actionId == D3AutomationCatalog.ActionConsoleModulator)
+        if (actionId == D3AutomationCatalog.ActionConsoleCircuit)
             SetOptions(targetDropdown,
-                new[] { "Expansión", "Conservación", "Sintonía" });
-        else if (actionId == D3AutomationCatalog.ActionConsoleTriangle)
-        {
-            var labels = new List<string>();
-            D3ConsoleSettingsState settings = GameState.I == null ||
-                GameState.I.dimension3 == null ? null :
-                GameState.I.dimension3.consoleSettings;
-            if (settings != null)
-                for (int i = 0; i < settings.manualTrianglePresets.Count; i++)
-                    labels.Add("Configuración básica " + (i + 1));
-            if (labels.Count == 0) labels.Add("Sin configuración manual");
-            SetOptions(targetDropdown, labels.ToArray());
-        }
+                new[] { "Energía", "Experimental", "Fase" });
         else if (actionId == D3AutomationCatalog.ActionPortExtractor)
             SetOptions(targetDropdown, new[]
             {
@@ -290,15 +277,8 @@ public class D3AutomationPanelUI : MonoBehaviour
             };
             return planets[Math.Max(0, Math.Min(index, planets.Length - 1))];
         }
-        if (actionId == D3AutomationCatalog.ActionConsoleModulator)
+        if (actionId == D3AutomationCatalog.ActionConsoleCircuit)
             return (Math.Max(0, Math.Min(index, 2)) + 1).ToString();
-        if (actionId == D3AutomationCatalog.ActionConsoleTriangle)
-        {
-            D3ConsoleSettingsState settings = GameState.I.dimension3.consoleSettings;
-            return settings.manualTrianglePresets.Count == 0 ? "" :
-                settings.manualTrianglePresets[Math.Max(0,
-                    Math.Min(index, settings.manualTrianglePresets.Count - 1))].presetId;
-        }
         if (!IsPortRouteAction(actionId)) return "";
         return D3AutomationCatalog.Destinations[
             Math.Max(0, Math.Min(index,
@@ -342,8 +322,7 @@ public class D3AutomationPanelUI : MonoBehaviour
         if (actionId == D3AutomationCatalog.ActionPortExtractor) return "Mejorar extractor";
         if (actionId == D3AutomationCatalog.ActionConsoleBuyHiggs) return "Comprar Higgs";
         if (actionId == D3AutomationCatalog.ActionConsoleBuyTetraquark) return "Comprar Tetraquark";
-        if (actionId == D3AutomationCatalog.ActionConsoleModulator) return "Mantener fase";
-        if (actionId == D3AutomationCatalog.ActionConsoleTriangle) return "Aplicar Triángulo";
+        if (actionId == D3AutomationCatalog.ActionConsoleCircuit) return "Mantener circuito";
         return actionId;
     }
 

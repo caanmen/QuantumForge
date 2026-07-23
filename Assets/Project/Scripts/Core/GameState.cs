@@ -10,6 +10,14 @@ using System.Collections.Generic;
         Attunement = 3
     }
 
+    public enum TriangleCircuitType
+    {
+        None = 0,
+        Energy = 1,
+        Experimental = 2,
+        Phase = 3
+    }
+
     public enum ExperimentalFragmentType
     {
         None = 0,
@@ -79,6 +87,20 @@ using System.Collections.Generic;
     {
         public int role;
         public string buildingId;
+    }
+
+    [System.Serializable]
+    public class TriangleOfflineReport
+    {
+        public bool hasResults;
+        public double appliedSeconds;
+        public int circuit;
+        public double leGained;
+        public double tracesGained;
+        public int condensationGained;
+        public int confinementGained;
+        public int residualInterferenceGained;
+        public double phaseAnalysisSecondsApplied;
     }
 
     [System.Serializable]
@@ -177,6 +199,10 @@ public class GameState : MonoBehaviour
 
     [Tooltip("Indica si la Dimensión 3 está preparada después de Prestigio 1. No tiene UI activa todavía.")]
     public bool dimension03Unlocked = false;
+
+    [Tooltip("Dimensión cuyo hito único debe completarse antes del siguiente Prestigio 1.")]
+    [Range(0, 3)]
+    public int prestige1CurrentDimensionId = 0;
 
     [Tooltip("Estado persistente raíz de Dimensión 2 y sus tres civilizaciones.")]
     public Dimension2State dimension2 = new Dimension2State();
@@ -344,7 +370,7 @@ public class GameState : MonoBehaviour
 
     [Header("Producción base (sin edificios)")]
 
-    [Header("Modulador de Fase")]
+    [Header("Modulador de Fase - datos heredados")]
     [Tooltip("Fase seleccionada actualmente por el Modulador.")]
     public PhaseModulatorMode phaseModulatorMode = PhaseModulatorMode.None;
 
@@ -368,7 +394,28 @@ public class GameState : MonoBehaviour
     [Tooltip("Se activa cuando el jugador compra el desbloqueo Acople de Vértices.")]
     public bool triangleSystemUnlocked = false;
 
-    [Tooltip("Artefacto asignado al slot Principal.")]
+    [Tooltip("Circuito activo del Triángulo rediseñado.")]
+    public TriangleCircuitType triangleActiveCircuit = TriangleCircuitType.None;
+
+    [Tooltip("Sincronización actual del circuito activo (0 a 1).")]
+    [Range(0f, 1f)]
+    public float triangleSynchronization = 0f;
+
+    public const float TriangleSwitchSynchronization = 0.75f;
+    public const double TriangleSynchronizationRecoverySeconds = 180.0;
+    public const double TriangleEnergyLEBonus = 0.12;
+    public const double TriangleEnergyTracePenalty = 0.10;
+    public const double TriangleExperimentalTraceBonus = 0.10;
+    public const double TriangleExperimentalFragmentBonus = 0.06;
+    public const double TriangleExperimentalLEPenalty = 0.10;
+    public const double TrianglePhaseProductionPenalty = 0.10;
+    public const double TrianglePhaseAnalysisSpeedBonus = 0.15;
+    public const double TrianglePhaseD3RoutineSpeedBonus = 0.10;
+
+    [System.NonSerialized]
+    public TriangleOfflineReport lastTriangleOfflineReport = new TriangleOfflineReport();
+
+    [Tooltip("Dato heredado usado solo para migrar configuraciones antiguas.")]
     public string trianglePrimaryBuildingId = "";
 
     [Tooltip("Artefacto asignado al slot Refuerzo.")]
@@ -1064,17 +1111,17 @@ public class GameState : MonoBehaviour
 
         // Cadencia base provisional:
         // 1 fragmento cada 30 segundos por artefacto activo
-        double gainPerSecond = 1.0 / 30.0;
+        double gainPerSecond = (1.0 / 30.0) * GetTriangleFragmentMultiplier();
 
         if (hasHiggs)
         {
             fragmentCondensationProgress += gainPerSecond * dt;
 
-            while (fragmentCondensationProgress >= 1.0)
+            int completed = (int)System.Math.Floor(fragmentCondensationProgress);
+            if (completed > 0)
             {
-                fragmentCondensation += 1;
-                fragmentCondensationProgress -= 1.0;
-                Debug.Log("F3 DEBUG: +1 Fragmento de Condensación");
+                fragmentCondensation += completed;
+                fragmentCondensationProgress -= completed;
             }
         }
 
@@ -1082,11 +1129,11 @@ public class GameState : MonoBehaviour
         {
             fragmentConfinementProgress += gainPerSecond * dt;
 
-           while (fragmentConfinementProgress >= 1.0)
+            int completed = (int)System.Math.Floor(fragmentConfinementProgress);
+            if (completed > 0)
             {
-                fragmentConfinement += 1;
-                fragmentConfinementProgress -= 1.0;
-                Debug.Log("F3 DEBUG: +1 Fragmento de Confinamiento");
+                fragmentConfinement += completed;
+                fragmentConfinementProgress -= completed;
             }
         }
 
@@ -1094,11 +1141,11 @@ public class GameState : MonoBehaviour
         {
             fragmentResidualInterferenceProgress += gainPerSecond * dt;
 
-            while (fragmentResidualInterferenceProgress >= 1.0)
+            int completed = (int)System.Math.Floor(fragmentResidualInterferenceProgress);
+            if (completed > 0)
             {
-                fragmentResidualInterference += 1;
-                fragmentResidualInterferenceProgress -= 1.0;
-                Debug.Log("F3 DEBUG: +1 Interferencia Residual");
+                fragmentResidualInterference += completed;
+                fragmentResidualInterferenceProgress -= completed;
             }
         }
     }
@@ -1115,18 +1162,36 @@ public class GameState : MonoBehaviour
 
             experimentalChamberInitialPackGranted = true;
         }
+
+        // La keycard conduce de forma normal a la Máquina. Si el manager todavía
+        // no existe durante la carga, TabsUI vuelve a intentar esta conexión al
+        // entrar en el Cuarto 2.
+        TryUnlockMachineFromExperimentalChamber();
     }
 
-        public bool HasExperimentalChamberKeycardRequirements()
+    public bool HasExperimentalChamberArtifactRequirements()
     {
-        if (experimentalChamberUnlocked)
-            return false;
-
         bool hasHiggs = GetBuildingLevel("vacuum_observer") >= 1;
         bool hasTetra = GetBuildingLevel("casimir_panel") >= 1;
         bool hasModulator = GetBuildingLevel("fluctuation_antenna") >= 1;
 
         return hasHiggs && hasTetra && hasModulator;
+    }
+
+    public bool HasExperimentalChamberTriangleRequirement()
+    {
+        return triangleSystemUnlocked &&
+            AreTriangleVerticesAvailable() &&
+            IsTriangleSystemActive();
+    }
+
+    public bool HasExperimentalChamberKeycardRequirements()
+    {
+        if (experimentalChamberUnlocked)
+            return false;
+
+        return HasExperimentalChamberArtifactRequirements() &&
+            HasExperimentalChamberTriangleRequirement();
     }
 
     public bool CanBuyExperimentalChamberKeycard()
@@ -1148,6 +1213,23 @@ public class GameState : MonoBehaviour
 
         UnlockExperimentalChamber();
         return true;
+    }
+
+    public bool TryUnlockMachineFromExperimentalChamber()
+    {
+        return TryUnlockMachineFromExperimentalChamber(MachineManager.I);
+    }
+
+    public bool TryUnlockMachineFromExperimentalChamber(
+        MachineManager machineManager)
+    {
+        if (!experimentalChamberUnlocked || machineManager == null)
+            return false;
+
+        if (!machineManager.MachineUnlocked)
+            machineManager.MarkIntroSeenAndUnlockMachine();
+
+        return machineManager.MachineUnlocked;
     }
 
     [ContextMenu("DEBUG: Buy Experimental Chamber Keycard")]
@@ -3008,6 +3090,106 @@ public class GameState : MonoBehaviour
         }
     }
 
+    public bool IsDimensionUnlockedAfterPrestige1(int dimensionId)
+    {
+        switch (dimensionId)
+        {
+            case 1: return dimension01Unlocked;
+            case 2: return dimension02Unlocked;
+            case 3: return dimension03Unlocked;
+            default: return false;
+        }
+    }
+
+    public bool HasAvailableDimensionForPrestige1Selection()
+    {
+        return !dimension01Unlocked || !dimension02Unlocked || !dimension03Unlocked;
+    }
+
+    public bool HasDimensionMilestoneForNextPrestige1()
+    {
+        switch (prestige1CurrentDimensionId)
+        {
+            case 1:
+                return dimension01Unlocked && dimension1GalacticAnchorDiscovered;
+            case 2:
+                return dimension02Unlocked && dimension2 != null &&
+                    dimension2.civilization2 != null &&
+                    dimension2.civilization2.majorPactEstablished;
+            case 3:
+                return dimension03Unlocked && dimension3 != null &&
+                    D3AutonomyCoreSystem.HasIntegrated(dimension3);
+            default:
+                return false;
+        }
+    }
+
+    public bool IsPrestige1CycleComplete()
+    {
+        return dimension01Unlocked && dimension02Unlocked && dimension03Unlocked &&
+            dimension1GalacticAnchorDiscovered &&
+            dimension2 != null && dimension2.civilization2 != null &&
+            dimension2.civilization2.majorPactEstablished &&
+            dimension3 != null && D3AutonomyCoreSystem.HasIntegrated(dimension3);
+    }
+
+    public bool CanOpenPrestige1Selection(MachineManager machineManager)
+    {
+        if (machineManager == null || !machineManager.MachineUnlocked ||
+            !machineManager.HasEnoughRepairForPrestige1() ||
+            !machineManager.Prestige1Prepared ||
+            !HasAvailableDimensionForPrestige1Selection())
+        {
+            return false;
+        }
+
+        return prestige1Count <= 0 || HasDimensionMilestoneForNextPrestige1();
+    }
+
+    public bool UnlockSelectedDimensionAfterPrestige1(int dimensionId)
+    {
+        if (dimensionId < 1 || dimensionId > 3 ||
+            IsDimensionUnlockedAfterPrestige1(dimensionId))
+        {
+            return false;
+        }
+
+        EnsureDimension1State();
+        EnsureDimension2State();
+        EnsureDimension3State();
+
+        if (dimensionId == 1)
+        {
+            dimension01Unlocked = true;
+            D1PlanetState firstPlanet = GetOrCreateD1Planet(Dimension1System.Planet01);
+            firstPlanet.unlocked = true;
+            if (firstPlanet.extractorTier <= 0)
+                firstPlanet.extractorTier = 1;
+
+            D1ShipState lightProbe = GetOrCreateD1Ship(Dimension1System.ShipLightProbe);
+            lightProbe.unlocked = true;
+        }
+        else if (dimensionId == 2)
+        {
+            dimension02Unlocked = true;
+        }
+        else
+        {
+            dimension03Unlocked = true;
+        }
+
+        prestige1CurrentDimensionId = dimensionId;
+
+        if (TabsUI.Instance != null)
+        {
+            TabsUI.Instance.RefreshDimension1ButtonVisibility();
+            TabsUI.Instance.RefreshDimension2ButtonVisibility();
+            TabsUI.Instance.RefreshDimension3ButtonVisibility();
+        }
+
+        return true;
+    }
+
     // Método temporal de compatibilidad. Borrar cuando no queden referencias antiguas.
     public void UnlockDimension1Mvp()
     {
@@ -3019,6 +3201,7 @@ public class GameState : MonoBehaviour
         dimension01Unlocked = false;
         dimension02Unlocked = false;
         dimension03Unlocked = false;
+        prestige1CurrentDimensionId = 0;
 
         Dimension2System.ResetState(this);
         Dimension3System.ResetState(this);
@@ -6568,14 +6751,8 @@ public class GameState : MonoBehaviour
     }
 
 
-    // 5) Calibración del Modulador de Fase
-    UpdatePhaseModulatorCalibration(dt);
-
-    // 6) Consumo online de la reserva de Persistencia
-    UpdateTrianglePersistenceReserveConsumption(dt);
-
-    // 7) Lógica vieja de Persistencia desactivada por migración
-    // UpdateTrianglePersistenceMaturation(dt);
+    // 5) Sincronización del circuito activo del Triángulo.
+    UpdateTriangleSynchronization(dt);
 
     // F6.1: registrar el máximo LE alcanzado
     ActualizarMaxLE();
@@ -6604,54 +6781,33 @@ public class GameState : MonoBehaviour
         }
 
     public void SetPhaseModulatorMode(PhaseModulatorMode newMode)
-        {
-            if (!IsPhaseModulatorOwned())
-                return;
+    {
+        // Compatibilidad temporal para llamadas y partidas anteriores.
+        TriangleCircuitType circuit = TriangleCircuitType.None;
+        if (newMode == PhaseModulatorMode.Expansion)
+            circuit = TriangleCircuitType.Energy;
+        else if (newMode == PhaseModulatorMode.Conservation)
+            circuit = TriangleCircuitType.Experimental;
+        else if (newMode == PhaseModulatorMode.Attunement)
+            circuit = TriangleCircuitType.Phase;
 
-            if (newMode == PhaseModulatorMode.Attunement && !IsAttunementUnlocked())
-                return;
-
-            if (phaseModulatorMode != newMode)
-            {
-                phaseModulatorMode = newMode;
-                phaseModulatorCalibration = 0f;
-            }
-        }
+        if (circuit != TriangleCircuitType.None)
+            SetTriangleCircuit(circuit);
+    }
 
         public double GetPhaseModulatorEffectivenessMultiplier()
         {
-            if (!IsPhaseModulatorOwned())
-                return 1.0;
-
-            double multiplier = 1.0;
-
-            multiplier *= GetTriangleSynergyModulatorMultiplier();
-
-            return multiplier;
+            return IsTriangleSystemActive() ? GetTrianglePositiveEffectScale() : 1.0;
         }
     
         public float GetPhaseModulatorExpansionTickBonus()
         {
-            if (!IsPhaseModulatorOwned())
-                return 0f;
-
-            if (phaseModulatorMode != PhaseModulatorMode.Expansion)
-                return 0f;
-
-            double effectiveness = GetPhaseModulatorEffectivenessMultiplier();
-            return (float)(phaseModulatorExpansionMaxTickSpeedBonus * phaseModulatorCalibration * effectiveness);
+            return 0f;
         }
 
         public float GetPhaseModulatorConservationDiscount()
         {
-            if (!IsPhaseModulatorOwned())
-                return 0f;
-
-            if (phaseModulatorMode != PhaseModulatorMode.Conservation)
-                return 0f;
-
-            double effectiveness = GetPhaseModulatorEffectivenessMultiplier();
-            return (float)(phaseModulatorConservationMaxCostReduction * phaseModulatorCalibration * effectiveness);
+            return 0f;
         }
 
     public double GetEffectiveBuildingCost(BuildingState building)
@@ -6660,19 +6816,6 @@ public class GameState : MonoBehaviour
             return 0.0;
 
         double effectiveCost = building.currentCost;
-
-        bool affectedByConservation =
-            building.def.id == "vacuum_observer" ||
-            building.def.id == "casimir_panel";
-
-        if (affectedByConservation)
-        {
-            float conservationDiscount = GetPhaseModulatorConservationDiscount();
-            if (conservationDiscount > 0f)
-            {
-                effectiveCost *= (1.0 - conservationDiscount);
-            }
-        }
 
         if (effectiveCost < 0.0)
             effectiveCost = 0.0;
@@ -6761,317 +6904,256 @@ public class GameState : MonoBehaviour
         return factor;
     }
 
-        public bool IsTriangleSystemActive()
+    public bool AreTriangleVerticesAvailable()
     {
-        if (!triangleSystemUnlocked)
-            return false;
+        return GetBuildingLevel("vacuum_observer") > 0 &&
+            GetBuildingLevel("casimir_panel") > 0 &&
+            GetBuildingLevel("fluctuation_antenna") > 0;
+    }
 
-        if (string.IsNullOrEmpty(trianglePrimaryBuildingId))
-            return false;
+    public bool IsTrianglePhaseUnlocked()
+    {
+        return MachineManager.I != null && MachineManager.I.MachineUnlocked;
+    }
 
-        if (string.IsNullOrEmpty(triangleReinforcementBuildingId))
-            return false;
+    public bool IsTriangleSystemActive()
+    {
+        if (!triangleSystemUnlocked || !AreTriangleVerticesAvailable()) return false;
+        if (triangleActiveCircuit == TriangleCircuitType.None) return false;
+        return triangleActiveCircuit != TriangleCircuitType.Phase || IsTrianglePhaseUnlocked();
+    }
 
-        if (string.IsNullOrEmpty(triangleAlterationBuildingId))
-            return false;
+    public bool IsTriangleFullyConfiguredWithBaseArtifacts()
+    {
+        return triangleSystemUnlocked && AreTriangleVerticesAvailable();
+    }
 
-        // No permitir duplicados
-        if (trianglePrimaryBuildingId == triangleReinforcementBuildingId)
-            return false;
+    public bool SetTriangleCircuit(TriangleCircuitType circuit, bool recordManual = true)
+    {
+        if (!triangleSystemUnlocked || !AreTriangleVerticesAvailable()) return false;
+        if (circuit == TriangleCircuitType.None) return false;
+        if (circuit == TriangleCircuitType.Phase && !IsTrianglePhaseUnlocked()) return false;
+        if (triangleActiveCircuit == circuit)
+        {
+            if (recordManual)
+                D3ConsoleSystem.RecordManualTriangleCircuit(this, circuit);
+            return true;
+        }
 
-        if (trianglePrimaryBuildingId == triangleAlterationBuildingId)
-            return false;
-
-        if (triangleReinforcementBuildingId == triangleAlterationBuildingId)
-            return false;
-
+        triangleActiveCircuit = circuit;
+        triangleSynchronization = TriangleSwitchSynchronization;
+        SyncLegacyTriangleDisplayFields();
+        if (recordManual)
+            D3ConsoleSystem.RecordManualTriangleCircuit(this, circuit);
         return true;
     }
 
-        public bool IsTriangleFullyConfiguredWithBaseArtifacts()
+    public void SanitizeTriangleCircuit(bool migrateLegacy)
     {
-        if (!IsTriangleSystemActive())
-            return false;
+        bool valid = System.Enum.IsDefined(typeof(TriangleCircuitType), triangleActiveCircuit) &&
+            triangleActiveCircuit != TriangleCircuitType.None;
 
-        bool hasHiggs = false;
-        bool hasTetra = false;
-        bool hasModulator = false;
+        if (!valid && migrateLegacy)
+            triangleActiveCircuit = GetCircuitFromLegacyState();
 
-        string[] ids =
-        {
-            trianglePrimaryBuildingId,
-            triangleReinforcementBuildingId,
-            triangleAlterationBuildingId
-        };
+        if (triangleActiveCircuit == TriangleCircuitType.Phase && !IsTrianglePhaseUnlocked())
+            triangleActiveCircuit = TriangleCircuitType.Energy;
 
-        foreach (string id in ids)
-        {
-            if (id == "vacuum_observer")
-                hasHiggs = true;
-            else if (id == "casimir_panel")
-                hasTetra = true;
-            else if (id == "fluctuation_antenna")
-                hasModulator = true;
-        }
+        if (!triangleSystemUnlocked)
+            triangleActiveCircuit = TriangleCircuitType.None;
+        else if (triangleActiveCircuit == TriangleCircuitType.None)
+            triangleActiveCircuit = TriangleCircuitType.Energy;
 
-        return hasHiggs && hasTetra && hasModulator;
+        float legacySynchronization = Mathf.Clamp01(phaseModulatorCalibration);
+        triangleSynchronization = Mathf.Clamp01(triangleSynchronization);
+        if (triangleActiveCircuit != TriangleCircuitType.None &&
+            triangleSynchronization <= 0f)
+            triangleSynchronization = Mathf.Max(TriangleSwitchSynchronization, legacySynchronization);
+        if (triangleActiveCircuit == TriangleCircuitType.None)
+            triangleSynchronization = 0f;
+
+        trianglePersistenceReserveSeconds = 0.0;
+        SyncLegacyTriangleDisplayFields();
+    }
+
+    private TriangleCircuitType GetCircuitFromLegacyState()
+    {
+        TriangleSlotRole legacyPosition = GetLegacyPhaseModulatorTrianglePosition();
+        if (legacyPosition == TriangleSlotRole.Primary) return TriangleCircuitType.Energy;
+        if (legacyPosition == TriangleSlotRole.Reinforcement) return TriangleCircuitType.Experimental;
+        if (legacyPosition == TriangleSlotRole.Alteration) return TriangleCircuitType.Phase;
+
+        if (phaseModulatorMode == PhaseModulatorMode.Expansion) return TriangleCircuitType.Energy;
+        if (phaseModulatorMode == PhaseModulatorMode.Conservation) return TriangleCircuitType.Experimental;
+        if (phaseModulatorMode == PhaseModulatorMode.Attunement) return TriangleCircuitType.Phase;
+        return triangleSystemUnlocked ? TriangleCircuitType.Energy : TriangleCircuitType.None;
+    }
+
+    private TriangleSlotRole GetLegacyPhaseModulatorTrianglePosition()
+    {
+        if (trianglePrimaryBuildingId == "fluctuation_antenna") return TriangleSlotRole.Primary;
+        if (triangleReinforcementBuildingId == "fluctuation_antenna") return TriangleSlotRole.Reinforcement;
+        if (triangleAlterationBuildingId == "fluctuation_antenna") return TriangleSlotRole.Alteration;
+        return TriangleSlotRole.None;
     }
 
     public TriangleSlotRole GetPhaseModulatorTrianglePosition()
     {
-        if (!IsTriangleFullyConfiguredWithBaseArtifacts())
-            return TriangleSlotRole.None;
-
-        if (trianglePrimaryBuildingId == "fluctuation_antenna")
-            return TriangleSlotRole.Primary;
-
-        if (triangleReinforcementBuildingId == "fluctuation_antenna")
-            return TriangleSlotRole.Reinforcement;
-
-        if (triangleAlterationBuildingId == "fluctuation_antenna")
-            return TriangleSlotRole.Alteration;
-
-        return TriangleSlotRole.None;
+        return GetLegacyPhaseModulatorTrianglePosition();
     }
 
     public TriangleProtocolType GetActiveTriangleProtocol()
     {
-        TriangleSlotRole modulatorPosition = GetPhaseModulatorTrianglePosition();
-
-        switch (modulatorPosition)
-        {
-            case TriangleSlotRole.Primary:
-                return TriangleProtocolType.Impulso;
-
-            case TriangleSlotRole.Reinforcement:
-                return TriangleProtocolType.Sinergia;
-
-            case TriangleSlotRole.Alteration:
-                return TriangleProtocolType.Persistencia;
-
-            default:
-                return TriangleProtocolType.None;
-        }
+        if (triangleActiveCircuit == TriangleCircuitType.Energy) return TriangleProtocolType.Impulso;
+        if (triangleActiveCircuit == TriangleCircuitType.Experimental) return TriangleProtocolType.Sinergia;
+        if (triangleActiveCircuit == TriangleCircuitType.Phase) return TriangleProtocolType.Persistencia;
+        return TriangleProtocolType.None;
     }
 
     public string GetActiveTriangleProtocolId()
     {
-        TriangleProtocolType protocol = GetActiveTriangleProtocol();
-
-        switch (protocol)
-        {
-            case TriangleProtocolType.Impulso:
-                return "impulso";
-
-            case TriangleProtocolType.Sinergia:
-                return "sinergia";
-
-            case TriangleProtocolType.Persistencia:
-                return "persistencia";
-
-            default:
-                return "none";
-        }
+        if (triangleActiveCircuit == TriangleCircuitType.Energy) return "energy";
+        if (triangleActiveCircuit == TriangleCircuitType.Experimental) return "experimental";
+        if (triangleActiveCircuit == TriangleCircuitType.Phase) return "phase";
+        return "none";
     }
 
     public double GetTriangleProtocolBaseMultiplier()
     {
-        TriangleProtocolType protocol = GetActiveTriangleProtocol();
-
-        switch (protocol)
-        {
-            case TriangleProtocolType.Impulso:
-                return 1.12; // +12% LE
-
-            case TriangleProtocolType.Sinergia:
-                return 1.10; // base provisional para Higgs/Tetra
-
-            case TriangleProtocolType.Persistencia:
-                return 1.18; // base provisional del modulador al 100%
-
-            default:
-                return 1.0;
-        }
+        if (triangleActiveCircuit == TriangleCircuitType.Energy) return 1.0 + TriangleEnergyLEBonus;
+        if (triangleActiveCircuit == TriangleCircuitType.Experimental) return 1.0 + TriangleExperimentalTraceBonus;
+        if (triangleActiveCircuit == TriangleCircuitType.Phase) return 1.0 + TrianglePhaseAnalysisSpeedBonus;
+        return 1.0;
     }
 
-        public double GetTriangleImpulseLEMultiplier()
+    private double GetTrianglePositiveEffectScale()
+    {
+        return Mathf.Clamp01(triangleSynchronization) *
+            GetMachineTriangleBonusMultiplier() * GetDimension2TriangleEffectMultiplier();
+    }
+
+    private double GetEnergyBonus()
+    {
+        int tier = F2UpgradeManager.I != null
+            ? F2UpgradeManager.I.GetTriangleImpulseTuningTier() : 0;
+        if (tier >= 2) return 0.20;
+        if (tier == 1) return 0.16;
+        return TriangleEnergyLEBonus;
+    }
+
+    private double GetExperimentalTraceBonus()
+    {
+        int tier = F2UpgradeManager.I != null
+            ? F2UpgradeManager.I.GetTriangleSynergyResonanceTier() : 0;
+        if (tier >= 2) return 0.15;
+        if (tier == 1) return 0.13;
+        return TriangleExperimentalTraceBonus;
+    }
+
+    private double GetExperimentalFragmentBonus()
+    {
+        int tier = F2UpgradeManager.I != null
+            ? F2UpgradeManager.I.GetTriangleSynergyResonanceTier() : 0;
+        if (tier >= 2) return 0.10;
+        if (tier == 1) return 0.08;
+        return TriangleExperimentalFragmentBonus;
+    }
+
+    public double GetTriangleLEMultiplier()
     {
         if (!IsTriangleSystemActive()) return 1.0;
-        if (GetActiveTriangleProtocol() != TriangleProtocolType.Impulso) return 1.0;
+        if (triangleActiveCircuit == TriangleCircuitType.Energy)
+            return 1.0 + GetEnergyBonus() * GetTrianglePositiveEffectScale();
+        if (triangleActiveCircuit == TriangleCircuitType.Experimental)
+            return 1.0 - TriangleExperimentalLEPenalty;
+        if (triangleActiveCircuit == TriangleCircuitType.Phase)
+            return 1.0 - TrianglePhaseProductionPenalty;
+        return 1.0;
+    }
 
-        int tier = 0;
-        if (F2UpgradeManager.I != null)
-            tier = F2UpgradeManager.I.GetTriangleImpulseTuningTier();
+    public double GetTriangleTracesMultiplier()
+    {
+        if (!IsTriangleSystemActive()) return 1.0;
+        if (triangleActiveCircuit == TriangleCircuitType.Experimental)
+            return 1.0 + GetExperimentalTraceBonus() * GetTrianglePositiveEffectScale();
+        if (triangleActiveCircuit == TriangleCircuitType.Energy)
+            return 1.0 - TriangleEnergyTracePenalty;
+        if (triangleActiveCircuit == TriangleCircuitType.Phase)
+            return 1.0 - TrianglePhaseProductionPenalty;
+        return 1.0;
+    }
 
-        double baseMultiplier;
+    public double GetTriangleFragmentMultiplier()
+    {
+        if (!IsTriangleSystemActive() || !experimentalChamberUnlocked ||
+            triangleActiveCircuit != TriangleCircuitType.Experimental) return 1.0;
+        return 1.0 + GetExperimentalFragmentBonus() * GetTrianglePositiveEffectScale();
+    }
 
-        switch (tier)
-        {
-            case 1:
-                baseMultiplier = 1.16;
-                break;
+    public double GetTrianglePhaseAnalysisSpeedMultiplier()
+    {
+        if (!IsTriangleSystemActive() || triangleActiveCircuit != TriangleCircuitType.Phase)
+            return 1.0;
+        return 1.0 + TrianglePhaseAnalysisSpeedBonus * GetTrianglePositiveEffectScale();
+    }
 
-            case 2:
-                baseMultiplier = 1.20;
-                break;
+    public double GetTriangleD3RoutineSpeedMultiplier()
+    {
+        if (!IsTriangleSystemActive() || triangleActiveCircuit != TriangleCircuitType.Phase)
+            return 1.0;
+        return 1.0 + TrianglePhaseD3RoutineSpeedBonus * GetTrianglePositiveEffectScale();
+    }
 
-            default:
-                baseMultiplier = 1.12;
-                break;
-        }
+    public double GetTrianglePhaseAnalysisSpeedMultiplierForPeriod(double seconds)
+    {
+        if (!IsTriangleSystemActive() || triangleActiveCircuit != TriangleCircuitType.Phase ||
+            seconds <= 0.0) return 1.0;
 
-        return 1.0 + ((baseMultiplier - 1.0) * GetMachineTriangleBonusMultiplier() *
-            GetDimension2TriangleEffectMultiplier());
+        double scale = GetTrianglePositiveEffectScaleForPeriod(seconds);
+        return 1.0 + TrianglePhaseAnalysisSpeedBonus * scale;
+    }
+
+    public double GetTriangleD3RoutineSpeedMultiplierForPeriod(double seconds)
+    {
+        if (!IsTriangleSystemActive() || triangleActiveCircuit != TriangleCircuitType.Phase ||
+            seconds <= 0.0) return 1.0;
+        return 1.0 + TrianglePhaseD3RoutineSpeedBonus *
+            GetTrianglePositiveEffectScaleForPeriod(seconds);
+    }
+
+    private double GetTrianglePositiveEffectScaleForPeriod(double seconds)
+    {
+        double start = Mathf.Clamp01(triangleSynchronization);
+        double rate = GetTriangleSynchronizationRatePerSecond();
+        double timeToFull = rate > 0.0 ? (1.0 - start) / rate : double.PositiveInfinity;
+        double rampSeconds = System.Math.Min(seconds, timeToFull);
+        double synchronizedArea = rampSeconds * (start + System.Math.Min(1.0, start + rate * rampSeconds)) * 0.5;
+        if (seconds > rampSeconds) synchronizedArea += seconds - rampSeconds;
+        double averageSynchronization = synchronizedArea / seconds;
+        return averageSynchronization * GetMachineTriangleBonusMultiplier() *
+            GetDimension2TriangleEffectMultiplier();
+    }
+
+    public double GetTriangleImpulseLEMultiplier()
+    {
+        return GetTriangleLEMultiplier();
     }
 
     public double GetTriangleSynergyBuildingMultiplier(string buildingId)
     {
-        if (!IsTriangleSystemActive()) return 1.0;
-        if (GetActiveTriangleProtocol() != TriangleProtocolType.Sinergia) return 1.0;
-
-        int tier = 0;
-        if (F2UpgradeManager.I != null)
-            tier = F2UpgradeManager.I.GetTriangleSynergyResonanceTier();
-
-        double value = 1.0;
-
-        switch (tier)
-        {
-            case 1:
-                if (buildingId == "vacuum_observer") value = 1.13;
-                else if (buildingId == "casimir_panel") value = 1.13;
-                break;
-
-            case 2:
-                if (buildingId == "vacuum_observer") value = 1.15;
-                else if (buildingId == "casimir_panel") value = 1.15;
-                break;
-
-            default:
-                if (buildingId == "vacuum_observer") value = 1.10;
-                else if (buildingId == "casimir_panel") value = 1.10;
-                break;
-        }
-
-        return 1.0 + ((value - 1.0) * GetMachineTriangleBonusMultiplier() *
-            GetDimension2TriangleEffectMultiplier());
+        return 1.0;
     }
 
     public double GetTriangleSynergyModulatorMultiplier()
     {
-        if (!IsTriangleSystemActive()) return 1.0;
-        if (GetActiveTriangleProtocol() != TriangleProtocolType.Sinergia) return 1.0;
-
-        int tier = 0;
-        if (F2UpgradeManager.I != null)
-            tier = F2UpgradeManager.I.GetTriangleSynergyResonanceTier();
-
-        double baseMultiplier;
-
-        switch (tier)
-        {
-            case 1:
-                baseMultiplier = 1.08;
-                break;
-
-            case 2:
-                baseMultiplier = 1.10;
-                break;
-
-            default:
-                baseMultiplier = 1.06;
-                break;
-        }
-
-        return 1.0 + ((baseMultiplier - 1.0) * GetMachineTriangleBonusMultiplier() *
-            GetDimension2TriangleEffectMultiplier());
+        return 1.0;
     }
 
-
-    public double GetTrianglePersistenceReserveMaxSeconds()
-    {
-        int tier = 0;
-        if (F2UpgradeManager.I != null)
-            tier = F2UpgradeManager.I.GetTrianglePersistenceAnchorTier();
-
-        switch (tier)
-        {
-            case 2:
-                return 14400.0 * GetDimension2TriangleEffectMultiplier(); // 4 horas
-            default:
-                return trianglePersistenceReserveBaseMaxSeconds *
-                    GetDimension2TriangleEffectMultiplier(); // 3 horas
-        }
-    }
-
-    public double GetTrianglePersistenceOfflineSecondsPerReserveHour()
-    {
-        int tier = 0;
-        if (F2UpgradeManager.I != null)
-            tier = F2UpgradeManager.I.GetTrianglePersistenceAnchorTier();
-
-        switch (tier)
-        {
-            case 1:
-            case 2:
-                return 12600.0 / GetDimension2TriangleEffectMultiplier(); // 3h30m offline = 1h reserva
-            default:
-                return trianglePersistenceOfflineSecondsPerReserveHour /
-                    GetDimension2TriangleEffectMultiplier(); // 4h offline = 1h reserva
-        }
-    }
-
-    public bool HasTrianglePersistenceReserveActive()
-    {
-        return trianglePersistenceReserveSeconds > 0.0;
-    }
-
-    public double GetTrianglePersistenceReserveBuildingMultiplier(string buildingId)
-    {
-        if (!HasTrianglePersistenceReserveActive())
-            return 1.0;
-
-        double baseMultiplier = 1.0;
-
-        if (buildingId == "vacuum_observer")
-            baseMultiplier = trianglePersistenceBuffHiggsMultiplier;
-
-        if (buildingId == "casimir_panel")
-            baseMultiplier = trianglePersistenceBuffTetraMultiplier;
-
-        return 1.0 + ((baseMultiplier - 1.0) * GetMachineTriangleBonusMultiplier() *
-            GetDimension2TriangleEffectMultiplier());
-    }
-
-    public void ApplyOfflineTrianglePersistenceReserve(double offlineSeconds)
-    {
-        if (offlineSeconds <= 0.0) return;
-        if (!IsTriangleFullyConfiguredWithBaseArtifacts()) return;
-        if (GetActiveTriangleProtocol() != TriangleProtocolType.Persistencia) return;
-
-        double secondsPerReserveHour = GetTrianglePersistenceOfflineSecondsPerReserveHour();
-        if (secondsPerReserveHour <= 0.0) return;
-
-        double reserveSecondsToAdd = (offlineSeconds / secondsPerReserveHour) * 3600.0;
-        double maxReserve = GetTrianglePersistenceReserveMaxSeconds();
-        
-
-        trianglePersistenceReserveSeconds += reserveSecondsToAdd;
-
-        if (trianglePersistenceReserveSeconds > maxReserve)
-            trianglePersistenceReserveSeconds = maxReserve;
-    }
-
-    private void UpdateTrianglePersistenceReserveConsumption(double dt)
-    {
-        if (dt <= 0.0) return;
-        if (trianglePersistenceReserveSeconds <= 0.0) return;
-
-        trianglePersistenceReserveSeconds -= dt;
-
-        if (trianglePersistenceReserveSeconds < 0.0)
-            trianglePersistenceReserveSeconds = 0.0;
-    }
+    public double GetTrianglePersistenceReserveMaxSeconds() { return 0.0; }
+    public double GetTrianglePersistenceOfflineSecondsPerReserveHour() { return 0.0; }
+    public bool HasTrianglePersistenceReserveActive() { return false; }
+    public double GetTrianglePersistenceReserveBuildingMultiplier(string buildingId) { return 1.0; }
+    public void ApplyOfflineTrianglePersistenceReserve(double offlineSeconds) { }
 
     public bool IsValidTriangleBuildingId(string buildingId)
     {
@@ -7237,26 +7319,36 @@ public class GameState : MonoBehaviour
         }
     }
 
-        private void UpdatePhaseModulatorCalibration(double dt)
+    private double GetTriangleSynchronizationRatePerSecond()
     {
-        if (!IsPhaseModulatorOwned())
-        {
+        double dimensionalMultiplier = D2Civilization3System.GetModulatorCalibrationMultiplier(this);
+        return (1.0 / TriangleSynchronizationRecoverySeconds) * dimensionalMultiplier;
+    }
+
+    private void UpdateTriangleSynchronization(double dt)
+    {
+        if (dt <= 0.0 || triangleActiveCircuit == TriangleCircuitType.None) return;
+        triangleSynchronization = Mathf.Clamp01((float)(triangleSynchronization +
+            GetTriangleSynchronizationRatePerSecond() * dt));
+        SyncLegacyTriangleDisplayFields();
+    }
+
+    private void SyncLegacyTriangleDisplayFields()
+    {
+        phaseModulatorCalibration = triangleSynchronization;
+        if (triangleActiveCircuit == TriangleCircuitType.Energy)
+            phaseModulatorMode = PhaseModulatorMode.Expansion;
+        else if (triangleActiveCircuit == TriangleCircuitType.Experimental)
+            phaseModulatorMode = PhaseModulatorMode.Conservation;
+        else if (triangleActiveCircuit == TriangleCircuitType.Phase)
+            phaseModulatorMode = PhaseModulatorMode.Attunement;
+        else
             phaseModulatorMode = PhaseModulatorMode.None;
-            phaseModulatorCalibration = 0f;
-            return;
-        }
+    }
 
-        if (phaseModulatorMode == PhaseModulatorMode.None)
-        {
-            phaseModulatorCalibration = 0f;
-            return;
-        }
-
-        phaseModulatorCalibration += phaseModulatorCalibrationPerSecond *
-            (float)D2Civilization3System.GetModulatorCalibrationMultiplier(this) *
-            (float)dt;
-        if (phaseModulatorCalibration > 1f)
-            phaseModulatorCalibration = 1f;
+    private void UpdatePhaseModulatorCalibration(double dt)
+    {
+        UpdateTriangleSynchronization(dt);
     }
 
     public void DebugResetRunState()
@@ -7606,8 +7698,7 @@ private double CalculateEMMultiplier()
 
         double tracesPerSecond = 0.03 * casimirLevel;
 
-        // Sinergia del triángulo también mejora al Tetra en trazas
-        tracesPerSecond *= GetTriangleSynergyBuildingMultiplier("casimir_panel");
+        tracesPerSecond *= GetTriangleTracesMultiplier();
 
         // Máquina / Zona 1: Calibración de Artefactos también afecta al Núcleo Tetraquark
         tracesPerSecond *= GetMachineArtifactProductionMultiplier("casimir_panel");
@@ -7629,6 +7720,65 @@ private double CalculateEMMultiplier()
         tracesPerSecond *= GetDimension2TraceMultiplier();
 
         return tracesPerSecond;
+    }
+
+    public TriangleOfflineReport ApplyOfflineBaseProgress(double offlineSeconds)
+    {
+        var report = new TriangleOfflineReport
+        {
+            appliedSeconds = System.Math.Max(0.0, offlineSeconds),
+            circuit = (int)triangleActiveCircuit
+        };
+
+        if (offlineSeconds <= 0.0 || double.IsNaN(offlineSeconds) ||
+            double.IsInfinity(offlineSeconds))
+        {
+            lastTriangleOfflineReport = report;
+            return report;
+        }
+
+        double leBefore = LE;
+        double tracesBefore = Traces;
+        int condensationBefore = fragmentCondensation;
+        int confinementBefore = fragmentConfinement;
+        int residualBefore = fragmentResidualInterference;
+
+        double remaining = offlineSeconds;
+        const double simulationStepSeconds = 1.0;
+        while (remaining > 0.000001)
+        {
+            double step = System.Math.Min(simulationStepSeconds, remaining);
+
+            double emPs = CalculateEMps();
+            if (emPs > 0.0) EM += emPs * step;
+            emMult = CalculateEMMultiplier();
+
+            GenerateLEFromBaseAndBuildings(step);
+            GenerateExperimentalFragments(step);
+            UpdateTriangleSynchronization(step);
+            remaining -= step;
+        }
+
+        report.leGained = System.Math.Max(0.0, LE - leBefore);
+        report.tracesGained = System.Math.Max(0.0, Traces - tracesBefore);
+        report.condensationGained = System.Math.Max(0, fragmentCondensation - condensationBefore);
+        report.confinementGained = System.Math.Max(0, fragmentConfinement - confinementBefore);
+        report.residualInterferenceGained = System.Math.Max(
+            0, fragmentResidualInterference - residualBefore);
+        report.hasResults = report.leGained > 0.0 || report.tracesGained > 0.0 ||
+            report.condensationGained > 0 || report.confinementGained > 0 ||
+            report.residualInterferenceGained > 0;
+        lastTriangleOfflineReport = report;
+        return report;
+    }
+
+    public void RecordOfflinePhaseAnalysisSeconds(double effectiveSeconds)
+    {
+        if (lastTriangleOfflineReport == null)
+            lastTriangleOfflineReport = new TriangleOfflineReport();
+        lastTriangleOfflineReport.phaseAnalysisSecondsApplied =
+            System.Math.Max(0.0, effectiveSeconds);
+        if (effectiveSeconds > 0.0) lastTriangleOfflineReport.hasResults = true;
     }
 
     /// <summary>
@@ -7665,25 +7815,40 @@ private double CalculateEMMultiplier()
 
     public bool CanDoPrestige1()
     {
-        if (MachineManager.I == null)
-            return false;
+        return CanDoPrestige1(MachineManager.I);
+    }
 
-        return MachineManager.I.HasEnoughRepairForPrestige1()
-            && MachineManager.I.Prestige1Prepared;
+    public bool CanDoPrestige1(MachineManager machineManager)
+    {
+        return CanOpenPrestige1Selection(machineManager);
     }
 
     public string GetPrestige1StatusText()
     {
-        if (MachineManager.I == null)
+        MachineManager machineManager = MachineManager.I;
+
+        if (machineManager == null || !machineManager.MachineUnlocked)
             return "Máquina no disponible.";
 
-        double repairPct = MachineManager.I.GetTotalMachineRepairProgress01() * 100.0;
+        double repairPct = machineManager.GetTotalMachineRepairProgress01() * 100.0;
 
-        if (!MachineManager.I.HasEnoughRepairForPrestige1())
+        if (!machineManager.HasEnoughRepairForPrestige1())
             return $"Reparación de Máquina: {repairPct:0}% / 80%";
 
-        if (!MachineManager.I.Prestige1Prepared)
+        if (!machineManager.Prestige1Prepared)
             return "Falta activar el Canal de Convergencia.";
+
+        if (!HasAvailableDimensionForPrestige1Selection())
+            return IsPrestige1CycleComplete()
+                ? "Ciclo de Prestigio 1 completado. Prestigio 2 llegará en una expansión futura."
+                : "Las tres dimensiones ya fueron reveladas. Completa el hito de la dimensión actual.";
+
+        if (prestige1Count > 0 && !HasDimensionMilestoneForNextPrestige1())
+            return prestige1CurrentDimensionId > 0
+                ? "Completa el hito único de la Dimensión " +
+                  prestige1CurrentDimensionId +
+                  " para abrir el siguiente Prestigio 1."
+                : "Completa el hito único de tu dimensión actual para abrir el siguiente Prestigio 1.";
 
         int previewPoints = Dimension1System.CalculatePrestige1PointsPreview(this);
         int claimablePoints = Dimension1System.CalculateClaimablePrestige1Points(this);
@@ -7698,11 +7863,24 @@ private double CalculateEMMultiplier()
             prestige1Points;
     }
 
-    public bool DoPrestige1Reset()
+    public bool DoPrestige1Reset(int selectedDimensionId)
     {
-        if (!CanDoPrestige1())
+        return DoPrestige1Reset(selectedDimensionId, MachineManager.I);
+    }
+
+    public bool DoPrestige1Reset(
+        int selectedDimensionId, MachineManager machineManager)
+    {
+        if (!CanOpenPrestige1Selection(machineManager))
         {
             Debug.Log("[GameState] Prestigio 1 no disponible todavía: " + GetPrestige1StatusText());
+            return false;
+        }
+
+        if (selectedDimensionId < 1 || selectedDimensionId > 3 ||
+            IsDimensionUnlockedAfterPrestige1(selectedDimensionId))
+        {
+            Debug.LogWarning("[GameState] Debes elegir una dimensión todavía no revelada.");
             return false;
         }
 
@@ -7720,11 +7898,13 @@ private double CalculateEMMultiplier()
         prestige1Count++;
         hasDonePrestige1 = true;
 
-        ResetGameBaseForPrestige1();
+        ResetGameBaseForPrestige1(machineManager);
 
-        // Al hacer Prestigio 1, se prepara el sistema de dimensiones.
-        // Por ahora solo Dimensión 1 tiene contenido jugable.
-        UnlockDimensionSystemAfterPrestige1();
+        if (!UnlockSelectedDimensionAfterPrestige1(selectedDimensionId))
+        {
+            Debug.LogError("[GameState] Dimensión inválida o ya revelada en Prestigio 1: " + selectedDimensionId);
+            return false;
+        }
 
         if (SaveService.I != null)
             SaveService.I.Save();
@@ -7747,7 +7927,15 @@ private double CalculateEMMultiplier()
         return true;
     }
 
-    private void ResetGameBaseForPrestige1()
+    // Compatibilidad temporal para referencias antiguas. La UI actual debe
+    // solicitar primero la dimensión elegida y llamar a la sobrecarga nueva.
+    public bool DoPrestige1Reset()
+    {
+        Debug.LogWarning("[GameState] Prestigio 1 requiere elegir una dimensión.");
+        return false;
+    }
+
+    private void ResetGameBaseForPrestige1(MachineManager machineManager = null)
     {
         // Recursos base
         LE = 10.0;
@@ -7770,6 +7958,8 @@ private double CalculateEMMultiplier()
 
         // Triángulo
         triangleSystemUnlocked = false;
+        triangleActiveCircuit = TriangleCircuitType.None;
+        triangleSynchronization = 0f;
         trianglePrimaryBuildingId = "";
         triangleReinforcementBuildingId = "";
         triangleAlterationBuildingId = "";
@@ -7842,9 +8032,9 @@ private double CalculateEMMultiplier()
         }
 
         // Máquina / Cuarto 2
-        if (MachineManager.I != null)
+        if (machineManager != null)
         {
-            MachineManager.I.ClearProgress();
+            machineManager.ClearProgress();
         }
 
         // Evita que el guardado anterior reaplique niveles viejos en UI
@@ -8070,6 +8260,7 @@ if (buildingStates != null)
                 tracesPerTick *= machineTracesFactor;
                 tracesPerTick *= GetMachineRoom1GlobalMultiplier();
                 tracesPerTick *= GetDimension2TraceMultiplier();
+                tracesPerTick *= GetTriangleTracesMultiplier();
 
                 double tracesGain = tracesPerTick * ticks;
                 Traces += tracesGain;
