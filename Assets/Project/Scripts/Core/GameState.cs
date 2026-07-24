@@ -171,7 +171,7 @@ public class GameState : MonoBehaviour
     [Header("F3 / Cuarto 2 - Síntesis Guiada")]
     public int guidedSynthesisIntent = 0;
 
-    [Header("Prestigio 1 - Convergencia")]
+    [Header("Prestigio 1 - Descubrimiento dimensional")]
 
     [Tooltip("Cantidad de veces que el jugador ha realizado Prestigio 1.")]
     public int prestige1Count = 0;
@@ -179,11 +179,27 @@ public class GameState : MonoBehaviour
     [Tooltip("Indica si el jugador ya realizó Prestigio 1 al menos una vez.")]
     public bool hasDonePrestige1 = false;
 
-    [Tooltip("Puntos disponibles para comprar nodos del Árbol Dimensional D1.")]
-    public int prestige1Points = 0;
+    [Header("Dimensión 1 - Árbol")]
+    [Tooltip("Moneda exclusiva del Árbol Dimensional de D1.")]
+    public int d1TreePoints = 0;
 
-    [Tooltip("Mayor cantidad de Puntos de Prestigio 1 ya reclamada desde el preview.")]
-    public int prestige1BestClaimedPreviewPoints = 0;
+    [Tooltip("Progreso D1 ya acreditado como Puntos del Árbol; evita otorgarlos dos veces.")]
+    public int d1TreePointsProgressBaseline = 0;
+
+    // Compatibilidad de código temporal. El guardado antiguo se migra en SaveService.
+    [System.Obsolete("Usar d1TreePoints.")]
+    public int prestige1Points
+    {
+        get => d1TreePoints;
+        set => d1TreePoints = value;
+    }
+
+    [System.Obsolete("Usar d1TreePointsProgressBaseline.")]
+    public int prestige1BestClaimedPreviewPoints
+    {
+        get => d1TreePointsProgressBaseline;
+        set => d1TreePointsProgressBaseline = value;
+    }
 
     // Máximo de LE alcanzado en el run actual.
     // Se conserva porque todavía sirve como estadística interna del run.
@@ -209,6 +225,9 @@ public class GameState : MonoBehaviour
 
     [Tooltip("Estado persistente raíz de Dimensión 3 / Fábrica.")]
     public Dimension3State dimension3 = new Dimension3State();
+
+    [Tooltip("Estado permanente mínimo de los Ciclos de Convergencia.")]
+    public ConvergenceState convergence = new ConvergenceState();
 
     [Tooltip("Metales acumulados de Dimensión 1.")]
     public List<D1MetalAmount> dimension1Metals = new List<D1MetalAmount>();
@@ -1286,6 +1305,7 @@ public class GameState : MonoBehaviour
         EnsureDimension1State();
         EnsureDimension2State();
         EnsureDimension3State();
+        EnsureConvergenceState();
     }
 
     public void EnsureDimension2State()
@@ -1296,6 +1316,11 @@ public class GameState : MonoBehaviour
     public void EnsureDimension3State()
     {
         Dimension3System.EnsureState(this);
+    }
+
+    public void EnsureConvergenceState()
+    {
+        ConvergenceSystem.EnsureState(this);
     }
 
     public void EnsureDimension1State()
@@ -1480,10 +1505,10 @@ public class GameState : MonoBehaviour
         );
         dimension1CompletedSimpleExplorations = Mathf.Max(
             0, dimension1CompletedSimpleExplorations);
-        prestige1Points = Mathf.Max(0, prestige1Points);
-        prestige1BestClaimedPreviewPoints = Mathf.Max(
+        d1TreePoints = Mathf.Max(0, d1TreePoints);
+        d1TreePointsProgressBaseline = Mathf.Max(
             0,
-            prestige1BestClaimedPreviewPoints
+            d1TreePointsProgressBaseline
         );
         dimension1LastExplorationDestinationId =
             dimension1LastExplorationDestinationId ?? "";
@@ -3054,13 +3079,22 @@ public class GameState : MonoBehaviour
         return true;
     }
 
-    public bool AddPrestige1Points(int amount)
+    public bool AddD1TreePoints(int amount)
     {
         if (amount <= 0)
             return false;
 
-        prestige1Points += amount;
+        long updatedPoints = (long)d1TreePoints + amount;
+        d1TreePoints = updatedPoints > int.MaxValue
+            ? int.MaxValue
+            : (int)updatedPoints;
         return true;
+    }
+
+    [System.Obsolete("Usar AddD1TreePoints.")]
+    public bool AddPrestige1Points(int amount)
+    {
+        return AddD1TreePoints(amount);
     }
 
     public void UnlockDimensionSystemAfterPrestige1()
@@ -3108,29 +3142,17 @@ public class GameState : MonoBehaviour
 
     public bool HasDimensionMilestoneForNextPrestige1()
     {
-        switch (prestige1CurrentDimensionId)
-        {
-            case 1:
-                return dimension01Unlocked && dimension1GalacticAnchorDiscovered;
-            case 2:
-                return dimension02Unlocked && dimension2 != null &&
-                    dimension2.civilization2 != null &&
-                    dimension2.civilization2.majorPactEstablished;
-            case 3:
-                return dimension03Unlocked && dimension3 != null &&
-                    D3AutonomyCoreSystem.HasIntegrated(dimension3);
-            default:
-                return false;
-        }
+        return IsDimensionMilestoneComplete(prestige1CurrentDimensionId);
+    }
+
+    public bool IsDimensionMilestoneComplete(int dimensionId)
+    {
+        return DimensionCompletionService.IsDimensionCompleted(this, dimensionId);
     }
 
     public bool IsPrestige1CycleComplete()
     {
-        return dimension01Unlocked && dimension02Unlocked && dimension03Unlocked &&
-            dimension1GalacticAnchorDiscovered &&
-            dimension2 != null && dimension2.civilization2 != null &&
-            dimension2.civilization2.majorPactEstablished &&
-            dimension3 != null && D3AutonomyCoreSystem.HasIntegrated(dimension3);
+        return DimensionCompletionService.AreAllDimensionsCompleted(this);
     }
 
     public bool CanOpenPrestige1Selection(MachineManager machineManager)
@@ -3245,8 +3267,8 @@ public class GameState : MonoBehaviour
         dimension1TreeNodes = new List<D1TreeNodeState>();
         dimension1TreeProgressVersion =
             Dimension1System.Dimension1TreeProgressVersion;
-        prestige1Points = 0;
-        prestige1BestClaimedPreviewPoints = 0;
+        d1TreePoints = 0;
+        d1TreePointsProgressBaseline = 0;
         dimension1LastExplorationSpecificBlueprints = new List<D1BlueprintAmount>();
         dimension1LastExplorationRelics = new List<D1RelicRewardEntry>();
         dimension1BlueprintFragments = 0;
@@ -6484,32 +6506,26 @@ public class GameState : MonoBehaviour
             SaveService.I.Save();
     }
 
-    [ContextMenu("P1 DEBUG: Preview Prestige 1 Points")]
-    private void DebugPreviewPrestige1Points()
+    [ContextMenu("D1 DEBUG: Preview Tree Points")]
+    private void DebugPreviewD1TreePoints()
     {
         EnsureDimension1State();
         ActualizarMaxLE();
 
-        int basePoints = Dimension1System.CalculatePrestige1PointsFromBaseGame(this);
         int planetPoints = Dimension1System.CalculatePrestige1PointsFromD1Planets(this);
         int shipPoints = Dimension1System.CalculatePrestige1PointsFromD1Ships(this);
         int relicPoints = Dimension1System.CalculatePrestige1PointsFromD1Relics(this);
         int treePoints = Dimension1System.CalculatePrestige1PointsFromD1Tree(this);
         int scannerPoints = Dimension1System.CalculatePrestige1PointsFromD1Scanner(this);
-        int d1Points = Dimension1System.CalculatePrestige1PointsFromDimension1(this);
-        int totalPreview = Dimension1System.CalculatePrestige1PointsPreview(this);
+        int d1Points = Dimension1System.CalculateD1TreePointsFromProgress(this);
 
         Debug.Log(
-            "[P1 Preview] Base: " +
-            basePoints +
-            " | D1: " +
+            "[D1 Tree] Progreso D1: " +
             d1Points +
             "/" +
             Dimension1System.Dimension1Prestige1PreviewPointCap +
-            " | Total preview: " +
-            totalPreview +
             " | Puntos disponibles actuales: " +
-            prestige1Points +
+            d1TreePoints +
             "\n[D1 Breakdown] Planetas: " +
             planetPoints +
             " | Naves: " +
@@ -6523,36 +6539,36 @@ public class GameState : MonoBehaviour
         );
     }
 
-    [ContextMenu("P1 DEBUG: Claim Prestige 1 Preview Points")]
-    private void DebugClaimPrestige1PreviewPoints()
+    [ContextMenu("D1 DEBUG: Sync Tree Points From Progress")]
+    private void DebugSyncD1TreePointsFromProgress()
     {
         EnsureDimension1State();
         ActualizarMaxLE();
 
-        int previewPoints = Dimension1System.CalculatePrestige1PointsPreview(this);
+        int progressPoints = Dimension1System.CalculateD1TreePointsFromProgress(this);
         int claimableBefore = Dimension1System.CalculateClaimablePrestige1Points(this);
 
-        bool claimed = Dimension1System.TryClaimPrestige1PreviewPoints(
+        bool credited = Dimension1System.SyncD1TreePointsFromProgress(
             this,
-            out int claimedPoints
+            out int creditedPoints
         );
 
         if (SaveService.I != null)
             SaveService.I.Save();
 
         Debug.Log(
-            "[P1 Claim] Resultado: " +
-            claimed +
-            " | Preview: " +
-            previewPoints +
-            " | Reclamables antes: " +
+            "[D1 Tree Sync] Resultado: " +
+            credited +
+            " | Progreso: " +
+            progressPoints +
+            " | Acreditables antes: " +
             claimableBefore +
-            " | Reclamados ahora: " +
-            claimedPoints +
-            " | Mejor preview reclamado: " +
-            prestige1BestClaimedPreviewPoints +
+            " | Acreditados ahora: " +
+            creditedPoints +
+            " | Baseline acreditado: " +
+            d1TreePointsProgressBaseline +
             " | Puntos disponibles: " +
-            prestige1Points
+            d1TreePoints
         );
     }
 
@@ -6727,6 +6743,11 @@ public class GameState : MonoBehaviour
 
     // Dimensión 1: minería planetaria y exploración por segundo.
     Dimension1System.Tick(this, dt);
+    if (Dimension1System.SyncD1TreePointsFromProgress(this, out _) &&
+        SaveService.I != null)
+    {
+        SaveService.I.Save();
+    }
 
     // Dimensión 2: coordinación general y sistemas de civilizaciones.
     Dimension2System.Tick(this, dt);
@@ -7493,7 +7514,7 @@ public class GameState : MonoBehaviour
                     + flatBonus;
 
     double rawTotal = rawTotalBeforeRoom1Echo * room1EchoGlobalFactor *
-        dimension2SanctuaryFactor;
+        dimension2SanctuaryFactor * GetConvergenceBaseLEProductionMultiplier();
 
     return rawTotal;
     }
@@ -7678,6 +7699,11 @@ private double CalculateEMMultiplier()
         return CalculateTotalLEps();
     }
 
+    public double GetConvergenceBaseLEProductionMultiplier()
+    {
+        return ConvergenceCircuitSystem.GetBaseLEProductionMultiplier(this);
+    }
+
     public double GetDimension2SanctuaryLEMultiplier()
     {
         D2Civilization1State civilization1 = dimension2?.civilization1;
@@ -7840,7 +7866,7 @@ private double CalculateEMMultiplier()
 
         if (!HasAvailableDimensionForPrestige1Selection())
             return IsPrestige1CycleComplete()
-                ? "Ciclo de Prestigio 1 completado. Prestigio 2 llegará en una expansión futura."
+                ? "Las tres dimensiones están completas. Reconstruye la Máquina y el Receptor Dimensional para preparar la Convergencia."
                 : "Las tres dimensiones ya fueron reveladas. Completa el hito de la dimensión actual.";
 
         if (prestige1Count > 0 && !HasDimensionMilestoneForNextPrestige1())
@@ -7850,17 +7876,7 @@ private double CalculateEMMultiplier()
                   " para abrir el siguiente Prestigio 1."
                 : "Completa el hito único de tu dimensión actual para abrir el siguiente Prestigio 1.";
 
-        int previewPoints = Dimension1System.CalculatePrestige1PointsPreview(this);
-        int claimablePoints = Dimension1System.CalculateClaimablePrestige1Points(this);
-
-        return
-            "Prestigio 1 disponible." +
-            "\nPuntos nuevos: +" +
-            claimablePoints +
-            " | Preview total: " +
-            previewPoints +
-            " | Disponibles: " +
-            prestige1Points;
+        return "Prestigio 1 disponible. Elige una Firma Dimensional.";
     }
 
     public bool DoPrestige1Reset(int selectedDimensionId)
@@ -7887,14 +7903,6 @@ private double CalculateEMMultiplier()
         EnsureDimension1State();
         ActualizarMaxLE();
 
-        int previewBeforeReset = Dimension1System.CalculatePrestige1PointsPreview(this);
-        int claimableBeforeReset = Dimension1System.CalculateClaimablePrestige1Points(this);
-
-        bool claimed = Dimension1System.TryClaimPrestige1PreviewPoints(
-            this,
-            out int claimedPoints
-        );
-
         prestige1Count++;
         hasDonePrestige1 = true;
 
@@ -7912,16 +7920,8 @@ private double CalculateEMMultiplier()
         Debug.Log(
             "[GameState] Prestigio 1 realizado. Total: " +
             prestige1Count +
-            " | Preview antes del reset: " +
-            previewBeforeReset +
-            " | Reclamables antes: " +
-            claimableBeforeReset +
-            " | Reclamo ejecutado: " +
-            claimed +
-            " | Puntos ganados: " +
-            claimedPoints +
-            " | Puntos P1 disponibles: " +
-            prestige1Points
+            " | Moneda del Árbol D1: " +
+            d1TreePoints
         );
 
         return true;
@@ -8034,7 +8034,7 @@ private double CalculateEMMultiplier()
         // Máquina / Cuarto 2
         if (machineManager != null)
         {
-            machineManager.ClearProgress();
+            machineManager.ResetOperationalProgress();
         }
 
         // Evita que el guardado anterior reaplique niveles viejos en UI
@@ -8049,6 +8049,11 @@ private double CalculateEMMultiplier()
             tabsUI.ShowGeneracion();
             tabsUI.RefreshGenerationLayoutFromOutside();
         }
+    }
+
+    public void ResetGameBaseForConvergence(MachineManager machineManager = null)
+    {
+        ResetGameBaseForPrestige1(machineManager ?? MachineManager.I);
     }
 
     // F6.3: lógica de reset del run (sin tocar ENT ni upgrades de prestigio)
@@ -8157,6 +8162,8 @@ private double CalculateEMMultiplier()
                     * f2UpgradeFactor
                     * machineLEFactor
                     * GetDimension2SanctuaryLEMultiplier();
+
+    worldMult *= GetConvergenceBaseLEProductionMultiplier();
 
     if (worldMult <= 0) worldMult = 1.0;
 

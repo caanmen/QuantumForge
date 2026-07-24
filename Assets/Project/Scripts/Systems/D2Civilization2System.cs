@@ -878,7 +878,7 @@ public static class D2Civilization2System
         D2Civilization2State state = gameState.dimension2.civilization2;
         state.majorPactEstablished = true;
         state.lastMajorPactResult = gameState.IsPrestige1CycleComplete()
-            ? "Pacto mayor establecido. El ciclo de Prestigio 1 está completo; Prestigio 2 llegará en una expansión futura."
+            ? "Pacto mayor establecido. Las tres dimensiones están completas; la Convergencia puede prepararse en la Máquina."
             : "Pacto mayor establecido. La Contención ya puede generar Estabilidad.";
         state.lastContainmentResult = state.lastMajorPactResult;
         state.lastResult = state.lastMajorPactResult;

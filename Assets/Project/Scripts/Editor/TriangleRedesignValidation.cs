@@ -217,9 +217,6 @@ public static class TriangleRedesignValidation
             machine.LoadProgressFromSave(save);
             Check(state.CanDoPrestige1(machine),
                 "Máquina al 80% con Convergencia no habilita Prestigio 1.", failures);
-            Check(Dimension1System.CalculatePrestige1PointsPreview(state) > 0,
-                "El primer Prestigio 1 puede llegar sin recompensa.", failures);
-
             state.hasDonePrestige1 = true;
             state.prestige1Count = 1;
             Check(!TabsUI.ShouldShowPrestige1Button(state, machine),

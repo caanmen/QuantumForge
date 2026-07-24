@@ -190,6 +190,7 @@ public static class D3JobQueueSystem
                 job.version,
                 job.quantity
             );
+            TryRegisterConvergenceSynchronization(gameState, job);
             return;
         }
 
@@ -204,6 +205,7 @@ public static class D3JobQueueSystem
                 job.quantity
             );
             D3InventorySystem.AddAssemblyCount(gameState.dimension3, job.mk, job.quantity);
+            TryRegisterConvergenceSynchronization(gameState, job);
             return;
         }
 
@@ -211,6 +213,24 @@ public static class D3JobQueueSystem
             D3FacilitySystem.CompleteFacilityUpgrade(gameState.dimension3, job);
         if (job.jobType == Dimension3Catalog.JobResearch)
             D3ResearchSystem.CompleteResearch(gameState.dimension3, job);
+    }
+
+    private static void TryRegisterConvergenceSynchronization(
+        GameState gameState,
+        D3JobState job)
+    {
+        if (job == null || string.IsNullOrWhiteSpace(job.jobId))
+            return;
+
+        string ignoredReason;
+        ConvergenceSynchronizationSystem.TryAddSynchronization(
+            gameState,
+            3,
+            !ConvergenceSynchronizationSystem.IsSignalActivated(gameState, 3),
+            ConvergenceBalance.GetStabilityForBaseWorkSeconds(job.baseDurationSeconds),
+            "convergence:d3:job:" + job.jobId,
+            out ignoredReason
+        );
     }
 
     private static void StartFrontJob(D3QueueState queue)

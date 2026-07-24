@@ -2203,7 +2203,7 @@ public static class Dimension1System
 
         int cost = GetDimension1TreeNodeCost(nodeId, targetTier);
 
-        return state.prestige1Points >= cost;
+        return state.d1TreePoints >= cost;
     }
 
     public static bool TryBuyDimension1TreeNode(GameState state, string nodeId)
@@ -2215,11 +2215,14 @@ public static class Dimension1System
         int targetTier = currentTier + 1;
         int cost = GetDimension1TreeNodeCost(nodeId, targetTier);
 
-        state.prestige1Points -= cost;
+        state.d1TreePoints -= cost;
         bool purchased = state.SetD1TreeNodeTier(nodeId, targetTier);
 
         if (purchased)
+        {
             state.RefreshD1SectorUnlocksFromProgress();
+            SyncD1TreePointsFromProgress(state, out _);
+        }
 
         return purchased;
     }
@@ -2532,33 +2535,11 @@ public static class Dimension1System
 
     public static int CalculatePrestige1PointsFromBaseGame(GameState state)
     {
-        if (state == null)
-            return 0;
-
-        double maxLe = System.Math.Max(state.maxLEAlcanzado, state.LE);
-
-        if (maxLe >= 1000000000.0)
-            return 16;
-
-        if (maxLe >= 100000000.0)
-            return 12;
-
-        if (maxLe >= 10000000.0)
-            return 8;
-
-        if (maxLe >= 1000000.0)
-            return 5;
-
-        if (maxLe >= 100000.0)
-            return 3;
-
-        if (maxLe >= 10000.0)
-            return 1;
-
+        // La moneda del Árbol D1 no recibe aportes del juego base.
         return 0;
     }
 
-    public static int CalculatePrestige1PointsFromDimension1(GameState state)
+    public static int CalculateD1TreePointsFromProgress(GameState state)
     {
         if (state == null || !state.dimension01Unlocked)
             return 0;
@@ -2573,15 +2554,15 @@ public static class Dimension1System
         return Mathf.Min(rawPoints, Dimension1Prestige1PreviewPointCap);
     }
 
+    [System.Obsolete("Usar CalculateD1TreePointsFromProgress.")]
+    public static int CalculatePrestige1PointsFromDimension1(GameState state)
+    {
+        return CalculateD1TreePointsFromProgress(state);
+    }
+
     public static int CalculatePrestige1PointsPreview(GameState state)
     {
-        if (state == null)
-            return 0;
-
-        return
-            CalculatePrestige1PointsFromBaseGame(state) +
-            CalculatePrestige1PointsFromDimension1(state) +
-            D2Civilization3System.GetPrestige1PreviewBonus(state);
+        return CalculateD1TreePointsFromProgress(state);
     }
 
     public static int CalculateClaimablePrestige1Points(GameState state)
@@ -2589,35 +2570,47 @@ public static class Dimension1System
         if (state == null)
             return 0;
 
-        int previewPoints = CalculatePrestige1PointsPreview(state);
-        int alreadyClaimed = Mathf.Max(0, state.prestige1BestClaimedPreviewPoints);
+        int previewPoints = CalculateD1TreePointsFromProgress(state);
+        int alreadyClaimed = Mathf.Max(0, state.d1TreePointsProgressBaseline);
 
         return Mathf.Max(0, previewPoints - alreadyClaimed);
     }
 
-    public static bool TryClaimPrestige1PreviewPoints(GameState state, out int claimedPoints)
+    public static bool SyncD1TreePointsFromProgress(
+        GameState state,
+        out int creditedPoints)
     {
-        claimedPoints = 0;
+        creditedPoints = 0;
 
         if (state == null)
             return false;
 
         state.EnsureDimension1State();
 
-        int previewPoints = CalculatePrestige1PointsPreview(state);
-        int claimablePoints = CalculateClaimablePrestige1Points(state);
+        int progressPoints = CalculateD1TreePointsFromProgress(state);
+        int baseline = Mathf.Max(0, state.d1TreePointsProgressBaseline);
+        int claimablePoints = Mathf.Max(0, progressPoints - baseline);
 
         if (claimablePoints <= 0)
             return false;
 
-        state.prestige1Points += claimablePoints;
-        state.prestige1BestClaimedPreviewPoints = Mathf.Max(
-            state.prestige1BestClaimedPreviewPoints,
-            previewPoints
+        state.AddD1TreePoints(claimablePoints);
+        state.d1TreePointsProgressBaseline = Mathf.Max(
+            baseline,
+            progressPoints
         );
 
-        claimedPoints = claimablePoints;
+        creditedPoints = claimablePoints;
         return true;
+    }
+
+    [System.Obsolete("Los puntos del Árbol D1 se acreditan automáticamente.")]
+    public static bool TryClaimPrestige1PreviewPoints(
+        GameState state,
+        out int claimedPoints)
+    {
+        claimedPoints = 0;
+        return false;
     }
 
     public static int CalculatePrestige1PointsFromD1Planets(GameState state)
@@ -8491,6 +8484,13 @@ public static class Dimension1System
                             0,
                             state.dimension1CompletedCoordinatedMissions
                         ) + 1;
+                TryRegisterConvergenceSynchronization(
+                    state,
+                    GetSimpleExplorationBaseDurationPreviewSeconds(destinationId) *
+                        CoordinatedDurationMultiplier,
+                    "convergence:d1:coordinated:" +
+                        state.dimension1CompletedCoordinatedMissions
+                );
             }
             else
             {
@@ -8499,6 +8499,12 @@ public static class Dimension1System
                     state.dimension1CompletedSimpleExplorations >= int.MaxValue
                         ? int.MaxValue
                         : state.dimension1CompletedSimpleExplorations + 1;
+                TryRegisterConvergenceSynchronization(
+                    state,
+                    GetSimpleExplorationBaseDurationPreviewSeconds(destinationId),
+                    "convergence:d1:simple:" +
+                        state.dimension1CompletedSimpleExplorations
+                );
                 if (!ship.explorationStartedByAutomation)
                     state.RegisterManualD1SimpleDestination(destinationId);
             }
@@ -8520,6 +8526,25 @@ public static class Dimension1System
 
         if (SaveService.I != null)
             SaveService.I.Save();
+    }
+
+    private static void TryRegisterConvergenceSynchronization(
+        GameState state,
+        double baseWorkSeconds,
+        string sourceId)
+    {
+        if (state == null)
+            return;
+
+        string ignoredReason;
+        ConvergenceSynchronizationSystem.TryAddSynchronization(
+            state,
+            1,
+            !ConvergenceSynchronizationSystem.IsSignalActivated(state, 1),
+            ConvergenceBalance.GetStabilityForBaseWorkSeconds(baseWorkSeconds),
+            sourceId,
+            out ignoredReason
+        );
     }
 
     private static void GrantSimpleExplorationRewards(GameState state, string destinationId, D1ShipState ship)

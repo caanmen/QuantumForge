@@ -674,6 +674,9 @@ public static class D2Civilization3System
 
     public static string GetEntityPactLineDescription(string lineId)
     {
+        if (lineId == FirstThresholdChronicleLineId)
+            return "Efecto reservado: la moneda del Árbol D1 no recibe aportes de D2.";
+
         if (lineId == ResonantExpeditionLineId)
             return "+10% acumulación de restos adicionales por nivel";
         if (lineId == EndlessArchiveLineId)
@@ -698,11 +701,8 @@ public static class D2Civilization3System
 
     public static int GetPrestige1PreviewBonus(GameState gameState)
     {
-        D2Civilization3State state = gameState?.dimension2?.civilization3;
-        if (state == null || !state.entityPactEstablished)
-            return 0;
-        return GetEntityPactLineLevel(state, FirstThresholdChronicleLineId) *
-            Prestige1PreviewBonusPerLevel;
+        // Compatibilidad temporal: D2 no contribuye a la moneda exclusiva de D1.
+        return 0;
     }
 
     public static double GetSharedMemoryMultiplier(GameState gameState)

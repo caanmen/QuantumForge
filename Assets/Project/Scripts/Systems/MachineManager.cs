@@ -1256,7 +1256,7 @@ public class MachineManager : MonoBehaviour
         Debug.Log("[MachineManager] ==================================================");
     }
 
-    public void ClearProgress()
+    public void ResetOperationalProgress()
     {
         _repairedNodeIds.Clear();
         _analyzedNodeIds.Clear();
@@ -1268,7 +1268,13 @@ public class MachineManager : MonoBehaviour
         _analysisNodeId = "";
         _analysisRemainingSeconds = 0.0;
 
-        Debug.Log("[MachineManager] Progreso limpiado.");
+        Debug.Log("[MachineManager] Progreso operativo reiniciado.");
+    }
+
+    [System.Obsolete("Usar ResetOperationalProgress().")]
+    public void ClearProgress()
+    {
+        ResetOperationalProgress();
     }
 
     [ContextMenu("DEBUG: Unlock Machine Intro")]

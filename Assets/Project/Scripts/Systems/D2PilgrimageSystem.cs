@@ -448,6 +448,11 @@ public static class D2PilgrimageSystem
             1L
         );
         IncrementCompletionCount(state, pilgrimageId);
+        TryRegisterConvergenceSynchronization(
+            gameState,
+            pilgrimageId,
+            state.totalPilgrimagesCompleted
+        );
         state.lastPilgrimageResult =
             GetDisplayName(pilgrimageId) + " completada: +" +
             trustReward.ToString("0.##") + " Confianza, +" +
@@ -459,6 +464,24 @@ public static class D2PilgrimageSystem
                 : ".");
         ClearActive(active);
         EnsureState(gameState);
+    }
+
+    private static void TryRegisterConvergenceSynchronization(
+        GameState gameState,
+        string pilgrimageId,
+        long totalPilgrimagesCompleted)
+    {
+        string ignoredReason;
+        ConvergenceSynchronizationSystem.TryAddSynchronization(
+            gameState,
+            2,
+            !ConvergenceSynchronizationSystem.IsSignalActivated(gameState, 2),
+            ConvergenceBalance.GetStabilityForBaseWorkSeconds(
+                GetDurationSeconds(pilgrimageId)
+            ),
+            "convergence:d2:pilgrimage:" + totalPilgrimagesCompleted,
+            out ignoredReason
+        );
     }
 
     public static double GetMaterialRewardMultiplier(

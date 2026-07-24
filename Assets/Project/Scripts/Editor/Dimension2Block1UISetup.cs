@@ -5470,7 +5470,7 @@ public static class Dimension2Block1UISetup
         string originalStateJson = JsonUtility.ToJson(gameState.dimension2);
         bool originalDimension2Unlocked = gameState.dimension02Unlocked;
         bool originalDimension1Unlocked = gameState.dimension01Unlocked;
-        int originalPrestige1Points = gameState.prestige1Points;
+        int originalD1TreePoints = gameState.d1TreePoints;
         double originalMaxLE = gameState.maxLEAlcanzado;
         double originalLE = gameState.LE;
 
@@ -5480,7 +5480,7 @@ public static class Dimension2Block1UISetup
             gameState.dimension01Unlocked = false;
             gameState.maxLEAlcanzado = 0.0;
             gameState.LE = 0.0;
-            gameState.prestige1Points = 0;
+            gameState.d1TreePoints = 0;
             Dimension2System.ResetState(gameState);
             gameState.dimension2.civilization3Unlocked = true;
             D2Civilization3State state = gameState.dimension2.civilization3;
@@ -5525,9 +5525,9 @@ public static class Dimension2Block1UISetup
                 System.Math.Abs(
                     D2Civilization3System.GetModulatorCalibrationMultiplier(gameState) - 1.15
                 ) > 0.000001 ||
-                D2Civilization3System.GetPrestige1PreviewBonus(gameState) != 3 ||
-                Dimension1System.CalculatePrestige1PointsPreview(gameState) != 3 ||
-                gameState.prestige1Points != 0)
+                D2Civilization3System.GetPrestige1PreviewBonus(gameState) != 0 ||
+                Dimension1System.CalculateD1TreePointsFromProgress(gameState) != 0 ||
+                gameState.d1TreePoints != 0)
             {
                 return FailCivilization3Block5DValidation(
                     "efectos externos, permanencia del umbral o cobro anticipado incorrectos");
@@ -5575,7 +5575,7 @@ public static class Dimension2Block1UISetup
         {
             gameState.dimension02Unlocked = originalDimension2Unlocked;
             gameState.dimension01Unlocked = originalDimension1Unlocked;
-            gameState.prestige1Points = originalPrestige1Points;
+            gameState.d1TreePoints = originalD1TreePoints;
             gameState.maxLEAlcanzado = originalMaxLE;
             gameState.LE = originalLE;
             gameState.dimension2 = JsonUtility.FromJson<Dimension2State>(originalStateJson);
@@ -5654,7 +5654,7 @@ public static class Dimension2Block1UISetup
                 System.Math.Abs(gameState.GetDimension2TriangleEffectMultiplier() - 1.06) > 0.000001 ||
                 System.Math.Abs(D2Civilization3System.GetSharedMemoryMultiplier(gameState) - 1.09) > 0.000001 ||
                 System.Math.Abs(D2Civilization3System.GetModulatorCalibrationMultiplier(gameState) - 1.15) > 0.000001 ||
-                D2Civilization3System.GetPrestige1PreviewBonus(gameState) != 3)
+                D2Civilization3System.GetPrestige1PreviewBonus(gameState) != 0)
             {
                 return FailDimension2Block5EValidation(
                     "matriz combinada de conexiones cruzadas incorrecta");

@@ -61,12 +61,16 @@ public class SaveData
     public double trianglePersistenceReserveSeconds;
     // F6.1: Moneda de prestigio
 
-    // Prestigio 1 - Convergencia
+    // Legado: moneda anterior asociada a Prestigio 1.
     public int prestige1Count;
     public bool hasDonePrestige1;
     public int prestige1Points;
     public int prestige1BestClaimedPreviewPoints;
     public int prestige1CurrentDimensionId;
+    // D1 - moneda exclusiva del Árbol Dimensional.
+    public int d1TreePointsSaveVersion;
+    public int d1TreePoints;
+    public int d1TreePointsProgressBaseline;
     // F6.1: Máximo LE alcanzado en el run
     public double maxLEAlcanzado;
     public List<SavedF2UpgradeTier> f2UpgradeTiers = new();
@@ -94,11 +98,13 @@ public class SaveData
     public bool experimentalChamberInitialPackGranted;
 
     // Sistema de dimensiones
+    public int dimensionDiscoverySaveVersion;
     public bool dimension01Unlocked;
     public bool dimension02Unlocked;
     public bool dimension03Unlocked;
     public Dimension2State dimension2;
     public Dimension3State dimension3;
+    public ConvergenceState convergence;
     public List<D1MetalAmount> dimension1Metals;
     public List<D1PlanetState> dimension1Planets;
     public List<D1SectorState> dimension1Sectors;
@@ -225,12 +231,13 @@ public class SaveService : MonoBehaviour
         triangleActiveCircuit = (int)GameState.I.triangleActiveCircuit,
         triangleSynchronization = GameState.I.triangleSynchronization,
 
-        // Prestigio 1 - Convergencia
+        // Prestigio 1 - descubrimiento dimensional
         prestige1Count = GameState.I.prestige1Count,
         hasDonePrestige1 = GameState.I.hasDonePrestige1,
-        prestige1Points = GameState.I.prestige1Points,
-        prestige1BestClaimedPreviewPoints = GameState.I.prestige1BestClaimedPreviewPoints,
         prestige1CurrentDimensionId = GameState.I.prestige1CurrentDimensionId,
+        d1TreePointsSaveVersion = 1,
+        d1TreePoints = GameState.I.d1TreePoints,
+        d1TreePointsProgressBaseline = GameState.I.d1TreePointsProgressBaseline,
 
             // F6.1: prestigio viejo
         maxLEAlcanzado = GameState.I.maxLEAlcanzado,
@@ -253,11 +260,13 @@ public class SaveService : MonoBehaviour
         experimentalChamberUnlocked = GameState.I.experimentalChamberUnlocked,
         experimentalChamberInitialPackGranted = GameState.I.experimentalChamberInitialPackGranted,
         // Sistema de dimensiones
+        dimensionDiscoverySaveVersion = 1,
         dimension01Unlocked = GameState.I.dimension01Unlocked,
         dimension02Unlocked = GameState.I.dimension02Unlocked,
         dimension03Unlocked = GameState.I.dimension03Unlocked,
         dimension2 = GameState.I.dimension2,
         dimension3 = GameState.I.dimension3,
+        convergence = GameState.I.convergence,
         dimension1Metals = GameState.I.dimension1Metals,
         dimension1Planets = GameState.I.dimension1Planets,
         dimension1Sectors = GameState.I.dimension1Sectors,
@@ -406,6 +415,7 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension03Unlocked = data.dimension03Unlocked;
         GameState.I.dimension2 = data.dimension2 ?? Dimension2System.CreateInitialState();
         GameState.I.dimension3 = data.dimension3 ?? Dimension3System.CreateInitialState();
+        GameState.I.convergence = data.convergence ?? ConvergenceSystem.CreateInitialState();
         GameState.I.dimension1Metals = data.dimension1Metals ?? new List<D1MetalAmount>();
         GameState.I.dimension1Planets = data.dimension1Planets ?? new List<D1PlanetState>();
         GameState.I.dimension1Sectors = data.dimension1Sectors ?? new List<D1SectorState>();
@@ -454,11 +464,16 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension1AutomationHistoryProgressVersion = data.dimension1AutomationHistoryProgressVersion;
         GameState.I.dimension1CompletedSimpleExplorations = data.dimension1CompletedSimpleExplorations;
 
-        // Prestigio 1 - Convergencia
+        // Prestigio 1 - descubrimiento dimensional y moneda D1.
         GameState.I.prestige1Count = data.prestige1Count;
         GameState.I.hasDonePrestige1 = data.hasDonePrestige1;
-        GameState.I.prestige1Points = data.prestige1Points;
-        GameState.I.prestige1BestClaimedPreviewPoints = data.prestige1BestClaimedPreviewPoints;
+        bool hasD1TreePointSave = data.d1TreePointsSaveVersion >= 1;
+        GameState.I.d1TreePoints = hasD1TreePointSave
+            ? data.d1TreePoints
+            : data.prestige1Points;
+        GameState.I.d1TreePointsProgressBaseline = hasD1TreePointSave
+            ? data.d1TreePointsProgressBaseline
+            : 0;
         GameState.I.prestige1CurrentDimensionId = Mathf.Clamp(
             data.prestige1CurrentDimensionId, 0, 3);
 
@@ -470,26 +485,22 @@ public class SaveService : MonoBehaviour
         GameState.I.EnsureDimension1State();
         GameState.I.EnsureDimension2State();
         GameState.I.EnsureDimension3State();
+        GameState.I.EnsureConvergenceState();
+        ConvergenceCircuitSystem.RecoverTransaction(GameState.I);
 
+        // La moneda previa conserva su saldo y nodos comprados. Su nuevo baseline
+        // se fija contra el progreso D1 actual para no repetir recompensas antiguas.
         // Migración para partidas previas a la selección de una sola dimensión.
         // Las partidas nuevas conservan exactamente qué dimensiones revelaron.
-        if (GameState.I.hasDonePrestige1 &&
-            !GameState.I.dimension01Unlocked &&
-            !GameState.I.dimension02Unlocked &&
-            !GameState.I.dimension03Unlocked)
-        {
-            GameState.I.UnlockDimensionSystemAfterPrestige1();
-        }
+        ApplyDimensionDiscoveryMigration(
+            GameState.I,
+            data.dimensionDiscoverySaveVersion
+        );
 
-        if (GameState.I.prestige1CurrentDimensionId == 0)
+        if (!hasD1TreePointSave)
         {
-            int unlockedCount = (GameState.I.dimension01Unlocked ? 1 : 0) +
-                (GameState.I.dimension02Unlocked ? 1 : 0) +
-                (GameState.I.dimension03Unlocked ? 1 : 0);
-            if (unlockedCount == 1)
-                GameState.I.prestige1CurrentDimensionId =
-                    GameState.I.dimension01Unlocked ? 1 :
-                    (GameState.I.dimension02Unlocked ? 2 : 3);
+            GameState.I.d1TreePointsProgressBaseline =
+                Dimension1System.CalculateD1TreePointsFromProgress(GameState.I);
         }
 
         // F6.1: prestigio viejo
@@ -556,6 +567,7 @@ public class SaveService : MonoBehaviour
 
         long nowUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         double offlineSeconds = Math.Max(0.0, nowUnix - data.lastUnix);
+        ConvergenceTelemetrySystem.RecordOfflineElapsed(GameState.I, offlineSeconds);
         double baseOfflineApplied = Math.Min(
             offlineSeconds, Dimension1System.DefaultOfflineCapSeconds);
         bool machineWasAnalyzing = MachineManager.I != null &&
@@ -631,6 +643,103 @@ public class SaveService : MonoBehaviour
 #endif
     }
 
+    public static void ApplyDimensionDiscoveryMigration(
+        GameState state,
+        int savedVersion)
+    {
+        if (state == null)
+            return;
+
+        int unlockedCount = CountUnlockedDimensions(state);
+
+        // Version 0 corresponde al modelo antiguo, que sólo registraba que
+        // Prestigio 1 había ocurrido y activaba las tres dimensiones juntas.
+        if (savedVersion < 1 && state.hasDonePrestige1 && unlockedCount == 0)
+        {
+            state.UnlockDimensionSystemAfterPrestige1();
+            state.prestige1CurrentDimensionId = 0;
+            return;
+        }
+
+        if (unlockedCount == 0)
+        {
+            state.prestige1CurrentDimensionId = 0;
+            return;
+        }
+
+        // Con las tres dimensiones descubiertas, la dimensión actual no vuelve
+        // a controlar una selección de Prestigio 1.
+        if (unlockedCount == 3)
+        {
+            state.prestige1CurrentDimensionId = 0;
+            return;
+        }
+
+        if (state.prestige1CurrentDimensionId > 0 &&
+            state.IsDimensionUnlockedAfterPrestige1(
+                state.prestige1CurrentDimensionId))
+        {
+            return;
+        }
+
+        if (unlockedCount == 1)
+        {
+            state.prestige1CurrentDimensionId = GetFirstUnlockedDimensionId(state);
+            return;
+        }
+
+        if (unlockedCount == 2)
+        {
+            int incompleteDimensionId = GetOnlyIncompleteUnlockedDimensionId(state);
+            state.prestige1CurrentDimensionId = incompleteDimensionId > 0
+                ? incompleteDimensionId
+                : GetFirstUnlockedDimensionId(state);
+            return;
+        }
+
+        state.prestige1CurrentDimensionId = 0;
+    }
+
+    private static int CountUnlockedDimensions(GameState state)
+    {
+        int count = 0;
+        for (int dimensionId = 1; dimensionId <= 3; dimensionId++)
+        {
+            if (state.IsDimensionUnlockedAfterPrestige1(dimensionId))
+                count++;
+        }
+        return count;
+    }
+
+    private static int GetFirstUnlockedDimensionId(GameState state)
+    {
+        for (int dimensionId = 1; dimensionId <= 3; dimensionId++)
+        {
+            if (state.IsDimensionUnlockedAfterPrestige1(dimensionId))
+                return dimensionId;
+        }
+        return 0;
+    }
+
+    private static int GetOnlyIncompleteUnlockedDimensionId(GameState state)
+    {
+        int result = 0;
+        for (int dimensionId = 1; dimensionId <= 3; dimensionId++)
+        {
+            if (!state.IsDimensionUnlockedAfterPrestige1(dimensionId) ||
+                state.IsDimensionMilestoneComplete(dimensionId))
+            {
+                continue;
+            }
+
+            if (result != 0)
+                return 0;
+
+            result = dimensionId;
+        }
+        return result;
+    }
+
     private void InitNewGame()
     {
         if (GameState.I == null) return;
@@ -656,6 +765,7 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension03Unlocked = false;
         GameState.I.dimension2 = Dimension2System.CreateInitialState();
         GameState.I.dimension3 = Dimension3System.CreateInitialState();
+        GameState.I.convergence = ConvergenceSystem.CreateInitialState();
         GameState.I.dimension1Metals = new List<D1MetalAmount>();
         GameState.I.dimension1Planets = new List<D1PlanetState>();
         GameState.I.dimension1Sectors = new List<D1SectorState>();
@@ -698,8 +808,8 @@ public class SaveService : MonoBehaviour
         GameState.I.dimension1TreeNodes = new List<D1TreeNodeState>();
         GameState.I.dimension1TreeProgressVersion =
             Dimension1System.Dimension1TreeProgressVersion;
-        GameState.I.prestige1Points = 0;
-        GameState.I.prestige1BestClaimedPreviewPoints = 0;
+        GameState.I.d1TreePoints = 0;
+        GameState.I.d1TreePointsProgressBaseline = 0;
         GameState.I.dimension1BlueprintFragments = 0;
         GameState.I.dimension1LastExplorationBlueprintFragments = 0;
         GameState.I.dimension1LastExplorationResultId = 0;
@@ -754,7 +864,7 @@ public class SaveService : MonoBehaviour
 
         if (MachineManager.I != null)
         {
-            MachineManager.I.ClearProgress();
+            MachineManager.I.ResetOperationalProgress();
         }
 
         // Aplica listas vacías si existen managers
@@ -814,7 +924,7 @@ public class SaveService : MonoBehaviour
 
         if (MachineManager.I != null)
         {
-            MachineManager.I.ClearProgress();
+            MachineManager.I.ResetOperationalProgress();
         }
 
     #if UNITY_EDITOR
@@ -880,7 +990,7 @@ public class SaveService : MonoBehaviour
 
             if (MachineManager.I != null)
             {
-                MachineManager.I.ClearProgress();
+                MachineManager.I.ResetOperationalProgress();
             }
 
             // 4) Resetear logros en memoria

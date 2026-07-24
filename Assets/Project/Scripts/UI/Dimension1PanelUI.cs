@@ -6645,8 +6645,8 @@ public class Dimension1PanelUI : MonoBehaviour
 
         string header =
             "ÁRBOL D1\n" +
-            "Puntos disponibles: " +
-            gs.prestige1Points +
+            "Puntos del Árbol D1 disponibles: " +
+            gs.d1TreePoints +
             "\nNodos comprados: " +
             Dimension1System.GetD1PurchasedTreeNodeCount(gs) +
             "/" +
@@ -6683,7 +6683,7 @@ public class Dimension1PanelUI : MonoBehaviour
             targetTier +
             "\nCosto: " +
             cost +
-            " Puntos de Prestigio 1" +
+            " Puntos del Árbol D1" +
             "\n" +
             Dimension1System.GetDimension1TreeNodeUnlockSummary(
                 gs,
@@ -6774,8 +6774,8 @@ public class Dimension1PanelUI : MonoBehaviour
             return;
         }
 
-        string buttonText = gs.prestige1Points < cost
-            ? "Faltan puntos " + gs.prestige1Points + "/" + cost
+        string buttonText = gs.d1TreePoints < cost
+            ? "Faltan puntos " + gs.d1TreePoints + "/" + cost
             : "Requisitos pendientes";
         SetButtonText(buySelectedDimension1TreeNodeButton, buttonText);
     }

@@ -56,7 +56,7 @@ public static class D3AutonomyCoreSystem
         gameState.dimension3.autonomyCoreIntegrated = true;
         SaveService.I?.Save();
         reason = gameState.IsPrestige1CycleComplete()
-            ? "Núcleo de Autonomía integrado. El ciclo de Prestigio 1 está completo; Prestigio 2 llegará en una expansión futura."
+            ? "Núcleo de Autonomía integrado. Las tres dimensiones están completas; la Convergencia puede prepararse en la Máquina."
             : "Núcleo de Autonomía integrado. El próximo Prestigio 1 ya puede abrirse al completar la Máquina.";
         return true;
     }
