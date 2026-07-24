@@ -154,6 +154,10 @@ public class TabsUI : MonoBehaviour
         {
             btnPrestigio.gameObject.SetActive(
                 ShouldShowPrestige1Button(GameState.I, MachineManager.I));
+            TMP_Text label = btnPrestigio.GetComponentInChildren<TMP_Text>(true);
+            if (label != null && GameState.I != null)
+                label.text = ConvergenceCircuitSystem.IsConvergenceUnlocked(GameState.I)
+                    ? "CONVERGENCIA" : "PRESTIGIO";
         }
     }
 
@@ -163,9 +167,10 @@ public class TabsUI : MonoBehaviour
         return gameState != null &&
             machineManager != null &&
             machineManager.MachineUnlocked &&
-            gameState.HasAvailableDimensionForPrestige1Selection() &&
-            (gameState.prestige1Count <= 0 ||
-             gameState.HasDimensionMilestoneForNextPrestige1());
+            ((gameState.HasAvailableDimensionForPrestige1Selection() &&
+              (gameState.prestige1Count <= 0 ||
+               gameState.HasDimensionMilestoneForNextPrestige1())) ||
+             ConvergenceCircuitSystem.IsConvergenceUnlocked(gameState));
     }
 
     private void HideMetaNavigationButton()

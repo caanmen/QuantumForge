@@ -14,7 +14,7 @@ public static class ConvergenceTelemetrySystem
         ConvergenceState state = gameState.convergence;
         state.cycleOfflineSeconds += seconds;
         if (state.receiverRebuiltUnix <= 0L) state.baseRebuildOfflineSeconds += seconds;
-        else if (state.configurationStartedUnix <= 0L) state.synchronizationOfflineSeconds += seconds;
+        else if (state.synchronizationReadyUnix <= 0L) state.synchronizationOfflineSeconds += seconds;
         else state.configurationOfflineSeconds += seconds;
     }
 
@@ -29,6 +29,14 @@ public static class ConvergenceTelemetrySystem
     {
         if (gameState == null) return;
         gameState.EnsureConvergenceState();
+        if (gameState.convergence.synchronizationReadyUnix <= 0L)
+            gameState.convergence.synchronizationReadyUnix = GetCurrentUnixSeconds();
+    }
+
+    public static void RecordConfigurationStarted(GameState gameState)
+    {
+        if (gameState == null) return;
+        gameState.EnsureConvergenceState();
         if (gameState.convergence.configurationStartedUnix <= 0L)
             gameState.convergence.configurationStartedUnix = GetCurrentUnixSeconds();
     }
@@ -40,10 +48,10 @@ public static class ConvergenceTelemetrySystem
         ConvergenceState state = gameState.convergence;
         long now = GetCurrentUnixSeconds();
         if (state.cycleStartedUnix > 0L && state.receiverRebuiltUnix > 0L &&
-            state.configurationStartedUnix > 0L)
+            state.synchronizationReadyUnix > 0L && state.configurationStartedUnix > 0L)
         {
             double baseSeconds = Math.Max(0.0, state.receiverRebuiltUnix - state.cycleStartedUnix);
-            double syncSeconds = Math.Max(0.0, state.configurationStartedUnix - state.receiverRebuiltUnix);
+            double syncSeconds = Math.Max(0.0, state.synchronizationReadyUnix - state.receiverRebuiltUnix);
             double configSeconds = Math.Max(0.0, now - state.configurationStartedUnix);
             state.normalCycleMeasurements.Add(new ConvergenceCycleMeasurement
             {
@@ -61,6 +69,7 @@ public static class ConvergenceTelemetrySystem
         }
         state.cycleStartedUnix = now;
         state.receiverRebuiltUnix = 0L;
+        state.synchronizationReadyUnix = 0L;
         state.configurationStartedUnix = 0L;
         state.cycleOfflineSeconds = 0.0;
         state.baseRebuildOfflineSeconds = 0.0;

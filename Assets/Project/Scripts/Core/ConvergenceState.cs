@@ -21,6 +21,7 @@ public class ConvergenceState
     public int completedCycles;
     public long cycleStartedUnix;
     public long receiverRebuiltUnix;
+    public long synchronizationReadyUnix;
     public long configurationStartedUnix;
     public double cycleOfflineSeconds;
     public double baseRebuildOfflineSeconds;
@@ -99,6 +100,7 @@ public static class ConvergenceSystem
             completedCycles = 0,
             cycleStartedUnix = 0L,
             receiverRebuiltUnix = 0L,
+            synchronizationReadyUnix = 0L,
             configurationStartedUnix = 0L,
             normalCycleMeasurements = new List<ConvergenceCycleMeasurement>(),
             dimensionalReceiverRebuilt = false,

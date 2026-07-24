@@ -2,6 +2,38 @@ using System;
 
 public static class ConvergenceSynchronizationSystem
 {
+    public static bool CanRebuildReceiver(GameState gameState, out string reason)
+    {
+        if (gameState == null)
+        {
+            reason = "No hay estado de juego disponible.";
+            return false;
+        }
+        MachineManager machine = MachineManager.I;
+        if (machine == null || !machine.MachineUnlocked)
+        {
+            reason = "Redescubre y reconstruye la Máquina primero.";
+            return false;
+        }
+        if (!machine.HasEnoughRepairForPrestige1())
+        {
+            reason = "Alcanza 80 % de reparación de la Máquina.";
+            return false;
+        }
+        if (!machine.Prestige1Prepared)
+        {
+            reason = "Activa el Canal de Convergencia en la Máquina.";
+            return false;
+        }
+        if (!DimensionCompletionService.AreAllDimensionsCompleted(gameState))
+        {
+            reason = "Las tres dimensiones deben completar su hito final.";
+            return false;
+        }
+        reason = "La Máquina está lista para reconstruir el Receptor.";
+        return true;
+    }
+
     public static bool TryRebuildReceiver(GameState gameState, out string reason)
     {
         if (gameState == null)
@@ -11,9 +43,12 @@ public static class ConvergenceSynchronizationSystem
         }
 
         gameState.EnsureConvergenceState();
-        if (!DimensionCompletionService.AreAllDimensionsCompleted(gameState))
+        if (!CanRebuildReceiver(gameState, out reason))
+            return false;
+
+        if (!ConvergenceCircuitSystem.HasNextDesignedCircuit(gameState))
         {
-            reason = "Las tres dimensiones deben completar su hito final.";
+            reason = "Contenido experimental de Convergencia completado. El siguiente circuito aún no está disponible.";
             return false;
         }
 
@@ -85,6 +120,11 @@ public static class ConvergenceSynchronizationSystem
         }
 
         int ownedCircuitCount = ConvergenceCircuitSystem.GetOwnedCircuitCount(gameState);
+        if (!ConvergenceCircuitSystem.HasNextDesignedCircuit(gameState))
+        {
+            reason = "Contenido experimental de Convergencia completado. El siguiente circuito aún no está disponible.";
+            return false;
+        }
         // GetOwnedCircuitCount normaliza el estado y puede reconstruir la lista
         // de señales; vuelve a tomar la referencia antes de modificarla.
         signal = GetSignal(gameState.convergence, dimensionId);
@@ -116,6 +156,8 @@ public static class ConvergenceSynchronizationSystem
             currentStability + stabilityAmount
         );
         gameState.convergence.processedSynchronizationSourceIds.Add(sourceId);
+        if (IsSynchronizationReadyForNextConvergence(gameState, ownedCircuitCount))
+            ConvergenceTelemetrySystem.RecordReady(gameState);
         reason = "Sincronización registrada.";
         return true;
     }

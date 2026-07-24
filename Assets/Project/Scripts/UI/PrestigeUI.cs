@@ -324,22 +324,48 @@ public class PrestigeUI : MonoBehaviour
 
         state.EnsureConvergenceState();
         int owned = ConvergenceCircuitSystem.GetOwnedCircuitCount(state);
+        bool hasNextCircuit = ConvergenceCircuitSystem.HasNextDesignedCircuit(state);
         double required = ConvergenceBalance.GetRequiredStabilityForNextCircuit(owned);
         bool ready = ConvergenceSynchronizationSystem.IsSynchronizationReadyForNextConvergence(
             state, owned);
         bool configuring = state.convergence.phase == ConvergencePhase.ConfigurationPending;
+        ConvergenceCircuitPlacement startupPulse = FindStartupPulse(state);
+        string machineReason;
+        bool canRebuildReceiver = ConvergenceSynchronizationSystem.CanRebuildReceiver(
+            state, out machineReason);
+        string stabilityStatus = configuring
+            ? "Configuracion de circuito pendiente."
+            : hasNextCircuit
+                ? "Estabilidad: " + state.convergence.currentStability.ToString("0.#") +
+                  " / " + required.ToString("0.#")
+                : "";
         _convergenceStatusText.text = "Receptor Dimensional: " +
             (state.convergence.dimensionalReceiverRebuilt ? "reconstruido" : "pendiente") + "\n" +
             "Señales: D1 " + GetSignalStatus(state, 1) + " · D2 " +
             GetSignalStatus(state, 2) + " · D3 " + GetSignalStatus(state, 3) + "\n" +
-            "Estabilidad: " + state.convergence.currentStability.ToString("0.#") +
-            " / " + required.ToString("0.#") + "\n" +
+            stabilityStatus + "\n" +
             "Circuitos poseídos: " + owned +
             (ready ? "\nLa Convergencia está preparada." : "");
-        _rebuildReceiverButton.interactable = !state.convergence.dimensionalReceiverRebuilt;
-        _startConvergenceButton.interactable = ready && !configuring;
-        _rotateCircuitButton.interactable = configuring && FindStartupPulse(state) != null;
-        _confirmConfigurationButton.interactable = configuring;
+        if (!state.convergence.dimensionalReceiverRebuilt && !canRebuildReceiver)
+            _convergenceStatusText.text += "\n" + machineReason;
+        if (!hasNextCircuit && !configuring)
+            _convergenceStatusText.text += "\nContenido experimental completado. El siguiente circuito aun no esta disponible.";
+        if (configuring)
+        {
+            _convergenceStatusText.text += "\n" + (startupPulse == null
+                ? "Placa vacia: coloca Pulso de Arranque."
+                : ConvergenceCircuitSystem.IsCircuitPowered(state,
+                    ConvergenceCircuitCatalog.StartupPulseCircuitId)
+                    ? "Pulso de Arranque conectado: LE x1.10."
+                    : "Pulso de Arranque desconectado: sin energia, no produce efecto.");
+        }
+        _rebuildReceiverButton.interactable = !state.convergence.dimensionalReceiverRebuilt &&
+            canRebuildReceiver && hasNextCircuit;
+        _startConvergenceButton.interactable = ready && !configuring && hasNextCircuit;
+        _rotateCircuitButton.interactable = configuring && startupPulse != null;
+        _confirmConfigurationButton.interactable = configuring && startupPulse != null &&
+            ConvergenceCircuitSystem.IsCircuitPowered(state,
+                ConvergenceCircuitCatalog.StartupPulseCircuitId);
         RefreshConvergenceBoard(state, configuring);
     }
 
@@ -377,7 +403,7 @@ public class PrestigeUI : MonoBehaviour
     {
         string reason;
         if (!ConvergenceSynchronizationSystem.TryRebuildReceiver(GameState.I, out reason))
-            Debug.Log("[Convergence UI] " + reason);
+            ShowConvergenceError(reason);
         else if (SaveService.I != null)
             SaveService.I.Save();
         RefreshConvergenceUI();
@@ -387,7 +413,7 @@ public class PrestigeUI : MonoBehaviour
     {
         string reason;
         if (!ConvergenceCircuitSystem.TryStartNormalConvergence(GameState.I, out reason))
-            Debug.Log("[Convergence UI] " + reason);
+            ShowConvergenceError(reason);
         RefreshConvergenceUI();
     }
 
@@ -477,8 +503,15 @@ public class PrestigeUI : MonoBehaviour
     {
         string reason;
         if (!ConvergenceCircuitSystem.TryConfirmConfiguration(GameState.I, out reason))
-            Debug.Log("[Convergence UI] " + reason);
+            ShowConvergenceError(reason);
         RefreshConvergenceUI();
+    }
+
+    private void ShowConvergenceError(string reason)
+    {
+        Debug.Log("[Convergence UI] " + reason);
+        if (_convergenceStatusText != null)
+            _convergenceStatusText.text = "No disponible: " + reason;
     }
 
     private static ConvergenceCircuitPlacement FindStartupPulse(GameState state)

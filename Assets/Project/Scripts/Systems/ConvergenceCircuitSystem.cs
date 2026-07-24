@@ -14,6 +14,14 @@ public static class ConvergenceCircuitSystem
         return gameState.convergence.ownedCircuits.Count;
     }
 
+    public static bool HasNextDesignedCircuit(GameState gameState)
+    {
+        if (gameState == null) return false;
+        gameState.EnsureConvergenceState();
+        return !HasOwnedCircuit(gameState.convergence,
+            ConvergenceCircuitCatalog.StartupPulseCircuitId);
+    }
+
     public static bool TryStartNormalConvergence(GameState gameState, out string reason)
     {
         if (gameState == null)
@@ -40,6 +48,9 @@ public static class ConvergenceCircuitSystem
             return false;
         }
 
+        if (!ConvergenceSynchronizationSystem.CanRebuildReceiver(gameState, out reason))
+            return false;
+
         if (!ConvergenceSynchronizationSystem.IsSynchronizationReadyForNextConvergence(
                 gameState, GetOwnedCircuitCount(gameState)))
         {
@@ -47,24 +58,20 @@ public static class ConvergenceCircuitSystem
             return false;
         }
 
-        if (HasOwnedCircuit(state, ConvergenceCircuitCatalog.StartupPulseCircuitId))
+        if (!HasNextDesignedCircuit(gameState))
         {
             reason = "No hay otro circuito diseñado disponible para esta prueba.";
             return false;
         }
 
-        state.phase = ConvergencePhase.Ready;
-        ConvergenceTelemetrySystem.RecordReady(gameState);
-        Persist();
         state.ownedCircuits.Add(new OwnedConvergenceCircuit
         {
             circuitId = ConvergenceCircuitCatalog.StartupPulseCircuitId,
             obtained = true
         });
-        state.phase = ConvergencePhase.CircuitAwarded;
-        Persist();
         state.boardConfigurationLocked = false;
         state.phase = ConvergencePhase.ConfigurationPending;
+        ConvergenceTelemetrySystem.RecordConfigurationStarted(gameState);
         Persist();
         reason = "Pulso de Arranque obtenido. Configura la placa.";
         return true;
@@ -145,11 +152,22 @@ public static class ConvergenceCircuitSystem
             return false;
         }
 
+        if (state.boardPlacements == null || state.boardPlacements.Count == 0)
+        {
+            reason = "Coloca al menos un circuito antes de estabilizar la placa.";
+            return false;
+        }
+        ConvergenceCircuitPlacement startupPulse = FindPlacement(state,
+            ConvergenceCircuitCatalog.StartupPulseCircuitId);
+        if (HasOwnedCircuit(state, ConvergenceCircuitCatalog.StartupPulseCircuitId) &&
+            (startupPulse == null || !IsStartupPulsePowered(startupPulse)))
+        {
+            reason = "Pulso de Arranque sin energía. Colócalo junto al Núcleo y oriéntalo hacia él.";
+            return false;
+        }
+
         ResolveModifierSnapshot(state);
         state.boardConfigurationLocked = true;
-        state.phase = ConvergencePhase.ConfigurationConfirmed;
-        Persist();
-
         ConvergenceTelemetrySystem.RecordConfigurationConfirmed(gameState);
         gameState.ResetGameBaseForConvergence();
         ConvergenceSynchronizationSystem.ResetCycleSynchronization(gameState);
@@ -164,16 +182,26 @@ public static class ConvergenceCircuitSystem
     {
         if (gameState == null) return;
         gameState.EnsureConvergenceState();
-        if (gameState.convergence.phase == ConvergencePhase.CircuitAwarded)
+        if (gameState.convergence.phase == ConvergencePhase.Ready)
+        {
+            gameState.convergence.phase = HasOwnedCircuit(gameState.convergence,
+                ConvergenceCircuitCatalog.StartupPulseCircuitId)
+                ? ConvergencePhase.ConfigurationPending : ConvergencePhase.Inactive;
+            gameState.convergence.boardConfigurationLocked = false;
+        }
+        else if (gameState.convergence.phase == ConvergencePhase.CircuitAwarded)
         {
             gameState.convergence.phase = ConvergencePhase.ConfigurationPending;
             gameState.convergence.boardConfigurationLocked = false;
         }
         else if (gameState.convergence.phase == ConvergencePhase.ConfigurationConfirmed)
         {
+            ConvergenceTelemetrySystem.RecordConfigurationConfirmed(gameState);
             gameState.ResetGameBaseForConvergence();
             ConvergenceSynchronizationSystem.ResetCycleSynchronization(gameState);
+            gameState.convergence.completedCycles++;
             gameState.convergence.phase = ConvergencePhase.NewCycleStarted;
+            Persist();
         }
     }
 
@@ -186,6 +214,15 @@ public static class ConvergenceCircuitSystem
             state.modifierSnapshot != null
             ? state.modifierSnapshot.baseLEProductionMultiplier
             : 1.0;
+    }
+
+    public static bool IsCircuitPowered(GameState gameState, string circuitId)
+    {
+        if (gameState == null || circuitId != ConvergenceCircuitCatalog.StartupPulseCircuitId)
+            return false;
+        gameState.EnsureConvergenceState();
+        ConvergenceCircuitPlacement placement = FindPlacement(gameState.convergence, circuitId);
+        return placement != null && IsStartupPulsePowered(placement);
     }
 
     private static void ResolveModifierSnapshot(ConvergenceState state)
@@ -205,14 +242,14 @@ public static class ConvergenceCircuitSystem
 
     private static bool IsStartupPulsePowered(ConvergenceCircuitPlacement placement)
     {
-        bool vertical = placement.rotationDegrees == 0 ||
-            placement.rotationDegrees == 180;
-        bool horizontal = placement.rotationDegrees == 90 ||
-            placement.rotationDegrees == 270;
-        return (vertical && placement.x == 0 &&
-                (placement.y == 1 || placement.y == -1)) ||
-            (horizontal && placement.y == 0 &&
-                (placement.x == 1 || placement.x == -1));
+        return (placement.x == 0 && placement.y == 1 &&
+                placement.rotationDegrees == 0) ||
+            (placement.x == 0 && placement.y == -1 &&
+                placement.rotationDegrees == 180) ||
+            (placement.x == -1 && placement.y == 0 &&
+                placement.rotationDegrees == 90) ||
+            (placement.x == 1 && placement.y == 0 &&
+                placement.rotationDegrees == 270);
     }
 
     private static bool HasOwnedCircuit(ConvergenceState state, string circuitId)
