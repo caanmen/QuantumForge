@@ -29,6 +29,7 @@ public class D2Civilization3PanelUI : MonoBehaviour
     public TMP_Text scholarText;
     public TMP_Text civilization1ResourcesText;
     public TMP_Text lastResultText;
+    public TMP_Text objectiveText;
     public Button excavateButton;
     public Button zone1Button;
     public Button zone2Button;
@@ -102,10 +103,31 @@ public class D2Civilization3PanelUI : MonoBehaviour
             return;
         D2C3ZoneState zone2 = D2Civilization3System.GetZone(state, D2Civilization3System.Zone2Id);
         D2C3ZoneState zone3 = D2Civilization3System.GetZone(state, D2Civilization3System.Zone3Id);
-        SetInteractable(showEntityResearchButton, state.entityResearchUnlocked);
-        SetInteractable(showArchiveButton, state.archiveUnlocked);
+        FeaturePresentationState analysisFeature = D2PresentationRules.GetFeatureState(
+            gameState, PresentationFeatureIds.D2C3Analysis);
+        FeaturePresentationState archiveFeature = D2PresentationRules.GetFeatureState(
+            gameState, PresentationFeatureIds.D2C3Archive);
+        FeaturePresentationState cluesFeature = D2PresentationRules.GetFeatureState(
+            gameState, PresentationFeatureIds.D2C3Clues);
+        FeaturePresentationState anomaliesFeature = D2PresentationRules.GetFeatureState(
+            gameState, PresentationFeatureIds.D2C3Anomalies);
+        FeaturePresentationState entityFeature = D2PresentationRules.GetFeatureState(
+            gameState, PresentationFeatureIds.D2C3EntityResearch);
+        string[] visibleZones =
+            D2Civilization3PresentationRules.GetVisibleZoneIds(state);
+        string[] possessedQualities =
+            D2Civilization3PresentationRules.GetPossessedQualityIds(zone);
+        bool hasExcavated =
+            D2Civilization3PresentationRules.HasExcavationProgress(state);
+        bool hasAnalyzed =
+            D2Civilization3PresentationRules.HasAnalysisProgress(state);
+        SetActive(showEntityResearchButton, entityFeature.IsVisible);
+        SetActive(showArchiveButton, archiveFeature.IsVisible);
+        SetInteractable(showEntityResearchButton, entityFeature.CanOpen);
+        SetInteractable(showArchiveButton, archiveFeature.CanOpen);
         SetButtonLabel(showEntityResearchButton,
-            state.entityPactEstablished ? "PACTO" : "ENTE");
+            state.entityPactEstablished ? "PACTO OPCIONAL" : "ENTE",
+            entityFeature.isNew);
 
         SetText(
             zoneText,
@@ -122,6 +144,19 @@ public class D2Civilization3PanelUI : MonoBehaviour
                 ? "ZONA 3 — SANTUARIO SELLADO: DISPONIBLE"
                 : "ZONA 3 — BLOQUEADA: Zona 2 al 60% + 50 Incienso/Tela/Piedra")
         );
+        string nextZoneText = "";
+        if (D2Civilization3PresentationRules.Contains(
+                visibleZones, D2Civilization3System.Zone3Id))
+            nextZoneText = zone3 != null && zone3.unlocked
+                ? "ZONA 3 — SANTUARIO SELLADO: DISPONIBLE"
+                : "PRÓXIMA: ZONA 3 — requiere Zona 2 al 60% + 50 Incienso/Tela/Piedra";
+        else if (D2Civilization3PresentationRules.Contains(
+                visibleZones, D2Civilization3System.Zone2Id))
+            nextZoneText = zone2 != null && zone2.unlocked
+                ? "ZONA 2 — GALERÍA DE INSCRIPCIONES: DISPONIBLE"
+                : "PRÓXIMA: ZONA 2 — requiere Zona 1 al 60% + 25 Incienso + 25 Tela Sagrada";
+        SetText(lockedZonesText, nextZoneText);
+
         double excavationDuration = D2Civilization3System.GetExcavationDuration(state);
         SetText(
             excavationText,
@@ -181,6 +216,11 @@ public class D2Civilization3PanelUI : MonoBehaviour
                   "60% Zona 2 · 80% Conocimiento +10%"
                 : "ARCHIVO DE INTERPRETACIÓN — se desbloquea tras el primer análisis"
         );
+        SetText(archiveText,
+            "ARCHIVO " + (state.archiveLevel >= 4 ? "IV" :
+                state.archiveLevel >= 3 ? "III" :
+                state.archiveLevel >= 2 ? "II" : "I") + " — " +
+            D2Civilization3PresentationRules.GetCurrentArchiveDiscovery(state));
         SetText(
             cluesText,
             state.anomalyClueDetectionUnlocked
@@ -190,6 +230,11 @@ public class D2Civilization3PanelUI : MonoBehaviour
                 : "INDICIOS ANÓMALOS — se habilitan con Zona 2 al 20%"
         );
         long clueRequirement = D2Civilization3System.GetAnomalyClueRequirement(zone.zoneId);
+        SetText(cluesText,
+            D2Civilization3System.GetClueName(zone.zoneId).ToUpperInvariant() +
+            " — PATRÓN INCOMPLETO " + zone.anomalyClues.ToString("N0") + "/" +
+            clueRequirement.ToString("N0") + " | Acumulación: " +
+            (zone.anomalyClueProgress * 100.0).ToString("0.##") + "%");
         string anomalyStatus;
         if (!state.anomalyClueDetectionUnlocked)
         {
@@ -294,13 +339,22 @@ public class D2Civilization3PanelUI : MonoBehaviour
                 ? "Las ruinas aguardan la primera excavación."
                 : state.lastResult
         );
+        SetText(objectiveText, GetObjective(state, zone));
         SetInteractable(excavateButton, !zone.excavationActive);
         SetInteractable(zone1Button, true);
         SetInteractable(zone2Button, zone2 != null && zone2.unlocked);
         SetInteractable(zone3Button, zone3 != null && zone3.unlocked);
+        SetActive(zone2Button, D2Civilization3PresentationRules.Contains(
+            visibleZones, D2Civilization3System.Zone2Id));
+        SetActive(zone3Button, D2Civilization3PresentationRules.Contains(
+            visibleZones, D2Civilization3System.Zone3Id));
+        SetActive(lockedZonesText, !string.IsNullOrEmpty(nextZoneText));
         if (unlockZone2Button != null)
         {
-            unlockZone2Button.gameObject.SetActive(zone2 != null && !zone2.unlocked);
+            unlockZone2Button.gameObject.SetActive(
+                D2Civilization3PresentationRules.Contains(
+                    visibleZones, D2Civilization3System.Zone2Id) &&
+                zone2 != null && !zone2.unlocked);
             SetInteractable(
                 unlockZone2Button,
                 D2Civilization3System.CanUnlockZone2(gameState)
@@ -309,6 +363,8 @@ public class D2Civilization3PanelUI : MonoBehaviour
         if (unlockZone3Button != null)
         {
             unlockZone3Button.gameObject.SetActive(
+                D2Civilization3PresentationRules.Contains(
+                    visibleZones, D2Civilization3System.Zone3Id) &&
                 zone2 != null && zone2.unlocked && zone3 != null && !zone3.unlocked
             );
             SetInteractable(
@@ -340,10 +396,29 @@ public class D2Civilization3PanelUI : MonoBehaviour
             !zone.scholarHired
                 ? D2Civilization3System.CanHireScholar(gameState, zone.zoneId)
                 : D2Civilization3System.CanUpgradeScholar(gameState, zone.zoneId));
+        SetActive(inventoryText, hasExcavated);
+        SetActive(analysisText, analysisFeature.IsVisible);
+        SetActive(analysisSlider, analysisFeature.IsVisible && zone.analysisActive);
+        SetActive(analyzeLowButton, analysisFeature.IsVisible &&
+            D2Civilization3PresentationRules.Contains(
+                possessedQualities, D2Civilization3System.LowQualityId));
+        SetActive(analyzeMediumButton, analysisFeature.IsVisible &&
+            D2Civilization3PresentationRules.Contains(
+                possessedQualities, D2Civilization3System.MediumQualityId));
+        SetActive(analyzeHighButton, analysisFeature.IsVisible &&
+            D2Civilization3PresentationRules.Contains(
+                possessedQualities, D2Civilization3System.HighQualityId));
+        SetActive(scholarText, hasExcavated);
+        SetActive(hireScholarButton, hasExcavated);
+        SetActive(civilization1ResourcesText, hasExcavated);
+        SetActive(researchText, hasAnalyzed);
+        SetActive(archiveText, archiveFeature.IsVisible);
+        SetActive(cluesText, cluesFeature.IsVisible);
+        SetActive(anomalyText, anomaliesFeature.IsVisible);
         if (readAnomalyButton != null)
         {
             readAnomalyButton.gameObject.SetActive(
-                zone.anomalyRevealed && !zone.anomalyRead
+                anomaliesFeature.IsVisible && zone.anomalyRevealed && !zone.anomalyRead
             );
             SetInteractable(
                 readAnomalyButton,
@@ -424,6 +499,7 @@ public class D2Civilization3PanelUI : MonoBehaviour
 
     public void ShowArchaeology()
     {
+        RecognizeSection(PresentationFeatureIds.D2C3Archaeology);
         if (archaeologySectionRoot != null)
             archaeologySectionRoot.SetActive(true);
         if (entityResearchSectionRoot != null)
@@ -435,6 +511,7 @@ public class D2Civilization3PanelUI : MonoBehaviour
 
     public void ShowArchive()
     {
+        RecognizeSection(PresentationFeatureIds.D2C3Archive);
         if (archaeologySectionRoot != null)
             archaeologySectionRoot.SetActive(false);
         if (archiveSectionRoot != null)
@@ -450,6 +527,7 @@ public class D2Civilization3PanelUI : MonoBehaviour
         D2Civilization3State state = GameState.I?.dimension2?.civilization3;
         if (state == null || !state.entityResearchUnlocked)
             return;
+        RecognizeSection(PresentationFeatureIds.D2C3EntityResearch);
         if (archaeologySectionRoot != null)
             archaeologySectionRoot.SetActive(false);
         if (archiveSectionRoot != null)
@@ -458,6 +536,15 @@ public class D2Civilization3PanelUI : MonoBehaviour
             entityResearchSectionRoot.SetActive(true);
         if (entityResearchPanelUI != null)
             entityResearchPanelUI.Refresh();
+    }
+
+    private static void RecognizeSection(string featureId)
+    {
+        GameState gameState = GameState.I;
+        if (gameState?.dimension2?.presentation == null) return;
+        D2PresentationRouter.RememberScreen(gameState, featureId);
+        PresentationStateUtility.Acknowledge(
+            gameState.dimension2.presentation, featureId);
     }
 
     public void BackToMapFromChild()
@@ -479,6 +566,22 @@ public class D2Civilization3PanelUI : MonoBehaviour
         return zoneId == D2Civilization3System.Zone2Id ? "2" : "1";
     }
 
+    private static string GetObjective(
+        D2Civilization3State state, D2C3ZoneState zone)
+    {
+        if (!D2Civilization3PresentationRules.HasExcavationProgress(state))
+            return "AHORA: realiza una Excavación.\nDESPUÉS: examina los Restos recuperados.";
+        if (!zone.scholarHired)
+            return "AHORA: contrata al Erudito requerido.\nDESPUÉS: analiza una calidad de Restos poseída.";
+        if (!D2Civilization3PresentationRules.HasAnalysisProgress(state))
+            return "AHORA: analiza un Resto disponible.\nDESPUÉS: investiga la Zona y consulta el Archivo.";
+        if (state.entityResearchUnlocked && !state.entityResearchMilestone100Completed)
+            return "AHORA: revisa el hito actual del Ente.\nCIERRE PRINCIPAL: Pacto Mayor de Civilización 2.";
+        if (state.entityPactAvailable || state.entityPactEstablished)
+            return "CONTENIDO AVANZADO OPCIONAL: Pacto con el Ente.\nCIERRE PRINCIPAL: Pacto Mayor de Civilización 2.";
+        return "AHORA: continúa el ciclo excavar → analizar → investigar.";
+    }
+
     private static void SetText(TMP_Text target, string value)
     {
         if (target != null)
@@ -491,12 +594,19 @@ public class D2Civilization3PanelUI : MonoBehaviour
             target.interactable = value;
     }
 
-    private static void SetButtonLabel(Button target, string value)
+    private static void SetButtonLabel(
+        Button target, string value, bool isNew = false)
     {
         if (target == null)
             return;
         TMP_Text label = target.GetComponentInChildren<TMP_Text>(true);
         if (label != null)
-            label.text = value;
+            label.text = value + (isNew ? " · NUEVO" : "");
+    }
+
+    private static void SetActive(Component target, bool active)
+    {
+        if (target != null)
+            target.gameObject.SetActive(active);
     }
 }

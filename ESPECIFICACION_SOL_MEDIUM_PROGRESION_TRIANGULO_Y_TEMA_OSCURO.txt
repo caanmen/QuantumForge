@@ -1,0 +1,800 @@
+QUANTUM FORGE — ESPECIFICACIÓN PARA SOL MEDIUM
+REDISEÑO DE PROGRESIÓN HASTA EL TRIÁNGULO, CATÁLOGO F2 Y TEMA OSCURO DE DIMENSIÓN 1
+Fecha: 2026-07-28
+Proyecto: C:\Users\nedfla\Quantum Forge
+Unity: 6000.3.10f1
+
+======================================================================
+0. OBJETIVO Y AUTORIDAD DE ESTE DOCUMENTO
+======================================================================
+
+Implementar como un solo bloque coherente dos cambios aprobados por el usuario:
+
+A) Hacer intuitivo el recorrido Higgs -> Tetraquark -> Modulador -> Acople -> Triángulo,
+evitando que el jugador vea o compre mejoras de un sistema que todavía no posee.
+
+B) Cambiar solamente el tratamiento de COLOR de la interfaz principal/Dimensión 1 por
+un tema oscuro de alto contraste inspirado en las Dimensiones 2 y 3. No alterar la
+estructura visual existente.
+
+Este documento contiene las decisiones nuevas y explícitamente aprobadas por el usuario.
+Si contradice una propuesta antigua todavía no implementada, esta especificación más
+reciente tiene prioridad para este bloque. Antes de cambiar código, revisar también:
+
+- REGLAS_DE_TRABAJO_Y_CONTINUIDAD.md
+- REDISENO_FUTURO_TRIANGULO_JUEGO_BASE.md
+- Los archivos reales del proyecto, que determinan el estado técnico actual.
+
+Registrar las decisiones nuevas de este documento en el diseño canónico del Triángulo
+antes o al mismo tiempo que se implementa el bloque. En particular, la decisión nueva
+para el ID triangle_persistence_anchor sustituye su concepto anterior de reserva offline.
+
+======================================================================
+1. RESTRICCIONES OBLIGATORIAS
+======================================================================
+
+- NO generar APK durante este bloque.
+- NO borrar, restaurar, limpiar, hacer commit, stage, push, reset ni checkout de Git.
+- Preservar todo el worktree actual y todos los cambios ajenos a este bloque.
+- Los cambios manuales de archivos deben hacerse con apply_patch.
+- No reemplazar Main.unity completa ni reconstruir la escena desde cero.
+- Si se modifica Main.unity o conexiones serializadas, hacerlo mediante una herramienta
+  Editor idempotente y validada, con Unity normal cerrado para la ejecución batch.
+- No ejecutar Unity batch si el Editor normal está abierto.
+- Mantener compatibilidad con guardados existentes.
+- Mantener español e inglés sincronizados en toda clave nueva o modificada.
+- No cambiar la estructura de la interfaz por el tema oscuro: no mover, redimensionar,
+  reordenar, reanclar, renombrar, reparentar, crear nuevas columnas ni modificar la
+  navegación. Solo colores, estados visuales y contraste.
+- Sí se permiten los cambios mínimos de contenido/visibilidad necesarios para explicar
+  la progresión del Triángulo: textos de estado, gating y overlay/checklist sobre el área
+  ya existente. No rediseñar el layout general.
+
+======================================================================
+2. DIAGNÓSTICO CONFIRMADO QUE DEBE CORREGIRSE
+======================================================================
+
+2.1. Ausencia de requisitos F2
+
+- F2UpgradeDef no modela prerrequisitos.
+- F2UpgradeManager.CanBuy/TryBuy solo revisan coste, moneda y máximo.
+- Las nueve filas F2 están activas desde el principio en Main.unity.
+- F2UpgradeVisibilityController no está conectado a Main y, aunque lo estuviera, solo
+  contemplaría Análisis Residual y Mapeo de Patrones.
+
+Consecuencia: se pueden comprar mejoras del Triángulo por 120, 140 y 160 Trazas antes
+de Acople de Vértices, que cuesta 250 Trazas.
+
+2.2. Acople puede comprarse demasiado pronto
+
+- Acople puede adquirirse sin tener el Modulador.
+- TryBuy activa triangleSystemUnlocked y SanitizeTriangleCircuit selecciona Energía.
+- La sincronización puede avanzar oculta aun faltando el tercer vértice.
+
+Consecuencia: el jugador puede encontrar el Triángulo ya sincronizado y perder el
+momento de activación 0% -> 100%.
+
+2.3. Texto incorrecto del Modulador
+
+- Al comprar el Modulador, su botón cambia siempre a "En el Triángulo".
+- Esto ocurre aunque no se haya comprado Acople.
+- Ese botón no abre el Triángulo ni ofrece explicación adicional.
+
+2.4. Anclaje Persistente es una compra sin efecto
+
+- La UI promete carga, reserva máxima y conversión offline.
+- GetTrianglePersistenceReserveMaxSeconds devuelve 0.
+- GetTrianglePersistenceOfflineSecondsPerReserveHour devuelve 0.
+- HasTrianglePersistenceReserveActive devuelve false.
+- GetTrianglePersistenceReserveBuildingMultiplier devuelve 1.
+- ApplyOfflineTrianglePersistenceReserve está vacío.
+- El tier de triangle_persistence_anchor no participa en un efecto útil actual.
+
+No intentar explicar la mecánica antigua. Debe reemplazarse.
+
+2.5. Upgrades repetitivos y textos matemáticamente incorrectos
+
+- Emisión, Contención, Estabilización y Patrones son variantes de aumentar LE.
+- El código suma effectValue de todos los tiers adquiridos, mientras la interfaz muestra
+  el valor del último tier como si fuera el total.
+- Ejemplos actuales: Emisión da realmente +35% pero dice +20%; Contención/Tetra dan
+  +65% pero dicen +35%; Residual da +30% pero dice +20%.
+- Mapeo de Patrones cuenta artefactos poseídos, no "activos", y se convierte en otro
+  multiplicador global de LE.
+
+2.6. Botones F2 sin retroalimentación
+
+- F2UpgradeRowUI calcula coste y máximo, pero no actualiza buyButton.interactable con
+  CanBuy ni explica un requisito faltante.
+- Un toque puede fallar silenciosamente.
+
+======================================================================
+3. NUEVO RECORRIDO APROBADO
+======================================================================
+
+El límite conceptual debe ser Acople de Vértices:
+
+PREPARACIÓN -> ACOPLE -> ELECCIÓN DE CIRCUITO -> ESPECIALIZACIÓN
+
+3.1. Etapa inicial
+
+1. El Condensador de Higgs está disponible desde el inicio.
+2. El Núcleo Tetraquark requiere Higgs nivel 1.
+3. El Modulador de Fase requiere Tetraquark nivel 1.
+4. Acople de Vértices requiere poseer los tres artefactos en nivel 1 o superior.
+5. Ninguna mejora de circuito puede mostrarse ni comprarse antes de Acople.
+
+No modificar los costes base actuales de edificios dentro de este bloque:
+
+- Higgs: 10 LE.
+- Tetraquark: 700 LE.
+- Modulador: 10.000 LE.
+- Acople: mantener 250 Trazas.
+
+3.2. Estado del área del Triángulo antes de Acople
+
+El Triángulo puede seguir visible como anticipo, pero sus selectores no deben parecer
+accionables. Usar el área existente para mostrar un estado/checklist compacto:
+
+- Antes de poseer Modulador:
+  Título: "Triángulo bloqueado"
+  Línea: "Falta: Modulador"
+
+- Con Higgs, Tetraquark y Modulador, sin Acople:
+  Título: "Vértices listos"
+  Línea: "Investiga Acople · 250 Trazas"
+
+- Con Acople comprado y sin circuito elegido:
+  Título: "Elige un circuito"
+
+No mostrar los botones Energía, Experimental y Fase como opciones utilizables antes de
+Acople. Si se conservan visibles bajo un overlay, no deben recibir clics y deben explicar
+el requisito. Evitar el fallo silencioso.
+
+3.3. Compra de Acople
+
+- Acople solo debe mostrarse cuando el Modulador ya esté comprado.
+- CanBuy y TryBuy deben volver a comprobar los tres artefactos; no confiar únicamente
+  en visibilidad de UI.
+- Si falta saldo, el botón debe estar deshabilitado y mostrar "Faltan X Trazas".
+- Si faltan vértices, mostrar "Faltan vértices".
+- Cuando todo esté listo, usar CTA corto: "Activar".
+- Después de comprarlo: "Activado" o "Completado".
+
+Descripción de Acople:
+"Conecta Higgs, Tetraquark y Modulador. Activa los circuitos."
+
+3.4. Primera selección
+
+- Comprar Acople NO debe seleccionar Energía automáticamente.
+- Debe quedar triangleActiveCircuit = None y triangleSynchronization = 0.
+- El panel debe pedir que el jugador elija Energía o Experimental.
+- Fase permanece bloqueado hasta que la Máquina esté desbloqueada.
+- La primera elección comienza en 0% y alcanza 100% en 90 segundos.
+- Los cambios posteriores parten de 50% sin mejoras de sincronía y alcanzan 100% en
+  90 segundos, respetando la mecánica aprobada actual.
+- La sincronización continúa offline y se guarda normalmente.
+
+3.5. Estados del Modulador
+
+- No comprado:
+  Botón: "Comprar"
+  Descripción: "Tercer vértice. Permite activar el Triángulo."
+
+- Comprado, sin Acople:
+  Estado corto: "Vértice listo"
+  Línea: "Falta Acople de Vértices"
+
+- Comprado y con Acople:
+  Estado: "Triángulo activo"
+  Si el elemento se convierte realmente en navegación: "Ver Triángulo".
+
+No usar un texto de acción si el botón continuará deshabilitado o no ejecutará nada.
+
+3.6. Estados de circuito
+
+- Esperando elección: "Elige un circuito".
+- Sincronizando: ejemplo "Energía · 43% · 51 s".
+- Estable: "Energía estable".
+- Efecto debajo: "+12% LE · -10% Trazas".
+- Al cambiar sin mejora: "El cambio inicia al 50%".
+
+Los textos de las parejas "Higgs + Modulador" y "Higgs + Tetra" solo deben mostrarse
+después de Acople. Antes de Acople podrían hacer creer que bastan dos artefactos.
+
+======================================================================
+4. CATÁLOGO F2 NUEVO APROBADO: SIETE MEJORAS
+======================================================================
+
+Eliminar la repetición visual y funcional. El catálogo público debe quedar en siete
+mejoras. Conservar IDs internos siempre que se indica para proteger guardados.
+
+------------------------------
+4.1. EMISIÓN CALIBRADA
+------------------------------
+
+ID conservado: emission_focus
+Visibilidad: después de comprar Higgs.
+Moneda: LE.
+Cantidad: 2 niveles.
+Efecto TOTAL, no incremento aislado:
+
+- Nivel 1: +5% LE global.
+- Nivel 2: +15% LE global.
+
+La UI debe mostrar el total actualmente aplicado y el total del siguiente nivel.
+No sumar +5% y +15% para producir +20%; los valores definidos son totales.
+
+------------------------------
+4.2. CICLO DE CONTENCIÓN
+------------------------------
+
+ID conservado: containment_tuning
+Nombre público nuevo: Ciclo de Contención
+Visibilidad: después de comprar Higgs.
+Moneda: LE.
+Cantidad: 2 niveles.
+Efecto:
+
+- Base: Higgs produce cada 1,0 s.
+- Nivel 1: Higgs produce cada 0,9 s.
+- Nivel 2: Higgs produce cada 0,8 s.
+
+Este cambio debe afectar producción real, producción mostrada y cálculo offline de forma
+coherente. No convertirlo internamente en otro multiplicador de LE si eso causa diferencias
+entre online y offline.
+
+Microcopy:
+- "Higgs: ciclo 1,0 s -> 0,9 s"
+- "Higgs: ciclo 0,9 s -> 0,8 s"
+
+------------------------------
+4.3. LECTURA TETRAQUARK
+------------------------------
+
+ID principal conservado: tetraquark_stabilization
+Nombre público nuevo: Lectura Tetraquark
+Visibilidad: después de comprar Tetraquark.
+Moneda: LE, no Trazas.
+Cantidad: 2 niveles.
+Efecto TOTAL:
+
+- Nivel 1: +15% Trazas producidas por Tetraquark.
+- Nivel 2: +35% Trazas producidas por Tetraquark.
+
+Fusiona el propósito de Estabilización Tetraquark y Análisis Residual. No debe aumentar
+LE del Tetraquark. Al costar LE, guía hacia las 250 Trazas de Acople en lugar de competir
+con ese objetivo.
+
+ID retirado visualmente: residual_analysis
+- No borrar el ID de forma que rompa guardados.
+- Ocultar su fila nueva.
+- Migrar su progreso según la sección 6.
+
+------------------------------
+4.4. ACOPLE DE VÉRTICES
+------------------------------
+
+ID conservado: triangle_unlock_1
+Visibilidad: después de comprar Modulador.
+Moneda: Trazas.
+Cantidad: 1 nivel.
+Coste: 250 Trazas.
+Requisitos obligatorios, tanto en CanBuy como en TryBuy:
+
+- vacuum_observer nivel >= 1.
+- casimir_panel nivel >= 1.
+- fluctuation_antenna nivel >= 1.
+
+Efecto: desbloquea el Triángulo, pero no elige circuito automáticamente.
+
+------------------------------
+4.5. AMPLIFICADOR DE ENERGÍA
+------------------------------
+
+ID conservado: triangle_impulse_tuning
+Nombre público nuevo: Amplificador de Energía
+Visibilidad: solo después de Acople.
+Moneda: Trazas.
+Cantidad: 2 niveles.
+Efecto TOTAL del Circuito Energía:
+
+- Base sin mejora: +12% LE.
+- Nivel 1: +16% LE.
+- Nivel 2: +20% LE.
+
+La penalización base de -10% Trazas permanece en este bloque.
+
+------------------------------
+4.6. RESONANCIA EXPERIMENTAL
+------------------------------
+
+ID conservado: triangle_synergy_resonance
+Nombre público nuevo: Resonancia Experimental
+Visibilidad: solo después de Acople.
+Moneda: Trazas.
+Cantidad: 2 niveles.
+Efecto TOTAL del Circuito Experimental:
+
+- Base: +10% Trazas y +6% fragmentos.
+- Nivel 1: +13% Trazas y +8% fragmentos.
+- Nivel 2: +15% Trazas y +10% fragmentos.
+
+Los fragmentos solo existen después de abrir Cuarto 2. Antes de ese momento, el texto
+debe decir: "+13% Trazas · fragmentos al abrir Cuarto 2" o su equivalente para el nivel.
+No prometer un recurso que el jugador todavía no puede producir.
+
+------------------------------
+4.7. MEMORIA DE SINCRONÍA
+------------------------------
+
+ID interno conservado: triangle_persistence_anchor
+Nombre público nuevo: Memoria de Sincronía
+Visibilidad: solo después de Acople.
+Moneda: Trazas.
+Cantidad: 2 niveles.
+Efecto:
+
+- Base: al cambiar circuito se conserva 50% de sincronización.
+- Nivel 1: al cambiar circuito se conserva 65%.
+- Nivel 2: al cambiar circuito se conserva 80%.
+
+La primera activación siempre comienza en 0%, incluso si esta mejora ya estaba comprada.
+La mejora solo se aplica a cambios entre circuitos ya activados.
+
+Microcopy exacta y verificable:
+- "Cambio de circuito: inicia al 65%"
+- "Cambio de circuito: inicia al 80%"
+
+Eliminar todos los textos sobre reserva de 4 horas, conversión offline y "carga más
+rápida". No reactivar el sistema antiguo de reserva.
+
+------------------------------
+4.8. MEJORA RETIRADA: MAPEO DE PATRONES
+------------------------------
+
+ID retirado visualmente: pattern_mapping
+
+- No mostrar su fila en el catálogo nuevo.
+- No seguir aplicando su multiplicador global de LE.
+- No borrar el ID de los datos de guardado sin migración.
+- Migrar su progreso a Emisión Calibrada según la sección 6.
+
+======================================================================
+5. MODELO DE REQUISITOS Y COMPORTAMIENTO DE UI
+======================================================================
+
+No resolver el gating únicamente con SetActive en la escena. Debe existir una verdad
+central usada por lógica y UI.
+
+Implementación técnica sugerida:
+
+5.1. Extender F2UpgradeDef o crear una capa equivalente de reglas con:
+
+- requiredBuildingId / requiredBuildingLevel cuando aplique.
+- requiredUpgradeId / requiredUpgradeTier cuando aplique.
+- requiresTriangleUnlocked cuando aplique.
+- Condiciones especiales explícitas para Cuarto 2 o Máquina si se usan después.
+
+5.2. F2UpgradeManager debe exponer por lo menos:
+
+- MeetsPrerequisites(id).
+- CanBuy(id), incluyendo prerrequisitos, saldo y máximo.
+- GetLockReason(id) o estado equivalente para UI.
+- ShouldBeVisible(id) o una regla central equivalente.
+
+TryBuy debe volver a validar todo. Nunca confiar en que la fila esté oculta.
+
+5.3. F2UpgradeRowUI.Refresh debe:
+
+- Ocultar una fila que todavía no corresponde a la progresión.
+- Deshabilitar buyButton si no hay saldo, falta requisito o está maximizada.
+- Mostrar una razón corta cuando el requisito sea visible pero todavía no se cumpla.
+- Mostrar "Mejorar" cuando sea comprable.
+- Mostrar "Completado" al máximo.
+- Mostrar valores totales reales, no incrementos ambiguos.
+- Actualizar inmediatamente al comprar edificios, Acople o upgrades.
+
+5.4. Orden visible:
+
+Sección FUNDAMENTOS:
+1. Emisión Calibrada.
+2. Ciclo de Contención.
+3. Lectura Tetraquark.
+
+Hito TRIÁNGULO:
+4. Acople de Vértices.
+
+Sección CIRCUITOS, oculta hasta Acople:
+5. Amplificador de Energía.
+6. Resonancia Experimental.
+7. Memoria de Sincronía.
+
+No es obligatorio crear nuevos encabezados si eso alteraría la estructura. El requisito
+obligatorio es el orden progresivo y la visibilidad correcta dentro de la estructura actual.
+
+======================================================================
+6. GUARDADO Y MIGRACIÓN
+======================================================================
+
+La migración debe ser idempotente: cargar y guardar varias veces no puede volver a otorgar
+tiers ni transformar progreso repetidamente.
+
+6.1. IDs que permanecen directamente
+
+- emission_focus.
+- containment_tuning.
+- tetraquark_stabilization.
+- triangle_unlock_1.
+- triangle_impulse_tuning.
+- triangle_synergy_resonance.
+- triangle_persistence_anchor.
+
+6.2. Reducción de tiers
+
+- emission_focus antiguo tenía hasta 3 tiers; el nuevo tiene 2.
+  Cualquier tier antiguo >= 2 debe quedar en nuevo tier 2.
+- containment_tuning antiguo tenía hasta 3; nuevo máximo 2.
+  Cualquier tier antiguo >= 2 debe quedar en nuevo tier 2.
+- tetraquark_stabilization antiguo tenía hasta 3; nuevo máximo 2.
+  Cualquier tier antiguo >= 2 debe quedar en nuevo tier 2.
+
+No permitir purchasedTiers por encima del máximo de la definición cargada.
+
+6.3. IDs fusionados/retirados
+
+- residual_analysis se fusiona en tetraquark_stabilization:
+  - residual tier 0: no cambia nada.
+  - residual tier 1: garantizar Lectura Tetraquark tier >= 1.
+  - residual tier 2: garantizar Lectura Tetraquark tier >= 2.
+
+- pattern_mapping se fusiona en emission_focus:
+  - pattern tier 0: no cambia nada.
+  - pattern tier 1: garantizar Emisión Calibrada tier >= 1.
+  - pattern tier 2: garantizar Emisión Calibrada tier >= 2.
+
+Después de migrar, conservar los IDs antiguos con tier 0 o marcarlos internamente como
+retirados, pero no seguir aplicando sus efectos. Añadir una versión de migración al save
+si es necesario para que el proceso no se repita.
+
+6.4. Acople antiguo sin los tres vértices
+
+Una partida antigua puede tener triangle_unlock_1 comprado antes del Modulador.
+
+- No quitar la compra ni cobrar otra vez.
+- Mantener triangleSystemUnlocked.
+- No permitir activar ni sincronizar un circuito hasta poseer los tres artefactos.
+- Mientras falte alguno, mostrar checklist/requisito.
+- En cuanto existan los tres, pedir elección manual si no había un circuito válido.
+
+6.5. Partidas con circuito activo válido
+
+- No borrar el circuito de una partida antigua que ya posea Acople, los tres artefactos y
+  un circuito válido.
+- Conservar su sincronización guardada, limitada a 0..1.
+- La regla de "elegir manualmente" aplica a nuevas activaciones o estados antiguos sin
+  circuito válido; no debe romper progreso legítimo existente.
+
+======================================================================
+7. TEMA OSCURO DE ALTO CONTRASTE PARA DIMENSIÓN 1
+======================================================================
+
+7.1. Propósito
+
+La pantalla principal usa actualmente un azul saturado que reduce la legibilidad de los
+textos pequeños en Android. El jugador debe acercarse demasiado a la pantalla. Dimensión 2
+y Dimensión 3 ya usan fondos oscuros, paneles diferenciados y texto claro; esa dirección
+visual debe trasladarse a Dimensión 1.
+
+7.2. Alcance visual
+
+Aplicar el tema a los elementos existentes de la pantalla principal/Dimensión 1:
+
+- Fondo general.
+- HUD de LE y Trazas.
+- Filas de edificios.
+- Panel/representación del Triángulo.
+- Filas de mejoras F2.
+- Navegación inferior de Generación, Investigación y Logros.
+- Botones Reset, Ocultar, idioma y herramientas QA.
+- Estados activos, bloqueados, deshabilitados y completados.
+- Scrollbars, fondos de sliders o barras existentes.
+- Modales de Dimensión 1 relacionados, si conservan el azul antiguo.
+
+No recolorear Dimensión 2 ni Dimensión 3. Ya son la referencia visual aceptada.
+
+7.3. Prohibiciones visuales
+
+- No cambiar RectTransform, anchors, offsets, pivots, tamaños ni posiciones.
+- No cambiar fuentes, tamaños de fuente, auto-size ya configurado ni wrapping.
+- No crear nuevas cajas alrededor de cada texto si no existen.
+- No cambiar iconos, geometría del Triángulo ni distribución de vértices.
+- No cambiar jerarquía, orden de siblings, navegación ni eventos de botones.
+- No usar negro puro detrás de todo ni blanco puro para todos los estados.
+- No depender únicamente del color para indicar un requisito; conservar texto de estado.
+
+7.4. Paleta base recomendada
+
+La paleta deriva directamente del lenguaje visual de Dimensión 2:
+
+- Fondo principal:             #090A13  RGBA(9, 10, 19, 255)
+- Superficie profunda:         #141A2B  RGBA(20, 26, 43, 255)
+- Panel/tarjeta:               #242E4D  RGBA(36, 46, 77, 250)
+- Panel elevado/seleccionado:  #2D3C63  RGBA(45, 60, 99, 255)
+- Borde/divisor:               #46597D  RGBA(70, 89, 125, 220)
+- Texto principal:             #E6EDFF  RGBA(230, 237, 255, 255)
+- Texto secundario:            #B8C5DC  RGBA(184, 197, 220, 255)
+- Texto atenuado legible:      #8F9DB5  RGBA(143, 157, 181, 255)
+- Acento principal:            #6BADEB  RGBA(107, 173, 235, 255)
+- Acento activo/cian:          #43C6DB  RGBA(67, 198, 219, 255)
+- Éxito/disponible:            #63D69A  RGBA(99, 214, 154, 255)
+- Advertencia/requisito:       #F2C66D  RGBA(242, 198, 109, 255)
+- Error/reset:                 #E06C75  RGBA(224, 108, 117, 255)
+
+Si un elemento necesita transparencia, conservar el RGB y usar alpha no menor de 0,90
+para superficies que tengan texto encima. Evitar fondos translúcidos sobre el azul viejo.
+
+7.5. Botones
+
+Botón normal:
+- Fondo: #244D73.
+- Texto: #F3F7FF.
+- Borde opcional existente: #6BADEB.
+
+Highlighted:
+- Fondo: #2D6696.
+
+Pressed:
+- Fondo: #193B59.
+
+Selected/activo:
+- Fondo: #237B86.
+- Texto: #F3FFFF.
+
+Disabled/bloqueado:
+- Fondo: #283247.
+- Texto: #8F9DB5.
+
+Completed:
+- Fondo: #275E4A.
+- Texto: #DFFFEF.
+
+El estado deshabilitado debe seguir siendo legible. No bajar el alpha total del botón a
+un punto donde el texto desaparezca.
+
+El botón Reset debe conservar identidad de acción peligrosa:
+- Fondo normal oscuro: #5A2931.
+- Texto: #FFECEF.
+- Highlight: #783943.
+
+Las herramientas QA pueden conservar un acento diferente, pero con texto de alto contraste:
+- Inactivo: #3A334F.
+- Activo/acelerado: #9A5B22.
+- Texto: #FFF4E6.
+
+7.6. Texto y contraste
+
+- Todo texto normal debe tener contraste mínimo WCAG 4.5:1 contra su fondo real.
+- Objetivo recomendado para textos pequeños de Android: 7:1 o superior.
+- Texto grande puede aceptar 3:1, pero intentar 4.5:1 igualmente.
+- No usar gris oscuro sobre azul oscuro.
+- No usar texto blanco encima de botones grises casi blancos.
+- Títulos y recursos principales: Texto principal #E6EDFF.
+- Descripciones y costes: Texto secundario #B8C5DC.
+- Requisitos faltantes: Advertencia #F2C66D.
+- Producción/bonificación positiva: Éxito #63D69A o acento cian.
+- Penalizaciones: Error #E06C75.
+- Bloqueos: texto atenuado #8F9DB5, siempre sobre fondo #283247 o más oscuro.
+
+7.7. Triángulo
+
+- Fondo de su zona: #141A2B o transparente únicamente si debajo ya está #090A13.
+- Circuito inactivo: #34435C.
+- Circuito activo: #43C6DB.
+- Circuito bloqueado: #283247.
+- Texto activo: #F3FFFF.
+- Texto bloqueado: #AAB6CA.
+- Sincronización/fill: #6BADEB.
+- Overlay previo a Acople: superficie #141A2B con alpha >= 0,96 y borde #46597D.
+
+Conservar los colores de identidad de los tres artefactos solo como acentos pequeños. No
+usar superficies grandes rojo/verde/amarillo detrás de texto.
+
+7.8. Implementación segura del tema
+
+Recomendación:
+
+- Crear una clase central de constantes/paleta, por ejemplo Dimension1DarkThemePalette,
+  para evitar hex distintos repartidos por muchos scripts.
+- Crear una herramienta Editor idempotente, por ejemplo Dimension1DarkThemeSetup, que
+  recorra solamente los objetos conocidos de Dimensión 1 y aplique colores a Images,
+  TMP_Text y ColorBlock de Buttons existentes.
+- La herramienta NO debe crear o eliminar objetos, cambiar layout ni reconectar eventos.
+- Guardar Main.unity solo después de verificar que la cantidad y jerarquía de GameObjects
+  relevantes no cambió.
+- Revisar colores definidos en runtime que podrían sobrescribir la escena, especialmente:
+  TriangleSlotUI, TriangleArtifactCardUI, TriangleSelectionUI, DevMultiplierButton,
+  MobileQaFriendlyLayout y cualquier modal de Dimensión 1.
+- No modificar colores de D2/D3 salvo que una clase compartida esté sobrescribiéndolos por
+  error; en ese caso aislar el tema por panel/dimensión.
+
+======================================================================
+8. ARCHIVOS Y SISTEMAS QUE PROBABLEMENTE INTERVENDRÁN
+======================================================================
+
+Inspeccionar antes de editar. La lista no autoriza refactorizaciones generales:
+
+Datos/localización:
+- Assets/Project/Resources/Data/f2_upgrades.json
+- Assets/Project/Resources/Localization/lang_es.json
+- Assets/Project/Resources/Localization/lang_en.json
+- REDISENO_FUTURO_TRIANGULO_JUEGO_BASE.md
+
+Lógica:
+- Assets/Project/Scripts/Systems/F2UpgradeDef.cs
+- Assets/Project/Scripts/Systems/F2UpgradeManager.cs
+- Assets/Project/Scripts/Core/GameState.cs
+- Assets/Project/Scripts/Systems/SaveService.cs
+
+UI:
+- Assets/Project/Scripts/UI/F2UpgradeRowUI.cs
+- Assets/Project/Scripts/UI/F2UpgradeVisibilityController.cs, solo si se decide reutilizarlo.
+- Assets/Project/Scripts/Buildings/BuildingRowUI.cs
+- Assets/Project/Scripts/UI/TrianglePanelUI.cs
+- Assets/Project/Scripts/UI/TriangleSlotUI.cs
+- Assets/Project/Scripts/UI/TriangleArtifactCardUI.cs
+- Assets/Project/Scripts/UI/TriangleSelectionUI.cs
+- Assets/Project/Scripts/UI/MobileQaFriendlyLayout.cs
+- Assets/Project/Scripts/UI/DevMultiplierButton.cs
+
+Escena/herramientas:
+- Assets/Project/Scenes/Main.unity
+- Nuevo setup Editor idempotente para gating/conexiones necesarias, si aplica.
+- Nuevo setup Editor idempotente para tema oscuro, si aplica.
+- Nuevos validadores Editor indicados en la sección 9.
+
+No asumir que todos necesitan modificación. Cambiar solo los que resulten necesarios tras
+la inspección real.
+
+======================================================================
+9. VALIDACIÓN OBLIGATORIA EN UNITY
+======================================================================
+
+Crear o ampliar validadores automatizados. No usar una partida DEBUG como evidencia de
+balance, pero sí puede usarse para verificar reglas aisladas.
+
+9.1. Progresión y gating
+
+Validar como mínimo:
+
+1. Partida nueva: no aparecen Acople ni mejoras de circuitos.
+2. Sin Higgs: no puede comprarse Tetraquark.
+3. Con Higgs: aparecen Emisión y Ciclo de Contención.
+4. Con Tetraquark: aparece Lectura Tetraquark.
+5. Con muchas Trazas pero sin Modulador: Acople no puede comprarse mediante llamada
+   directa a TryBuy.
+6. Con Modulador: aparece Acople y el Modulador dice "Vértice listo".
+7. Sin Acople: Impulso, Resonancia y Memoria no aparecen ni pueden comprarse mediante
+   TryBuy aunque haya saldo.
+8. Comprar Acople no selecciona Energía ni inicia sincronización oculta.
+9. Primera selección manual inicia exactamente en 0%.
+10. Llega a 100% en 90 segundos online y mediante avance offline equivalente.
+11. Cambio posterior sin Memoria inicia en 50%.
+12. Memoria tier 1 inicia cambios en 65%; tier 2 en 80%.
+13. Memoria no altera el 0% de la primera activación.
+14. Fase continúa bloqueado hasta Máquina.
+15. Los efectos reales de los siete upgrades coinciden con los textos mostrados.
+16. Los botones quedan deshabilitados sin saldo, con requisito faltante y al máximo.
+17. Reset elimina el progreso nuevo y devuelve visibilidades/estados iniciales.
+
+9.2. Guardado y carga
+
+Validar:
+
+- Guardar/cargar los siete upgrades.
+- Guardar/cargar Acople sin circuito elegido.
+- Guardar/cargar cada circuito y su sincronización.
+- Migrar tiers antiguos de Residual y Patrones una sola vez.
+- Cargar un save con tiers antiguos por encima del nuevo máximo sin excepción.
+- Cargar Acople antiguo sin Modulador sin iniciar sincronización oculta.
+- Conservar un circuito válido de una partida antigua completa.
+- Reset después de una migración.
+
+9.3. Producción
+
+Validar:
+
+- Ciclo de Contención afecta la frecuencia real, el valor mostrado y offline.
+- Lectura Tetraquark afecta Trazas, no LE.
+- Emisión usa totales +5%/+15%, sin suma accidental.
+- Energía usa +12%/+16%/+20% total.
+- Experimental usa los totales definidos y no muestra fragmentos activos antes de Cuarto 2.
+- Mapeo y Residual retirados ya no aplican efectos duplicados.
+- Memoria no reactiva la reserva offline antigua.
+
+9.4. Tema oscuro y legibilidad
+
+Crear un validador, por ejemplo Dimension1DarkThemeValidation, que compruebe:
+
+- Fondo de Dimensión 1 dentro de la paleta definida.
+- Textos principales/secundarios con colores esperados.
+- ColorBlock de botones en estados normal/highlighted/pressed/disabled.
+- Contraste calculado mínimo 4.5:1 para textos normales.
+- Los colores de Dimensión 2 y Dimensión 3 permanecen sin cambios.
+- No se alteraron anchors, offsets ni tamaños por el setup de colores.
+- No se añadieron/eliminaron objetos por la herramienta de tema.
+
+Revisión visual obligatoria en Game View:
+
+- 1344 x 600, aproximación a la captura Android del usuario.
+- 1920 x 1080.
+- Una relación alta/teléfono adicional si ya existe preset QA.
+
+Comprobar visualmente:
+
+- HUD legible sin acercarse a la pantalla.
+- Costes, producción y descripciones de edificios.
+- Botones y estados deshabilitados.
+- Triángulo bloqueado, listo, sincronizando y estable.
+- Lista completa F2 y textos de dos líneas.
+- Barra inferior y herramientas QA.
+- Español e inglés.
+
+9.5. Regresiones finales
+
+Ejecutar después de implementar y conectar:
+
+- Compilación C# de Unity sin errores.
+- TriangleRedesignValidation actualizado.
+- MobileButtonLegibilityValidation actualizado.
+- BuildingSceneReloadValidation.
+- AndroidPauseResumeValidation.
+- AndroidOfflineResumeBudgetValidation.
+- QaGlobalAccelerationValidation.
+- QaMainSceneIntegrityValidation.
+- SpanishReleaseReadinessValidation.
+- Nuevas validaciones de progresión F2, migración y tema oscuro.
+- git diff --check, solo lectura; no hacer stage/commit.
+
+Si alguna validación falla, corregirla antes de declarar el bloque terminado. No generar APK.
+
+======================================================================
+10. CRITERIOS DE ACEPTACIÓN DEL BLOQUE
+======================================================================
+
+El bloque solo puede considerarse terminado cuando:
+
+- El jugador nunca puede mejorar un circuito antes de poseer el Triángulo.
+- Acople no puede comprarse antes de poseer los tres vértices.
+- No existe sincronización oculta antes de la primera elección.
+- Comprar Modulador comunica claramente que falta Acople.
+- Comprar Acople conduce directamente a elegir Energía o Experimental.
+- Los siete upgrades tienen efectos diferentes, comprensibles y reales.
+- Anclaje Persistente deja de vender una función inexistente.
+- Todos los valores de UI coinciden con los cálculos reales.
+- Los botones siempre explican o representan correctamente por qué están bloqueados.
+- Los guardados antiguos cargan sin perder Acople, circuito válido ni tiers equivalentes.
+- Dimensión 1 tiene fondo oscuro y texto legible comparable a Dimensiones 2/3.
+- Ningún cambio de tema altera estructura, posición, tamaño o navegación.
+- Dimensiones 2 y 3 conservan su apariencia actual.
+- Unity compila y todas las validaciones obligatorias pasan.
+- No se ha generado ninguna APK.
+
+======================================================================
+11. ENTREGA QUE DEBE HACER SOL MEDIUM AL TERMINAR
+======================================================================
+
+Entregar al usuario un resumen con:
+
+- Archivos modificados y motivo.
+- Catálogo final implementado con costes y efectos.
+- Reglas de visibilidad y requisitos implementadas.
+- Migración de guardados aplicada.
+- Paleta final utilizada.
+- Confirmación de que no se cambió el layout.
+- Validaciones ejecutadas y resultado exacto.
+- Errores encontrados y cómo se corrigieron.
+- Pendientes visuales o de balance, si existen.
+- Confirmación explícita de que no se creó APK.
+
+FIN DE LA ESPECIFICACIÓN

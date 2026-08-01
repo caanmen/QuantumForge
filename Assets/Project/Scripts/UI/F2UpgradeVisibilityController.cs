@@ -2,32 +2,47 @@ using UnityEngine;
 
 public class F2UpgradeVisibilityController : MonoBehaviour
 {
-    [Header("Trace rows")]
-    [SerializeField] private GameObject residualAnalysisRow;
-    [SerializeField] private GameObject patternMappingRow;
+    private float _nextRefresh;
 
-    [Header("Unlock condition")]
-    [SerializeField] private string requiredBuildingId = "fluctuation_antenna";
-    [SerializeField] private int requiredLevel = 1;
+    private void Awake()
+    {
+        if (Application.isPlaying)
+            DontDestroyOnLoad(gameObject);
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void EnsureRuntimeController()
+    {
+        F2UpgradeVisibilityController existing =
+            FindFirstObjectByType<F2UpgradeVisibilityController>();
+        if (existing != null)
+        {
+            DontDestroyOnLoad(existing.gameObject);
+            existing.RefreshAll();
+            return;
+        }
+
+        new GameObject("F2UpgradeVisibilityRuntime")
+            .AddComponent<F2UpgradeVisibilityController>();
+    }
 
     private void Update()
     {
-        bool showTraceRows = false;
-
-        if (GameState.I != null)
-        {
-            showTraceRows = GameState.I.GetBuildingLevel(requiredBuildingId) >= requiredLevel;
-        }
-
-        SetRowVisible(residualAnalysisRow, showTraceRows);
-        SetRowVisible(patternMappingRow, showTraceRows);
+        if (Time.unscaledTime < _nextRefresh) return;
+        _nextRefresh = Time.unscaledTime + 0.20f;
+        RefreshAll();
     }
 
-    private void SetRowVisible(GameObject row, bool visible)
+    public void RefreshAll()
     {
-        if (row == null) return;
-
-        if (row.activeSelf != visible)
-            row.SetActive(visible);
+        if (F2UpgradeManager.I == null) return;
+        var rows = FindObjectsByType<F2UpgradeRowUI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (var row in rows)
+        {
+            if (row == null) continue;
+            bool visible = F2UpgradeManager.I.ShouldBeVisible(row.UpgradeId);
+            if (row.gameObject.activeSelf != visible) row.gameObject.SetActive(visible);
+            if (visible) row.RefreshNow();
+        }
     }
 }

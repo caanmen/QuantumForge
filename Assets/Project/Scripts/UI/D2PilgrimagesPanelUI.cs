@@ -22,6 +22,8 @@ public class D2PilgrimagesPanelUI : MonoBehaviour
     public Button cancelButton;
 
     private float _refreshTimer;
+    private bool _showOfflineExplanation;
+    private const string OfflineHelpId = "d2.c1.pilgrimages.offline_help";
 
     private void Awake()
     {
@@ -46,7 +48,22 @@ public class D2PilgrimagesPanelUI : MonoBehaviour
     private void OnEnable()
     {
         _refreshTimer = 0f;
+        _showOfflineExplanation = GameState.I != null &&
+            GameState.I.dimension2 != null &&
+            GameState.I.dimension2.civilization1.shortPilgrimagesCompleted > 0L &&
+            !PresentationStateUtility.Contains(
+                GameState.I.dimension2.presentation.acknowledgedFeatureIds,
+                OfflineHelpId);
         Refresh();
+    }
+
+    private void OnDisable()
+    {
+        if (_showOfflineExplanation && GameState.I != null &&
+            GameState.I.dimension2 != null)
+            PresentationStateUtility.Acknowledge(
+                GameState.I.dimension2.presentation, OfflineHelpId);
+        _showOfflineExplanation = false;
     }
 
     private void Update()
@@ -75,12 +92,8 @@ public class D2PilgrimagesPanelUI : MonoBehaviour
 
         if (trustText != null)
         {
-            trustText.text =
-                "CONFIANZA: " + state.trust.ToString("0") + "/500" +
-                "   |   Civ 2: " +
-                (gameState.dimension2.civilization2Unlocked ? "DESBLOQUEADA" : "a 300") +
-                "   |   Umbral Velado: " +
-                (state.entityContactAvailable ? "ALGO RESPONDE" : "a 500");
+            trustText.text = "CONFIANZA: " + state.trust.ToString("0") +
+                "/300 · meta: localizar otro territorio";
         }
 
         if (trustSlider != null)
@@ -129,6 +142,9 @@ public class D2PilgrimagesPanelUI : MonoBehaviour
             lastResultText.text = string.IsNullOrEmpty(state.lastPilgrimageResult)
                 ? "Las recompensas se entregan automáticamente al completar."
                 : state.lastPilgrimageResult;
+            if (_showOfflineExplanation)
+                lastResultText.text +=
+                    "\nLas Peregrinaciones continúan durante una ausencia y se reanudan al volver.";
         }
 
         RefreshButtonLabel(state, startShortButton, D2PilgrimageSystem.ShortId);
@@ -163,6 +179,22 @@ public class D2PilgrimagesPanelUI : MonoBehaviour
             state.pilgrimageSupportFollowersSelected < state.followersAvailable);
         SetInteractable(removeSupportButton, !active.active &&
             state.pilgrimageSupportFollowersSelected > 0L);
+
+        bool hasCompletedShort = state.shortPilgrimagesCompleted > 0L;
+        bool hasCompletedMedium = state.mediumPilgrimagesCompleted > 0L;
+        bool hasAcolyte = state.totalAcolytesCreated > 0L;
+        SetActive(trustText, state.totalPilgrimagesCompleted > 0L);
+        SetActive(trustSlider, state.totalPilgrimagesCompleted > 0L);
+        SetActive(startShortButton, !active.active);
+        SetActive(startMediumButton, !active.active && hasCompletedShort);
+        SetActive(startLongButton, !active.active && hasCompletedMedium);
+        SetActive(startGuidedLongButton, !active.active && hasAcolyte);
+        SetActive(startSacredButton, !active.active && hasAcolyte &&
+            (D2PilgrimageSystem.CanStart(gameState, D2PilgrimageSystem.SacredId) ||
+             state.trust >= 250.0));
+        SetActive(addSupportButton, !active.active && hasCompletedShort);
+        SetActive(removeSupportButton, !active.active && hasCompletedShort);
+        SetActive(cancelButton, active.active);
     }
 
     public void StartShort() => TryStartPilgrimage(D2PilgrimageSystem.ShortId);
@@ -236,6 +268,13 @@ public class D2PilgrimagesPanelUI : MonoBehaviour
             " · " + D2PilgrimageSystem.GetEffectiveWaxCost(state, pilgrimageId)
                 .ToString("0.##") + " Cera/Pan\n+" +
             D2PilgrimageSystem.GetEffectiveTrustReward(state, pilgrimageId)
-                .ToString("0.##") + " Confianza";
+                .ToString("0.##") + " Confianza" +
+            (pilgrimageId == D2PilgrimageSystem.ShortId
+                ? "\nCancelar devuelve Seguidores; las Ofrendas no se recuperan." : "");
+    }
+
+    private static void SetActive(Component component, bool active)
+    {
+        if (component != null) component.gameObject.SetActive(active);
     }
 }

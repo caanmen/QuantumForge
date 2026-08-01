@@ -1,0 +1,1268 @@
+ESPECIFICACIÓN DE IMPLEMENTACIÓN
+QUANTUM FORGE — CONVERGENCIA NORMAL C1–C6 Y DETONANTE FUTURO DE PRESTIGIO 2
+
+Documento destinado a: implementación con Terra Medium y revisión posterior con Sol High.
+Proyecto Unity: C:\Users\nedfla\Quantum Forge
+Estado del diseño: aprobado para implementación experimental.
+Balance: tentativo; debe afinarse después mediante pruebas y telemetría.
+
+======================================================================
+1. OBJETIVO DEL BLOQUE
+======================================================================
+
+Construir Convergencia normal como una capa completa de seis circuitos, contando
+Pulso de Arranque como C1.
+
+El recorrido termina al estabilizar C6. No existe C7 en esta versión. Al terminar
+C6 se registra un evento desconocido visible como "???". Este evento será el
+detonante de Prestigio 2 en una actualización futura, pero esta implementación NO
+debe crear Prestigio 2, Lambda nueva, Convergencia Profunda, Dimensión 4 ni ninguna
+mecánica posterior.
+
+Resultado esperado de esta versión:
+
+1. C1 ya existente se migra al sistema genérico.
+2. Se añaden C2, C3, C4, C5 y C6.
+3. La placa 5x5 se convierte en una red real de conectores ortogonales.
+4. Cada nuevo circuito requiere un ciclo normal completo de Convergencia.
+5. C6 debe colocarse, quedar energizado y estabilizarse antes de activar "???".
+6. Después de C6 no se puede reconstruir otro Receptor ni producir estabilidad
+   para una recompensa inexistente.
+7. El jugador puede consultar la placa final y el archivo de circuitos, pero no
+   iniciar C7 ni editar la placa mediante una Convergencia sin recompensa.
+
+======================================================================
+2. CANON QUE NO SE DEBE CAMBIAR
+======================================================================
+
+- Existen juego base, D1, D2 y D3.
+- Las dimensiones son independientes y conservan su progreso en Convergencia.
+- No existe D4 planificada actualmente.
+- El progreso offline general mantiene el límite inicial de 12 horas.
+- Cada ciclo de Convergencia reinicia juego base, recursos base, edificios y
+  mejoras reconstruibles, progreso operativo de la Máquina, Receptor, señales y
+  estabilidad.
+- Cada ciclo conserva D1, D2, D3, automatizaciones D3, objetos finales,
+  d1TreePoints, circuitos poseídos, configuración estabilizada y telemetría
+  permanente.
+- Después de cada reset se debe redescubrir/reconstruir la Máquina, alcanzar 80%,
+  activar Prestige1Prepared/Canal de Convergencia y reconstruir el Receptor.
+- Actividades anteriores a la reconstrucción del Receptor no se acreditan de
+  forma retroactiva.
+- D1 activa/aporta mediante exploraciones y misiones coordinadas.
+- D2 activa/aporta mediante peregrinaciones completadas.
+- D3 activa/aporta mediante trabajos de piezas y ensamblaje.
+- Las tres señales deben estar activas, incluso si la estabilidad ya llegó al
+  límite.
+- Prestigio 2, Convergencia Profunda y narrativa definitiva quedan fuera.
+
+======================================================================
+3. RECORRIDO EXACTO DE UN CICLO
+======================================================================
+
+Estados visibles propuestos:
+
+REBUILDING
+  El jugador reconstruye juego base y Máquina.
+
+SYNCHRONIZING
+  Máquina desbloqueada, 80%, Canal activo y Receptor reconstruido. Se aceptan
+  fuentes persistentes de D1/D2/D3.
+
+READY
+  Tres señales activas y estabilidad requerida alcanzada. No se aceptan más
+  fuentes para este ciclo.
+
+CONFIGURING
+  Se entrega exactamente un circuito. La configuración estabilizada anterior
+  continúa activa. El jugador edita un borrador.
+
+COMMIT_PREPARED
+  Estado transaccional persistente y no visible. Contiene todo lo necesario para
+  terminar el reset de forma idempotente.
+
+REBUILDING DEL SIGUIENTE CICLO
+  Borrador promovido a configuración activa, snapshot aplicado, reset completado
+  y completedCycles fijado exactamente al ciclo objetivo.
+
+COMPLETED
+  Solo después de estabilizar C6. No hay siguiente premio ni sincronización.
+
+Flujo completo:
+
+1. Reconstruir juego base/Máquina.
+2. Llegar a 80% de reparación.
+3. Activar Canal de Convergencia (Prestige1Prepared).
+4. Reconstruir Receptor.
+5. Activar señales D1/D2/D3 con una actividad válida posterior al Receptor.
+6. Llenar estabilidad.
+7. Entrar en configuración y recibir el siguiente circuito por orden.
+8. Colocar/rotar circuitos en el borrador.
+9. Resolver placa y mostrar preview de efectos.
+10. Confirmar y estabilizar.
+11. Guardar intent transaccional.
+12. Ejecutar reset exactamente una vez.
+13. Promover borrador/snapshot.
+14. Entrar al siguiente ciclo o completar C6.
+
+======================================================================
+4. FÓRMULA DE ESTABILIDAD Y VALORES PROVISIONALES
+======================================================================
+
+Mantener la fórmula experimental actual:
+
+requiredStability = ceil(120 * (1 + 0.55 * ownedCircuitCount)^2)
+
+ownedCircuitCount se mide ANTES de recibir el siguiente circuito.
+
+Tabla exacta:
+
+Premio    Poseídos antes    Estabilidad    Trabajo base equivalente
+C1        0                 120             600 s  = 10.0 min
+C2        1                 289            1445 s  = 24.1 min
+C3        2                 530            2650 s  = 44.2 min
+C4        3                 843            4215 s  = 70.3 min
+C5        4                1229            6145 s  = 102.4 min
+C6        5                1688            8440 s  = 140.7 min
+
+Conversión base:
+
+baseStability = max(0, baseWorkSeconds) / 5.0
+
+Con C3 activo:
+
+creditedStability = baseStability * activeSnapshot.stabilityGainMultiplier
+
+El multiplicador se aplica al aporte NUEVO, nunca:
+
+- a estabilidad ya guardada;
+- al requisito;
+- a una fuente procesada previamente;
+- dos veces online/offline;
+- antes de verificar sourceId.
+
+Orden obligatorio al acreditar:
+
+1. Validar fase SYNCHRONIZING.
+2. Validar Receptor.
+3. Validar dimensión y sourceId.
+4. Rechazar sourceId duplicado.
+5. Calcular segundos base.
+6. Aplicar multiplicador del snapshot activo.
+7. Limitar al requisito.
+8. Registrar sourceId.
+9. Activar señal si corresponde.
+10. Si se alcanza el requisito y están las tres señales, pasar a READY y fijar
+    synchronizationReadyUnix una sola vez.
+
+No redondear cada actividad a entero. Guardar double. La UI puede mostrar un
+decimal; la comparación debe usar el valor double real con cap exacto.
+
+======================================================================
+5. CATÁLOGO C1–C6
+======================================================================
+
+IDs permanentes. No renombrar ni reutilizar después de publicar:
+
+C1 convergence_circuit_001_startup_pulse
+   Nombre: Pulso de Arranque
+
+C2 convergence_circuit_002_axial_link
+   Nombre: Enlace Axial
+
+C3 convergence_circuit_003_resonant_elbow
+   Nombre: Codo Resonante
+
+C4 convergence_circuit_004_triaxial_distributor
+   Nombre: Distribuidor Triaxial
+
+C5 convergence_circuit_005_local_coupler
+   Nombre: Acoplador Local
+
+C6 convergence_circuit_006_closure_matrix
+   Nombre: Matriz de Cierre
+
+Orden de premios fijo: 1, 2, 3, 4, 5, 6.
+Nunca determinar el siguiente premio contando únicamente IDs conocidos. Usar
+nextAwardOrdinal persistente y propiedad/historial normalizado.
+
+-----------------------------------------------------------------------
+C1 — PULSO DE ARRANQUE
+-----------------------------------------------------------------------
+
+Forma base: terminal de un conector.
+Efecto base: +0.10 al canal baseLE.
+
+Regla especial únicamente durante su tutorial inicial:
+
+- Debe estar adyacente al Núcleo y orientado/conectado hacia él.
+
+Después de estabilizar C1, esa obligación deja de ser universal. En ciclos
+posteriores C1 puede recibir energía mediante C2/C3/C4/C6. Si está desconectado,
+su efecto queda inactivo, pero la placa puede confirmarse con advertencia cuando
+la regla del circuito recién obtenido sí se haya demostrado.
+
+-----------------------------------------------------------------------
+C2 — ENLACE AXIAL
+-----------------------------------------------------------------------
+
+Forma base: dos conectores opuestos N+S. La rotación 90/270 produce E+W.
+Regla nueva: transmite energía en línea recta.
+Efecto base: +0.10 al canal baseTraces.
+
+Tutorial sugerido:
+
+Núcleo -> Enlace Axial -> Pulso de Arranque
+
+La UI debe mostrar que Pulso puede funcionar sin tocar el Núcleo directamente.
+
+-----------------------------------------------------------------------
+C3 — CODO RESONANTE
+-----------------------------------------------------------------------
+
+Forma base: dos conectores adyacentes N+E.
+Rotaciones producen E+S, S+W o W+N.
+Regla nueva: cambiar la dirección de la ruta.
+Efecto base: +0.10 al canal stabilityGain.
+
+El efecto se aplica únicamente a estabilidad nueva y debe coincidir online y
+offline.
+
+-----------------------------------------------------------------------
+C4 — DISTRIBUIDOR TRIAXIAL
+-----------------------------------------------------------------------
+
+Forma base: tres conectores N+E+W (T).
+Regla nueva: bifurcar la red.
+Efectos base:
+
+- +0.12 al canal baseLE.
+- +0.12 al canal baseTraces.
+
+No exigir que sus tres puertos tengan vecino para quedar energizado. Basta una
+ruta al Núcleo. Sin embargo, su tutorial debe pedir usar la T para mantener
+energizados al menos dos circuitos terminales/rutas. El resolvedor debe informar
+degree/conexiones para comprobar que la demostración tutorial ocurrió.
+
+-----------------------------------------------------------------------
+C5 — ACOPLADOR LOCAL
+-----------------------------------------------------------------------
+
+Forma:
+
+- Un conector de alimentación.
+- Una flecha de objetivo independiente del conector.
+- La flecha rota junto con la pieza.
+
+Regla nueva: relación de vecindad explícita.
+
+Condiciones para activar su efecto:
+
+1. C5 está energizado por su conector.
+2. Existe un circuito energizado en la celda señalada por la flecha.
+3. El objetivo no es C5.
+4. El objetivo no es otro amplificador/acoplador.
+5. Solo se aplica una vez.
+
+Efecto provisional:
+
+Añade +0.05 al canal primario del objetivo.
+
+Canal primario fijo por definición:
+
+- C1 -> baseLE.
+- C2 -> baseTraces.
+- C3 -> stabilityGain.
+- C4 -> baseLE. No copia también su bonus secundario de Trazas.
+- C6 no puede ser objetivo durante esta versión.
+
+No usar porcentaje del porcentaje. Es un bonus fijo de cinco puntos porcentuales.
+Ejemplos:
+
+- C5 apunta a C1: C1 aporta +0.15 LE en total.
+- C5 apunta a C2: C2 aporta +0.15 Trazas.
+- C5 apunta a C3: C3 aporta +0.15 estabilidad.
+- C5 apunta a C4: el canal primario LE de C4 pasa de +0.12 a +0.17; Trazas
+  permanece +0.12.
+
+No existe amplificación transitiva, recursiva ni encadenada.
+
+-----------------------------------------------------------------------
+C6 — MATRIZ DE CIERRE
+-----------------------------------------------------------------------
+
+Forma base: cuatro conectores N+E+S+W (cruz como un único nodo, sin separación
+de canales).
+
+Condiciones de activación:
+
+1. C6 está colocado dentro de la placa.
+2. C6 está energizado.
+3. Los seis circuitos C1–C6 están colocados.
+4. Los seis circuitos están energizados.
+5. No existen colisiones ni placements inválidos.
+
+No exigir coordenadas exactas ni una solución única.
+
+Efectos provisionales de cierre:
+
+- +0.08 al canal baseLE.
+- +0.08 al canal baseTraces.
+- +0.05 al canal stabilityGain.
+
+Estos efectos se aplican al snapshot final, aunque ya no exista otro circuito.
+Siguen siendo útiles para progreso base y para la futura actualización.
+
+Solo al estabilizar una configuración donde C6 cumpla todas sus condiciones se
+marca Convergencia normal como completada y se dispara "???".
+
+======================================================================
+6. AGREGACIÓN DE EFECTOS
+======================================================================
+
+Para esta versión usar suma de bonuses dentro de cada canal y una multiplicación
+única en el consumidor:
+
+baseLEMultiplier       = 1.0 + clamp(sumBaseLEBonuses,       0.0, 1.00)
+baseTracesMultiplier   = 1.0 + clamp(sumBaseTracesBonuses,   0.0, 1.00)
+stabilityGainMultiplier= 1.0 + clamp(sumStabilityBonuses,    0.0, 0.50)
+
+No multiplicar circuito por circuito. No depender del orden del catálogo.
+
+Ejemplo final sin C5:
+
+LE:          1 + 0.10 C1 + 0.12 C4 + 0.08 C6 = x1.30
+Trazas:      1 + 0.10 C2 + 0.12 C4 + 0.08 C6 = x1.30
+Estabilidad: 1 + 0.10 C3 + 0.05 C6          = x1.15
+
+Ejemplos con C5:
+
+C5 -> C1: LE x1.35, Trazas x1.30, Estabilidad x1.15.
+C5 -> C2: LE x1.30, Trazas x1.35, Estabilidad x1.15.
+C5 -> C3: LE x1.30, Trazas x1.30, Estabilidad x1.20.
+C5 -> C4: LE x1.35, Trazas x1.30, Estabilidad x1.15.
+
+Todos los valores deben ser finitos y no negativos. Si un save contiene NaN,
+Infinity o magnitud fuera de límites, rechazar el snapshot y conservar/restaurar
+el último snapshot válido.
+
+Aplicación:
+
+- LE online y offline leen GetBaseLEProductionMultiplier().
+- Trazas online y offline leen GetBaseTracesProductionMultiplier().
+- Todas las fuentes D1/D2/D3 leen GetStabilityGainMultiplier().
+- Cada multiplicador se aplica una sola vez.
+
+======================================================================
+7. REGLAS DEL TABLERO Y RESOLVEDOR
+======================================================================
+
+Placa fija: 5x5.
+Coordenadas válidas: x,y entre -2 y +2.
+Núcleo fijo y reservado: (0,0).
+
+Máscaras recomendadas:
+
+North = 1
+East  = 2
+South = 4
+West  = 8
+
+Rotación horaria:
+
+N -> E -> S -> W -> N
+
+Reglas:
+
+- Una pieza ocupa una celda.
+- Solo conexiones ortogonales.
+- Dos vecinos conectan si ambos poseen conectores recíprocos.
+- El Núcleo ofrece energía por sus cuatro lados.
+- Un circuito está energizado si pertenece al componente alcanzable desde el
+  Núcleo.
+- Resolver mediante BFS o DFS con conjunto de visitados.
+- Los bucles físicos pueden existir, pero no dan bonus especial y no multiplican
+  efectos.
+- Conectores abiertos no invalidan la placa.
+- Circuitos desconectados permanecen inactivos.
+- No hay intensidad, consumo, capacidad, colores, diagonales, wrap, piezas
+  multicelda ni cruces separados.
+
+El resolvedor debe ser una función pura:
+
+ResolveBoard(definitions, placements) -> ConvergenceBoardResolution
+
+Entrada:
+
+- catálogo/revisión;
+- placements del borrador o configuración activa;
+- ninguna dependencia de GameObject, UI, SaveService o singletons.
+
+Salida mínima:
+
+- bool structurallyValid;
+- errores globales;
+- resultado por circuito: colocado, rotación, portMask rotado, vecinos
+  conectados, energized, Manhattan distance, degree, motivo de inactividad;
+- activeCircuitIds;
+- resolved contributions por circuito/canal;
+- candidateSnapshot;
+- deterministic layoutHash.
+
+La misma entrada debe producir la misma salida independientemente del orden de
+las listas.
+
+Orden de resolución obligatorio:
+
+1. Validar catálogo, IDs, coordenadas, rotaciones, Núcleo y colisiones.
+2. Rotar máscaras.
+3. Crear enlaces recíprocos.
+4. Calcular energizados desde el Núcleo.
+5. Calcular propiedades espaciales.
+6. Aplicar contribuciones base C1–C4/C6.
+7. Aplicar C5 una sola vez.
+8. Evaluar condición global C6.
+9. Agregar canales y aplicar caps.
+10. Generar snapshot/hash determinista.
+
+Nunca escribir if especiales de C1–C6 dentro de PrestigeUI. Las reglas declarativas
+de forma y efectos viven en catálogo/resolvedor.
+
+======================================================================
+8. MODELO DE DATOS RECOMENDADO
+======================================================================
+
+Subir ConvergenceSystem.ProgressVersion de 3 a 4 o a la siguiente versión libre.
+
+ConvergenceCircuitDefinition:
+
+- string id
+- int awardOrdinal
+- string displayNameKey
+- int basePortMask
+- bool isAmplifier
+- bool requiresAllOwnedPowered
+- int primaryEffectChannel
+- List<ConvergenceEffectDefinition> effects
+- regla tutorial/metadatos necesarios
+
+ConvergenceEffectDefinition:
+
+- string effectTypeId
+- string targetChannelId
+- double magnitude
+- string stackingGroup
+
+OwnedConvergenceCircuit:
+
+- string circuitId
+- bool obtained
+- int awardOrdinal
+- int acquiredCycle
+
+ConvergenceCircuitPlacement:
+
+- string circuitId
+- int x
+- int y
+- int rotationDegrees
+
+ConvergenceModifierSnapshot:
+
+- int schemaVersion
+- int catalogRevision
+- int cycleId
+- string layoutHash
+- double baseLEProductionMultiplier
+- double baseTracesProductionMultiplier
+- double stabilityGainMultiplier
+- List<string> activeCircuitIds
+- List<ResolvedCircuitContribution> contributions
+
+ConvergenceTransactionJournal:
+
+- string transactionId
+- int targetCompletedCycles
+- string awardedCircuitId
+- int stage
+- List<ConvergenceCircuitPlacement> candidatePlacements
+- ConvergenceModifierSnapshot candidateSnapshot
+- bool baseResetApplied
+- bool synchronizationResetApplied
+- bool telemetryRecorded
+- bool finalStatePromoted
+
+ConvergenceState debe separar:
+
+- ConvergencePhase phase
+- int completedCycles
+- int nextAwardOrdinal
+- List<OwnedConvergenceCircuit> ownedCircuits
+- List<ConvergenceCircuitPlacement> committedPlacements
+- List<ConvergenceCircuitPlacement> draftPlacements
+- ConvergenceModifierSnapshot activeSnapshot
+- ConvergenceTransactionJournal pendingTransaction
+- estado Receptor/señales/estabilidad/sourceIds
+- telemetría existente
+- bool normalConvergenceCompleted
+- bool unknownSignalTriggered
+- bool unknownSignalAcknowledged
+- string pendingNarrativeEventId
+- List de IDs/placements desconocidos o en cuarentena para no borrarlos
+
+No mantener boardConfigurationLocked como segunda autoridad independiente. Debe
+derivarse de phase.
+
+Compatibilidad temporal:
+
+- Puede conservarse boardPlacements como wrapper/alias durante migración.
+- Los consumidores nuevos solo usan committedPlacements/draftPlacements.
+- Eliminar wrappers únicamente en una tarea posterior, no en el mismo cambio si
+  aumenta el riesgo.
+
+======================================================================
+9. MIGRACIÓN DE SAVES
+======================================================================
+
+La migración ocurre ANTES de normalizar.
+
+Casos mínimos:
+
+1. Save sin ConvergenceState:
+   Crear estado inicial C1 no poseído, nextAwardOrdinal=1.
+
+2. Save actual sin circuitos:
+   Conservar sincronización válida; nextAwardOrdinal=1.
+
+3. Save con Pulso poseído y placa estabilizada:
+   Mantener C1, convertir boardPlacements a committedPlacements, conservar snapshot
+   legado válido y fijar nextAwardOrdinal=2.
+
+4. Save con ConfigurationPending:
+   Configuración estabilizada previa permanece activa. boardPlacements pasa a
+   draftPlacements. No perder C1 ni darlo otra vez.
+
+5. ID desconocido:
+   Conservar ownership y placement en estado Unavailable/cuarentena. No eliminar.
+
+6. Coordenada/rotación inválida:
+   No dejarla participar en el resolvedor. Moverla a cuarentena diagnóstica y
+   conservar el último snapshot activo.
+
+7. Versión futura:
+   No rebajar progressVersion ni sobrescribir el save. Abrir modo seguro o abortar
+   carga con backup y mensaje claro.
+
+8. Migración repetida:
+   Debe ser idempotente.
+
+No recalcular automáticamente snapshots estabilizados antiguos con números nuevos.
+Conservar su catalogRevision y aplicarlos hasta la próxima estabilización.
+
+======================================================================
+10. GUARDADO ATÓMICO
+======================================================================
+
+SaveService.Save() debe devolver bool o resultado explícito. No ignorar errores.
+
+Secuencia recomendada:
+
+1. Construir SaveData completo.
+2. Serializar a JSON.
+3. Escribir save.json.tmp en la misma carpeta.
+4. Flush del stream al disco.
+5. Deserializar el temporal y validar que no sea null/ilegible.
+6. Si existe save.json, reemplazarlo atómicamente y mantener save.json.bak.
+7. Si no existe, mover temporal a save.json.
+8. Reportar éxito/fallo.
+
+En Windows puede usarse File.Replace(temp, SavePath, BackupPath, true) cuando el
+destino existe. Debe existir fallback seguro para plataformas donde no esté
+disponible. Nunca borrar el save anterior antes de validar el temporal.
+
+Load:
+
+- Intentar save.json.
+- Si está truncado/ilegible, intentar .bak.
+- Informar recuperación.
+- No ejecutar mutaciones destructivas antes de tener managers cargados.
+
+Mover ConvergenceCircuitSystem.RecoverTransaction(GameState.I) para que ocurra
+DESPUÉS de MachineManager.I.LoadProgressFromSave(data) y de cargar las autoridades
+que el reset pueda modificar.
+
+======================================================================
+11. TRANSACCIÓN DE PREMIO Y CONFIRMACIÓN
+======================================================================
+
+Entrega del circuito:
+
+1. Verificar phase == READY.
+2. Obtener definición por nextAwardOrdinal.
+3. Si ordinal > 6 o normalConvergenceCompleted, rechazar.
+4. Si circuito ya poseído, no duplicar; reconstruir estado Configuring.
+5. Añadir ownership con acquiredCycle.
+6. Copiar committedPlacements a draftPlacements.
+7. Añadir circuito nuevo a inventario, sin colocarlo automáticamente salvo que la
+   UX use una disposición sugerida explícita.
+8. phase = CONFIGURING.
+9. Guardar atómicamente.
+
+Edición:
+
+- Solo modifica draftPlacements.
+- activeSnapshot y committedPlacements continúan funcionando.
+- Mover, rotar o retirar no cuesta recursos.
+- Guardar borrador después de cada acción o con debounce corto y guardado forzado
+  al salir/cerrar.
+
+Confirmación:
+
+1. Resolver borrador sin mutar estado global.
+2. Requerir estructura válida.
+3. Requerir circuito recién entregado colocado y energizado.
+4. Para C6, requerir todos C1–C6 colocados y energizados.
+5. Otros circuitos poseídos pueden estar inactivos con advertencia persistente y
+   confirmación secundaria. C6 es la excepción global.
+6. Crear transactionId único.
+7. targetCompletedCycles = completedCycles + 1. Nunca usar ++ durante recovery.
+8. Guardar journal COMMIT_PREPARED con layout/snapshot candidato.
+9. Si guardar falla, no resetear.
+10. Ejecutar ResetGameBaseForConvergence de forma idempotente.
+11. Resetear Receptor/señales/estabilidad/sourceIds de forma idempotente.
+12. Registrar telemetría una vez para transactionId.
+13. Promover draft a committed y candidateSnapshot a activeSnapshot.
+14. completedCycles = targetCompletedCycles.
+15. nextAwardOrdinal = ordinal entregado + 1.
+16. Si ordinal == 6, completar endpoint descrito en sección 13.
+17. Si no, phase = REBUILDING.
+18. Guardar estado final atómicamente.
+19. Limpiar journal y guardar/confirmar según estrategia escogida.
+
+Recovery:
+
+- Si existe pendingTransaction, usar targetCompletedCycles y flags, no incrementos.
+- Repetir cualquier etapa debe dejar exactamente el mismo resultado.
+- No duplicar circuito, reset, completedCycles, telemetría ni evento "???".
+
+======================================================================
+12. PANEL DE CONVERGENCIA
+======================================================================
+
+Sí se necesita un panel dedicado, pero NO otra pestaña principal.
+
+El botón actual PRESTIGIO/CONVERGENCIA abre ConvergencePanelUI. PrestigeUI puede
+mantener el enrutamiento temporal, pero la lógica de placa se mueve fuera de él.
+
+Crear un componente dedicado, por ejemplo:
+
+Assets/Project/Scripts/UI/ConvergencePanelUI.cs
+
+Vistas internas:
+
+A. CICLO
+
+- Progreso: Circuito X/6.
+- Estado Máquina descubierta.
+- Reparación actual / 80%.
+- Canal activo/pendiente.
+- Receptor reconstruido/pendiente.
+- Tarjetas D1, D2, D3 con señal y próxima acción elegible.
+- Barra de estabilidad actual/requerida.
+- Nombre, forma y efecto exacto del siguiente circuito.
+- CTA contextual único.
+
+B. PLACA
+
+- Cuadrícula 5x5.
+- Núcleo visible.
+- Inventario de circuitos con nombre, forma, efecto y estado.
+- Seleccionar -> colocar con clic.
+- Arrastrar opcional, nunca única interacción.
+- Rotar 90 grados y tecla R.
+- Retirar.
+- Deshacer/rehacer si es razonable; como mínimo Restaurar configuración activa.
+- Usar disposición sugerida para tutorial/softlock.
+- Conectores visibles individualmente.
+- Ruta energizada visible con color + forma/icono.
+- Estados: ACTIVO, SIN ENERGÍA, CONDICIÓN PENDIENTE, NUEVO, NO DISPONIBLE.
+- Comparación Configuración activa -> Borrador.
+- Resumen de multiplicadores actuales y candidatos.
+- CTA ESTABILIZAR Y COMENZAR NUEVO CICLO.
+
+C. ARCHIVO
+
+- Colección C1–C6.
+- Orden, descripción y regla aprendida.
+- Obtenido/no obtenido.
+- Activo/inactivo en configuración estabilizada.
+- Contribución exacta de cada circuito.
+- Totales LE, Trazas y estabilidad.
+- Endpoint 6/6 después de C6.
+
+No usar solo colores. Añadir iconos/texto. Tamaño táctil mínimo 44–48 px.
+
+Los errores deben persistir junto a la acción hasta corregirse. No escribir un
+error en un TMP_Text que Refresh reemplaza inmediatamente.
+
+La UI consume ConvergencePresenter/ViewModel y ConvergenceBoardResolution. No
+calcula conectividad, efectos, premios ni autoridad de fase.
+
+======================================================================
+13. ENDPOINT C6 Y EVENTO "???"
+======================================================================
+
+Momento exacto del evento:
+
+NO se activa al llenar estabilidad de C6.
+NO se activa al entregar C6.
+SÍ se activa después de confirmar una placa válida con C6 y completar el commit
+transaccional del sexto circuito.
+
+Al completar C6 fijar de forma persistente:
+
+- normalConvergenceCompleted = true
+- unknownSignalTriggered = true
+- unknownSignalAcknowledged = false, si aún no fue reconocido
+- pendingNarrativeEventId = "convergence_unknown_signal_001"
+- phase = COMPLETED
+- nextAwardOrdinal = 7, conservado como historial, pero catálogo no devuelve C7
+
+Modal/evento requerido:
+
+Título visible: ???
+
+Texto provisional localizable:
+
+"La red ha detectado una respuesta que no puede interpretar."
+
+Botón:
+
+CONTINUAR
+
+No escribir "Prestigio 2", "Dimensión 4", "Convergencia Profunda" ni nombre de
+una mecánica futura.
+
+Al cerrar:
+
+- unknownSignalAcknowledged = true
+- pendingNarrativeEventId = vacío
+- guardar
+
+Si el juego se cierra antes de reconocerlo, el evento vuelve a aparecer al cargar.
+Si ya fue reconocido, no aparece otra vez.
+
+Panel final:
+
+RED DE CONVERGENCIA COMPLETADA — 6/6
+No se detectan nuevas frecuencias.
+
+Mantener disponibles PLACA y ARCHIVO como consulta. La placa queda estabilizada y
+bloqueada en esta versión.
+
+Autoridad después de C6:
+
+- HasNextDesignedCircuit() devuelve false.
+- TryRebuildReceiver rechaza con mensaje de catálogo completado.
+- TryAddSynchronization rechaza antes de procesar sourceId.
+- TryStartNormalConvergence rechaza.
+- No mostrar requisito para C7.
+- No registrar estabilidad descartada como si existiera una recompensa.
+- Offline no genera estabilidad de Convergencia después del endpoint.
+
+Hook futuro para Prestigio 2:
+
+La actualización futura debe consultar normalConvergenceCompleted y
+unknownSignalTriggered. No usar el texto visto como única autoridad. Estos campos
+son el contrato persistente del desbloqueo futuro.
+
+======================================================================
+14. TELEMETRÍA
+======================================================================
+
+Conservar:
+
+- cycleStartedUnix
+- receiverRebuiltUnix
+- synchronizationReadyUnix
+- configurationStartedUnix
+- tiempos online/offline por fase
+- tiempo total entre configuraciones
+
+Añadir por ciclo:
+
+- cycleId/transactionId
+- circuito entregado
+- catalogRevision
+- layoutHash confirmado
+- circuitos activos/inactivos
+- contribuciones resueltas
+- segundos base y estabilidad por D1/D2/D3
+- cantidad de sourceIds por dimensión
+- qué señal se activó y cuándo
+- progreso offline acreditado y descartado por cap
+- movimientos/rotaciones/colocaciones inválidas
+- tiempo configurando
+- restaurar/sugerencia usados
+- objetivo elegido por C5
+- recuperaciones transaccionales
+- evento C6 mostrado/reconocido
+
+Umbrales para revisión posterior, no para bloquear código:
+
+- Una dimensión aporta >65% de estabilidad en la mayoría de ciclos.
+- D3 automatizada aporta >75%.
+- Un ciclo tarda >1.6 veces la mediana del anterior.
+- Reconstrucción ocupa <20% o >45% del ciclo.
+- Configuración tarda >10 min de mediana.
+- Más de 20% usa disposición sugerida en C2–C4.
+- Menos de 80% entiende qué circuito perdió energía al rotar una pieza.
+- C5 elige el mismo objetivo >70% de veces: posible opción dominante.
+
+======================================================================
+15. ARCHIVOS Y RESPONSABILIDADES SUGERIDAS
+======================================================================
+
+Modificar:
+
+- Core/ConvergenceState.cs
+  Estado v4, migración de datos, snapshots, journal y endpoint.
+
+- Systems/ConvergenceCircuitCatalog.cs
+  Definiciones C1–C6, IDs, ordinales, puertos, efectos y validación.
+
+- Systems/ConvergenceBalance.cs
+  Fórmula actual, multiplicador de estabilidad y valores centrales.
+
+- Systems/ConvergenceCircuitSystem.cs
+  Dejar de ser lógica especial de Pulso. Coordinar catálogo/resolvedor o delegar a
+  ConvergenceCycleCoordinator.
+
+- Systems/ConvergenceSynchronizationSystem.cs
+  Guardas de fase, multiplicador C3/C5/C6, endpoint y Ready exacto.
+
+- Systems/ConvergenceTelemetrySystem.cs
+  Nuevas mediciones idempotentes por transactionId.
+
+- Systems/SaveService.cs
+  Guardado atómico, backup, orden de load/recovery.
+
+- UI/TabsUI.cs
+  Mantener acceso y etiqueta Convergencia después de D3.
+
+- UI/PrestigeUI.cs
+  Retirar progresivamente placa hardcoded y delegar al panel dedicado.
+
+Crear preferentemente:
+
+- Systems/ConvergenceBoardRules.cs
+- Systems/ConvergenceCircuitResolver.cs
+- Systems/ConvergenceCycleCoordinator.cs
+- UI/ConvergencePanelUI.cs
+- UI/ConvergencePresenter.cs o ConvergenceViewModel.cs
+- Core/ConvergenceTransactionJournal.cs si se separa del state
+- Editor/ConvergenceCatalogValidation.cs
+- Editor/ConvergenceBoardResolverValidation.cs
+- Editor/ConvergenceTransactionValidation.cs
+- Editor/ConvergenceC1ToC6ProgressionValidation.cs
+- Editor/ConvergenceEndpointValidation.cs
+
+No es obligatorio usar ScriptableObjects en esta versión. Un catálogo en código
+con estructuras serializables es suficiente y reduce migraciones editoriales.
+
+======================================================================
+16. ORDEN DE IMPLEMENTACIÓN OBLIGATORIO
+======================================================================
+
+REGLA DE EJECUCIÓN POR BLOQUES
+
+Esta implementación NO se debe ejecutar completa en una sola tarea o sesión.
+Terra debe trabajar exclusivamente en el bloque autorizado por el usuario y
+detenerse al finalizarlo.
+
+Reglas obligatorias:
+
+1. Si el usuario dice "empieza", "procede" o una expresión equivalente sin
+   indicar bloque, comenzar únicamente BLOQUE A.
+2. No comenzar un bloque nuevo por iniciativa propia.
+3. Al terminar cada bloque, ejecutar solo sus validaciones correspondientes.
+4. Entregar un reporte de cierre usando el formato definido más abajo.
+5. Detenerse y esperar una instrucción explícita del usuario, por ejemplo:
+   "continúa con el bloque B".
+6. Una compilación exitosa no autoriza avanzar automáticamente.
+7. Si aparece un problema perteneciente a un bloque futuro, documentarlo como
+   pendiente; no ampliar el alcance actual para resolverlo.
+8. Si un problema impide terminar el bloque actual, explicar el bloqueo, archivos
+   afectados, evidencia y alternativas. No avanzar al siguiente bloque.
+9. No hacer stage ni commit salvo autorización expresa del usuario.
+10. No modificar archivos fuera del bloque activo salvo que sea indispensable
+    para compilar; en ese caso debe informarse antes o documentarse claramente.
+
+Formato obligatorio del reporte al cerrar cada bloque:
+
+BLOQUE COMPLETADO: [letra y nombre]
+
+- Implementado:
+  Lista concreta de cambios funcionales.
+- Archivos modificados:
+  Lista de rutas.
+- Migraciones/compatibilidad:
+  Qué se preservó y cómo.
+- Validaciones ejecutadas:
+  Comando/validador y resultado.
+- Advertencias o pendientes:
+  Problemas reales observados; no inventar trabajo futuro.
+- Estado del repositorio:
+  Confirmar si no hubo stage/commit.
+- Próximo bloque disponible:
+  Indicar nombre, pero NO empezarlo.
+
+Después del reporte, Terra debe finalizar su turno y esperar al usuario.
+
+BLOQUE A — SEGURIDAD
+
+1. Fixtures/copias de saves actuales para pruebas.
+2. Guardado temporal + backup + retorno de error.
+3. Reordenar load/recovery después de MachineManager.
+4. Estado v4 y migración idempotente.
+5. Separar committed/draft/activeSnapshot.
+6. Journal transaccional e inyección de fallos.
+
+Alcance exclusivo del BLOQUE A:
+
+- SaveService atómico y backup.
+- Orden correcto de carga/recovery.
+- ConvergenceState v4 y migración.
+- Separación committed/draft/activeSnapshot en datos, aunque la UI todavía no
+  permita editar todas las piezas.
+- Journal y funciones idempotentes necesarias para probar la transacción.
+- Mantener C1 funcional mediante compatibilidad temporal.
+
+No hacer todavía en BLOQUE A:
+
+- C2–C6.
+- UI nueva completa.
+- Catálogo visual nuevo.
+- Efectos nuevos.
+
+Validaciones mínimas para cerrar BLOQUE A:
+
+- Compilación Unity.
+- Round-trip de saves v3/v4.
+- Save temporal válido y backup recuperable.
+- Recovery ejecutado después de MachineManager.
+- Fallos inyectados no duplican completedCycles ni telemetría.
+- C1 actual continúa cargando y aplicando x1.10 LE.
+- git diff --check.
+
+DETENERSE Y ESPERAR: "continúa con el bloque B".
+
+BLOQUE B — MOTOR DE PLACA
+
+7. Definiciones genéricas.
+8. Reglas de rotación/máscaras.
+9. Resolver puro BFS/DFS.
+10. Snapshot por canales.
+11. Migrar C1 sin cambiar el efecto guardado del jugador.
+
+Alcance exclusivo del BLOQUE B:
+
+- Catálogo genérico con las seis definiciones, pero únicamente C1 disponible en
+  progresión todavía.
+- Reglas del tablero y resolvedor puro.
+- Rotación, conectores, BFS/DFS, contribuciones y snapshot.
+- Migración completa de C1 al resolvedor genérico.
+
+No hacer todavía en BLOQUE B:
+
+- Otorgar C2–C6.
+- Panel final Ciclo/Placa/Archivo.
+- Evento ???.
+
+Validaciones mínimas para cerrar BLOQUE B:
+
+- IDs/ordinales/puertos del catálogo.
+- Coordenadas, colisiones y rotaciones.
+- Línea, codo, T, cruz, cadena, rama y desconexión mediante fixtures del
+  resolvedor aunque los circuitos no se otorguen todavía.
+- Determinismo con listas reordenadas.
+- C1 conectado/desconectado y multiplicador LE online/offline.
+- Compilación Unity y git diff --check.
+
+DETENERSE Y ESPERAR: "continúa con el bloque C".
+
+BLOQUE C — PROGRESIÓN
+
+12. Premio por ordinal C1–C6.
+13. Guardas de fase.
+14. C2 y Trazas.
+15. C3 y estabilidad online/offline.
+16. C4 y bifurcación.
+17. C5 y amplificación local no recursiva.
+18. C6, condición global y endpoint.
+
+El BLOQUE C se divide obligatoriamente en tres subbloques. Cada subbloque también
+requiere autorización explícita y cierre independiente.
+
+BLOQUE C1 — C2 Y C3
+
+- Premio por ordinal.
+- Enlace Axial y Trazas.
+- Codo Resonante y estabilidad.
+- Requisitos 289 y 530.
+- Guardas de fase y no duplicación.
+
+Validaciones de C1:
+
+- Secuencia C1 -> C2 -> C3.
+- Línea y giro.
+- Trazas online/offline una vez.
+- Estabilidad online/offline una vez.
+- Guardado/carga durante award y configuración.
+- Compilación Unity y git diff --check.
+
+DETENERSE Y ESPERAR: "continúa con el bloque C2".
+
+BLOQUE C2 — C4 Y C5
+
+- Distribuidor Triaxial.
+- Acoplador Local.
+- Requisitos 843 y 1229.
+- Bifurcación y amplificación local no recursiva.
+
+Validaciones de C2:
+
+- Secuencia hasta C5 sin duplicados.
+- C4 aplica LE/Trazas una vez.
+- C5 apunta a C1/C2/C3/C4 correctamente.
+- C5 no apunta a sí mismo, C5 ni C6; no encadena.
+- Snapshots deterministas online/offline.
+- Compilación Unity y git diff --check.
+
+DETENERSE Y ESPERAR: "continúa con el bloque C3".
+
+BLOQUE C3 — C6 Y ENDPOINT LÓGICO
+
+- Matriz de Cierre.
+- Requisito 1688.
+- Condición 6/6 energizados.
+- Campos normalConvergenceCompleted y unknownSignalTriggered.
+- Bloqueo autoritativo de C7/Receptor/sincronización posterior.
+- En este subbloque puede quedar preparado el evento narrativo en datos; la
+  presentación modal pertenece al BLOQUE D.
+
+Validaciones de C3:
+
+- C6 no confirma con menos de 6/6.
+- C6 válido completa exactamente una vez.
+- No existe premio/estabilidad/requisito C7.
+- Recovery no duplica endpoint.
+- Campos del hook futuro sobreviven save/load.
+- Compilación Unity y git diff --check.
+
+DETENERSE Y ESPERAR: "continúa con el bloque D".
+
+BLOQUE D — UI
+
+19. Panel dedicado con vistas Ciclo/Placa/Archivo.
+20. Inventario, selección, rotación, retirar/restaurar.
+21. Preview desde resolvedor.
+22. Tutoriales y disposición sugerida.
+23. Modal ??? persistente.
+
+Alcance exclusivo del BLOQUE D:
+
+- ConvergencePanelUI dedicado.
+- Vistas Ciclo, Placa y Archivo.
+- Inventario, selección, colocar, rotar, retirar y restaurar.
+- Preview desde el resolvedor.
+- Mensajes persistentes y tutoriales.
+- Disposición sugerida.
+- Modal ??? y reconocimiento persistente.
+- Estado final 6/6 sin C7.
+
+Validaciones mínimas para cerrar BLOQUE D:
+
+- Acceso desde botón Convergencia.
+- UI correcta en todas las fases.
+- Configuración activa no se apaga al editar borrador.
+- Errores no desaparecen instantáneamente.
+- Controles de placa C1–C6.
+- Modal ??? una vez/reaparición si no fue reconocido.
+- Placa y Archivo consultables después de C6.
+- Main.unity abierta para validación visual.
+- Compilación Unity y git diff --check.
+
+DETENERSE Y ESPERAR: "continúa con el bloque E".
+
+BLOQUE E — VALIDACIÓN
+
+24. Pruebas unitarias/editor.
+25. Compilación Unity batch.
+26. Main.unity manual.
+27. Regresión D1/D2/D3.
+28. Guardado/carga/offline.
+29. git diff --check.
+
+Alcance exclusivo del BLOQUE E:
+
+- No añadir diseño ni funcionalidad nueva.
+- Corregir únicamente defectos encontrados por la matriz de validación.
+- Ejecutar regresiones integrales y producir reporte final.
+
+Validaciones para cerrar BLOQUE E:
+
+- Toda la matriz de la sección 17.
+- Compilación completa de Unity.
+- Main.unity y validación D2.
+- Regresión D1 y D3.
+- Seis órdenes dimensionales de Prestigio 1.
+- Guardado/carga/offline/transacciones.
+- Endpoint ??? y ausencia de C7.
+- git diff --check.
+
+DETENERSE. No hacer stage, commit ni empezar Prestigio 2 sin autorización expresa.
+
+No implementar todo por copia de métodos especiales de Pulso. El refactor genérico
+debe existir antes de C2.
+
+======================================================================
+17. MATRIZ DE PRUEBAS OBLIGATORIA
+======================================================================
+
+CATÁLOGO
+
+- Seis IDs únicos.
+- Seis ordinales únicos 1–6.
+- No existe definición ordinal 7.
+- Puertos válidos.
+- Efectos conocidos, finitos y dentro de caps.
+- C5 no puede apuntar/amplificar C5.
+
+TABLERO
+
+- Todas las 25 celdas válidas salvo Núcleo reservado.
+- Coordenada fuera de -2..2 rechazada y puesta en cuarentena al cargar.
+- Colisión rechazada.
+- Rotaciones exactas.
+- Conector unilateral no enlaza.
+- Línea, codo, T y cruz.
+- Cadena, rama, desconectado y bucle físico.
+- Resolver determinista con listas reordenadas.
+
+EFECTOS
+
+- C1 activo/inactivo.
+- C2 Trazas online/offline una vez.
+- C3 estabilidad nueva una vez.
+- C4 aplica LE/Trazas una vez.
+- C5 cada objetivo C1–C4 y ninguna recursión.
+- C6 solo activo con 6/6 energizados.
+- Caps y NaN/Infinity.
+- Totales de ejemplo de la sección 6.
+
+PROGRESIÓN
+
+- Requisitos 120/289/530/843/1229/1688.
+- Receptor bloqueado sin Máquina/80%/Canal.
+- Actividad previa al Receptor no cuenta.
+- Tres señales requeridas.
+- READY se registra al instante correcto.
+- C1–C6 se otorgan exactamente en orden.
+- Doble clic no duplica premio.
+- No existe C7.
+
+TRANSACCIÓN
+
+- Fallo antes/después de cada guardado.
+- Fallo antes/después del reset base.
+- Fallo antes/después del reset de sincronización.
+- Fallo antes/después de telemetría.
+- Fallo antes/después de promover snapshot.
+- Cada recovery produce exactamente targetCompletedCycles.
+- No duplica circuito, reset, medición ni evento.
+
+MIGRACIÓN
+
+- Save sin estado.
+- Save v3 vacío.
+- C1 poseído/configurado.
+- ConfigurationPending.
+- ID desconocido.
+- Coordenada corrupta.
+- JSON truncado usa backup.
+- Versión futura no se sobrescribe.
+- Migrar dos veces da mismo resultado.
+
+UI
+
+- Siguiente acción correcta en cada fase.
+- Error persistente.
+- Configuración activa sigue produciendo mientras se edita borrador.
+- Restaurar configuración activa.
+- Circuito nuevo debe energizarse antes de confirmar.
+- C6 exige 6/6.
+- Modal ??? aparece una vez y reaparece si no se reconoció antes de cerrar.
+- Después de reconocer no reaparece.
+- Endpoint no muestra estabilidad C7.
+
+REGRESIÓN
+
+- Producción LE actual online/offline.
+- Trazas online/offline.
+- D1 completo y moneda d1TreePoints.
+- D2 con Main.unity abierta.
+- D3 hasta 7D.
+- Prestigio 1 y seis órdenes dimensionales.
+- Objetos finales.
+- Reset de Máquina.
+- Offline cap 12h.
+
+======================================================================
+18. CRITERIOS DE ACEPTACIÓN FINAL
+======================================================================
+
+La tarea se considera terminada únicamente si:
+
+1. Unity compila sin errores.
+2. Un save actual con C1 migra sin perder bonus ni placa.
+3. C1–C6 se obtienen exactamente una vez y en orden.
+4. Cada circuito enseña/usa su regla definida.
+5. La UI muestra conectividad y efectos sin cálculos duplicados.
+6. La configuración anterior sigue activa durante el borrador.
+7. Guardar/cerrar/cargar en cualquier fase deja estado utilizable.
+8. Ningún fallo inyectado duplica completedCycles, telemetría o premios.
+9. Online y offline aplican los mismos snapshots una vez.
+10. C6 no puede estabilizarse sin 6/6 energizados.
+11. Al estabilizar C6 aparece ??? y se guarda su estado.
+12. No existe circuito 7, requisito 7 ni sincronización posterior.
+13. El panel final conserva Placa y Archivo consultables.
+14. No se implementa Prestigio 2 todavía.
+15. Validaciones D1/D2/D3 y git diff --check pasan.
+
+======================================================================
+19. DECISIONES QUE TERRA NO DEBE CAMBIAR SIN CONSULTAR
+======================================================================
+
+- Cantidad: exactamente seis circuitos en esta versión.
+- C6 debe estabilizarse antes de ???.
+- No existe C7.
+- ??? no menciona Prestigio 2.
+- Fórmula provisional de estabilidad se conserva.
+- Valores y bonuses de este documento son tentativos pero deben implementarse
+  centralizados, no dispersos.
+- Tablero 5x5, piezas de una celda, conexiones ortogonales.
+- C5 no es recursivo.
+- C6 requiere 6/6 energizados.
+- Configuración activa y borrador deben estar separados.
+- Transacción y guardado deben ser recuperables/idempotentes.
+- IDs desconocidos no se borran.
+- Panel dedicado interno; no crear otra pestaña global.
+- No implementar P2, Profunda, D4, aleatoriedad, automatización ni piezas complejas.
+
+Si durante la implementación surge una incompatibilidad real con el código actual,
+Terra debe detener únicamente el subbloque afectado, documentar archivo/método,
+estado observado y dos alternativas. No debe inventar una regla de diseño nueva ni
+ampliar alcance sin consulta.
+
+FIN DE LA ESPECIFICACIÓN

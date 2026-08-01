@@ -28,51 +28,35 @@ public class HUD : MonoBehaviour
         if (leText != null)
         {
             double leps = gs.GetTotalLEps();
+            string leLabel = Localize("hud.le", "LE");
 
-            double emBase = 1.0 + gs.emMult;
-
-            double emGenFactor = 1.0;
-            if (ResearchManager.I != null)
-                emGenFactor = ResearchManager.I.GetEMGenerationFactor();
-
-            double emxVisual = emBase * emGenFactor;
-            double labFactor = gs.researchGlobalLEMult;
-            leText.SetText(
-                "LE {0:0}\n+{1:0.00}/s",
-                (float)gs.LE, (float)leps
-            );
+            leText.SetText($"{leLabel} {(float)gs.LE:0}\n+{(float)leps:0.00}/s");
         }
 
         // Trazas
         if (tracesText != null)
         {
             double tracesPs = gs.CalculateTracesPs();
+            string tracesLabel = Localize("hud.traces", "TRAZAS");
             tracesText.SetText(
-                "TRAZAS {0:0}\n+{1:0.00}/s",
-                (float)gs.Traces,
-                (float)tracesPs
-            );  
+                $"{tracesLabel} {(float)gs.Traces:0}\n+{(float)tracesPs:0.00}/s");
         }
 
         // VP
         if (vpText != null)
             vpText.SetText("VP: {0:0}", (float)gs.VP);
 
-        // EM
-        if (emText != null)
-            emText.SetText("EM: {0:0}", (float)gs.EM);
-
-        // ADP
-        if (adpText != null)
-            adpText.SetText("ADP: {0:0.###}", (float)gs.ADP);
-
-        // WHF
-        if (whfText != null)
-            whfText.SetText("WHF: {0:0.###}", (float)gs.WHF);
-
         // BEC
         if (becText != null)
             becText.SetText("BEC: {0:0}", (float)gs.BEC);
 
+    }
+
+    private static string Localize(string key, string fallback)
+    {
+        if (LocalizationManager.I == null)
+            return fallback;
+        string value = LocalizationManager.I.T(key);
+        return string.IsNullOrEmpty(value) || value == key ? fallback : value;
     }
 }

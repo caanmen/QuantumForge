@@ -62,7 +62,9 @@ public class D2VeiledThresholdPanelUI : MonoBehaviour
         bool unlocked = D2VeiledThresholdSystem.IsUnlocked(state);
         bool prepared = D2BondSystem.IsMajorPactEstablished(state);
 
-        SetText(titleText, unlocked ? "PACTO MAYOR — LUGAR DE VÍNCULO" :
+        SetText(titleText, unlocked
+            ? prepared ? "PACTO MAYOR — LUGAR DE VÍNCULO"
+                : "UMBRAL — PREPARAR LUGAR DE VÍNCULO" :
             "ALGO PERMANECE EN SILENCIO");
         SetText(revelationText, unlocked
             ? prepared ? "PACTO ESTABLECIDO" : "EL ENTE RESPONDE"
@@ -101,11 +103,14 @@ public class D2VeiledThresholdPanelUI : MonoBehaviour
                   : "\nNivel máximo alcanzado.")
             : "Las cinco líneas se revelarán al preparar el Lugar de Vínculo.");
         SetText(pendingText, string.IsNullOrEmpty(state.lastBondResult)
-            ? unlocked ? "Los costes y porcentajes son provisionales para pruebas."
-                : "Se manifestará al alcanzar 500 de Confianza."
+            ? unlocked ? prepared
+                    ? "Asigna Acólitos para generar progreso de vínculo."
+                    : "Requisito actual: 100 Incienso, 100 Tela sagrada y 100 Piedra tallada."
+                : ""
             : state.lastBondResult);
 
         SetActive(prepareButton, unlocked && !prepared);
+        SetActive(acolytesText, prepared);
         SetActive(assignAcolyteButton, prepared);
         SetActive(releaseAcolyteButton, prepared);
         SetActive(lineDropdown, prepared);

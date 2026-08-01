@@ -864,14 +864,23 @@ public class Room2PanelUI : MonoBehaviour
     {
         if (currentFusionCooldownSeconds > 0.0)
         {
-            currentFusionCooldownSeconds -= Time.deltaTime;
-
-            if (currentFusionCooldownSeconds < 0.0)
-                currentFusionCooldownSeconds = 0.0;
+            double elapsed = QaRuntimeService.ScaleOnlineSeconds(
+                Time.unscaledDeltaTime);
+            AdvanceQaFusionCooldown(elapsed);
         }
 
         RefreshLocalizationIfNeeded();
         RefreshUI();
+    }
+
+    public void AdvanceQaFusionCooldown(double simulatedSeconds)
+    {
+        if (simulatedSeconds <= 0.0 || double.IsNaN(simulatedSeconds) ||
+            double.IsInfinity(simulatedSeconds))
+            return;
+
+        currentFusionCooldownSeconds = System.Math.Max(
+            0.0, currentFusionCooldownSeconds - simulatedSeconds);
     }
 
     private void RefreshUI()

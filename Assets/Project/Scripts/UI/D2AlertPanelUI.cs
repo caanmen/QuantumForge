@@ -31,7 +31,7 @@ public class D2AlertPanelUI : MonoBehaviour
             state.entityContained
                 ? "ALERTA FINALIZADA — ENTE CONTENIDO"
                 : state.alertActive
-                ? "FASE DE ALERTA — ACTIVA"
+                ? "EL ENTE HA ENTRADO EN ALERTA"
                 : "FASE DE ALERTA — INACTIVA"
         );
         SetText(
@@ -64,7 +64,7 @@ public class D2AlertPanelUI : MonoBehaviour
             state.entityContained
                 ? "Civilización 3: DESBLOQUEADA | Pacto mayor: PREPARADO"
                 : state.alertActive
-                ? "Civilización 3: DESBLOQUEADA | Contención: PREPARADA PARA 3G"
+                ? "Civilización 3: NUEVA | Revisa las marcas; después se habilita Contención."
                 : "Civilización 3 y Contención permanecen bloqueadas."
         );
         SetText(

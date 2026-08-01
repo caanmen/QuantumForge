@@ -156,6 +156,10 @@ public class D2EntityResearchPanelUI : MonoBehaviour
                 completeMilestoneButton,
                 pendingMilestone >= 100.0 ? "PREPARAR PACTO" : "COMPLETAR HITO"
             );
+            SetButtonLabel(completeMilestoneButton,
+                pendingMilestone >= 100.0
+                    ? "APORTAR RECURSOS Y PREPARAR PACTO"
+                    : "APORTAR RECURSOS");
             SetInteractable(
                 completeMilestoneButton,
                 D2Civilization3System.CanPayEntityResearchMilestone(gameState)
@@ -176,6 +180,9 @@ public class D2EntityResearchPanelUI : MonoBehaviour
         SetText(statusText, state.entityPactEstablished
             ? "PACTO CON EL ENTE — ESTABLECIDO"
             : "PACTO PREPARADO — pendiente de establecer");
+        SetText(unlockText,
+            "CONTENIDO AVANZADO OPCIONAL — Pacto con el Ente disponible\n" +
+            "El objetivo principal de cierre sigue siendo el Pacto Mayor de Civilización 2.");
         SetText(progressText, "PROGRESO: 100% | Conocimiento Antiguo: " +
             state.ancientKnowledge.ToString("0.##"));
         if (progressSlider != null)

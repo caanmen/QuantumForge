@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5102080f68437340bfc61ab0cd10ef7, type: 3}
+  m_Name: VerticalUiTheme
+  m_EditorClassIdentifier: Assembly-CSharp::VerticalUiTheme
+  schemaVersion: 1
+  backgroundGrid: {fileID: 21300000, guid: 9174de189a52ca542a991443be9401d6, type: 3}
+  panelFrame: {fileID: 21300000, guid: d9675550e4d9f024c90a4b19cebee30b, type: 3}
+  buttonFrame: {fileID: 21300000, guid: 1150acc0e46dd0c4d80d3c0a09cd8c5a, type: 3}
+  selectedButtonFrame: {fileID: 21300000, guid: e408e1eaada8f2c4f98687df9527bde4, type: 3}
+  softGlow: {fileID: 21300000, guid: 2bb5d6db3ccd2744ca7d1bad0f5b6f5a, type: 3}
+  generationIcon: {fileID: 21300000, guid: ee87b2ae5e28176489e3a2b5972aef69, type: 3}
+  upgradesIcon: {fileID: 21300000, guid: ffa65ec1ff81695488567b998d3f72fa, type: 3}
+  researchIcon: {fileID: 21300000, guid: ba35ef6dea4824d4d8424678b81f15dc, type: 3}
+  settingsIcon: {fileID: 21300000, guid: 7338c326e23ed004aab0d21de7a91dc3, type: 3}
+  qaIcon: {fileID: 21300000, guid: cabcb9a9026006f49b76c229ff909039, type: 3}
+  room2Icon: {fileID: 21300000, guid: 9d999936cd38f734da8e3170fc6262a7, type: 3}
+  dimension1Icon: {fileID: 21300000, guid: 4c782cea5bd0a194a9b943f5a9bbbfe3, type: 3}
+  dimension2Icon: {fileID: 21300000, guid: 7042d8378cf1c7f44824655c580b5375, type: 3}
+  dimension3Icon: {fileID: 21300000, guid: 29dce481add07e24eb239cb0b6c8b3e8, type: 3}
+  prestigeIcon: {fileID: 21300000, guid: c4d333ce87234744d8f30c9b4632a535, type: 3}
+  higgsArtifactIcon: {fileID: 21300000, guid: ee87b2ae5e28176489e3a2b5972aef69, type: 3}
+  tetraArtifactIcon: {fileID: 21300000, guid: c4d333ce87234744d8f30c9b4632a535, type: 3}
+  modulatorArtifactIcon: {fileID: 21300000, guid: ffa65ec1ff81695488567b998d3f72fa, type: 3}
+  primaryFont: {fileID: 11400000, guid: afc8f8acdc3328349ad6378a6f7a3158, type: 2}
+  background: {r: 0.007843138, g: 0.02745098, b: 0.043137256, a: 1}
+  deepSurface: {r: 0.011764706, g: 0.047058824, b: 0.07058824, a: 0.98039216}
+  panel: {r: 0.019607844, g: 0.07058824, b: 0.101960786, a: 0.98039216}
+  border: {r: 0.039215688, g: 0.20784314, b: 0.3019608, a: 0.8627451}
+  primaryText: {r: 0.9254902, g: 0.95686275, b: 1, a: 1}
+  secondaryText: {r: 0.6, g: 0.70980394, b: 0.81960785, a: 1}
+  energy: {r: 0, g: 0.8352941, b: 1, a: 1}
+  traces: {r: 0.7254902, g: 0.30980393, b: 0.92941177, a: 1}
+  triangle: {r: 1, g: 0.59607846, b: 0.1254902, a: 1}
+  completed: {r: 0.30980393, g: 0.87058824, b: 0.2627451, a: 1}

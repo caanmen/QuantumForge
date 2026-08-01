@@ -5237,7 +5237,7 @@ public class Dimension1PanelUI : MonoBehaviour
 
         if (gs.dimension1GalacticAnchorDiscovered)
             text += gs.IsPrestige1CycleComplete()
-                ? "\n\nANCLA GALÁCTICA OBTENIDA. EL CICLO DE PRESTIGIO 1 ESTÁ COMPLETO; PRESTIGIO 2 LLEGARÁ EN UNA EXPANSIÓN FUTURA."
+                ? "\n\nANCLA GALÁCTICA OBTENIDA. EL CICLO DE PRESTIGIO 1 ESTÁ COMPLETO; PREPARA LA CONVERGENCIA EN LA MÁQUINA."
                 : "\n\nDESCUBRIMIENTO ÚNICO OBTENIDO: ANCLA GALÁCTICA";
 
         if (!string.IsNullOrEmpty(arkFeedbackMessage))

@@ -1,0 +1,672 @@
+QUANTUM FORGE
+DISEÑO DE PRESTIGIO, DIMENSIONES, CONVERGENCIA Y CIRCUITOS
+Documento para implementación experimental y pruebas
+Fecha: 23 de julio de 2026
+
+
+============================================================
+1. PROPÓSITO DEL DOCUMENTO
+============================================================
+
+Este documento resume las decisiones tomadas sobre:
+
+- El desbloqueo progresivo de las Dimensiones 1, 2 y 3.
+- Los resets de Prestigio 1.
+- La independencia entre dimensiones.
+- La etapa repetible de Ciclos de Convergencia.
+- La Máquina y su parte permanente/reconstruible.
+- La recuperación de sincronización dimensional.
+- Los Circuitos de Convergencia y su cuadrícula.
+- La posible Convergencia Profunda opcional.
+- Las pruebas necesarias antes de decidir si la Convergencia Profunda se convierte en diseño definitivo.
+
+Prestigio 2 no se diseñará todavía. Solo se preparará su futuro detonante.
+
+
+============================================================
+2. PROGRESIÓN PRINCIPAL ACORDADA
+============================================================
+
+Flujo general:
+
+1. El jugador progresa por el juego base.
+2. Llega a la Máquina y la reconstruye.
+3. Desbloquea Prestigio 1.
+4. La Máquina detecta tres Firmas Dimensionales desconocidas.
+5. La energía disponible solo permite sintonizar una firma.
+6. El jugador elige una firma.
+7. Se reinicia el ciclo del juego base.
+8. Se revela y desbloquea la dimensión correspondiente.
+9. El jugador completa esa dimensión y consigue su objeto final.
+10. El objeto final habilita el siguiente Prestigio 1.
+11. El jugador sintoniza una de las firmas restantes.
+12. El proceso se repite hasta descubrir y completar D1, D2 y D3.
+
+Las opciones desconocidas se presentarán provisionalmente como:
+
+- Firma Dimensional Alfa.
+- Firma Dimensional Beta.
+- Firma Dimensional Gamma.
+
+No se utilizarán sellos, porque la Máquina no rompe barreras: detecta, sintoniza y estabiliza rutas dimensionales.
+
+Después de seleccionar una firma se revela si corresponde a D1, D2 o D3.
+
+
+============================================================
+3. LOS TRES PRIMEROS PRESTIGIOS 1
+============================================================
+
+PRIMER PRESTIGIO 1
+
+- Requiere llegar a la Máquina desde el juego base.
+- Permite elegir una de las tres Firmas Dimensionales.
+- Reinicia el ciclo base.
+- Inicializa únicamente la dimensión seleccionada.
+- Las dimensiones no seleccionadas no producen, no simulan offline y no aplican bonus.
+
+SEGUNDO PRESTIGIO 1
+
+- Requiere el objeto final de la primera dimensión.
+- Requiere reconstruir nuevamente la Máquina.
+- Permite elegir una de las dos firmas restantes.
+- Reinicia el ciclo base.
+- Conserva completamente la primera dimensión.
+- Inicializa la segunda dimensión.
+
+TERCER PRESTIGIO 1
+
+- Requiere el objeto final de la segunda dimensión.
+- Requiere reconstruir la Máquina.
+- Permite sintonizar la última firma.
+- Reinicia el ciclo base.
+- Conserva las dimensiones anteriores.
+- Inicializa la tercera dimensión.
+
+Después del tercer prestigio todavía no comienza la etapa de Convergencia. Primero debe conseguirse el objeto final de la tercera dimensión.
+
+
+============================================================
+4. INDEPENDENCIA DE LAS DIMENSIONES
+============================================================
+
+Cada dimensión debe poder completarse por sí sola.
+
+Reglas obligatorias:
+
+- D1 no puede exigir progreso de D2 o D3.
+- D2 no puede exigir progreso de D1 o D3.
+- D3 no puede exigir progreso de D1 o D2.
+- Las conexiones dimensionales pueden conceder bonus.
+- Los bonus pueden mejorar producción, eficiencia o comodidad.
+- Ningún bonus cruzado será requisito para conseguir un objeto final.
+- Una conexión solo aparece cuando las dos dimensiones relacionadas han sido descubiertas.
+
+La automatización de D3 puede interactuar posteriormente con D1 o D2, pero esas interacciones no pueden formar parte del camino obligatorio para completar D3.
+
+
+============================================================
+5. RESET DURANTE EL DESCUBRIMIENTO DIMENSIONAL
+============================================================
+
+Los primeros tres Prestigios 1 reinician el ciclo del juego base.
+
+SE REINICIA:
+
+- Recursos del juego base.
+- Edificios y producción base.
+- Investigaciones temporales.
+- Progreso reconstruible de la Máquina.
+- Bonificaciones temporales.
+- Sistemas que finalmente se clasifiquen como parte del ciclo base.
+
+SE CONSERVA:
+
+- Dimensiones descubiertas.
+- Progreso completo de esas dimensiones.
+- Recursos dimensionales.
+- Objetos finales.
+- Automatizaciones dimensionales desbloqueadas.
+- Tutoriales vistos.
+- Registros, colecciones y descubrimientos.
+
+La lista exacta del Triángulo y de otros sistemas deberá definirse durante la auditoría del reset actual.
+
+
+============================================================
+6. ESTADOS NECESARIOS PARA CADA DIMENSIÓN
+============================================================
+
+El código no debería utilizar una única bandera para representar toda la progresión dimensional.
+
+Cada dimensión debe poder distinguir al menos estos estados:
+
+- Detectada: existe una firma desconocida.
+- Descubierta: ya se conoce la identidad de la dimensión.
+- Desbloqueada: el jugador puede entrar.
+- Inicializada: su estado interno ya fue creado.
+- Simulable: participa en ticks y progreso offline.
+- Completada: se consiguió su objeto final.
+- Visible: aparece en la navegación correspondiente.
+
+Una dimensión no elegida:
+
+- No se inicializa.
+- No produce recursos.
+- No avanza offline.
+- No aplica bonus.
+- No aparece con su identidad real.
+- Solo existe como Firma Dimensional desconocida.
+
+
+============================================================
+7. DESBLOQUEO DE LOS CICLOS DE CONVERGENCIA
+============================================================
+
+Los Ciclos de Convergencia se desbloquean cuando:
+
+- D1 fue descubierta y completada.
+- D2 fue descubierta y completada.
+- D3 fue descubierta y completada.
+- Los tres objetos finales están registrados en la Máquina.
+
+A partir de ese momento, Prestigio 1 entra en su etapa repetible.
+
+La recompensa principal de cada Convergencia será un Circuito de Convergencia nuevo.
+
+
+============================================================
+8. ESTRUCTURA DE LA MÁQUINA
+============================================================
+
+La Máquina pertenece al juego base, pero tendrá una parte permanente y otra reconstruible.
+
+NÚCLEO PERMANENTE
+
+Sobrevive a los resets y conserva:
+
+- Firmas y coordenadas descubiertas.
+- Objetos finales dimensionales.
+- Circuitos obtenidos.
+- Configuración estabilizada de la cuadrícula.
+- Cantidad de Convergencias realizadas.
+- Información permanente relacionada con el futuro Prestigio 2.
+
+Los efectos de los circuitos instalados pueden seguir funcionando desde el inicio de un nuevo ciclo.
+
+ESTRUCTURA OPERATIVA
+
+Forma parte del juego base y debe reconstruirse:
+
+- Componentes de energía.
+- Sistema de viaje dimensional.
+- Receptor Dimensional.
+- Módulo de Convergencia.
+- Componentes necesarios para fabricar el próximo circuito.
+
+La Máquina recuerda su configuración, pero debe reconstruir su cuerpo operativo después de cada reset.
+
+
+============================================================
+9. CONVERGENCIA NORMAL
+============================================================
+
+La Convergencia normal será la versión principal que se implementará primero.
+
+REINICIA:
+
+- Juego base.
+- Estructura operativa de la Máquina.
+- Recursos y progreso temporal base.
+- Sincronización actual de las tres señales dimensionales.
+- Bonificaciones temporales del ciclo.
+
+CONSERVA:
+
+- Todo el progreso de D1, D2 y D3.
+- Recursos y estructuras dimensionales.
+- Objetos finales.
+- Automatización de D3.
+- Configuraciones y actividades dimensionales.
+- Circuitos obtenidos.
+- Configuración anterior de la placa.
+- Descubrimientos y progreso permanente.
+
+RECOMPENSA:
+
+- Un Circuito de Convergencia nuevo.
+
+Concepto central:
+
+Las dimensiones no se destruyen; la Máquina pierde temporalmente su conexión con ellas.
+
+
+============================================================
+10. RECUPERACIÓN DE LA SINCRONIZACIÓN
+============================================================
+
+Después de una Convergencia normal:
+
+1. El jugador reconstruye el juego base.
+2. Llega nuevamente a la Máquina.
+3. Reconstruye el Receptor Dimensional.
+4. Desde ese momento comienza la recepción de las señales D1, D2 y D3.
+5. Cada dimensión recupera sincronización mediante actividades avanzadas normales.
+6. Las tres señales necesitan una activación mínima.
+7. La estabilidad restante puede obtenerse desde cualquier dimensión.
+8. Al alcanzar el requisito total se habilita la siguiente Convergencia.
+
+La sincronización no se acumula retroactivamente antes de reconstruir el Receptor.
+
+Ejemplo de estado:
+
+- Receptor Dimensional: reconstruido.
+- Señal D1: activa.
+- Señal D2: activa.
+- Señal D3: activa.
+- Estabilidad actual: 187.
+- Estabilidad necesaria: 240.
+- Próximo circuito: no disponible.
+
+Las acciones exactas de sincronización de D1, D2 y D3 están pendientes de diseño.
+
+Las actividades deberán usar los ciclos avanzados existentes de cada dimensión. No se repetirá su historia ni será necesario conseguir nuevamente el objeto final en una Convergencia normal.
+
+
+============================================================
+11. REQUISITO CRECIENTE
+============================================================
+
+No habrá Niveles de Convergencia.
+
+La cantidad de circuitos poseídos determina cuánto debe soportar la Máquina para fabricar el siguiente.
+
+El requisito tendrá en cuenta:
+
+- Cantidad de circuitos obtenidos.
+- Reconstrucción de la Máquina.
+- Activación mínima de las tres señales.
+- Estabilidad total del ciclo.
+
+La fórmula exacta se definirá durante el balance.
+
+Implementación experimental aprobada para pruebas (23 de julio de 2026):
+
+- Requisito para el siguiente circuito: techo(120 × (1 + 0.55 × circuitos poseídos)²).
+- Referencias: 0 circuitos = 120, 1 = 289, 2 = 530, 3 = 843.
+- Este valor es provisional y debe recalibrarse tras medir varios ciclos normales.
+
+El requisito debe crecer más rápido que los bonus generales obtenidos mediante dimensiones y circuitos. Esto evita llegar al siguiente reset reconstruyendo solamente el juego base en pocos segundos.
+
+
+============================================================
+12. CIRCUITOS DE CONVERGENCIA
+============================================================
+
+Cada Convergencia entrega directamente un circuito.
+
+NO HABRÁ:
+
+- Moneda de Convergencia.
+- Puntos para comprar nodos.
+- Árbol de prestigio.
+- Niveles de circuitos.
+- Familias formales de circuitos.
+- Circuitos que automaticen acciones.
+
+La automatización seguirá siendo una característica exclusiva de D3.
+
+Los circuitos tendrán:
+
+- Nombre único.
+- Efecto propio.
+- Forma y conectores.
+- Regla de posición, distancia o cercanía.
+- Como máximo una o dos interacciones especiales con circuitos concretos.
+
+Los circuitos aparecerán en un orden diseñado, no aleatorio.
+
+El orden permitirá introducir gradualmente:
+
+1. Conexiones simples.
+2. Rotación.
+3. Distancia y cercanía.
+4. División de señal.
+5. Interacciones especiales.
+6. Reglas avanzadas como bucles, copia, inversión o conexiones excepcionales.
+
+
+============================================================
+13. PLACA Y CUADRÍCULA DE CIRCUITOS
+============================================================
+
+Base acordada:
+
+- Existe una cuadrícula alrededor del Núcleo de la Máquina.
+- Los circuitos pueden colocarse y rotarse.
+- Las conexiones normales son horizontales y verticales.
+- La energía debe viajar desde el Núcleo.
+- Un circuito desconectado queda inactivo.
+- La posición cambia sus efectos.
+- La distancia al Núcleo puede importar.
+- Los circuitos vecinos pueden modificar sus propiedades.
+- Determinadas parejas producen comportamientos especiales.
+- Algunos circuitos podrán transmitir, dividir, amplificar o transformar señales.
+
+Durante una Convergencia:
+
+1. Se obtiene el nuevo circuito.
+2. Se abre la placa.
+3. El jugador mueve y rota sus circuitos.
+4. La interfaz muestra conexiones y efectos en tiempo real.
+5. El jugador confirma con Estabilizar configuración.
+6. Comienza el nuevo ciclo.
+7. La configuración permanece bloqueada hasta la siguiente Convergencia.
+
+Esto evita cambiar circuitos antes de cada acción para explotar varias configuraciones durante el mismo ciclo.
+
+El tamaño exacto de la cuadrícula sigue pendiente. La propuesta inicial es 5 por 5 con el Núcleo en el centro.
+
+Implementación experimental aprobada para pruebas (23 de julio de 2026):
+
+- La primera placa usa 5 por 5, con coordenadas de −2 a 2 y el Núcleo en (0,0).
+- El tamaño sigue siendo provisional y se revisará al ampliar el catálogo de circuitos.
+
+
+============================================================
+14. AUTOMATIZACIÓN DE D3
+============================================================
+
+Los circuitos no deben:
+
+- Comprar mejoras automáticamente.
+- Administrar colas.
+- Elegir destinos.
+- Asignar unidades.
+- Activar pactos.
+- Ejecutar expediciones.
+- Tomar decisiones por el jugador.
+
+La automatización de D3 se conserva como recompensa e identidad propia de esa dimensión.
+
+Puede ayudar a reconstruir el juego base, pero:
+
+- Solo actúa sobre sistemas válidos y disponibles.
+- No reconstruye sistemas que todavía no fueron desbloqueados.
+- No entrega circuitos.
+- No evita la activación de las tres señales.
+- No elimina el requisito creciente de estabilidad.
+
+
+============================================================
+15. CONVERGENCIA PROFUNDA: VARIANTE PARA PRUEBAS
+============================================================
+
+Esta variante NO se considera todavía diseño definitivo.
+
+Su propósito es permitir que el jugador elija comenzar nuevamente el progreso reconstruible de las dimensiones a cambio de una recompensa mayor.
+
+CONVERGENCIA PROFUNDA
+
+REINICIA:
+
+- Juego base.
+- Estructura operativa de la Máquina.
+- Economía reconstruible de D1, D2 y D3.
+- Recursos dimensionales.
+- Estructuras reconstruibles.
+- Producción activa.
+- Expediciones, operaciones, colas y actividades temporales.
+- Condiciones de finalización reconstruibles.
+
+CONSERVA:
+
+- Dimensiones descubiertas.
+- Registro permanente de los objetos finales.
+- Circuitos.
+- Placa y configuración anterior.
+- Tutoriales.
+- Catálogos y descubrimientos.
+- Planos conocidos.
+- Automatizaciones y perfiles de D3.
+- Configuraciones guardadas.
+- Progreso permanente hacia Prestigio 2.
+
+RECOMPENSA EXPERIMENTAL:
+
+- Dos Circuitos de Convergencia en vez de uno.
+
+Los dos circuitos siguen el orden diseñado. No son aleatorios.
+
+Ejemplo:
+
+- Si el jugador posee los circuitos 1, 2 y 3, una Convergencia normal entrega el circuito 4.
+- Una Convergencia profunda entrega los circuitos 4 y 5.
+- La siguiente recompensa comenzará con el circuito 6.
+
+Los circuitos obtenidos juntos deben presentarse y explicarse de uno en uno.
+
+
+============================================================
+16. RIESGOS DE LA CONVERGENCIA PROFUNDA
+============================================================
+
+RIESGO 1: ELECCIÓN FALSA
+
+Si la Convergencia profunda entrega circuitos mucho más rápido, los jugadores sentirán que es obligatoria aunque aparezca como opcional.
+
+RIESGO 2: RECOMPENSA INSUFICIENTE
+
+Si reconstruir las tres dimensiones tarda mucho más que dos ciclos normales, dos circuitos no compensarán la pérdida y casi nadie elegirá esta opción.
+
+RIESGO 3: SOBRECARGA DE APRENDIZAJE
+
+Recibir dos circuitos simultáneamente puede introducir dos reglas nuevas de la cuadrícula sin dar tiempo para dominar la primera.
+
+RIESGO 4: PÉRDIDA ACCIDENTAL
+
+La opción necesita una comparación clara, una lista exacta de lo perdido y una confirmación especial.
+
+RIESGO 5: RUPTURA DEL RITMO HACIA PRESTIGIO 2
+
+Como los dos circuitos contarían para el futuro evento, algunos jugadores llegarán con menos Convergencias pero más reconstrucción dimensional. Esto es aceptable solamente si ambos caminos tienen un coste de tiempo y esfuerzo razonable.
+
+
+============================================================
+17. CONDICIONES DE SEGURIDAD PARA LA PRUEBA PROFUNDA
+============================================================
+
+- Nunca debe estar seleccionada por defecto.
+- Debe utilizar un botón diferente a la Convergencia normal.
+- Debe mostrar qué se reinicia y qué se conserva.
+- Debe advertir que D1, D2 y D3 necesitarán reconstrucción.
+- Debe solicitar confirmación adicional.
+- Las automatizaciones de D3 se conservan como conocimiento, pero necesitan nuevamente sus requisitos físicos.
+- Los dos circuitos deben explicarse por separado.
+- El jugador no está obligado a instalar inmediatamente ambos circuitos.
+- No debe ofrecer contenido exclusivo necesario para Prestigio 2.
+
+Recomendación inicial:
+
+No desbloquear la Convergencia profunda inmediatamente después del primer circuito. Probar primero su desbloqueo después de obtener aproximadamente tres circuitos normales, cuando el jugador ya comprenda la cuadrícula.
+
+También puede probarse una variante donde esté disponible desde la segunda Convergencia, pero esto aumenta el riesgo de sobrecarga.
+
+
+============================================================
+18. PLAN DE PRUEBAS
+============================================================
+
+PRUEBA A: CONVERGENCIA NORMAL
+
+- Conservar completamente las dimensiones.
+- Reiniciar juego base y sincronización.
+- Entregar un circuito.
+- Medir duración total del ciclo.
+- Medir cuánto tarda la reconstrucción base.
+- Medir cuánto tarda la recuperación de las tres señales.
+- Registrar cuánto influye la automatización de D3.
+
+PRUEBA B: CONVERGENCIA PROFUNDA
+
+- Reiniciar juego base y progreso dimensional reconstruible.
+- Conservar conocimiento, objetos registrados, automatizaciones y circuitos.
+- Entregar dos circuitos.
+- Medir tiempo hasta poder realizar la siguiente Convergencia.
+- Medir cuánta repetición siente el jugador.
+- Medir si las automatizaciones conservadas hacen agradable la reconstrucción.
+
+COMPARACIÓN PRINCIPAL
+
+La Convergencia profunda debería tardar aproximadamente el doble que una normal para que dos circuitos representen una elección de estilo y no una ruta matemáticamente obligatoria.
+
+No es una regla numérica definitiva. Es el punto inicial de comparación.
+
+Si la profunda tarda considerablemente menos del doble:
+
+- Probablemente será dominante.
+- Habrá que reducir su recompensa o aumentar sus requisitos.
+
+Si tarda considerablemente más del doble:
+
+- Probablemente será ignorada.
+- Habrá que reducir la cantidad de contenido reiniciado o mejorar su recompensa.
+
+
+============================================================
+19. DATOS Y OBSERVACIONES A REGISTRAR
+============================================================
+
+- Tiempo de una Convergencia normal.
+- Tiempo de una Convergencia profunda.
+- Tiempo por circuito en cada modalidad.
+- Cantidad de acciones manuales repetidas.
+- Tiempo dedicado a reconstruir cada dimensión.
+- Cantidad de contenido resuelto por automatización de D3.
+- Frecuencia con que el jugador elige cada modalidad.
+- Momento en que el juego base se vuelve demasiado trivial.
+- Momento en que el requisito creciente se vuelve demasiado lento.
+- Si recibir dos circuitos a la vez confunde.
+- Si el jugador siente que la profunda es obligatoria.
+- Si el jugador lamenta haber reiniciado las dimensiones.
+- Si reorganizar la placa compensa emocionalmente el reset.
+
+Preguntas para el jugador después de la prueba:
+
+1. ¿La recompensa justificó el progreso perdido?
+2. ¿Sentiste que podías elegir libremente entre ambas opciones?
+3. ¿Preferiste reconstruir dimensiones o conservarlas?
+4. ¿Recibir dos circuitos fue emocionante o confuso?
+5. ¿La automatización de D3 redujo suficientemente la repetición?
+6. ¿Volverías a elegir una Convergencia profunda?
+
+
+============================================================
+20. CRITERIOS PARA TOMAR LA DECISIÓN FINAL
+============================================================
+
+MANTENER LA CONVERGENCIA PROFUNDA SI:
+
+- Existe un grupo significativo de jugadores que disfruta reconstruir.
+- No se percibe como obligatoria.
+- Dos circuitos compensan razonablemente el esfuerzo.
+- La automatización y el conocimiento conservado reducen la repetición.
+- El orden diseñado de circuitos sigue siendo comprensible.
+
+MODIFICARLA SI:
+
+- Es claramente la opción más eficiente.
+- Los jugadores la eligen solo por miedo a avanzar más lento.
+- La reconstrucción completa se vuelve tediosa.
+- Los dos circuitos producen demasiada información simultánea.
+
+DESCARTARLA SI:
+
+- Casi nadie quiere perder el progreso dimensional.
+- Es imposible equilibrar el tiempo por circuito.
+- Obliga a reducir artificialmente las recompensas de la modalidad normal.
+- Perjudica la identidad independiente de las dimensiones.
+
+
+============================================================
+21. PREPARACIÓN FUTURA DE PRESTIGIO 2
+============================================================
+
+Prestigio 2 no se diseñará todavía.
+
+Solo queda establecido:
+
+- Existe una cantidad futura de circuitos requerida.
+- Los circuitos deberán estar instalados, conectados y funcionando.
+- Tanto circuitos normales como los obtenidos mediante Convergencia profunda cuentan.
+- Al cumplirse la condición, algo cambia en la Máquina.
+- Ese cambio inicia el futuro evento detonante de Prestigio 2.
+
+Quedan pendientes:
+
+- Cantidad exacta de circuitos.
+- Configuración necesaria.
+- Naturaleza del evento.
+- Recompensas y reset de Prestigio 2.
+
+
+============================================================
+22. ORDEN RECOMENDADO DE IMPLEMENTACIÓN EXPERIMENTAL
+============================================================
+
+1. Corregir los errores actuales de progresión.
+2. Separar los estados dimensionales.
+3. Cambiar Prestigio 1 para elegir una sola Firma Dimensional.
+4. Implementar persistencia dimensional entre resets base.
+5. Definir e implementar los tres objetos finales.
+6. Implementar los tres primeros Prestigios 1.
+7. Separar Núcleo permanente y estructura operativa de la Máquina.
+8. Implementar Receptor y sincronización dimensional.
+9. Implementar Convergencia normal y requisito creciente.
+10. Implementar una versión mínima de la placa.
+11. Crear los primeros circuitos en orden diseñado.
+12. Medir varios ciclos normales.
+13. Implementar la Convergencia profunda como variante experimental.
+14. Comparar duración, repetición, preferencia y comprensión.
+15. Decidir si la Convergencia profunda se conserva, modifica o descarta.
+16. Dejar preparado únicamente el hook futuro de Prestigio 2.
+
+
+============================================================
+23. ESTADO ACTUAL DE LAS DECISIONES
+============================================================
+
+DECIDIDO:
+
+- Desbloqueo de una dimensión por Prestigio 1.
+- Firmas Dimensionales desconocidas.
+- Dimensiones independientes.
+- Progreso dimensional conservado durante los primeros prestigios.
+- Convergencia normal con reset base y un circuito.
+- Núcleo permanente y estructura operativa reconstruible.
+- Recuperación de sincronización después de reconstruir el Receptor.
+- Requisito creciente según cantidad de circuitos.
+- Circuitos únicos en orden diseñado.
+- Cuadrícula con posición, orientación, conexión y vecindad.
+- Automatización exclusiva de D3.
+- Circuitos como preparación futura de Prestigio 2.
+
+PENDIENTE DE PRUEBAS:
+
+- Convergencia profunda.
+- Reset dimensional opcional.
+- Recompensa exacta de dos circuitos.
+- Momento en que se desbloquea la opción profunda.
+
+PENDIENTE DE DISEÑO:
+
+- Objetos finales y eventos finales de D1, D2 y D3.
+- Acciones exactas de sincronización.
+- Fórmula del requisito creciente.
+- Tamaño definitivo de la cuadrícula.
+- Catálogo, nombres y efectos de circuitos.
+- Cantidad de circuitos para Prestigio 2.
+- Evento de Prestigio 2.
+
+
+FIN DEL DOCUMENTO

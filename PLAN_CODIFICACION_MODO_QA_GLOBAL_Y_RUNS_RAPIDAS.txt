@@ -1,0 +1,761 @@
+QUANTUM FORGE
+ESPECIFICACION DE CODIFICACION
+MODO QA GLOBAL, RUNS RAPIDAS Y LIMPIEZA DE RECURSOS RETIRADOS
+
+Documento preparado para: Sol Medium
+Fecha: 2026-07-27
+
+======================================================================
+0. FORMA DE TRABAJO OBLIGATORIA
+======================================================================
+
+Implementar este documento POR BLOQUES.
+
+Al terminar cada bloque:
+
+1. Compilar.
+2. Ejecutar las validaciones indicadas para ese bloque.
+3. Informar archivos modificados, resultado y cualquier duda.
+4. DETENERSE y esperar la instruccion del usuario para continuar.
+
+No implementar varios bloques de una sola vez.
+No hacer stage, commit, reset ni limpieza de cambios ajenos.
+El worktree ya contiene trabajo del usuario y debe conservarse.
+
+Si aparece una decision no cubierta por este documento, detenerse y
+preguntar. No inventar nuevas monedas, recompensas, requisitos, balances,
+desbloqueos ni estados de progresion.
+
+======================================================================
+1. OBJETIVO
+======================================================================
+
+Crear herramientas de QA utilizables en una Development Build de Android
+para recorrer Quantum Forge con rapidez sin saltarse la logica real del
+juego y sin contaminar una build publica.
+
+El resultado debe permitir:
+
+- Velocidad de simulacion seleccionable: x1, x5, x10 y x20.
+- Ver siempre cual velocidad esta realmente activa.
+- Acelerar todos los temporizadores ONLINE de jugabilidad que siguen
+  activos.
+- Mantener interfaz, animaciones y controles tactiles a velocidad normal.
+- Avanzar exactamente +5 minutos, +30 minutos o +1 hora de tiempo de juego.
+- Guardar y restaurar checkpoints manuales de QA.
+- Volver a x1 en cualquier momento.
+- No afectar el reloj real usado por progreso offline.
+- No reactivar EM, ADP ni WHF.
+
+Este modo sirve para verificar funcionalidad y progresion. No reemplaza una
+run normal de balance.
+
+======================================================================
+2. ESTADO REAL DEL PROYECTO Y REGLAS DE ALCANCE
+======================================================================
+
+2.1. Recursos activos que SI deben avanzar con el tiempo simulado
+
+- LE.
+- Trazas.
+- Produccion de los tres edificios base actuales.
+- Fragmentos y sistemas actuales del Cuarto 2.
+- Sincronizacion y efectos del Triangulo.
+- Dimension 1: mineria, escaneos, exploraciones, misiones y trabajos que
+  actualmente reciben dt por GameState.Tick / Dimension1System.Tick.
+- Dimension 2: civilizaciones, actividades y temporizadores que actualmente
+  reciben dt por Dimension2System.Tick.
+- Dimension 3: estabilizacion, colas, diagnostico y automatizacion online que
+  actualmente reciben dt por Dimension3System.Tick.
+- Maquina: analisis de nodos.
+- Cooldown de fusion del Cuarto 2.
+- Convergencia de forma natural: las actividades de D1, D2 y D3 que otorgan
+  sincronizacion/estabilidad deben completarse antes al acelerar su tiempo.
+
+2.2. Recursos retirados que NO deben formar parte del modo QA
+
+EM, ADP y WHF fueron retirados del juego activo.
+
+Actualmente quedan residuos de codigo y guardado, pero:
+
+- No existen edificios activos que los generen.
+- Sus objetos de HUD estan inactivos.
+- No deben producirse.
+- No deben modificar LE.
+- No deben aparecer en textos, logros, investigaciones ni herramientas QA.
+
+2.3. Elementos que NO se aceleran
+
+- Animaciones y transiciones de UI.
+- Refrescos visuales de HUD/paneles.
+- Pulsaciones, compras, elecciones o confirmaciones manuales.
+- DateTimeOffset.UtcNow, lastUnix ni telemetria basada en tiempo real.
+- Progreso offline al cerrar la aplicacion.
+- Guardados automáticos medidos en tiempo real.
+
+2.4. Prohibicion tecnica
+
+NO usar Time.timeScale para implementar el modo QA.
+
+La aceleracion debe hacerse escalando exclusivamente los segundos de
+simulacion que entran a la logica de juego. Esto evita acelerar animaciones,
+toques, coroutines visuales y ventanas del sistema.
+
+======================================================================
+BLOQUE 0. NEUTRALIZAR EM, ADP Y WHF SIN ROMPER SAVES
+======================================================================
+
+Objetivo:
+
+Cerrar los residuos funcionales de EM, ADP y WHF antes de ampliar el modo
+QA. No hacer una eliminacion destructiva de campos serializados todavía.
+
+Archivos principales esperados:
+
+- Assets/Project/Scripts/Core/GameState.cs
+- Assets/Project/Scripts/Systems/SaveService.cs
+- Assets/Project/Scripts/UI/HUD.cs
+- Assets/Project/Scripts/Buildings/BuildingRowUI.cs
+- Assets/Project/Scripts/Systems/ResearchManager.cs
+- Assets/Project/Resources/Data/research.json
+- Assets/Project/Resources/Data/achievements.json
+- Assets/Project/Resources/Localization/lang_es.json
+- Assets/Project/Resources/Localization/lang_en.json
+- Assets/Project/Scenes/Main.unity, solo si es necesario desconectar objetos
+  heredados.
+
+Implementacion:
+
+0.1. Agregar una version de migracion para recursos retirados.
+
+En SaveData agregar un entero claramente nombrado, por ejemplo:
+
+    public int removedLegacyResourcesVersion;
+
+Version actual esperada: 1.
+
+0.2. Conservar temporalmente en SaveData los campos EM, emMult, ADP, WHF,
+totalADPGenerada y totalWHFGenerada para poder leer JSON antiguo.
+
+No eliminarlos todavía del contrato JSON. Marcarlos con comentario de
+compatibilidad heredada.
+
+0.3. Al cargar cualquier save, antiguo o actual:
+
+- Forzar GameState.EM = 0.
+- Forzar GameState.emMult = 0.
+- Forzar GameState.ADP = 0.
+- Forzar GameState.WHF = 0.
+- Forzar totalADPGenerada = 0.
+- Forzar totalWHFGenerada = 0.
+- Forzar researchGlobalLEMult = 1.0 si su unica fuente era el ResearchManager
+  heredado de EM.
+- Marcar removedLegacyResourcesVersion = 1 al guardar nuevamente.
+
+No otorgar compensacion. No convertirlos a LE ni Trazas.
+
+0.4. En GameState.Tick retirar las llamadas activas que calculan o producen:
+
+- CalculateEMps.
+- CalculateEMMultiplier.
+- CalculateADPps.
+- CalculateWHFps.
+
+Retirar tambien su produccion de la ruta offline activa.
+
+0.5. Quitar emMult de las formulas actuales de produccion de LE.
+
+Revisar al menos:
+
+- CalculateTotalLEps.
+- GenerateLEFromBaseAndBuildings.
+- Cualquier worldMult o emFactor usado por BuildingRowUI o GameState.
+
+La eliminacion de emMult no debe eliminar multiplicadores activos de:
+
+- Triangulo.
+- F2 upgrades.
+- Logros activos.
+- Dimensiones.
+- Convergencia.
+- Maquina.
+
+0.6. BuildingRowUI no debe mostrar lineas como "+0.00 EM".
+
+Los tres edificios actuales solo deben mostrar las estadisticas activas.
+
+0.7. HUD no debe actualizar EM, ADP ni WHF.
+
+Se pueden conservar objetos de escena inactivos durante esta migracion, pero
+HUD no debe mantener logica activa que los escriba cada refresco. Si se
+eliminan referencias serializadas, hacerlo sin afectar LE, Trazas y otros
+textos activos.
+
+0.8. research.json contiene un arbol antiguo dedicado a EM.
+
+No reutilizar esas investigaciones para otra mecanica. Dejar la lista activa
+vacia o retirar sus definiciones de forma compatible. ResearchManager debe
+tolerar una lista vacia sin errores y dejar researchGlobalLEMult en 1.0.
+
+0.9. achievements.json:
+
+- Retirar ach_first_em.
+- Las metas de investigaciones del ResearchManager antiguo que queden
+  imposibles no deben mostrarse como logros activos. Retirarlas en este
+  bloque; no reinterpretarlas como investigacion D3 sin un diseño nuevo.
+
+0.10. Limpiar textos visibles que prometan EM, ADP o WHF.
+
+Se pueden conservar claves sin uso por compatibilidad durante este bloque,
+pero ninguna pantalla activa debe mostrarlas.
+
+Validacion del Bloque 0:
+
+- Crear una partida nueva, ejecutar GameState.Tick(3600) con edificios
+  actuales y comprobar EM=ADP=WHF=0 y emMult=0.
+- Cargar un SaveData heredado con valores no cero y comprobar que se migra a
+  cero sin perder LE, Trazas, edificios, dimensiones, Maquina, Triangulo ni
+  Convergencia.
+- Guardar y volver a cargar: los valores siguen en cero.
+- Ninguna fila de edificio muestra EM.
+- research.json vacio no genera NullReferenceException.
+- Validaciones completas existentes siguen en PASS.
+
+Detenerse al terminar este bloque.
+
+======================================================================
+BLOQUE 1. SERVICIO CENTRAL DE TIEMPO QA
+======================================================================
+
+Objetivo:
+
+Crear una unica autoridad para la velocidad de simulacion. Ningun sistema
+debe leer directamente un booleano local de DEV.
+
+Archivo nuevo sugerido:
+
+- Assets/Project/Scripts/QA/QaRuntimeService.cs
+
+API minima requerida:
+
+    public static bool IsAvailable { get; }
+    public static float SimulationMultiplier { get; }
+    public static bool IsAccelerated { get; }
+    public static event Action<float> SpeedChanged;
+    public static bool TrySetSpeed(float multiplier);
+    public static float CycleSpeed();
+    public static double ScaleOnlineSeconds(double realSeconds);
+    public static void ResetToNormalSpeed();
+
+Reglas:
+
+1. IsAvailable solo es true si:
+
+       Application.isEditor || Debug.isDebugBuild
+
+2. Valores permitidos exactos:
+
+       1f, 5f, 10f, 20f
+
+3. Cualquier NaN, infinito, cero, negativo o valor no permitido se rechaza y
+   deja x1.
+
+4. En una build que no sea Development Build:
+
+- SimulationMultiplier siempre devuelve 1.
+- No se puede activar QA.
+- Los controles QA se ocultan.
+
+5. No guardar la velocidad en SaveData.
+
+Se permite guardarla en PlayerPrefs con una clave exclusiva de QA para que
+la Development Build del celular recuerde la seleccion. La build publica
+siempre debe ignorar esa preferencia.
+
+6. Default de una instalacion nueva: x1.
+
+7. ScaleOnlineSeconds debe:
+
+- Aceptar solo segundos finitos y >= 0.
+- Devolver realSeconds * SimulationMultiplier.
+- No modificar Time.timeScale.
+
+8. Agregar un indicador de que QA se uso durante la sesion, solo para logs y
+diagnostico. No debe alterar balance ni recompensas.
+
+Validacion del Bloque 1:
+
+- x1 escala 10 s a 10 s.
+- x5 escala 10 s a 50 s.
+- x10 escala 10 s a 100 s.
+- x20 escala 10 s a 200 s.
+- Valores invalidos no se aceptan.
+- En modo no disponible el resultado siempre es x1.
+- Time.timeScale permanece en 1.
+
+Detenerse al terminar este bloque.
+
+======================================================================
+BLOQUE 2. REEMPLAZAR DEV x5 Y APLICAR VELOCIDAD GLOBAL
+======================================================================
+
+Objetivo:
+
+Reemplazar el comportamiento incompleto actual y aplicar la autoridad QA a
+todos los temporizadores online activos.
+
+Archivos principales:
+
+- Assets/Project/Scripts/Systems/TickSystem.cs
+- Assets/Project/Scripts/UI/DevMultiplierButton.cs
+- Assets/Project/Scripts/Buildings/BuildingRowUI.cs
+- Assets/Project/Scripts/Systems/MachineManager.cs
+- Assets/Project/Scripts/UI/Room2PanelUI.cs
+- Assets/Project/Scenes/Main.unity
+
+2.1. TickSystem
+
+Situacion actual:
+
+    GameState.I.Tick(_step * devMultiplier)
+
+Resultado requerido:
+
+    double simulatedSeconds =
+        QaRuntimeService.ScaleOnlineSeconds(_step);
+    GameState.I.Tick(simulatedSeconds);
+
+Eliminar devMultiplier como autoridad mutable. Si se conserva temporalmente
+por compatibilidad de escena, no debe participar en formulas ni crear un
+segundo multiplicador.
+
+2.2. DevMultiplierButton
+
+Reutilizar el componente y el GameObject existente para no romper su GUID ni
+la escena, pero reemplazar completamente su estado local `_on`.
+
+Al pulsarlo debe ciclar:
+
+    x1 -> x5 -> x10 -> x20 -> x1
+
+El texto debe reflejar el valor REAL:
+
+    QA x1
+    QA x5
+    QA x10
+    QA x20
+
+No volver a usar el texto fijo "DEV x5: ON".
+
+Color recomendado:
+
+- x1: gris/neutral.
+- x5/x10/x20: naranja o amarillo visible.
+
+Actualizar el texto en Awake/OnEnable y al recibir SpeedChanged.
+No agregar listeners duplicados al reactivar el objeto.
+
+En build publica, ocultar el boton completo.
+
+2.3. BuildingRowUI
+
+La duracion mostrada debe consultar QaRuntimeService.SimulationMultiplier,
+no TickSystem.devMultiplier. La vista debe coincidir con el tiempo real
+acelerado que observa el tester.
+
+2.4. MachineManager
+
+El analisis de nodos usa Time.unscaledDeltaTime fuera de GameState.Tick.
+Aplicar exactamente una vez:
+
+    double analysisSeconds =
+        QaRuntimeService.ScaleOnlineSeconds(Time.unscaledDeltaTime);
+
+Despues aplicar el multiplicador activo del circuito Fase como ya se hace.
+
+No multiplicar dos veces por QA.
+
+2.5. Room2PanelUI
+
+El cooldown de fusion usa Time.deltaTime fuera de GameState.Tick.
+Reemplazarlo por segundos online QA:
+
+    double elapsed =
+        QaRuntimeService.ScaleOnlineSeconds(Time.unscaledDeltaTime);
+
+Restar elapsed una sola vez. Mantener el minimo de cero.
+
+No cambiar en este bloque la duracion base ni los descuentos existentes.
+
+2.6. Sistemas que ya quedan cubiertos por GameState.Tick
+
+No agregar otro multiplicador dentro de:
+
+- Dimension1System.Tick.
+- Dimension2System.Tick.
+- Dimension3System.Tick.
+- D3JobQueueSystem.
+- D3AutomationSystem online.
+- UpdateTriangleSynchronization.
+- Produccion base.
+
+Ya reciben el dt escalado desde TickSystem. Agregar otro xN dentro de ellos
+causaria xN al cuadrado.
+
+2.7. Sistemas visuales
+
+HUD, paneles, animaciones, popups y refreshTimer deben continuar usando
+Time.unscaledDeltaTime sin QaRuntimeService.
+
+2.8. Tiempo real y offline
+
+No modificar:
+
+- DateTimeOffset.UtcNow.
+- SaveData.lastUnix.
+- ConvergenceTelemetrySystem.NowUnix.
+- Calculo de offlineSeconds en SaveService.Load.
+- Caps offline de D1/D2/D3.
+
+Validacion del Bloque 2:
+
+- Al iniciar, el boton muestra QA x1 y TickSystem simula x1.
+- Cada toque cambia texto y velocidad juntos.
+- 60 s reales a x10 equivalen aproximadamente a 600 s de simulacion para
+  produccion base, D1, D2 y D3.
+- Analisis de Maquina y cooldown del Cuarto 2 tambien avanzan x10.
+- UI y animaciones siguen a velocidad normal.
+- No hay doble multiplicacion en D1/D2/D3.
+- Cerrar y abrir la app calcula offline usando tiempo real, no x10/x20.
+- En build no-Development no aparece el boton y todo queda x1.
+
+Detenerse al terminar este bloque.
+
+======================================================================
+BLOQUE 3. PANEL QA PARA CELULAR
+======================================================================
+
+Objetivo:
+
+Ofrecer herramientas claras y tactiles sin llenar la interfaz normal.
+
+Archivos sugeridos:
+
+- Assets/Project/Scripts/QA/QaPanelUI.cs
+- Assets/Project/Scripts/Editor/QaPanelSetup.cs
+- Assets/Project/Scenes/Main.unity
+
+La configuracion de escena debe realizarse con un setup idempotente o con
+edicion serializada segura. Ejecutarlo dos veces no puede duplicar objetos ni
+listeners.
+
+3.1. Acceso
+
+Mantener el boton pequeño de velocidad visible dentro del Safe Area.
+Agregar junto a el un boton "HERRAMIENTAS QA" que abre/cierra el panel.
+
+Ambos solo existen visualmente en Editor o Development Build.
+
+3.2. Contenido minimo del panel
+
+- Titulo: "MODO QA - NO REPRESENTA EL BALANCE FINAL".
+- Estado: velocidad actual real.
+- Botones x1, x5, x10 y x20.
+- Seccion "AVANZAR TIEMPO".
+- Botones +5 MIN, +30 MIN y +1 H.
+- Seccion "CHECKPOINTS".
+- Tres slots manuales A, B y C con GUARDAR / CARGAR.
+- Boton CERRAR.
+
+3.3. Reglas tactiles
+
+- Botones con altura minima comoda para celular.
+- Scroll vertical si el panel no cabe.
+- No colocar controles bajo notch o barra de navegacion.
+- Evitar botones superpuestos y raycast blockers invisibles.
+- Mostrar una confirmacion antes de +1 H y antes de cargar un checkpoint.
+
+3.4. Estado visible
+
+Cuando x5/x10/x20 este activo, mostrar siempre una marca visible "QA xN".
+No depender solo del color.
+
+Validacion del Bloque 3:
+
+- El panel abre y cierra con toque.
+- Todos los botones reciben toques en resoluciones verticales y horizontales.
+- No bloquea la navegacion normal al cerrarse.
+- No existe en una build publica.
+- No se duplica al reiniciar escena ni ejecutar de nuevo el setup.
+
+Detenerse al terminar este bloque.
+
+======================================================================
+BLOQUE 4. AVANCE MANUAL DE TIEMPO
+======================================================================
+
+Objetivo:
+
+Permitir avanzar trabajos reales sin regalar recursos directamente y sin
+usar las reglas offline.
+
+Archivo nuevo sugerido:
+
+- Assets/Project/Scripts/QA/QaFastForwardRunner.cs
+
+API sugerida:
+
+    public bool IsRunning { get; }
+    public float Progress01 { get; }
+    public void RequestAdvance(double exactGameSeconds);
+
+Botones exactos:
+
+- +5 MIN = 300 segundos.
+- +30 MIN = 1800 segundos.
+- +1 H = 3600 segundos.
+
+4.1. Regla principal
+
+El avance solicitado representa segundos SIMULADOS exactos y es independiente
+de la velocidad x1/x5/x10/x20 seleccionada.
+
+Ejemplo:
+
+- Pulsar +5 MIN siempre procesa 300 segundos de juego.
+- No procesa 3000 segundos por estar en x10.
+
+4.2. No llamar GameState.Tick(3600) una sola vez.
+
+Procesar en pasos pequeños y deterministas, recomendado 1 segundo por paso.
+La coroutine debe ceder control periodicamente, por ejemplo cada 50 pasos,
+para no congelar el celular.
+
+Por cada paso:
+
+1. Calcular el multiplicador de analisis de Fase correspondiente al periodo.
+2. Llamar GameState.Tick(step) SIN volver a aplicar el multiplicador QA.
+3. Avanzar MachineManager.AdvanceAnalysis con step y el efecto de Fase.
+4. Avanzar el cooldown de fusion del Cuarto 2 mediante un metodo publico
+   controlado, si existe cooldown activo.
+
+No llamar simultaneamente a GameState.Tick escalado y a los Tick internos de
+D1/D2/D3.
+
+4.3. No usar ApplyOfflineProgress para esta herramienta.
+
+Las reglas offline tienen caps, exclusiones y autorizaciones distintas. El
+avance QA debe representar tiempo online acelerado.
+
+4.4. Guardado
+
+- Guardar antes de comenzar.
+- Desactivar botones QA mientras corre.
+- Mostrar progreso y tiempo restante.
+- Guardar al finalizar.
+- Si hay excepcion, detener, mostrar el error y conservar el save previo.
+
+No modificar manualmente lastUnix. El guardado final debe registrar la hora
+real actual como siempre.
+
+4.5. El avance manual NO debe:
+
+- Comprar automaticamente.
+- Elegir opciones.
+- Confirmar misiones.
+- Cambiar de panel.
+- Ejecutar prestigios.
+- Iniciar trabajos que el jugador no inicio.
+- Completar requisitos que necesitan una decision manual.
+
+Validacion del Bloque 4:
+
+- +5 MIN procesa exactamente 300 s.
+- Ejecutar 300 pasos normales de 1 s y usar +5 MIN produce el mismo estado
+  determinista, salvo timestamps reales/logs permitidos.
+- Los trabajos de D1, D2 y D3 en curso progresan.
+- Analisis de Maquina progresa.
+- El cooldown de fusion progresa.
+- No se concede progreso offline adicional al reiniciar.
+- La app no se congela durante +1 H.
+- Pulsar dos avances simultaneos no crea dos coroutines.
+
+Detenerse al terminar este bloque.
+
+======================================================================
+BLOQUE 5. CHECKPOINTS MANUALES DE QA
+======================================================================
+
+Objetivo:
+
+Permitir volver a momentos importantes sin fabricar estados falsos.
+
+No crear perfiles prediseñados que inventen progreso. Los slots guardan un
+estado real alcanzado por el tester.
+
+Archivos sugeridos:
+
+- Assets/Project/Scripts/QA/QaCheckpointService.cs
+- Ajustes controlados dentro de SaveService.cs para reutilizar lectura,
+  validacion y escritura atomica.
+
+5.1. Directorio
+
+Usar una subcarpeta dentro de Application.persistentDataPath:
+
+    qa_checkpoints/
+
+Slots:
+
+    checkpoint_A.json
+    checkpoint_B.json
+    checkpoint_C.json
+
+5.2. Guardar checkpoint
+
+1. SaveService.TrySave del estado actual.
+2. Validar que save.json sea legible.
+3. Copiar/escribir atomicamente al slot.
+4. Guardar metadatos solo de QA: fecha real, dimensiones desbloqueadas,
+   fase de Convergencia y velocidad QA usada.
+
+No meter esos metadatos dentro del SaveData de produccion si no son
+necesarios.
+
+5.3. Restaurar checkpoint
+
+1. Pedir confirmacion.
+2. Crear automaticamente un checkpoint pre_restore recuperable.
+3. Leer y validar el slot antes de reemplazar nada.
+4. Actualizar lastUnix del estado restaurado a la hora real actual para que
+   NO conceda progreso offline acumulado desde la fecha del checkpoint.
+5. Reemplazar save.json de forma atomica.
+6. Recargar Main.
+
+Si falla cualquier paso, mantener intacto el save principal.
+
+5.4. Compatibilidad
+
+La restauracion debe pasar por las mismas migraciones de SaveService que una
+partida normal. No duplicar una segunda implementacion de carga.
+
+5.5. Build publica
+
+QaCheckpointService no debe ser invocable desde UI de una build publica.
+Los archivos QA no se incluyen ni se leen en una run normal.
+
+Validacion del Bloque 5:
+
+- Guardar A, progresar, cargar A y recuperar el estado exacto.
+- Cargar no concede offline extra.
+- Un JSON corrupto no reemplaza save.json.
+- pre_restore permite recuperar el estado anterior.
+- Checkpoints antiguos pasan por migracion.
+- Los slots no aparecen en build publica.
+
+Detenerse al terminar este bloque.
+
+======================================================================
+BLOQUE 6. VALIDACION INTEGRAL Y BUILD ANDROID
+======================================================================
+
+Objetivo:
+
+Demostrar que el modo QA acelera la run sin cambiar reglas ni romper builds.
+
+Crear validacion nueva sugerida:
+
+- Assets/Project/Scripts/Editor/QaGlobalAccelerationValidation.cs
+
+Debe cubrir como minimo:
+
+1. Recursos retirados permanecen en cero.
+2. Migracion de save heredado.
+3. Presets x1/x5/x10/x20.
+4. Rechazo de multiplicadores invalidos.
+5. TickSystem aplica el multiplicador una sola vez.
+6. D1/D2/D3 reciben dt escalado, no dt al cuadrado.
+7. Maquina y cooldown del Cuarto 2 se aceleran.
+8. UI y Time.timeScale permanecen normales.
+9. Fast-forward exacto y determinista.
+10. No doble avance cuando fast-forward se usa con QA x10 activo.
+11. Checkpoint valido, corrupto y pre_restore.
+12. lastUnix/offline permanecen basados en tiempo real.
+13. Save actual y save antiguo siguen cargando.
+14. QA se oculta cuando IsAvailable es false.
+
+Despues ejecutar todas las validaciones existentes:
+
+- Presentacion P1-P7.
+- Presentation Corrections.
+- Triangulo rediseñado.
+- Dimension 1 completa.
+- Dimension 2 completa.
+- Dimension 3 completa hasta 7D.
+- Convergencia C1-C6 y endpoint ???.
+- Compatibilidad de guardado.
+- git diff --check.
+
+Finalmente crear una Android Development Build local y hacer smoke test:
+
+- Instalacion limpia.
+- Main es la escena inicial.
+- Toques y scroll.
+- Safe Area.
+- QA x1/x5/x10/x20.
+- +5 MIN, +30 MIN, +1 H.
+- Guardar/cargar checkpoint.
+- Cerrar/abrir aplicacion.
+- Cambiar ES/EN.
+- Confirmar que no aparecen EM, ADP ni WHF.
+- Confirmar que no reaparece el warning Unicode U+2713.
+
+Detenerse y entregar informe completo.
+
+======================================================================
+3. CRITERIOS DE ACEPTACION FINALES
+======================================================================
+
+La tarea solo esta completa si se cumplen TODOS:
+
+1. Una partida nueva no produce ni muestra EM, ADP o WHF.
+2. Una partida antigua con esos valores carga sin corrupcion y los neutraliza.
+3. El boton ya no miente: texto y velocidad siempre coinciden.
+4. x1, x5, x10 y x20 funcionan en Android Development Build.
+5. Produccion base, Triangulo, D1, D2, D3, Maquina y cooldown del Cuarto 2
+   usan el mismo tiempo online QA cuando corresponde.
+6. Ningun sistema recibe el multiplicador dos veces.
+7. La interfaz no se acelera.
+8. Time.timeScale permanece en 1.
+9. Offline y telemetria continúan usando reloj real.
+10. +5 MIN/+30 MIN/+1 H procesan tiempo online exacto sin decisiones
+    automaticas.
+11. Los checkpoints son atomicos y no regalan offline.
+12. Una build publica oculta todas las herramientas QA y fuerza x1.
+13. Todas las validaciones previas siguen en PASS.
+14. No se altera el balance base ni se inventan recompensas.
+
+======================================================================
+4. ORDEN RECOMENDADO PARA LA RUN DEL USUARIO
+======================================================================
+
+Despues de implementar y validar:
+
+1. Instalar una Android Development Build limpia.
+2. Empezar en QA x10.
+3. Jugar manualmente las decisiones y compras.
+4. Usar +5 MIN o +30 MIN para trabajos ya entendidos.
+5. Usar +1 H solo cuando se quiera comprobar desbloqueos tardios.
+6. Guardar checkpoint A antes de Dimension 1.
+7. Guardar checkpoint B antes de Dimension 2.
+8. Guardar checkpoint C antes de Dimension 3 o Convergencia, reemplazandolo
+   cuando convenga.
+9. Anotar por separado:
+   - bug funcional;
+   - confusion de interfaz;
+   - espera excesiva;
+   - recurso insuficiente;
+   - numero que parece desbalanceado.
+10. No usar esta run x10/x20 para declarar balance definitivo.
+
+FIN DEL DOCUMENTO

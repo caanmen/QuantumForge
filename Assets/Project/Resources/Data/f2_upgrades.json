@@ -2,38 +2,41 @@
   "upgrades": [
     {
       "id": "emission_focus",
-      "name": "Enfoque de Emisión",
-      "description": "Mejora global de LE.",
+      "name": "Emisión Calibrada",
+      "description": "Bonificación global total de LE.",
+      "requiredBuildingId": "vacuum_observer",
+      "requiredBuildingLevel": 1,
       "currency": 0,
       "effectType": 1,
       "tiers": [
         { "cost": 100.0, "effectValue": 0.05 },
-        { "cost": 250.0, "effectValue": 0.10 },
-        { "cost": 600.0, "effectValue": 0.20 }
+        { "cost": 250.0, "effectValue": 0.15 }
       ]
     },
     {
       "id": "containment_tuning",
-      "name": "Ajuste de Contención",
-      "description": "Mejora el Condensador de Higgs.",
+      "name": "Ciclo de Contención",
+      "description": "Reduce el ciclo real del Condensador de Higgs.",
+      "requiredBuildingId": "vacuum_observer",
+      "requiredBuildingLevel": 1,
       "currency": 0,
       "effectType": 0,
       "tiers": [
-        { "cost": 50.0, "effectValue": 0.10 },
-        { "cost": 150.0, "effectValue": 0.20 },
-        { "cost": 400.0, "effectValue": 0.35 }
+        { "cost": 50.0, "effectValue": 0.90 },
+        { "cost": 150.0, "effectValue": 0.80 }
       ]
     },
     {
       "id": "tetraquark_stabilization",
-      "name": "Estabilización Tetraquark",
-      "description": "Mejora la producción de LE del Núcleo Tetraquark.",
+      "name": "Lectura Tetraquark",
+      "description": "Bonificación total de Trazas producidas por Tetraquark.",
+      "requiredBuildingId": "casimir_panel",
+      "requiredBuildingLevel": 1,
       "currency": 0,
       "effectType": 0,
       "tiers": [
-        { "cost": 900.0, "effectValue": 0.10 },
-        { "cost": 1800.0, "effectValue": 0.20 },
-        { "cost": 3500.0, "effectValue": 0.35 }
+        { "cost": 900.0, "effectValue": 0.15 },
+        { "cost": 1800.0, "effectValue": 0.35 }
       ]
     },
     {
@@ -42,6 +45,7 @@
       "description": "Mejora la producción de Trazas del Núcleo Tetraquark.",
       "currency": 1,
       "effectType": 0,
+      "retired": true,
       "tiers": [
         { "cost": 15.0, "effectValue": 0.10 },
         { "cost": 35.0, "effectValue": 0.20 }
@@ -53,6 +57,7 @@
       "description": "Otorga bonificación global de LE según la variedad de artefactos activos.",
       "currency": 1,
       "effectType": 0,
+      "retired": true,
       "tiers": [
         { "cost": 30.0, "effectValue": 0.05 },
         { "cost": 70.0, "effectValue": 0.10 }
@@ -64,6 +69,9 @@
       "description": "Desbloquea los circuitos de vértices fijos del Triángulo.",
       "currency": 1,
       "effectType": 0,
+      "requiredBuildingId": "fluctuation_antenna",
+      "requiredBuildingLevel": 1,
+      "requiresAllTriangleVertices": true,
       "tiers": [
         { "cost": 250.0, "effectValue": 0.0 }
       ]
@@ -71,10 +79,11 @@
     ,
     {
       "id": "triangle_impulse_tuning",
-      "name": "Impulso Dirigido",
+      "name": "Amplificador de Energía",
       "description": "Refuerza la potencia de LE del Circuito de Energía.",
       "currency": 1,
       "effectType": 0,
+      "requiresTriangleUnlocked": true,
       "tiers": [
         { "cost": 120.0, "effectValue": 0.16 },
         { "cost": 220.0, "effectValue": 0.20 }
@@ -82,10 +91,11 @@
     },
     {
       "id": "triangle_synergy_resonance",
-      "name": "Enlace Resonante",
+      "name": "Resonancia Experimental",
       "description": "Refuerza Trazas y fragmentos del Circuito Experimental.",
       "currency": 1,
       "effectType": 0,
+      "requiresTriangleUnlocked": true,
       "tiers": [
         { "cost": 140.0, "effectValue": 1.0 },
         { "cost": 260.0, "effectValue": 2.0 }
@@ -93,13 +103,14 @@
     },
     {
       "id": "triangle_persistence_anchor",
-      "name": "Anclaje Persistente",
-      "description": "Refuerza la sincronización y autonomía del Triángulo.",
+      "name": "Memoria de Sincronía",
+      "description": "Conserva sincronización al cambiar de circuito.",
       "currency": 1,
       "effectType": 0,
+      "requiresTriangleUnlocked": true,
       "tiers": [
-        { "cost": 160.0, "effectValue": 1.0 },
-        { "cost": 300.0, "effectValue": 2.0 }
+        { "cost": 160.0, "effectValue": 0.65 },
+        { "cost": 300.0, "effectValue": 0.80 }
       ]
     }
   ]

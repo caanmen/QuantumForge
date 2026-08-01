@@ -18,6 +18,8 @@ public class D2AltarsPanelUI : MonoBehaviour
     public Button releaseAllButton;
 
     private float _refreshTimer;
+    private readonly SafeDropdownOptionMap<string> _altarOptions =
+        new SafeDropdownOptionMap<string>(System.StringComparer.Ordinal);
 
     private void Awake()
     {
@@ -64,19 +66,14 @@ public class D2AltarsPanelUI : MonoBehaviour
         if (altarDropdown == null)
             return;
 
-        int selectedIndex = Mathf.Clamp(
-            altarDropdown.value,
-            0,
-            D2AltarSystem.AltarIds.Length - 1
-        );
-        var options = new List<TMP_Dropdown.OptionData>();
-        foreach (string altarId in D2AltarSystem.AltarIds)
-            options.Add(new TMP_Dropdown.OptionData(D2AltarSystem.GetAltarName(altarId)));
-
-        altarDropdown.ClearOptions();
-        altarDropdown.AddOptions(options);
-        altarDropdown.SetValueWithoutNotify(selectedIndex);
-        altarDropdown.RefreshShownValue();
+        string selectedId = _altarOptions.ResolveOrDefault(
+            altarDropdown.value, D2AltarSystem.WaxAltarId);
+        D2Civilization1State state = GameState.I != null &&
+            GameState.I.dimension2 != null
+            ? GameState.I.dimension2.civilization1 : null;
+        _altarOptions.Rebuild(altarDropdown,
+            D2Civilization1PresentationRules.GetVisibleAltarIds(state),
+            D2AltarSystem.GetAltarName, selectedId);
     }
 
     public void Refresh()
@@ -96,7 +93,9 @@ public class D2AltarsPanelUI : MonoBehaviour
         if (altarStateText != null)
         {
             altarStateText.text = unlocked
-                ? D2AltarSystem.GetAltarName(altarId) + " — DISPONIBLE"
+                ? D2AltarSystem.GetAltarName(altarId) + " — DISPONIBLE" +
+                  (_altarOptions.VisibleOptionIds.Count == 2
+                      ? "\nOtros espacios del Santuario permanecen inertes." : "")
                 : D2AltarSystem.GetAltarName(altarId) +
                   " — BLOQUEADO (requisito pendiente de su bloque de diseño)";
         }
@@ -131,6 +130,11 @@ public class D2AltarsPanelUI : MonoBehaviour
         SetInteractable(assignAllButton, unlocked && civilization1.followersAvailable >= 1L);
         SetInteractable(releaseOneButton, unlocked && altar.followersAssigned >= 1L);
         SetInteractable(releaseAllButton, unlocked && altar.followersAssigned >= 1L);
+        bool learned = altar.followersAssigned > 0L ||
+            altar.totalOfferingProduced > 0.0;
+        SetActive(assignTenButton, learned);
+        SetActive(assignAllButton, learned);
+        SetActive(releaseAllButton, learned);
     }
 
     public void AssignOne()
@@ -171,8 +175,7 @@ public class D2AltarsPanelUI : MonoBehaviour
     private string GetSelectedAltarId()
     {
         int index = altarDropdown != null ? altarDropdown.value : 0;
-        index = Mathf.Clamp(index, 0, D2AltarSystem.AltarIds.Length - 1);
-        return D2AltarSystem.AltarIds[index];
+        return _altarOptions.ResolveOrDefault(index, D2AltarSystem.WaxAltarId);
     }
 
     private void RefreshAllCivilization1UI()
@@ -189,5 +192,10 @@ public class D2AltarsPanelUI : MonoBehaviour
     {
         if (button != null)
             button.interactable = interactable;
+    }
+
+    private static void SetActive(Component component, bool active)
+    {
+        if (component != null) component.gameObject.SetActive(active);
     }
 }

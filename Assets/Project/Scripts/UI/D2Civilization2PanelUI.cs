@@ -36,6 +36,7 @@ public class D2Civilization2PanelUI : MonoBehaviour
     public TMP_Text region4Text;
     public TMP_Text assignmentText;
     public TMP_Text lastResultText;
+    public TMP_Text objectiveText;
     public Button assignOneButton;
     public Button assignTenButton;
     public Button assignAllButton;
@@ -103,6 +104,7 @@ public class D2Civilization2PanelUI : MonoBehaviour
         D2Civilization2State state = gameState.dimension2.civilization2;
         PopulateRegionDropdown(state);
         D2RegionState selectedRegion = D2Civilization2System.GetSelectedRegion(state);
+        RefreshProgressivePresentation(gameState, state, selectedRegion);
 
         long assigned = D2Civilization2System.GetAssignedMembers(state);
         SetText(
@@ -139,7 +141,7 @@ public class D2Civilization2PanelUI : MonoBehaviour
                 D2Civilization2System.Region3UnlockDominance
             )
         );
-        SetText(region4Text, "REGIÓN 4 — ACTUALIZACIÓN FUTURA");
+        SetText(region4Text, "");
         SetText(
             assignmentText,
             "Asignación regional — " +
@@ -181,8 +183,85 @@ public class D2Civilization2PanelUI : MonoBehaviour
             containmentPanelUI.Refresh();
     }
 
+    private void RefreshProgressivePresentation(
+        GameState gameState, D2Civilization2State state,
+        D2RegionState selectedRegion)
+    {
+        FeaturePresentationState operations = D2PresentationRules.GetFeatureState(
+            gameState, PresentationFeatureIds.D2C2Operations);
+        FeaturePresentationState defense = D2PresentationRules.GetFeatureState(
+            gameState, PresentationFeatureIds.D2C2Defense);
+        FeaturePresentationState resistance = D2PresentationRules.GetFeatureState(
+            gameState, PresentationFeatureIds.D2C2Resistance);
+        FeaturePresentationState alert = D2PresentationRules.GetFeatureState(
+            gameState, PresentationFeatureIds.D2C2Alert);
+        FeaturePresentationState containment = D2PresentationRules.GetFeatureState(
+            gameState, PresentationFeatureIds.D2C2Containment);
+        bool alertReviewed = PresentationStateUtility.Contains(
+            gameState.dimension2.presentation.acknowledgedFeatureIds,
+            PresentationFeatureIds.D2C2Alert);
+
+        SetActive(showRegionsButton, true);
+        SetActive(showOperationsButton, operations.IsVisible);
+        SetActive(showDefenseButton, defense.IsVisible);
+        SetActive(showResistanceButton, resistance.IsVisible);
+        SetActive(showAlertButton, alert.IsVisible);
+        SetActive(showContainmentButton, containment.IsVisible &&
+            (alertReviewed || state.entityContained));
+        SetInteractable(showOperationsButton, operations.CanOpen);
+        SetInteractable(showDefenseButton, defense.CanOpen);
+        SetInteractable(showResistanceButton, resistance.CanOpen);
+        SetInteractable(showAlertButton, alert.CanOpen);
+        SetInteractable(showContainmentButton, containment.CanOpen);
+        SetButtonLabel(showOperationsButton, "OPERACIONES", operations.isNew);
+        SetButtonLabel(showDefenseButton, "DEFENSA", defense.isNew);
+        SetButtonLabel(showResistanceButton, "RESISTENCIA", resistance.isNew);
+        SetButtonLabel(showAlertButton, "ALERTA", alert.isNew);
+        SetButtonLabel(showContainmentButton,
+            state.entityContained ? "PACTO MAYOR" : "CONTENCIÓN",
+            containment.isNew);
+
+        string[] visibleRegions =
+            D2Civilization2PresentationRules.GetVisibleRegionIds(state);
+        SetActive(region1Text, true);
+        SetActive(region2Text, ArrayContains(
+            visibleRegions, D2Civilization2System.Region2Id));
+        SetActive(region3Text, ArrayContains(
+            visibleRegions, D2Civilization2System.Region3Id));
+        SetActive(region4Text, false);
+        bool learnedAssignment =
+            D2Civilization2PresentationRules.HasRegionalAssignment(state);
+        SetActive(assignTenButton, learnedAssignment);
+        SetActive(assignAllButton, learnedAssignment);
+        SetActive(releaseAllButton, learnedAssignment);
+
+        string objective;
+        if (selectedRegion != null &&
+            selectedRegion.regionId != D2Civilization2System.Region1Id &&
+            selectedRegion.membersAssigned == 0L)
+            objective = "AHORA · Asigna Miembros a la nueva Región.\nDESPUÉS · Sus riesgos y operaciones serán regionales.";
+        else if (!learnedAssignment)
+            objective = "AHORA · Asigna 1 Miembro a Región 1.\nDESPUÉS · Operaciones de Resistencia.";
+        else if (!D2Civilization2PresentationRules.HasThreat(state))
+            objective = "AHORA · Activa Rescate en Región 1.\nDESPUÉS · Vigila Dominio y Amenaza.";
+        else if (state.totalReprisals == 0L)
+            objective = "AHORA · Asigna Protección o reduce Amenaza antes de 100%.\nDESPUÉS · Resistir la primera Represalia.";
+        else if (!state.alertActive)
+            objective = "AHORA · Usa Fragmentos para fortalecer la Resistencia.\nDESPUÉS · Abre regiones sin adelantar sus riesgos.";
+        else if (!alertReviewed && !state.entityContained)
+            objective = "AHORA · EL ENTE HA ENTRADO EN ALERTA. Revisa marcas y Amenaza.\nDESPUÉS · Contención.";
+        else if (!state.entityContained)
+            objective = "AHORA · Evalúa la probabilidad y prepara la Contención.\nDESPUÉS · Pacto Mayor.";
+        else if (!state.majorPactEstablished)
+            objective = "AHORA · Establece el Pacto Mayor.\nDESPUÉS · Sostén su Estabilidad.";
+        else
+            objective = "HITO · Pacto Mayor establecido. Civilización 2 reconoce el cierre de Dimensión 2.";
+        SetText(objectiveText, objective);
+    }
+
     public void ShowRegions()
     {
+        RecognizeSection(PresentationFeatureIds.D2C2Regions);
         SetSection(regionSectionRoot, true);
         SetSection(operationsSectionRoot, false);
         SetSection(defenseSectionRoot, false);
@@ -195,6 +274,7 @@ public class D2Civilization2PanelUI : MonoBehaviour
 
     public void ShowOperations()
     {
+        RecognizeSection(PresentationFeatureIds.D2C2Operations);
         SetSection(regionSectionRoot, false);
         SetSection(operationsSectionRoot, true);
         SetSection(defenseSectionRoot, false);
@@ -207,6 +287,7 @@ public class D2Civilization2PanelUI : MonoBehaviour
 
     public void ShowDefense()
     {
+        RecognizeSection(PresentationFeatureIds.D2C2Defense);
         SetSection(regionSectionRoot, false);
         SetSection(operationsSectionRoot, false);
         SetSection(defenseSectionRoot, true);
@@ -219,6 +300,7 @@ public class D2Civilization2PanelUI : MonoBehaviour
 
     public void ShowResistance()
     {
+        RecognizeSection(PresentationFeatureIds.D2C2Resistance);
         SetSection(regionSectionRoot, false);
         SetSection(operationsSectionRoot, false);
         SetSection(defenseSectionRoot, false);
@@ -231,6 +313,7 @@ public class D2Civilization2PanelUI : MonoBehaviour
 
     public void ShowAlert()
     {
+        RecognizeSection(PresentationFeatureIds.D2C2Alert);
         SetSection(regionSectionRoot, false);
         SetSection(operationsSectionRoot, false);
         SetSection(defenseSectionRoot, false);
@@ -243,6 +326,7 @@ public class D2Civilization2PanelUI : MonoBehaviour
 
     public void ShowContainment()
     {
+        RecognizeSection(PresentationFeatureIds.D2C2Containment);
         SetSection(regionSectionRoot, false);
         SetSection(operationsSectionRoot, false);
         SetSection(defenseSectionRoot, false);
@@ -251,6 +335,15 @@ public class D2Civilization2PanelUI : MonoBehaviour
         SetSection(containmentSectionRoot, true);
         SetRegionDropdownVisible(false);
         Refresh();
+    }
+
+    private static void RecognizeSection(string featureId)
+    {
+        GameState gameState = GameState.I;
+        if (gameState?.dimension2?.presentation == null) return;
+        D2PresentationRouter.RememberScreen(gameState, featureId);
+        PresentationStateUtility.Acknowledge(
+            gameState.dimension2.presentation, featureId);
     }
 
     private void SetRegionDropdownVisible(bool visible)
@@ -318,7 +411,8 @@ public class D2Civilization2PanelUI : MonoBehaviour
         _selectableRegionIds.Clear();
         foreach (string regionId in D2Civilization2System.RegionIds)
         {
-            if (D2Civilization2System.IsSelectableRegion(state, regionId))
+            if (regionId != D2Civilization2System.Region4Id &&
+                D2Civilization2System.IsSelectableRegion(state, regionId))
                 _selectableRegionIds.Add(regionId);
         }
 
@@ -356,6 +450,18 @@ public class D2Civilization2PanelUI : MonoBehaviour
             return;
 
         D2Civilization2System.TrySelectRegion(GameState.I, _selectableRegionIds[index]);
+        if (_selectableRegionIds[index] != D2Civilization2System.Region1Id &&
+            GameState.I != null && GameState.I.dimension2 != null &&
+            !PresentationStateUtility.Contains(
+                GameState.I.dimension2.presentation.acknowledgedFeatureIds,
+                "d2.c2.regional_risk_help"))
+        {
+            GameState.I.dimension2.civilization2.lastResult =
+                "Amenaza, Cobertura y Represalias se calculan por Región.";
+            PresentationStateUtility.Acknowledge(
+                GameState.I.dimension2.presentation,
+                "d2.c2.regional_risk_help");
+        }
         Refresh();
     }
 
@@ -394,5 +500,25 @@ public class D2Civilization2PanelUI : MonoBehaviour
     {
         if (section != null)
             section.SetActive(active);
+    }
+
+    private static void SetActive(Component component, bool active)
+    {
+        if (component != null) component.gameObject.SetActive(active);
+    }
+
+    private static void SetButtonLabel(Button button, string label, bool isNew)
+    {
+        if (button == null) return;
+        TMP_Text text = button.GetComponentInChildren<TMP_Text>(true);
+        if (text != null) text.text = (isNew ? "NUEVO · " : "") + label;
+    }
+
+    private static bool ArrayContains(string[] values, string id)
+    {
+        if (values == null) return false;
+        for (int i = 0; i < values.Length; i++)
+            if (values[i] == id) return true;
+        return false;
     }
 }

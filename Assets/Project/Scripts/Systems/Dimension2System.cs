@@ -49,6 +49,7 @@ public static class Dimension2System
         D2PilgrimageSystem.EnsureState(state);
         D2VeiledThresholdSystem.EnsureState(dimension2.civilization1);
         D2Civilization3System.EnsureState(dimension2.civilization3);
+        D2PresentationRules.EnsurePresentationState(state);
 
         if (!IsTerritoryId(dimension2.selectedTerritoryId) ||
             !IsTerritoryUnlocked(dimension2, dimension2.selectedTerritoryId))
@@ -69,7 +70,8 @@ public static class Dimension2System
             civilization3Unlocked = false,
             civilization1 = new D2Civilization1State(),
             civilization2 = new D2Civilization2State(),
-            civilization3 = new D2Civilization3State()
+            civilization3 = new D2Civilization3State(),
+            presentation = DimensionPresentationState.CreateCurrent()
         };
     }
 

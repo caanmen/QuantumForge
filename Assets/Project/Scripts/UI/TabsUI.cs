@@ -11,7 +11,10 @@ public class TabsUI : MonoBehaviour
 
     [Header("Botones de pestañas")]
     public Button btnGeneracion;
+    public Button btnMejoras;
     public Button btnLab;
+    public Button btnAjustes;
+    public Button btnQA;
     public Button btnRoom2;
     public Button btnDimension1;
     public Button btnDimension2;
@@ -22,7 +25,9 @@ public class TabsUI : MonoBehaviour
 
     [Header("Paneles")]
     public GameObject panelGeneracion;
+    public GameObject panelMejoras;
     public GameObject panelLab;
+    public GameObject panelAjustes;
     public GameObject room2Panel;
     public GameObject dimension1Panel;
     public GameObject dimension2Panel;
@@ -35,6 +40,10 @@ public class TabsUI : MonoBehaviour
     public GameObject generationTriangleLayout;
     public CanvasGroup generationDefaultCanvasGroup;
 
+    [Header("Navegación vertical")]
+    public VerticalNavigationUI verticalNavigation;
+    public QaPanelUI qaPanel;
+
     private void Awake()
     {
         Instance = this;
@@ -42,8 +51,21 @@ public class TabsUI : MonoBehaviour
         if (btnGeneracion != null)
             btnGeneracion.onClick.AddListener(ShowGeneracion);
 
+        if (btnMejoras != null)
+            btnMejoras.onClick.AddListener(ShowMejoras);
+
         if (btnLab != null)
             btnLab.onClick.AddListener(ShowLab);
+
+        if (btnAjustes != null)
+            btnAjustes.onClick.AddListener(ShowAjustes);
+
+        // QaPanelUI ya controla el mismo botón cuando el acceso QA principal
+        // reutiliza toolsButton. Evita que un solo toque abra el panel desde
+        // ShowQA y lo cierre inmediatamente desde TogglePanel.
+        if (btnQA != null &&
+            (qaPanel == null || qaPanel.toolsButton != btnQA))
+            btnQA.onClick.AddListener(ShowQA);
 
         if (btnRoom2 != null)
             btnRoom2.onClick.AddListener(ShowRoom2);
@@ -91,7 +113,9 @@ public class TabsUI : MonoBehaviour
     private void HideAll()
     {
         if (panelGeneracion != null)    panelGeneracion.SetActive(false);
+        if (panelMejoras != null)       panelMejoras.SetActive(false);
         if (panelLab != null)          panelLab.SetActive(false);
+        if (panelAjustes != null)       panelAjustes.SetActive(false);
         if (room2Panel != null)         room2Panel.SetActive(false);
         if (dimension1Panel != null)   dimension1Panel.SetActive(false);
         if (dimension2Panel != null)   dimension2Panel.SetActive(false);
@@ -102,24 +126,27 @@ public class TabsUI : MonoBehaviour
 
     private void RefreshGenerationLayoutState()
     {
+        bool triangleUnlocked = GameState.I != null &&
+            GameState.I.triangleSystemUnlocked;
+
         // El triángulo queda siempre visible en escena.
         // Su bloqueo/desbloqueo se maneja por lógica interna (slots, overlay futuro, etc).
         if (generationTriangleLayout != null)
         {
-            generationTriangleLayout.SetActive(true);
+            generationTriangleLayout.SetActive(triangleUnlocked);
         }
 
         // El layout default se mantiene vivo también por estabilidad,
         // pero no depende ya del unlock del triángulo.
         if (generationDefaultLayout != null)
         {
-            generationDefaultLayout.SetActive(true);
+            generationDefaultLayout.SetActive(!triangleUnlocked);
 
             if (generationDefaultCanvasGroup != null)
             {
-                generationDefaultCanvasGroup.alpha = 1f;
-                generationDefaultCanvasGroup.interactable = true;
-                generationDefaultCanvasGroup.blocksRaycasts = true;
+                generationDefaultCanvasGroup.alpha = triangleUnlocked ? 0f : 1f;
+                generationDefaultCanvasGroup.interactable = !triangleUnlocked;
+                generationDefaultCanvasGroup.blocksRaycasts = !triangleUnlocked;
             }
         }
     }
@@ -137,6 +164,7 @@ public class TabsUI : MonoBehaviour
 
         bool unlocked = GameState.I != null && GameState.I.experimentalChamberUnlocked;
         btnRoom2.gameObject.SetActive(unlocked);
+        RefreshVerticalNavigationAvailability();
     }
 
     public void RefreshDimension1ButtonVisibility()
@@ -146,6 +174,7 @@ public class TabsUI : MonoBehaviour
 
         bool unlocked = GameState.I != null && GameState.I.dimension01Unlocked;
         btnDimension1.gameObject.SetActive(unlocked);
+        RefreshVerticalNavigationAvailability();
     }
 
     public void RefreshPrestigeButtonVisibility()
@@ -159,6 +188,7 @@ public class TabsUI : MonoBehaviour
                 label.text = ConvergenceCircuitSystem.IsConvergenceUnlocked(GameState.I)
                     ? "CONVERGENCIA" : "PRESTIGIO";
         }
+        RefreshVerticalNavigationAvailability();
     }
 
     public static bool ShouldShowPrestige1Button(
@@ -201,6 +231,7 @@ public class TabsUI : MonoBehaviour
 
         bool unlocked = Dimension2System.CanAccessDimension2(GameState.I);
         btnDimension2.gameObject.SetActive(unlocked);
+        RefreshVerticalNavigationAvailability();
     }
 
     public void RefreshDimension3ButtonVisibility()
@@ -210,6 +241,7 @@ public class TabsUI : MonoBehaviour
 
         bool unlocked = Dimension3System.CanAccessDimension3(GameState.I);
         btnDimension3.gameObject.SetActive(unlocked);
+        RefreshVerticalNavigationAvailability();
     }
 
 
@@ -226,12 +258,42 @@ public class TabsUI : MonoBehaviour
         RefreshDimension3ButtonVisibility();
         RefreshPrestigeButtonVisibility();
         RefreshGenerationLayoutState();
+        if (verticalNavigation != null)
+            verticalNavigation.SetPrimarySelection(
+                VerticalNavigationUI.PrimarySection.Generation);
     }
 
-    private void ShowLab()
+    public void ShowMejoras()
+    {
+        HideAll();
+        if (panelMejoras != null) panelMejoras.SetActive(true);
+        if (verticalNavigation != null)
+            verticalNavigation.SetPrimarySelection(
+                VerticalNavigationUI.PrimarySection.Upgrades);
+    }
+
+    public void ShowLab()
     {
         HideAll();
         if (panelLab != null) panelLab.SetActive(true);
+        if (verticalNavigation != null)
+            verticalNavigation.SetPrimarySelection(
+                VerticalNavigationUI.PrimarySection.Research);
+    }
+
+    public void ShowAjustes()
+    {
+        HideAll();
+        if (panelAjustes != null) panelAjustes.SetActive(true);
+        if (verticalNavigation != null)
+            verticalNavigation.SetPrimarySelection(
+                VerticalNavigationUI.PrimarySection.Settings);
+    }
+
+    public void ShowQA()
+    {
+        if (qaPanel != null)
+            qaPanel.OpenPanel();
     }
 
     public void ShowRoom2()
@@ -248,6 +310,8 @@ public class TabsUI : MonoBehaviour
 
         if (room2Panel != null)
             room2Panel.SetActive(true);
+        if (verticalNavigation != null)
+            verticalNavigation.SetSecondarySelection(btnRoom2);
     }
 
     public void ShowDimension1()
@@ -259,6 +323,8 @@ public class TabsUI : MonoBehaviour
 
         if (dimension1Panel != null)
             dimension1Panel.SetActive(true);
+        if (verticalNavigation != null)
+            verticalNavigation.SetSecondarySelection(btnDimension1);
 
         RefreshRoom2ButtonVisibility();
         RefreshDimension1ButtonVisibility();
@@ -281,6 +347,8 @@ public class TabsUI : MonoBehaviour
             if (panel != null)
                 panel.OpenFromTab();
         }
+        if (verticalNavigation != null)
+            verticalNavigation.SetSecondarySelection(btnDimension2);
 
         RefreshRoom2ButtonVisibility();
         RefreshDimension1ButtonVisibility();
@@ -302,6 +370,8 @@ public class TabsUI : MonoBehaviour
             if (panel != null)
                 panel.OpenFromTab();
         }
+        if (verticalNavigation != null)
+            verticalNavigation.SetSecondarySelection(btnDimension3);
 
         RefreshRoom2ButtonVisibility();
         RefreshDimension1ButtonVisibility();
@@ -318,6 +388,14 @@ public class TabsUI : MonoBehaviour
     {
         HideAll();
         if (prestigePanel != null) prestigePanel.SetActive(true);
+        if (verticalNavigation != null)
+            verticalNavigation.SetSecondarySelection(btnPrestigio);
+    }
+
+    private void RefreshVerticalNavigationAvailability()
+    {
+        if (verticalNavigation != null)
+            verticalNavigation.RefreshAvailability();
     }
 
 }

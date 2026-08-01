@@ -28,6 +28,7 @@ public class D2ContainmentPanelUI : MonoBehaviour
     public TMP_Text majorPactLastResultText;
     public Button establishMajorPactButton;
     public Button upgradeMajorPactLineButton;
+    private bool _lowChanceConfirmationArmed;
 
     private void Awake()
     {
@@ -77,6 +78,12 @@ public class D2ContainmentPanelUI : MonoBehaviour
         if (majorPactRoot != null)
             majorPactRoot.SetActive(majorPactPhase);
         double dominance = D2Civilization2System.GetTotalDominance(state);
+        double probability =
+            D2Civilization2System.GetContainmentSuccessProbability(state);
+        bool requiresConfirmation =
+            D2Civilization2PresentationRules.RequiresContainmentConfirmation(state);
+        if (!requiresConfirmation)
+            _lowChanceConfirmationArmed = false;
         string status = state.entityContained
             ? "ENTE CONTENIDO — PACTO MAYOR PREPARADO"
             : state.containmentAvailable
@@ -86,8 +93,10 @@ public class D2ContainmentPanelUI : MonoBehaviour
         SetText(
             probabilityText,
             "Dominio total: " + dominance.ToString("0.##") + "% | Probabilidad: " +
-            (D2Civilization2System.GetContainmentSuccessProbability(state) * 100.0)
-                .ToString("0.##") + "%"
+            (probability * 100.0).ToString("0.##") + "%" +
+            (probability < 0.50
+                ? "\nRECOMENDACIÓN: reduce Dominio o mejora Protección antes de confirmar."
+                : "\nProbabilidad favorable según el estado actual.")
         );
         SetText(
             cooldownText,
@@ -125,8 +134,8 @@ public class D2ContainmentPanelUI : MonoBehaviour
         int nextLevel = Mathf.Min(level + 1,
             D2Civilization2System.MaxMajorPactLineLevel);
         SetText(majorPactStateText, state.majorPactEstablished
-            ? "PACTO MAYOR DE CIVILIZACION 2 — ESTABLECIDO"
-            : "ENTE CONTENIDO — PACTO MAYOR PREPARADO");
+            ? "PACTO MAYOR DE CIVILIZACIÓN 2 — ESTABLECIDO\nHITO RECONOCIDO PARA CERRAR DIMENSIÓN 2"
+            : "ENTE CONTENIDO — ESTABLECE EL PACTO MAYOR");
         SetText(stabilityText,
             "ESTABILIDAD DE CONTENCIÓN: " + state.containmentStability.ToString("0.##") +
             " | Fragmentos de Control: " + state.controlFragments.ToString("N0"));
@@ -146,6 +155,10 @@ public class D2ContainmentPanelUI : MonoBehaviour
                 : state.lastMajorPactResult);
 
         SetInteractable(attemptButton, D2Civilization2System.CanAttemptContainment(state));
+        SetButtonLabel(attemptButton, _lowChanceConfirmationArmed
+            ? "CONFIRMAR INTENTO CON RIESGO"
+            : requiresConfirmation ? "INTENTAR · REQUIERE CONFIRMACIÓN"
+                : "INTENTAR CONTENCIÓN");
         bool canSustain = state.entityContained;
         SetInteractable(assignOneButton, canSustain && state.membersAvailable > 0L);
         SetInteractable(assignTenButton, canSustain && state.membersAvailable > 0L);
@@ -160,10 +173,32 @@ public class D2ContainmentPanelUI : MonoBehaviour
         }
         SetInteractable(upgradeMajorPactLineButton,
             D2Civilization2System.CanUpgradeMajorPactLine(gameState, lineId));
+        SetActive(majorPactLineDropdown, state.majorPactEstablished);
+        SetActive(majorPactLineText, state.majorPactEstablished);
+        SetActive(upgradeMajorPactLineButton, state.majorPactEstablished);
+        SetActive(stabilityText, state.majorPactEstablished);
+        SetActive(assignOneButton, !state.entityContained || state.majorPactEstablished);
+        SetActive(assignTenButton, !state.entityContained || state.majorPactEstablished);
+        SetActive(assignAllButton, !state.entityContained || state.majorPactEstablished);
+        SetActive(releaseOneButton, !state.entityContained || state.majorPactEstablished);
+        SetActive(releaseAllButton, !state.entityContained || state.majorPactEstablished);
+        SetActive(assignmentText, !state.entityContained || state.majorPactEstablished);
     }
 
     private void Attempt()
     {
+        D2Civilization2State state = GameState.I?.dimension2?.civilization2;
+        if (state == null) return;
+        if (D2Civilization2PresentationRules.RequiresContainmentConfirmation(state) &&
+            !_lowChanceConfirmationArmed)
+        {
+            _lowChanceConfirmationArmed = true;
+            SetText(lastResultText,
+                "CONFIRMACIÓN NECESARIA: el fallo aumenta Amenaza y puede causar pérdidas regionales. Pulsa de nuevo para continuar.");
+            SetButtonLabel(attemptButton, "CONFIRMAR INTENTO CON RIESGO");
+            return;
+        }
+        _lowChanceConfirmationArmed = false;
         D2Civilization2System.TryAttemptContainment(GameState.I);
         Refresh();
     }
@@ -239,5 +274,17 @@ public class D2ContainmentPanelUI : MonoBehaviour
     {
         if (target != null)
             target.interactable = value;
+    }
+
+    private static void SetActive(Component component, bool active)
+    {
+        if (component != null) component.gameObject.SetActive(active);
+    }
+
+    private static void SetButtonLabel(Button button, string value)
+    {
+        if (button == null) return;
+        TMP_Text text = button.GetComponentInChildren<TMP_Text>(true);
+        if (text != null) text.text = value;
     }
 }

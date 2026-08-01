@@ -286,4 +286,5 @@ public class Dimension3State
         new D3ConsoleSettingsState();
     public List<D3MkAssemblyCountState> totalAssembledByMk =
         new List<D3MkAssemblyCountState>();
+    public DimensionPresentationState presentation = new DimensionPresentationState();
 }

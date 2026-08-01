@@ -11,6 +11,7 @@ public static class TriangleRedesignValidation
     {
         var failures = new List<string>();
         ValidateCircuits(failures);
+        ValidateSynchronizationSaveCompatibility(failures);
         ValidateLegacyMigration(failures);
         ValidateOfflineProduction(failures);
         ValidateD3SettingsMigration(failures);
@@ -24,8 +25,11 @@ public static class TriangleRedesignValidation
             Debug.Log("[Triangle Redesign] PASS | circuitos | sacrificios | " +
                 "migración | sincronización | offline | Consola N3");
         else
+        {
             Debug.LogError("[Triangle Redesign] FAIL\n- " +
                 string.Join("\n- ", failures));
+            throw new InvalidOperationException("Triangle Redesign falló con " + failures.Count + " error(es).");
+        }
     }
 
     private static void ValidateCircuits(List<string> failures)
@@ -53,7 +57,55 @@ public static class TriangleRedesignValidation
             state.SetTriangleCircuit(TriangleCircuitType.Experimental, false);
             Check(Near(state.triangleSynchronization,
                     GameState.TriangleSwitchSynchronization),
-                "El cambio no comienza en 75% de sincronización.", failures);
+                "El cambio no comienza en 50% de sincronización.", failures);
+            state.ApplyOfflineBaseProgress(90.0);
+            Check(Near(state.triangleSynchronization, 1.0),
+                "El cambio no recupera 100% en 90 segundos.", failures);
+
+            state.triangleActiveCircuit = TriangleCircuitType.None;
+            state.triangleSynchronization = 0f;
+            state.triangleSynchronizationBaseRatePerSecond = 0.0;
+            Check(state.SetTriangleCircuit(TriangleCircuitType.Energy, false),
+                "No se pudo realizar la primera activación.", failures);
+            Check(Near(state.triangleSynchronization,
+                    GameState.TriangleInitialSynchronization),
+                "La primera activación no comienza en 0%.", failures);
+            state.ApplyOfflineBaseProgress(90.0);
+            Check(Near(state.triangleSynchronization, 1.0),
+                "La primera activación no llega a 100% en 90 segundos.",
+                failures);
+        }
+        finally { UnityEngine.Object.DestroyImmediate(state.gameObject); }
+    }
+
+    private static void ValidateSynchronizationSaveCompatibility(
+        List<string> failures)
+    {
+        double switchRate =
+            (1.0 - GameState.TriangleSwitchSynchronization) /
+            GameState.TriangleSynchronizationRecoverySeconds;
+        var saved = new SaveData
+        {
+            triangleSynchronization = 0.75f,
+            triangleSynchronizationBaseRatePerSecond = switchRate
+        };
+        SaveData loaded = JsonUtility.FromJson<SaveData>(
+            JsonUtility.ToJson(saved));
+        Check(loaded != null && Near(
+                loaded.triangleSynchronizationBaseRatePerSecond, switchRate),
+            "El guardado no conserva la velocidad de sincronización.", failures);
+
+        GameState state = CreateState("Triangle Previous Save");
+        try
+        {
+            state.triangleActiveCircuit = TriangleCircuitType.Experimental;
+            state.triangleSynchronization = 0.75f;
+            state.triangleSynchronizationBaseRatePerSecond = 0.0;
+            state.SanitizeTriangleCircuit(false);
+            Check(Near(state.triangleSynchronizationBaseRatePerSecond,
+                    switchRate),
+                "Una partida anterior no reconstruye la tasa de sincronización.",
+                failures);
         }
         finally { UnityEngine.Object.DestroyImmediate(state.gameObject); }
     }
@@ -72,7 +124,7 @@ public static class TriangleRedesignValidation
             state.SanitizeTriangleCircuit(true);
             Check(state.triangleActiveCircuit == TriangleCircuitType.Energy,
                 "La permutación antigua no tiene prioridad en la migración.", failures);
-            Check(state.triangleSynchronization >= 0.75f,
+            Check(state.triangleSynchronization >= 0.50f,
                 "La migración redujo la sincronización por debajo del mínimo.", failures);
             Check(state.trianglePersistenceReserveSeconds == 0.0,
                 "La reserva antigua de Persistencia no fue retirada.", failures);

@@ -24,19 +24,13 @@ public class PrestigeUI : MonoBehaviour
     private GameObject _dimensionObjectiveRoot;
     private TextMeshProUGUI _dimensionObjectiveText;
     private int _revealedDimensionId;
-    private GameObject _convergenceRoot;
-    private TextMeshProUGUI _convergenceStatusText;
-    private Button _rebuildReceiverButton;
-    private Button _startConvergenceButton;
-    private Button _rotateCircuitButton;
-    private Button _confirmConfigurationButton;
-    private Button[,] _convergenceBoardButtons;
+    private ConvergencePanelUI _convergencePanel;
 
     private void Awake()
     {
         BuildDimensionSelectionUI();
         BuildDimensionObjectiveUI();
-        BuildConvergenceUI();
+        BuildConvergencePanel();
     }
 
     private void Update()
@@ -87,7 +81,8 @@ public class PrestigeUI : MonoBehaviour
             autoBuyToggleLabel.text = "";
         }
 
-        RefreshConvergenceUI();
+        if (_convergencePanel != null)
+            _convergencePanel.Refresh();
     }
 
     public void OnClickPrestige()
@@ -263,293 +258,20 @@ public class PrestigeUI : MonoBehaviour
         }
     }
 
-    private void BuildConvergenceUI()
+    private void BuildConvergencePanel()
     {
-        if (_convergenceRoot != null)
-            return;
-
-        var root = new GameObject("ConvergencePanel",
-            typeof(RectTransform), typeof(Image));
-        root.transform.SetParent(transform, false);
-        RectTransform rootRect = root.GetComponent<RectTransform>();
-        rootRect.anchorMin = new Vector2(0.10f, 0.12f);
-        rootRect.anchorMax = new Vector2(0.90f, 0.88f);
-        rootRect.offsetMin = Vector2.zero;
-        rootRect.offsetMax = Vector2.zero;
-        root.GetComponent<Image>().color = new Color(0.035f, 0.055f, 0.11f, 0.98f);
-
-        var layout = root.AddComponent<VerticalLayoutGroup>();
-        layout.padding = new RectOffset(32, 32, 28, 28);
-        layout.spacing = 12f;
-        layout.childAlignment = TextAnchor.MiddleCenter;
-        layout.childControlWidth = true;
-        layout.childControlHeight = false;
-        CreateSelectionText(root.transform, "Convergencia", 30f,
-            FontStyles.Bold, 54f);
-        _convergenceStatusText = CreateSelectionText(root.transform, "", 18f,
-            FontStyles.Normal, 112f);
-        _rebuildReceiverButton = CreateActionButton(root.transform,
-            "RECONSTRUIR RECEPTOR DIMENSIONAL", RebuildReceiver);
-        _startConvergenceButton = CreateActionButton(root.transform,
-            "INICIAR CONVERGENCIA", StartConvergence);
-        BuildConvergenceBoard(root.transform);
-        _rotateCircuitButton = CreateActionButton(root.transform,
-            "ROTAR PULSO 90°", RotateStartupPulse);
-        _confirmConfigurationButton = CreateActionButton(root.transform,
-            "ESTABILIZAR CONFIGURACIÓN", ConfirmConfiguration);
-        CreateActionButton(root.transform, "VOLVER", HideConvergenceUI);
-        _convergenceRoot = root;
-        root.SetActive(false);
+        if (_convergencePanel != null) return;
+        var panelObject = new GameObject("ConvergencePanelUI", typeof(RectTransform),
+            typeof(ConvergencePanelUI));
+        panelObject.transform.SetParent(transform, false);
+        _convergencePanel = panelObject.GetComponent<ConvergencePanelUI>();
+        _convergencePanel.Initialize(entActualText != null ? entActualText.font : null);
     }
 
     private void ShowConvergenceUI()
     {
-        if (_convergenceRoot == null)
-            BuildConvergenceUI();
-        _convergenceRoot.SetActive(true);
-        RefreshConvergenceUI();
-    }
-
-    private void HideConvergenceUI()
-    {
-        if (_convergenceRoot != null)
-            _convergenceRoot.SetActive(false);
-    }
-
-    private void RefreshConvergenceUI()
-    {
-        GameState state = GameState.I;
-        if (state == null || _convergenceRoot == null || !_convergenceRoot.activeSelf)
-            return;
-
-        state.EnsureConvergenceState();
-        int owned = ConvergenceCircuitSystem.GetOwnedCircuitCount(state);
-        bool hasNextCircuit = ConvergenceCircuitSystem.HasNextDesignedCircuit(state);
-        double required = ConvergenceBalance.GetRequiredStabilityForNextCircuit(owned);
-        bool ready = ConvergenceSynchronizationSystem.IsSynchronizationReadyForNextConvergence(
-            state, owned);
-        bool configuring = state.convergence.phase == ConvergencePhase.ConfigurationPending;
-        ConvergenceCircuitPlacement startupPulse = FindStartupPulse(state);
-        string machineReason;
-        bool canRebuildReceiver = ConvergenceSynchronizationSystem.CanRebuildReceiver(
-            state, out machineReason);
-        string stabilityStatus = configuring
-            ? "Configuracion de circuito pendiente."
-            : hasNextCircuit
-                ? "Estabilidad: " + state.convergence.currentStability.ToString("0.#") +
-                  " / " + required.ToString("0.#")
-                : "";
-        _convergenceStatusText.text = "Receptor Dimensional: " +
-            (state.convergence.dimensionalReceiverRebuilt ? "reconstruido" : "pendiente") + "\n" +
-            "Señales: D1 " + GetSignalStatus(state, 1) + " · D2 " +
-            GetSignalStatus(state, 2) + " · D3 " + GetSignalStatus(state, 3) + "\n" +
-            stabilityStatus + "\n" +
-            "Circuitos poseídos: " + owned +
-            (ready ? "\nLa Convergencia está preparada." : "");
-        if (!state.convergence.dimensionalReceiverRebuilt && !canRebuildReceiver)
-            _convergenceStatusText.text += "\n" + machineReason;
-        if (!hasNextCircuit && !configuring)
-            _convergenceStatusText.text += "\nContenido experimental completado. El siguiente circuito aun no esta disponible.";
-        if (configuring)
-        {
-            _convergenceStatusText.text += "\n" + (startupPulse == null
-                ? "Placa vacia: coloca Pulso de Arranque."
-                : ConvergenceCircuitSystem.IsCircuitPowered(state,
-                    ConvergenceCircuitCatalog.StartupPulseCircuitId)
-                    ? "Pulso de Arranque conectado: LE x1.10."
-                    : "Pulso de Arranque desconectado: sin energia, no produce efecto.");
-        }
-        _rebuildReceiverButton.interactable = !state.convergence.dimensionalReceiverRebuilt &&
-            canRebuildReceiver && hasNextCircuit;
-        _startConvergenceButton.interactable = ready && !configuring && hasNextCircuit;
-        _rotateCircuitButton.interactable = configuring && startupPulse != null;
-        _confirmConfigurationButton.interactable = configuring && startupPulse != null &&
-            ConvergenceCircuitSystem.IsCircuitPowered(state,
-                ConvergenceCircuitCatalog.StartupPulseCircuitId);
-        RefreshConvergenceBoard(state, configuring);
-    }
-
-    private void RefreshConvergenceBoard(GameState state, bool configuring)
-    {
-        if (_convergenceBoardButtons == null)
-            return;
-
-        ConvergenceCircuitPlacement placement = FindStartupPulse(state);
-        for (int y = -2; y <= 2; y++)
-        {
-            for (int x = -2; x <= 2; x++)
-            {
-                Button cell = _convergenceBoardButtons[x + 2, y + 2];
-                bool core = x == 0 && y == 0;
-                bool hasPulse = placement != null && placement.x == x &&
-                    placement.y == y;
-                TMP_Text label = cell.GetComponentInChildren<TMP_Text>();
-                label.text = core ? "N" : hasPulse
-                    ? (placement.rotationDegrees == 0 ||
-                       placement.rotationDegrees == 180 ? "│" : "─")
-                    : "·";
-                cell.interactable = configuring && !core;
-            }
-        }
-    }
-
-    private static string GetSignalStatus(GameState state, int dimensionId)
-    {
-        return ConvergenceSynchronizationSystem.IsSignalActivated(state, dimensionId)
-            ? "activa" : "pendiente";
-    }
-
-    private void RebuildReceiver()
-    {
-        string reason;
-        if (!ConvergenceSynchronizationSystem.TryRebuildReceiver(GameState.I, out reason))
-            ShowConvergenceError(reason);
-        else if (SaveService.I != null)
-            SaveService.I.Save();
-        RefreshConvergenceUI();
-    }
-
-    private void StartConvergence()
-    {
-        string reason;
-        if (!ConvergenceCircuitSystem.TryStartNormalConvergence(GameState.I, out reason))
-            ShowConvergenceError(reason);
-        RefreshConvergenceUI();
-    }
-
-    private void BuildConvergenceBoard(Transform parent)
-    {
-        GameObject board = new GameObject("ConvergenceBoard", typeof(RectTransform),
-            typeof(GridLayoutGroup));
-        board.transform.SetParent(parent, false);
-        board.AddComponent<LayoutElement>().preferredHeight = 244f;
-        GridLayoutGroup grid = board.GetComponent<GridLayoutGroup>();
-        grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-        grid.constraintCount = 5;
-        grid.cellSize = new Vector2(42f, 42f);
-        grid.spacing = new Vector2(4f, 4f);
-        grid.childAlignment = TextAnchor.MiddleCenter;
-        _convergenceBoardButtons = new Button[5, 5];
-        for (int y = 2; y >= -2; y--)
-        {
-            for (int x = -2; x <= 2; x++)
-            {
-                int cellX = x;
-                int cellY = y;
-                Button cell = CreateBoardCell(board.transform, cellX, cellY);
-                cell.onClick.AddListener(() => PlaceStartupPulse(cellX, cellY));
-                _convergenceBoardButtons[cellX + 2, cellY + 2] = cell;
-            }
-        }
-    }
-
-    private void PlaceStartupPulse(int x, int y)
-    {
-        ConvergenceCircuitPlacement current = FindStartupPulse(GameState.I);
-        int rotation = current != null ? current.rotationDegrees : 0;
-        string reason;
-        if (!ConvergenceCircuitSystem.TryPlaceCircuit(GameState.I,
-                ConvergenceCircuitCatalog.StartupPulseCircuitId, x, y, rotation,
-                out reason))
-        {
-            Debug.Log("[Convergence UI] " + reason);
-        }
-        RefreshConvergenceUI();
-    }
-
-    private Button CreateBoardCell(Transform parent, int x, int y)
-    {
-        var cellObject = new GameObject("Cell_" + x + "_" + y,
-            typeof(RectTransform), typeof(Image), typeof(Button));
-        cellObject.transform.SetParent(parent, false);
-        Image image = cellObject.GetComponent<Image>();
-        image.color = x == 0 && y == 0
-            ? new Color(0.8f, 0.52f, 0.15f, 1f)
-            : new Color(0.11f, 0.22f, 0.34f, 1f);
-        Button button = cellObject.GetComponent<Button>();
-        button.targetGraphic = image;
-        var labelObject = new GameObject("Label", typeof(RectTransform),
-            typeof(TextMeshProUGUI));
-        labelObject.transform.SetParent(cellObject.transform, false);
-        RectTransform labelRect = labelObject.GetComponent<RectTransform>();
-        labelRect.anchorMin = Vector2.zero;
-        labelRect.anchorMax = Vector2.one;
-        labelRect.offsetMin = Vector2.zero;
-        labelRect.offsetMax = Vector2.zero;
-        TMP_Text label = labelObject.GetComponent<TMP_Text>();
-        label.font = entActualText != null ? entActualText.font : null;
-        label.fontSize = 25f;
-        label.alignment = TextAlignmentOptions.Center;
-        label.color = Color.white;
-        return button;
-    }
-
-    private void RotateStartupPulse()
-    {
-        ConvergenceCircuitPlacement current = FindStartupPulse(GameState.I);
-        if (current == null)
-            return;
-        string reason;
-        if (!ConvergenceCircuitSystem.TryPlaceCircuit(GameState.I, current.circuitId,
-                current.x, current.y, (current.rotationDegrees + 90) % 360,
-                out reason))
-        {
-            Debug.Log("[Convergence UI] " + reason);
-        }
-        RefreshConvergenceUI();
-    }
-
-    private void ConfirmConfiguration()
-    {
-        string reason;
-        if (!ConvergenceCircuitSystem.TryConfirmConfiguration(GameState.I, out reason))
-            ShowConvergenceError(reason);
-        RefreshConvergenceUI();
-    }
-
-    private void ShowConvergenceError(string reason)
-    {
-        Debug.Log("[Convergence UI] " + reason);
-        if (_convergenceStatusText != null)
-            _convergenceStatusText.text = "No disponible: " + reason;
-    }
-
-    private static ConvergenceCircuitPlacement FindStartupPulse(GameState state)
-    {
-        return state != null && state.convergence != null &&
-            state.convergence.boardPlacements != null
-            ? state.convergence.boardPlacements.Find(placement => placement != null &&
-                placement.circuitId == ConvergenceCircuitCatalog.StartupPulseCircuitId)
-            : null;
-    }
-
-    private Button CreateActionButton(Transform parent, string label,
-        UnityEngine.Events.UnityAction action)
-    {
-        var buttonObject = new GameObject("ConvergenceAction", typeof(RectTransform),
-            typeof(Image), typeof(Button));
-        buttonObject.transform.SetParent(parent, false);
-        buttonObject.AddComponent<LayoutElement>().preferredHeight = 48f;
-        Image image = buttonObject.GetComponent<Image>();
-        image.color = new Color(0.13f, 0.31f, 0.52f, 1f);
-        Button button = buttonObject.GetComponent<Button>();
-        button.targetGraphic = image;
-        button.onClick.AddListener(action);
-        var textObject = new GameObject("Label", typeof(RectTransform),
-            typeof(TextMeshProUGUI));
-        textObject.transform.SetParent(buttonObject.transform, false);
-        RectTransform textRect = textObject.GetComponent<RectTransform>();
-        textRect.anchorMin = Vector2.zero;
-        textRect.anchorMax = Vector2.one;
-        textRect.offsetMin = Vector2.zero;
-        textRect.offsetMax = Vector2.zero;
-        TMP_Text text = textObject.GetComponent<TMP_Text>();
-        text.text = label;
-        text.font = entActualText != null ? entActualText.font : null;
-        text.fontSize = 18f;
-        text.alignment = TextAlignmentOptions.Center;
-        text.color = Color.white;
-        return button;
+        if (_convergencePanel == null) BuildConvergencePanel();
+        _convergencePanel.Show();
     }
 
     private static string GetDimensionObjectiveText(int dimensionId)
@@ -557,7 +279,7 @@ public class PrestigeUI : MonoBehaviour
         bool isFinalReveal = GameState.I != null &&
             !GameState.I.HasAvailableDimensionForPrestige1Selection();
         string nextStep = isFinalReveal
-            ? "Al conseguirlo cerrarás el ciclo de Prestigio 1. Prestigio 2 llegará en una expansión futura."
+            ? "Al conseguirlo cerrarás el ciclo de Prestigio 1 y podrás preparar la Convergencia en la Máquina."
             : "Al conseguirlo podrás completar otra vuelta de la Máquina y revelar una dimensión restante.";
 
         switch (dimensionId)

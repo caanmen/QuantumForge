@@ -1,0 +1,458 @@
+RESUMEN DE CONTINUIDAD — DIMENSIÓN 3 / FÁBRICA
+Última actualización: 22 de julio de 2026
+
+OBJETIVO GENERAL
+
+Dimensión 3 es la Fábrica. Su función final será convertirse en la capa de automatización progresiva del juego completo. Primero el jugador aprende una acción manualmente y después puede automatizarla. Las decisiones únicas, narrativas, estratégicas, de riesgo o Prestigio permanecen manuales mientras el diseño no autorice expresamente su automatización.
+
+DOCUMENTOS CANÓNICOS
+
+1. DIMENSION3_FABRICA_DISENO_CANONICO_COMPLETO.md
+   Diseño funcional completo del núcleo de la Fábrica.
+
+2. DIMENSION3_ESTRUCTURA_IMPLEMENTACION.md
+   Arquitectura, clases, integraciones, bloques y criterios de aceptación.
+
+3. REGLAS_DE_TRABAJO_Y_CONTINUIDAD.md
+   Reglas generales vigentes del proyecto. Las nuevas reglas aprobadas por el usuario deben agregarse allí y reflejarse en este resumen.
+
+4. RESUMEN_CONTINUIDAD_DIMENSION3.md
+   Versión detallada en Markdown de este estado de continuidad.
+
+MÉTODO DE TRABAJO ACORDADO
+
+- Implementar un bloque funcional a la vez.
+- Compilar y probar cada bloque antes de avanzar.
+- No declarar un bloque completamente terminado si falta UI indispensable o prueba en Unity.
+- Mantener compatibilidad con partidas antiguas.
+- Actualizar este TXT y el resumen Markdown al cerrar cada hito.
+- Registrar en las reglas cualquier regla nueva aprobada durante el trabajo.
+- No usar Git salvo petición explícita del usuario.
+
+DISEÑO TERMINADO
+
+- Identidad, alcance y desbloqueo de la Fábrica.
+- Piezas V1–V6 y autómatas MK1–MK6.
+- Costos, tiempos, lotes y cuatro colas.
+- Cancelaciones, reservas y progreso offline de 12 horas.
+- Cinco minijuegos y fórmula corregida del Chasis.
+- Fórmula de afinidad, empates y resultados fallidos.
+- Asignaciones, potencia, eficiencia decreciente y Coordinadores.
+- Investigaciones V4–V6.
+- Cinco instalaciones.
+- Automatizaciones actualmente definidas para Fábrica, Cuarto 1, Cuarto 2 y parte de Dimensión 1.
+- Arquitectura extensible para automatizar el resto del juego mediante conectores.
+
+CÓDIGO IMPLEMENTADO — BLOQUE 1A
+
+- Dimension3State.cs
+- Dimension3Catalog.cs
+- Dimension3System.cs
+- D3InventorySystem.cs
+- D3JobQueueSystem.cs
+- D3ProductionSystem.cs
+- D3AssemblySystem.cs
+- Dimension3Block1Validation.cs
+- Integración con GameState y SaveService.
+- Inicialización única con un MK1 Normal.
+- Inventario de piezas y autómatas.
+- Cuatro colas FIFO.
+- Producción de piezas V1 en lotes 1, 5, 10 y 25.
+- Ensamblaje de MK1 Normal.
+- Cancelación pendiente con devolución completa.
+- Cancelación activa sin devolución de consumibles.
+- Guardado, carga, migración, reinicio, tick y offline de 12 horas.
+- Archivos meta de los scripts nuevos.
+
+PRUEBAS
+
+- Assembly-CSharp y Assembly-CSharp-Editor compilan con 0 errores.
+- Existen tres advertencias antiguas en BuildingDatabase y LocalizationManager, no relacionadas con D3.
+- Prueba lógica D3Smoke: PASS.
+- Verificados: inicialización idempotente, MK1 inicial, producción V1 secuencial, cancelaciones, ensamblaje MK1 y cap offline.
+- El validador de Unity está compilado y disponible en:
+  Tools > Quantum Forge > Dimension 3 > Validate Block 1 Core
+- La instancia batch no pudo iniciar su licencia/Package Manager, pero el Editor normal inició ambos servicios correctamente.
+- Validación lógica desde el Editor normal: PASS.
+- Configuración y validación mínima de la pestaña y el panel de Dimensión 3: PASS.
+
+BLOQUE 1 — TERMINADO TÉCNICAMENTE
+
+Código de UI implementado:
+
+- Dimension3PanelUI.cs.
+- Dimension3Block1UISetup.cs.
+- Integración de btnDimension3 y dimension3Panel en TabsUI.
+- Visibilidad de la pestaña conectada a dimension03Unlocked.
+- Primera entrada de la Fábrica.
+- Inventario V1 y conteo de MK1 Normal.
+- Botones de producción de las cinco piezas V1.
+- Botón de ensamblaje MK1 Normal.
+- Vista de colas de producción y ensamblaje.
+- Cancelación de pendientes y confirmación doble para cancelar un activo.
+- Refresco de la pestaña desde GameState y SaveService.
+- Compilación de la UI y del instalador: 0 errores.
+
+Conexión y validación realizadas:
+
+1. Configure Block 1 UI ejecutado desde el Editor normal.
+2. Pestaña, panel y referencias mínimas conectados.
+3. Validador lógico y validador de UI: PASS.
+
+La prueba de una partida completa y el balance quedan aplazados hasta disponer de la estructura funcional del juego. No bloquean el avance porque la lógica, persistencia, compilación y conexiones mínimas del Bloque 1 ya fueron validadas.
+
+MÉTODO DE PRUEBAS ACORDADO
+
+- Cada bloque debe compilar y superar validaciones automáticas de lógica, estado, guardado e integración.
+- Se usarán estados o accesos de desarrollo seguros para probar sistemas aislados sin recorrer todo el juego.
+- El usuario solo revisará la UI o realizará interacciones breves cuando sea útil y no exista una comprobación automática suficiente.
+- La partida completa, la sensación de progresión y el afinado de números se harán después de construir la estructura funcional del juego.
+- Los errores técnicos no se aplazan: se corrigen dentro del bloque donde aparecen.
+
+REGLA PREVENTIVA DE UNITY
+
+- Para cambios pequeños y aislados de scripts, Unity puede permanecer abierto fuera de Play Mode.
+- Antes de bloques con varios scripts interdependientes, cerrar Unity, completar todos los archivos y comprobar la compilación externamente antes de volver a abrirlo.
+- No ejecutar Unity en modo batch mientras el Editor normal del mismo proyecto esté abierto.
+- Así se evitan errores transitorios causados por Auto Refresh al encontrar el código en un estado parcial y conflictos de licencia/Package Manager entre instancias.
+
+BLOQUE 2 — TERMINADO TÉCNICAMENTE
+
+Implementado:
+
+- D3PowerSystem.cs como fuente única para potencia, coordinación, progreso, tiempo, costo y redondeos seguros.
+- D3FacilitySystem.cs para niveles del Banco, canales, asignaciones y estabilización.
+- Inventario distingue autómatas totales, asignados, reservados y libres.
+- Asignación agregada por instalación, canal, MK y rasgo.
+- Nuevas asignaciones tardan 30 segundos en estabilizarse; retirar es inmediato.
+- Bonificación de 25 % por rasgo en su canal correspondiente.
+- Eficiencia decreciente mediante raíz cuadrada y reducciones asintóticas.
+- Producción y ensamblaje usan las mismas fórmulas que los previews.
+- Mejoras del Banco a niveles 2 y 3 mediante la cola de instalaciones.
+- Nivel 2 habilita Ritmo Operativo; nivel 3 habilita Ahorro Energético.
+- V2 requiere Banco nivel 2 y 25 MK1 ensamblados.
+- V3 requiere Banco nivel 3 y 25 MK2 ensamblados.
+- Producción V1–V3 y ensamblaje normal MK1–MK3.
+- UI ampliada con selectores de versión, MK, rasgo y canal; asignar/retirar; potencia, bonificaciones, mejora del Banco y cola de mejoras.
+- Main.unity actualizado mediante el instalador reproducible.
+- Distribución visual del Banco reorganizada en tres zonas: inventario/asignación, producción/ensamblaje y colas/mejoras.
+- Selector de ensamblaje separado del botón Regulador y botones de cancelar/mejorar alineados sin cruces.
+- Prestigio 1 permanece visible antes del primer prestigio y se oculta automáticamente después.
+- Meta/Prestigio 2 permanece oculto hasta su diseño futuro; su código y datos se conservan.
+
+Validaciones:
+
+- Compilación Assembly-CSharp y Assembly-CSharp-Editor: 0 errores.
+- Validador Unity de Bloque 2: PASS.
+- Verificados disponibilidad, sobreasignación, estabilización de 30 s, retirada inmediata, potencia, niveles 2–3, V2–V3 y fórmulas compartidas.
+- Instalación y referencias de UI: VALIDACIÓN OK.
+- Unity batch inició correctamente la licencia y el Package Manager al ejecutarse con el Editor normal cerrado.
+
+SIGUIENTES BLOQUES
+
+BLOQUE 3 — TERMINADO TÉCNICAMENTE
+
+Implementado:
+
+- D3CalibrationSystem.cs con las fórmulas canónicas de Chasis, Sistema Motriz, Herramienta, Módulo de Control y Regulador.
+- Lecturas enteras 0–100, validación de controles y redondeo al entero más cercano.
+- Afinidad provisional usando únicamente piezas registradas.
+- Patrones Rápido, Eficiente y Coordinador.
+- Empate ambiguo con tolerancia de 0,01 y umbral final del 60 %.
+- Resultado Normal, Rápido, Eficiente o Coordinador fijado al confirmar el trabajo.
+- Ensamblaje calibrado con recargo de 25 % en costo, 20 % en tiempo y consumo solo al confirmar.
+- Lecturas persistentes dentro del trabajo de ensamblaje.
+- Perfiles que guardan las cinco lecturas y los controles exactos.
+- Banco nivel 1 guarda un perfil; nivel 2 lo carga; nivel 3 repite automáticamente una pieza conocida.
+- D3CalibrationPanelUI.cs con una Mesa de Calibración separada y controles adaptables para los cinco minijuegos.
+- Preview de candidato, afinidad, banda y resultado actual.
+- Selección MK1–MK3 y confirmación del intento con rasgo.
+- Main.unity actualizado con la nueva vista y referencias validadas.
+
+Validaciones:
+
+- Compilación Assembly-CSharp y Assembly-CSharp-Editor: 0 errores.
+- Validador Unity del Bloque 3: PASS.
+- Verificados cinco minijuegos, redondeos, afinidad, empate, perfiles N1–N3, ensamblaje Rápido y JSON.
+- Instalación y referencias de la Mesa de Calibración: VALIDACIÓN OK.
+
+SIGUIENTES BLOQUES
+
+BLOQUE 4 — TERMINADO TÉCNICAMENTE
+
+Implementado:
+
+- D3ResearchSystem.cs con las quince investigaciones de piezas V4–V6.
+- Prerrequisitos por línea, Banco, ensamblajes previos y Núcleo nivel 4 para V6.
+- Equipos de investigación agregados por MK/rasgo y potencia mínima 50/180/500.
+- Normales aportan progreso, Rápidos tiempo, Eficientes costo y Coordinadores grupo.
+- Investigadores reservados desde la confirmación y liberados al completar o cancelar.
+- Cola de investigación, costos, tiempos, progreso offline y finalización persistente.
+- Producción de piezas V4–V6 por línea investigada.
+- Ensamblaje normal y calibrado MK4–MK6.
+- MK5 reserva cinco MK4 por unidad; MK6 reserva cinco MK5; los apoyos no se consumen.
+- Banco de Procesos niveles 4–5 y canal de Coordinación Interna.
+- Nivel 4 repite automáticamente las cinco piezas; nivel 5 habilita lotes de 1–5 con rasgo y lotes de 50 piezas.
+- D3ResearchPanelUI.cs con selección de línea, equipo, potencia, cola y cancelación.
+- Selectores de producción, ensamblaje y calibración extendidos hasta V6/MK6.
+- Superposición Volver al Banco/Cerrar corregida.
+
+Validaciones:
+
+- Compilación: 0 errores.
+- Validador Unity del Bloque 4: PASS.
+- Verificados prerrequisitos V4–V6, reservas, liberación al cancelar y apoyos MK5/MK6 no consumidos.
+- Instalación y referencias de Investigación y Calibración N4–N5: VALIDACIÓN OK.
+
+SIGUIENTES BLOQUES
+
+- Bloque 5: terminado técnicamente; Consola y Banco de Diagnóstico.
+- Bloque 6: Puerto, Núcleo, Catálogo Maestro, rutinas, perfiles y offline externo.
+
+BLOQUE 5 — TERMINADO TÉCNICAMENTE
+
+Implementado:
+
+- Construcción y ampliación a niveles 1–5 de la Consola de Producción y el Banco de Diagnóstico.
+- Costos, tiempos y requisitos canónicos por nivel mediante la cola de instalaciones.
+- Canales propios, asignaciones MK/rasgo, estabilización de 30 segundos y capacidad efectiva 2/5/10/20/35.
+- D3FacilitiesPanelUI.cs con selección de instalación, nivel, funciones, canales, asignación y controles del Diagnóstico.
+- Análisis de nodos trasladado desde MachinePanelUI a MachineManager como trabajo persistente.
+- El análisis continúa aunque se cierre el panel, se guarda con nodo/tiempo restante y puede completarse al cargar progreso offline.
+- APIs seguras de análisis y reparación; solo nodos dañados, visibles y repetibles con tierGroup para automatización.
+- Autoanálisis N1 y autorreparación N2 con una acción por evaluación.
+- Autorreparación respeta reservas de LE/Trazas y sigue usando CanRepairNode/TryRepairNode.
+- Orden estable y preparación de prioridad por zona para N3.
+- Registro persistente de recetas de fusión ejecutadas manualmente y prohibición de marcar recetas no utilizadas.
+- Preparación de N4–N5 sin ejecutar fusiones ni automatización offline antes del Núcleo correspondiente.
+- Consola construible y asignable con sus cinco funciones visibles, pero sus conectores de compra no se activan hasta completar el Catálogo Maestro de Automatizaciones.
+- Botón Investigaciones V4–V6 movido para eliminar la superposición con Producción.
+- La vista Instalaciones ahora oculta por completo el Banco al abrirse; también se separaron los botones Volver al Banco y Cerrar.
+
+Validaciones:
+
+- Compilación Assembly-CSharp y Assembly-CSharp-Editor: 0 errores.
+- Validador Unity del Bloque 5: PASS.
+- Verificados niveles N1–N5, capacidad, funciones no compradas inactivas, persistencia JSON, reservas y marcas manuales.
+- Instalación y referencias de UI: VALIDACIÓN OK.
+
+DECISIÓN DE ORDEN CANÓNICO
+
+El documento canónico separa Puerto de Expedición y Núcleo de Automatización en el Bloque 6. La estructura técnica antigua los agrupaba inicialmente con el Bloque 5. Se seguirá el orden canónico: Bloque 5 contiene Consola, Diagnóstico, análisis persistente y marcas de fusión; Bloque 6 contiene Puerto, Núcleo y automatización externa/general.
+
+AUTOMATIZACIÓN GLOBAL PENDIENTE DE DISEÑO
+
+Antes del Bloque 6 se debe auditar todo el proyecto y decidir, acción por acción, qué automatizar de producción base, edificios, investigaciones, Cuarto 1, Cuarto 2, Dimensión 1, Prestigio y sistemas futuros. Dimensión 2 se incorporará cuando su diseño completo esté cerrado.
+
+SIGUIENTE ACCIÓN EXACTA
+
+La pantalla INSTALACIONES CONECTADAS fue revisada y aprobada después de corregir la superposición.
+
+BLOQUE 6 — SUBBLOQUE 6A CATÁLOGO Y SEGURIDAD D1 TERMINADO
+
+Implementado:
+
+- DIMENSION3_CATALOGO_MAESTRO_AUTOMATIZACIONES.md con reglas ejecutables, estados, IDs, niveles, requisito manual, reservas, parada, offline y API real.
+- D3AutomationCatalog.cs con 18 acciones auditadas y estados Authorized/PrepareApi/PendingDesign/Prohibited/Internal.
+- Clasificación explícita de los diez destinos normales actuales de D1 como repetibles y de riesgo nulo según la lógica real, que no posee fallo o riesgo.
+- IDs antiguos de destinos excluidos.
+- Ark, misiones coordinadas, desbloqueo de naves/planetas, reliquias y árbol D1 bloqueados expresamente.
+- Persistencia de barrido simple manual, destinos simples completados manualmente y extractores mejorados manualmente.
+- Las exploraciones automáticas quedan marcadas para no fingir ejecución manual.
+- API D1 segura por destinationId, sin depender del índice de UI.
+- API separada para barrido automático y mejoras automáticas de extractores.
+- Las cinco acciones diseñadas del Puerto quedaron técnicamente autorizadas para el próximo motor de rutinas.
+
+Validaciones:
+
+- Compilación: 0 errores.
+- Validador Unity del Catálogo Bloque 6: PASS.
+- Verificados IDs únicos, diez destinos, exclusiones negativas, historial JSON y API de exploración por ID.
+
+SIGUIENTE ACCIÓN EXACTA
+
+El subbloque 6B descrito abajo ya fue terminado.
+
+BLOQUE 6 — SUBBLOQUE 6B PUERTO Y NÚCLEO TERMINADO
+
+Implementado:
+
+- Puerto de Expediciones y Núcleo de Automatización incorporados al estado normalizado y persistente de Dimensión 3.
+- Definiciones de construcción N1–N5 con costes de LE, Trazas, tiempos y ensamblajes requeridos.
+- Requisitos del Puerto: historial manual simple, destinos conocidos, diez exploraciones simples y extractores desbloqueados.
+- El Núcleo N1 exige Banco, Consola, Diagnóstico y Puerto construidos en N1.
+- Canales del Puerto: Capacidad, Respuesta y Coordinación.
+- Canal del Núcleo: Coordinación, con rasgo Coordinador preferido.
+- Capacidad efectiva basada solamente en autómatas estabilizados.
+- Límites activos del Núcleo: 2/3/4/5 rutinas, 0/1/1/2 perfiles, eficiencia +5%/+10% y offline externo en N5.
+- Pantalla INSTALACIONES CONECTADAS ampliada para seleccionar, construir, mejorar y asignar autómatas al Puerto y al Núcleo.
+- Historial migrable y persistente de cantidad total de exploraciones simples D1 para el requisito del Puerto N3.
+
+Validaciones:
+
+- Compilación principal y Editor: 0 errores.
+- Configuración de Main.unity: VALIDACIÓN OK.
+- Validador Unity de Instalaciones del Bloque 6: PASS.
+- Verificados requisitos negativos, construcción, asignaciones, estabilización, capacidad, bonificaciones N1/N5 y persistencia JSON.
+
+SIGUIENTE ACCIÓN EXACTA
+
+El subbloque 6C descrito abajo ya fue terminado.
+
+BLOQUE 6 — SUBBLOQUE 6C MOTOR ONLINE TERMINADO
+
+Implementado:
+
+- Estado persistente ampliado de rutinas: acción, objetivo, lista priorizada, prioridad, reservas, parada, repeticiones, temporizador y último resultado.
+- Perfiles del Núcleo guardan copias completas de las rutinas y restauran sus configuraciones.
+- Motor online integrado al Tick de Dimensión 3.
+- Evaluación por prioridad con desempate estable y una sola transacción externa máxima por ciclo global.
+- Pausa, reactivación y eliminación sin devolver gastos ya ejecutados.
+- Condición de parada por cantidad de ejecuciones.
+- Reservas absolutas de LE, Trazas y metal aplicable; una mejora de extractor nunca baja del metal reservado.
+- Requisito manual comprobado al crear, activar y ejecutar una rutina.
+- Cinco acciones online autorizadas del Puerto: barrido simple, repetir ruta, rutas prioritarias, ruta segura y mejora de extractor.
+- Exclusiones del Catálogo Maestro permanecen sin ruta de ejecución.
+- Límites de rutinas y perfiles aplicados por capacidad activa del Puerto/Núcleo.
+- Respuesta del Puerto reduce el intervalo con curva asintótica y mínimo técnico.
+- Nueva pantalla RUTINAS Y PERFILES ONLINE, accesible desde Puerto o Núcleo en INSTALACIONES CONECTADAS.
+
+Validaciones:
+
+- Compilación principal y Editor: 0 errores.
+- Configuración de Main.unity y referencias: VALIDACIÓN OK.
+- Validador Unity de Automatización 6C: PASS.
+- Verificados historial manual, prioridad, una transacción, reservas, parada, perfiles y JSON.
+- El offline externo continúa intencionalmente bloqueado.
+
+SIGUIENTE ACCIÓN EXACTA
+
+La pantalla RUTINAS Y PERFILES ONLINE fue revisada y aprobada. El subbloque 6D descrito abajo ya fue terminado.
+
+BLOQUE 6 — SUBBLOQUE 6D OFFLINE EXTERNO TERMINADO
+
+Implementado:
+
+- Automatización externa offline autorizada solamente si Puerto N5 y Núcleo N5 están activos con capacidad efectiva suficiente al comenzar la ausencia.
+- Evaluación de rutinas en bloques exactos de 60 segundos.
+- Tiempo total limitado a 12 horas; un resto menor de 60 segundos avanza D1 pero no genera otra transacción automatizada.
+- Una sola transacción externa máxima por bloque global.
+- Mismas prioridades, reservas, historial manual, condiciones de parada y exclusiones que online.
+- Simulación D1 y D3 intercalada para que los escaneos, exploraciones y mejoras solo afecten a los bloques posteriores.
+- SaveService evita aplicar dos veces la minería D1 cuando D3 controla la simulación externa intercalada.
+- Acciones no marcadas como offlineAllowedWithCore5 son rechazadas incluso si una rutina antigua intenta ejecutarlas.
+- Indicador visible de disponibilidad offline en RUTINAS Y PERFILES ONLINE.
+
+Validaciones:
+
+- Compilación principal y Editor: 0 errores.
+- Validador Unity 6D: PASS.
+- Regresión completa: Bloque 1, Catálogo 6A, Instalaciones 6B, Online 6C y Offline 6D: todos PASS.
+- Verificados doble requisito N5, bloques de 60 s, cap de 12 h, reservas, parada y exclusiones.
+
+SIGUIENTE ACCIÓN EXACTA
+
+La auditoría integral fue realizada y está documentada en DIMENSION3_AUDITORIA_CIERRE_FUNCIONAL.md.
+
+AUDITORÍA DE CIERRE — RESULTADO
+
+- Los bloques 1–6 forman una base estable, pero Dimensión 3 aún no cumple todo el documento canónico.
+- El ciclo interno, calibración, investigaciones, instalaciones, Puerto, rutinas y offline están implementados.
+- Brecha crítica: la velocidad de trabajos queda congelada al confirmar; debe ser dinámica según asignaciones activas.
+- Consola de Producción: niveles/canales existen, pero sus automatizaciones N1–N5 no están conectadas.
+- Banco de Diagnóstico: N1–N2 online existen; faltan controles N3, fusiones N4 y rutina/offline N5.
+- Perfiles del Núcleo y propagación de coordinación/eficiencia son parciales.
+- El catálogo C# todavía no representa todas las filas del Catálogo Maestro.
+- Faltan selector de lotes, previews completos, cancelación individual de las cuatro colas y localización EN/ES de D3.
+- Arte, animaciones, balance final, D2 y Prestigio continúan aplazados deliberadamente; no son defectos actuales.
+
+SIGUIENTE ACCIÓN EXACTA
+
+Implementar el Bloque 7A de conformidad del núcleo y UI operativa: velocidad dinámica de trabajos, lotes de piezas, previsión de costos, cantidades de ensamblaje, selección/cancelación en las cuatro colas, requisito de Diagnóstico N2 y validadores transversales. Después continuar con Consola 7B, Diagnóstico 7C y cierre del Núcleo 7D.
+
+BLOQUE 7A — CONFORMIDAD DEL NÚCLEO Y UI OPERATIVA TERMINADO
+
+Implementado:
+
+- Costo fijo al confirmar y velocidad dinámica durante el avance para Producción, Ensamblaje, Investigación e Instalaciones.
+- Compatibilidad con trabajos de partidas antiguas: conservan la duración ya modificada y no reciben el bono dos veces.
+- Lotes de piezas 1, 5, 10, 25 y 50; lote 50 reservado para Banco N5.
+- Ensamblaje normal en cantidades 1, 5, 10 y 25.
+- Previsión de piezas faltantes, costo de piezas, ensamblaje, costo total y tiempo estimado actual.
+- Pantalla GESTIÓN DE COLAS para escoger cualquiera de las cuatro colas y cancelar un trabajo concreto.
+- Pendientes con devolución completa; activos con doble confirmación y sin devolución.
+- Requisito real NodeAnalysisUnlocked para construir Banco de Diagnóstico N2.
+- Progreso D3 actualizado a versión 7.
+
+Validaciones:
+
+- Compilación principal y Editor: 0 errores.
+- Main.unity y referencias: VALIDACIÓN OK.
+- Validador 7A: PASS.
+- Regresión Bloques 1–6D + 7A: todos PASS.
+
+SIGUIENTE ACCIÓN EXACTA
+
+Abrir Unity y revisar visualmente la fábrica y GESTIÓN DE COLAS. Si están bien, continuar con BLOQUE 7B — CONSOLA DE PRODUCCIÓN.
+
+BLOQUE 7B — CONSOLA DE PRODUCCIÓN TERMINADO
+
+Implementado:
+
+- Historial manual persistente de compras Higgs/Tetra, fases y configuraciones básicas del Triángulo.
+- N1: compras repetibles seguras de Higgs y Tetra ya utilizados manualmente.
+- N2: prioridad LE, Trazas o Equilibrio y reservas mínimas de ambos recursos.
+- Descuento de Disciplina aplicado solo dentro de compras automáticas autorizadas.
+- N3: bloqueado como PENDIENTE DE DISEÑO hasta definir una lista cerrada; no se inventaron mejoras.
+- N4: mantenimiento de una fase desbloqueada y elegida manualmente.
+- N5: registro y aplicación de configuraciones básicas del Triángulo usadas manualmente.
+- Integración con Catálogo Maestro, rutinas, prioridades, parada, perfiles, guardado y offline.
+- Offline exige Consola N5 activa y Núcleo N5 activo.
+- Los perfiles no eliminan autorizaciones manuales obtenidas después de guardarlos.
+- Nueva pantalla CONTROL DE CONSOLA y acciones nuevas en RUTINAS Y PERFILES ONLINE.
+- Progreso D3 actualizado a versión 8.
+
+Validaciones:
+
+- Compilación principal y Editor: 0 errores.
+- Main.unity y referencias: VALIDACIÓN OK.
+- Validador 7B: PASS.
+- Regresión Bloques 1–7B: todos PASS.
+
+SIGUIENTE ACCIÓN EXACTA
+
+Revisar visualmente CONTROL DE CONSOLA y las acciones nuevas de RUTINAS Y PERFILES ONLINE. Después continuar con BLOQUE 7C — BANCO DE DIAGNÓSTICO COMPLETO.
+
+BLOQUE 7C — BANCO DE DIAGNÓSTICO COMPLETO TERMINADO
+
+- N3: prioridad global/por zona y reservas LE/Trazas persistentes.
+- N4: servicio de fusión fuera de la UI y repetición exclusiva de recetas manuales marcadas.
+- La autofusión consume fragmentos reales y no altera costos ni recompensas del Cuarto 2.
+- N5: guardado/carga de rutina diagnóstica completa.
+- Offline diagnóstico solo con Diagnóstico N5 + Núcleo N5.
+- Nueva pantalla CONTROL DE DIAGNÓSTICO.
+- Validador 7C: PASS.
+
+BLOQUE 7D — NÚCLEO, PERFILES Y CIERRE TERMINADO
+
+- Multiplicadores +5%/+10% del Núcleo propagados a bonus autorizados.
+- Perfiles guardan rutinas, Consola, Diagnóstico, recetas y calibraciones sin borrar historial manual posterior.
+- Catálogo programático exhaustivo frente al Catálogo Maestro.
+- Repetir última ruta usa realmente el último destino manual.
+- Se mantiene una transacción externa máxima por evaluación global.
+- Localización funcional EN/ES para interfaz D3 estática y dinámica.
+- Migración de estados antiguos y progreso D3 versión 10.
+- Compilación: 0 errores; Main.unity: VALIDACIÓN OK.
+- Validador 7D: PASS.
+- Regresión final Bloques 1–7D: TODOS PASS.
+
+SIGUIENTE ACCIÓN EXACTA
+
+Revisar visualmente CONTROL DE DIAGNÓSTICO y EN/ES. Después reorganizar progresivamente los paneles del juego completo para reducir saturación; luego pruebas completas de jugabilidad y balance.
+
+CORRECCIÓN POSTERIOR A 7D
+
+- Corregida la traducción acumulativa ES/EN que generaba CANCELARARAR...
+- Cada texto D3 se traduce ahora desde una fuente española limpia.
+- Incluye reparación del patrón corrupto ya presente en una sesión.
+- Unity recompiló correctamente y sin errores C#.

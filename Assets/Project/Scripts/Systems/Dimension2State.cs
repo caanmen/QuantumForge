@@ -279,4 +279,5 @@ public class Dimension2State
     public D2Civilization1State civilization1 = new D2Civilization1State();
     public D2Civilization2State civilization2 = new D2Civilization2State();
     public D2Civilization3State civilization3 = new D2Civilization3State();
+    public DimensionPresentationState presentation = new DimensionPresentationState();
 }

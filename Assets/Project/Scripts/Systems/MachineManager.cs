@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class MachineManager : MonoBehaviour
 {
+    private const float MaxAcceptedFrameDeltaSeconds = 0.5f;
     public static MachineManager I { get; private set; }
-    private static readonly bool FreeMachineNodePurchaseMode = true;
     private readonly Dictionary<string, MachineNodeDef> _defsById = new();
     private readonly List<MachineNodeDef> _allNodes = new();
     private readonly HashSet<string> _repairedNodeIds = new();
@@ -13,6 +13,7 @@ public class MachineManager : MonoBehaviour
     private bool _machineUnlocked;
     private bool _machineFusionPanelUnlocked;
     private bool _machineAllZonesUnlocked;
+    private int _selectedMachineFaceIndex = 1;
     private string _analysisNodeId = "";
     private double _analysisRemainingSeconds;
 
@@ -34,7 +35,22 @@ public class MachineManager : MonoBehaviour
 
     private void Update()
     {
-        double analysisSeconds = Time.unscaledDeltaTime;
+        AdvanceOnlineFrame(Time.unscaledDeltaTime);
+    }
+
+    private void AdvanceOnlineFrame(float unscaledDeltaTime)
+    {
+        if (float.IsNaN(unscaledDeltaTime) ||
+            float.IsInfinity(unscaledDeltaTime) || unscaledDeltaTime < 0f)
+        {
+            return;
+        }
+
+        // El tiempo ausente se aplica desde SaveService como progreso offline.
+        // Limitar el primer frame tras reanudar evita acreditarlo otra vez.
+        double analysisSeconds =
+            QaRuntimeService.ScaleOnlineSeconds(
+                Mathf.Min(unscaledDeltaTime, MaxAcceptedFrameDeltaSeconds));
         if (GameState.I != null)
             analysisSeconds *= GameState.I.GetTrianglePhaseAnalysisSpeedMultiplier();
         AdvanceAnalysis(analysisSeconds);
@@ -100,6 +116,8 @@ public class MachineManager : MonoBehaviour
     {
         EnsureDefsLoaded();
         List<MachineNodeDef> result = new();
+        bool hiddenSubnodesRevealed = includeHidden ||
+            GetTotalEffectValue(MachineNodeEffectType.RevealHiddenSubnodes) > 0.0;
 
         foreach (MachineNodeDef def in _allNodes)
         {
@@ -108,8 +126,6 @@ public class MachineManager : MonoBehaviour
 
             if (def.zone != zone)
                 continue;
-
-            bool hiddenSubnodesRevealed = GetTotalEffectValue(MachineNodeEffectType.RevealHiddenSubnodes) > 0.0;
 
             if (def.hidden && !includeHidden && !hiddenSubnodesRevealed)
                 continue;
@@ -227,7 +243,8 @@ public class MachineManager : MonoBehaviour
                 if (string.IsNullOrWhiteSpace(nodeId))
                     continue;
 
-                _repairedNodeIds.Add(nodeId);
+                if (GetDef(nodeId) != null)
+                    _repairedNodeIds.Add(nodeId);
             }
         }
 
@@ -246,6 +263,7 @@ public class MachineManager : MonoBehaviour
         _machineUnlocked = data.machineUnlocked;
         _machineFusionPanelUnlocked = data.machineFusionPanelUnlocked;
         _machineAllZonesUnlocked = data.machineAllZonesUnlocked || data.machineUnlocked;
+        _selectedMachineFaceIndex = Mathf.Clamp(data.machineSelectedFaceIndex, 0, 3);
         _analysisNodeId = data.machineAnalysisNodeId ?? "";
         _analysisRemainingSeconds = System.Math.Max(
             0.0, data.machineAnalysisRemainingSeconds);
@@ -276,6 +294,7 @@ public class MachineManager : MonoBehaviour
         data.machineUnlocked = _machineUnlocked;
         data.machineFusionPanelUnlocked = _machineFusionPanelUnlocked;
         data.machineAllZonesUnlocked = MachineAllZonesUnlocked;
+        data.machineSelectedFaceIndex = _selectedMachineFaceIndex;
         data.machineAnalysisNodeId = _analysisNodeId;
         data.machineAnalysisRemainingSeconds = _analysisRemainingSeconds;
     }
@@ -355,6 +374,23 @@ public class MachineManager : MonoBehaviour
             reason = "Nodo no encontrado.";
             return false;
         }
+        if (!_machineUnlocked)
+        {
+            reason = "La Máquina todavía está bloqueada.";
+            return false;
+        }
+        bool hiddenSubnodesRevealed =
+            GetTotalEffectValue(MachineNodeEffectType.RevealHiddenSubnodes) > 0.0;
+        if (def.hidden && !hiddenSubnodesRevealed)
+        {
+            reason = "Nodo secreto todavía no revelado.";
+            return false;
+        }
+        if (!CanAccessZone(def.zone))
+        {
+            reason = "Sector todavía no accesible.";
+            return false;
+        }
         if (!def.damaged || IsNodeDamageResolved(nodeId) || IsNodeRepaired(nodeId))
         {
             reason = "El nodo no requiere análisis.";
@@ -418,74 +454,9 @@ public class MachineManager : MonoBehaviour
     }
     private bool IsRequirementSatisfiedForNode(MachineNodeDef currentDef, string requiredId)
     {
-        if (string.IsNullOrWhiteSpace(requiredId))
-            return true;
-
-        if (IsNodeRepaired(requiredId))
-            return true;
-
-        MachineNodeDef requiredDef = GetDef(requiredId);
-
-        if (requiredDef == null)
-            return false;
-
-        bool requirementIsTier =
-            !string.IsNullOrWhiteSpace(requiredDef.tierGroup);
-
-        bool currentIsSameTierGroup =
-            currentDef != null
-            && !string.IsNullOrWhiteSpace(currentDef.tierGroup)
-            && currentDef.tierGroup == requiredDef.tierGroup;
-
-        // Dentro de una misma línea de tiers, se exige el tier exacto anterior.
-        // Ejemplo: Acople III sí necesita Acople II.
-        if (requirementIsTier && currentIsSameTierGroup)
-            return false;
-
-        // Para nodos externos, cualquier tier comprado de esa línea cuenta como requisito.
-        if (requirementIsTier)
-        {
-            foreach (string repairedNodeId in _repairedNodeIds)
-            {
-                MachineNodeDef repairedDef = GetDef(repairedNodeId);
-
-                if (repairedDef == null)
-                    continue;
-
-                if (repairedDef.tierGroup == requiredDef.tierGroup)
-                    return true;
-            }
-        }
-
-        return false;
-    }
-
-    private bool ShouldEnforceNodeRequirement(MachineNodeDef currentDef, string requiredId)
-    {
-        if (!FreeMachineNodePurchaseMode)
-            return true;
-
-        if (currentDef == null)
-            return true;
-
-        if (string.IsNullOrWhiteSpace(requiredId))
-            return false;
-
-        MachineNodeDef requiredDef = GetDef(requiredId);
-
-        if (requiredDef == null)
-            return false;
-
-        bool currentIsTier =
-            !string.IsNullOrWhiteSpace(currentDef.tierGroup);
-
-        bool requiredIsSameTier =
-            !string.IsNullOrWhiteSpace(requiredDef.tierGroup)
-            && currentDef.tierGroup == requiredDef.tierGroup;
-
-        // En modo libre solo mantenemos el orden interno de tiers.
-        // Ejemplo: Acople III sigue necesitando Acople II.
-        return currentIsTier && requiredIsSameTier;
+        // El JSON es la autoridad. La selección es libre, pero reparar exige
+        // exactamente el ID declarado, incluso si pertenece a una línea de tiers.
+        return string.IsNullOrWhiteSpace(requiredId) || IsNodeRepaired(requiredId);
     }
 
     public bool IsNodeDamageResolved(string nodeId)
@@ -501,24 +472,9 @@ public class MachineManager : MonoBehaviour
         if (!def.damaged)
             return false;
 
-        if (_repairedNodeIds.Contains(nodeId))
-            return true;
-
-        if (string.IsNullOrWhiteSpace(def.tierGroup))
-            return false;
-
-        foreach (string repairedNodeId in _repairedNodeIds)
-        {
-            MachineNodeDef repairedDef = GetDef(repairedNodeId);
-
-            if (repairedDef == null)
-                continue;
-
-            if (repairedDef.tierGroup == def.tierGroup)
-                return true;
-        }
-
-        return false;
+        // Cada tier danado debe analizarse/repararse por si mismo. Reparar otro
+        // tier de la misma rama no puede resolver silenciosamente este dano.
+        return _repairedNodeIds.Contains(nodeId);
     }
 
     public bool IsBlockedByFusionMaterial(string nodeId, out string missingMaterialName)
@@ -549,9 +505,6 @@ public class MachineManager : MonoBehaviour
             foreach (string requiredId in def.requiredNodeIds)
             {
                 if (string.IsNullOrWhiteSpace(requiredId))
-                    continue;
-
-                if (!ShouldEnforceNodeRequirement(def, requiredId))
                     continue;
 
                 if (!IsRequirementSatisfiedForNode(def, requiredId))
@@ -736,6 +689,26 @@ public class MachineManager : MonoBehaviour
             return false;
         }
 
+        if (!_machineUnlocked)
+        {
+            reason = "La Máquina todavía está bloqueada.";
+            return false;
+        }
+
+        bool hiddenSubnodesRevealed =
+            GetTotalEffectValue(MachineNodeEffectType.RevealHiddenSubnodes) > 0.0;
+        if (def.hidden && !hiddenSubnodesRevealed)
+        {
+            reason = "Nodo secreto todavía no revelado.";
+            return false;
+        }
+
+        if (!CanAccessZone(def.zone))
+        {
+            reason = "Sector todavía no accesible.";
+            return false;
+        }
+
         if (IsNodeRepaired(nodeId))
         {
             reason = "Nodo ya reparado.";
@@ -755,12 +728,11 @@ public class MachineManager : MonoBehaviour
                 if (string.IsNullOrWhiteSpace(requiredId))
                     continue;
 
-                if (!ShouldEnforceNodeRequirement(def, requiredId))
-                    continue;
-
                 if (!IsRequirementSatisfiedForNode(def, requiredId))
                 {
-                    reason = "Falta reparar nodo requerido: " + requiredId;
+                    MachineNodeDef required = GetDef(requiredId);
+                    reason = "Falta reparar nodo requerido: " +
+                        (required != null ? required.name : requiredId);
                     return false;
                 }
             }
@@ -776,55 +748,63 @@ public class MachineManager : MonoBehaviour
 
         if (GameState.I.LE < cost.le)
         {
-            reason = "Falta LE.";
+            reason = "Falta LE: " + (cost.le - GameState.I.LE).ToString("0.##");
             return false;
         }
 
         if (GameState.I.Traces < cost.traces)
         {
-            reason = "Faltan Trazas.";
+            reason = "Faltan Trazas: " +
+                (cost.traces - GameState.I.Traces).ToString("0.##");
             return false;
         }
 
         if (GameState.I.experimentalHallazgos < cost.hallazgo)
         {
-            reason = "Faltan Hallazgos.";
+            reason = "Faltan Hallazgos: " +
+                (cost.hallazgo - GameState.I.experimentalHallazgos);
             return false;
         }
 
         if (GameState.I.experimentalMuestras < cost.muestra)
         {
-            reason = "Faltan Muestras.";
+            reason = "Faltan Muestras: " +
+                (cost.muestra - GameState.I.experimentalMuestras);
             return false;
         }
 
         if (GameState.I.experimentalLecturasIncompletas < cost.lecturaIncompleta)
         {
-            reason = "Faltan Lecturas Incompletas.";
+            reason = "Faltan Lecturas Incompletas: " +
+                (cost.lecturaIncompleta - GameState.I.experimentalLecturasIncompletas);
             return false;
         }
 
         if (GameState.I.experimentalCompuestosUtiles < cost.compuestoUtil)
         {
-            reason = "Faltan Compuestos Útiles.";
+            reason = "Faltan Compuestos Útiles: " +
+                (cost.compuestoUtil - GameState.I.experimentalCompuestosUtiles);
             return false;
         }
 
         if (GameState.I.chronalPureInstants < cost.pureInstant)
         {
-            reason = "Faltan Anclajes Puros.";
+            reason = "Faltan Anclajes Puros: " +
+                (cost.pureInstant - GameState.I.chronalPureInstants);
             return false;
         }
 
         if (GameState.I.chronalStableInstants < cost.stableInstant)
         {
-            reason = "Faltan Anclajes Estables.";
+            reason = "Faltan Anclajes Estables: " +
+                (cost.stableInstant - GameState.I.chronalStableInstants);
             return false;
         }
 
         if (GameState.I.chronalForcedInstants < cost.forcedInstant)
         {
-            reason = "Faltan Anclajes Forzados.";
+            reason = "Faltan Anclajes Forzados: " +
+                (cost.forcedInstant - GameState.I.chronalForcedInstants);
             return false;
         }
 
@@ -945,17 +925,14 @@ public class MachineManager : MonoBehaviour
 
     public double GetZoneRepairProgress01(MachineZoneType zone)
     {
-        List<MachineNodeDef> nodes = GetNodesByZone(zone);
-
-        if (nodes == null || nodes.Count <= 0)
-            return 0.0;
+        EnsureDefsLoaded();
 
         int total = 0;
         int repaired = 0;
 
-        foreach (MachineNodeDef node in nodes)
+        foreach (MachineNodeDef node in _allNodes)
         {
-            if (node == null)
+            if (node == null || node.zone != zone || node.hidden)
                 continue;
 
             total++;
@@ -1042,6 +1019,27 @@ public class MachineManager : MonoBehaviour
     public bool NodeAnalysisUnlocked =>
         GetTotalEffectValue(MachineNodeEffectType.UnlockDiagnostics) > 0.0;
     public bool MachineAllZonesUnlocked => _machineUnlocked || _machineAllZonesUnlocked;
+    public int SelectedMachineFaceIndex => _selectedMachineFaceIndex;
+
+    public void SetSelectedMachineFaceIndex(int faceIndex)
+    {
+        int clamped = Mathf.Clamp(faceIndex, 0, 3);
+        if (_selectedMachineFaceIndex == clamped)
+            return;
+
+        _selectedMachineFaceIndex = clamped;
+        if (SaveService.I != null)
+        {
+            CancelInvoke(nameof(SaveSelectedMachineFaceIndex));
+            Invoke(nameof(SaveSelectedMachineFaceIndex), 1.25f);
+        }
+    }
+
+    private void SaveSelectedMachineFaceIndex()
+    {
+        if (SaveService.I != null)
+            SaveService.I.Save();
+    }
 
     public bool Prestige1Prepared =>
         GetTotalEffectValue(MachineNodeEffectType.EnablePrestige1) > 0.0;

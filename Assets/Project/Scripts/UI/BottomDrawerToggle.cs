@@ -20,6 +20,13 @@ public class BottomDrawerToggle : MonoBehaviour
 
     private bool isOpen;
 
+    public void ConfigureLayout(bool openAtStart, float openedY, float collapsedY)
+    {
+        startsOpen = openAtStart;
+        openY = openedY;
+        closedY = collapsedY;
+    }
+
     private void Awake()
     {
         if (handleButton != null)
@@ -47,7 +54,7 @@ public class BottomDrawerToggle : MonoBehaviour
         }
         if (handleText != null)
         {
-            handleText.text = isOpen ? "▲" : "▼";
+            handleText.text = isOpen ? "OCULTAR" : "MOSTRAR";
         }
         if (drawerContent != null)
         {

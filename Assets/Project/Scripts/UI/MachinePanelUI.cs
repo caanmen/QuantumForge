@@ -24,6 +24,7 @@ public class MachinePanelUI : MonoBehaviour
     [Header("Vistas")]
     [SerializeField] private GameObject machineRepairViewRoot;
     [SerializeField] private GameObject machineNodeViewRoot;
+    [SerializeField] private MachineCubeVisualUI cubeVisual;
 
     [Header("Selección de nodos")]
     [SerializeField] private TextMeshProUGUI selectedNodeText;
@@ -56,6 +57,7 @@ public class MachinePanelUI : MonoBehaviour
     private MachineZoneType _currentZone = MachineZoneType.FusionSector;
     private int _selectedNodeIndex = 0;
     private bool _fusionPanelVisible;
+    private bool _wasAnalyzingNode;
     private readonly Dictionary<MachineZoneType, int> _selectedNodeIndexByZone =
     
     new Dictionary<MachineZoneType, int>();
@@ -122,6 +124,9 @@ public class MachinePanelUI : MonoBehaviour
 
     private void OnEnable()
     {
+        if (MachineManager.I != null)
+            _currentZone = (MachineZoneType)(MachineManager.I.SelectedMachineFaceIndex + 1);
+
         Refresh();
     }
 
@@ -133,8 +138,13 @@ public class MachinePanelUI : MonoBehaviour
             RefreshSeedsView();
         }
 
-        if (MachineManager.I != null && MachineManager.I.IsAnalyzingNode)
+        bool analyzing = MachineManager.I != null && MachineManager.I.IsAnalyzingNode;
+        if (analyzing)
             RefreshNodeAnalysis();
+        else if (_wasAnalyzingNode)
+            Refresh();
+
+        _wasAnalyzingNode = analyzing;
     }
 
     public void Refresh()
@@ -161,6 +171,9 @@ public class MachinePanelUI : MonoBehaviour
         RefreshFusionPanelVisibility();
         RefreshInstantChamberButtons();
         RefreshContextHelpButton();
+
+        if (cubeVisual != null)
+            cubeVisual.RefreshNow();
     }
 
     private void EnsureCurrentZoneIsAccessible()
@@ -235,6 +248,7 @@ public class MachinePanelUI : MonoBehaviour
         SaveSelectedNodeIndexForCurrentZone();
 
         _currentZone = zone;
+        MachineManager.I.SetSelectedMachineFaceIndex((int)zone - 1);
         _selectedNodeIndex = GetSavedSelectedNodeIndexForZone(zone);
         _fusionPanelVisible = false;
 
@@ -316,7 +330,7 @@ public class MachinePanelUI : MonoBehaviour
             return;
         }
 
-        List<MachineNodeDef> nodes = MachineManager.I.GetDisplayNodesByZone(_currentZone);
+        List<MachineNodeDef> nodes = MachineManager.I.GetNodesByZone(_currentZone);
 
         if (nodes == null || nodes.Count == 0)
         {
@@ -394,7 +408,7 @@ public class MachinePanelUI : MonoBehaviour
         if (!MachineManager.I.CanAccessZone(_currentZone))
             return new List<MachineNodeDef>();
 
-        List<MachineNodeDef> nodes = MachineManager.I.GetDisplayNodesByZone(_currentZone);
+        List<MachineNodeDef> nodes = MachineManager.I.GetNodesByZone(_currentZone);
 
         if (nodes == null)
             return new List<MachineNodeDef>();
@@ -429,6 +443,35 @@ public class MachinePanelUI : MonoBehaviour
         ClampSelectedNodeIndex();
 
         return nodes[_selectedNodeIndex];
+    }
+
+    public MachineZoneType CurrentZone => _currentZone;
+    public string SelectedNodeId => GetSelectedNode()?.id ?? "";
+    public bool HasAuxiliaryViewOpen =>
+        _fusionPanelVisible || (instantSeedsViewRoot != null && instantSeedsViewRoot.activeSelf);
+
+    public void SelectZoneFromCube(MachineZoneType zone)
+    {
+        SelectZone(zone);
+    }
+
+    public void SelectNodeFromCube(string nodeId)
+    {
+        if (string.IsNullOrWhiteSpace(nodeId) || MachineManager.I == null)
+            return;
+
+        MachineNodeDef def = MachineManager.I.GetDef(nodeId);
+        if (def == null || def.zone != _currentZone)
+            return;
+
+        List<MachineNodeDef> nodes = GetCurrentZoneNodes();
+        int index = nodes.FindIndex(node => node != null && node.id == nodeId);
+        if (index < 0)
+            return;
+
+        _selectedNodeIndex = index;
+        SaveSelectedNodeIndexForCurrentZone();
+        Refresh();
     }
 
     private void SelectPreviousNode()
@@ -483,10 +526,31 @@ public class MachinePanelUI : MonoBehaviour
         if (repaired)
         {
             ShowZoneIntroPopupIfNeeded(selectedNode);
+            if (selectedNodeHasTierGroup)
+                SelectNextUnrepairedTier(selectedNode);
             SaveSelectedNodeIndexForCurrentZone();
         }
 
         Refresh();
+    }
+
+    private void SelectNextUnrepairedTier(MachineNodeDef repairedNode)
+    {
+        if (repairedNode == null || string.IsNullOrWhiteSpace(repairedNode.tierGroup) ||
+            MachineManager.I == null)
+            return;
+
+        List<MachineNodeDef> nodes = GetCurrentZoneNodes();
+        for (int i = 0; i < nodes.Count; i++)
+        {
+            MachineNodeDef candidate = nodes[i];
+            if (candidate == null || candidate.tierGroup != repairedNode.tierGroup ||
+                MachineManager.I.IsNodeRepaired(candidate.id))
+                continue;
+
+            _selectedNodeIndex = i;
+            return;
+        }
     }
 
     private void ShowZoneIntroPopupIfNeeded(MachineNodeDef repairedNode)
@@ -540,7 +604,7 @@ public class MachinePanelUI : MonoBehaviour
 
                 if (repairButtonText != null)
                 {
-                    repairButtonText.text = "Comprar";
+                    repairButtonText.text = "REPARAR";
                 }
             }
 
@@ -570,8 +634,7 @@ public class MachinePanelUI : MonoBehaviour
 
             if (repairButtonText != null)
             {
-                bool shouldSayRepair = selectedNode.damaged && !damageResolved && MachineManager.I.IsNodeAnalyzed(selectedNode.id);
-                repairButtonText.text = shouldSayRepair ? "Reparar" : "Comprar";
+                repairButtonText.text = repaired ? "REPARADO" : "REPARAR";
             }
         }
     }
@@ -813,12 +876,12 @@ public class MachinePanelUI : MonoBehaviour
         if (MachineManager.I == null)
             return 0;
 
-        List<MachineNodeDef> nodes = MachineManager.I.GetDisplayNodesByZone(zone);
+        List<MachineNodeDef> nodes = MachineManager.I.GetNodesByZone(zone, true);
 
         if (nodes == null)
             return 0;
 
-        return nodes.Count;
+        return nodes.FindAll(node => node != null && !node.hidden).Count;
     }
 
     private int GetVisibleRepairedNodeCountByZone(MachineZoneType zone)
@@ -826,7 +889,7 @@ public class MachinePanelUI : MonoBehaviour
         if (MachineManager.I == null)
             return 0;
 
-        List<MachineNodeDef> nodes = MachineManager.I.GetDisplayNodesByZone(zone);
+        List<MachineNodeDef> nodes = MachineManager.I.GetNodesByZone(zone, true);
 
         if (nodes == null)
             return 0;
@@ -835,7 +898,7 @@ public class MachinePanelUI : MonoBehaviour
 
         foreach (MachineNodeDef node in nodes)
         {
-            if (node == null)
+            if (node == null || node.hidden)
                 continue;
 
             if (MachineManager.I.IsNodeRepaired(node.id))
@@ -896,7 +959,8 @@ public class MachinePanelUI : MonoBehaviour
 
         if (btnAnalyzeNode != null)
         {
-            btnAnalyzeNode.gameObject.SetActive(showAnalysisUI);
+            btnAnalyzeNode.gameObject.SetActive(showAnalysisUI &&
+                !selectedNodeRepaired && selectedNodeDamaged);
             btnAnalyzeNode.interactable = showAnalysisUI && canAnalyzeSelectedNode;
         }
 
@@ -1049,22 +1113,24 @@ public class MachinePanelUI : MonoBehaviour
             legacyFusionPanel.SetActive(fusionUnlocked && _fusionPanelVisible);
 
         if (machineRepairViewRoot != null)
-            machineRepairViewRoot.SetActive(!_fusionPanelVisible);
+            machineRepairViewRoot.SetActive(cubeVisual == null && !_fusionPanelVisible);
 
         if (machineNodeViewRoot != null)
-            machineNodeViewRoot.SetActive(!_fusionPanelVisible);
+            machineNodeViewRoot.SetActive(cubeVisual == null && !_fusionPanelVisible);
 
         bool seedsViewOpen = instantSeedsViewRoot != null && instantSeedsViewRoot.activeSelf;
 
         if (btnFusionPanel != null)
         {
-            btnFusionPanel.gameObject.SetActive(fusionUnlocked && !_fusionPanelVisible && !seedsViewOpen);
+            btnFusionPanel.gameObject.SetActive(
+                fusionUnlocked && _currentZone == MachineZoneType.FusionSector &&
+                !_fusionPanelVisible && !seedsViewOpen);
             btnFusionPanel.interactable = fusionUnlocked;
 
             TextMeshProUGUI labelText = btnFusionPanel.GetComponentInChildren<TextMeshProUGUI>();
 
             if (labelText != null)
-                labelText.text = fusionUnlocked ? "Panel de Fusión" : "???";
+                labelText.text = fusionUnlocked ? "PANEL DE FUSIÓN" : "???";
         }
 
         if (btnBackToNodesFromFusion != null)
@@ -1178,6 +1244,7 @@ public class MachinePanelUI : MonoBehaviour
 
         bool showSeedsButton =
             instantChamberUnlocked &&
+            _currentZone == MachineZoneType.InstantChamber &&
             !_fusionPanelVisible &&
             !seedsViewOpen;
 
@@ -1187,7 +1254,7 @@ public class MachinePanelUI : MonoBehaviour
 
             TextMeshProUGUI labelText = btnOpenSeedsPanel.GetComponentInChildren<TextMeshProUGUI>();
             if (labelText != null)
-                labelText.text = "Semillas";
+                labelText.text = "SEMILLAS";
         }
     }
 
@@ -1453,7 +1520,7 @@ public class MachinePanelUI : MonoBehaviour
             instantSeedsViewRoot.SetActive(false);
 
         if (machineRepairViewRoot != null)
-            machineRepairViewRoot.SetActive(true);
+            machineRepairViewRoot.SetActive(cubeVisual == null);
 
         if (btnInstantChamberHelp != null)
             btnInstantChamberHelp.gameObject.SetActive(false);

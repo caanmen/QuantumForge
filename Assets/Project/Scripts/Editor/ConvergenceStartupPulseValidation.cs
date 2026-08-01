@@ -20,6 +20,7 @@ public static class ConvergenceStartupPulseValidation
         ValidateProductionOnlineAndOffline(failures);
         ValidateConfigurationLock(failures);
         ValidateExperimentalBoardBounds(failures);
+        ValidateTransactionRecoveryIsIdempotent(failures);
 
         if (failures.Count == 0)
         {
@@ -53,9 +54,12 @@ public static class ConvergenceStartupPulseValidation
             ConvergenceState loaded = JsonUtility.FromJson<ConvergenceState>(json);
             state.convergence = loaded;
             state.EnsureConvergenceState();
-            Check(ConvergenceCircuitSystem.TryStartNormalConvergence(state, out reason) &&
+            bool resumed = ConvergenceCircuitSystem.TryStartNormalConvergence(state, out reason);
+            Check(resumed &&
                   state.convergence.ownedCircuits.Count == 1,
-                "Cargar durante ConfigurationPending duplica el circuito.", failures);
+                "Cargar durante ConfigurationPending duplica o pierde el circuito. " +
+                "Resultado=" + resumed + "; count=" + state.convergence.ownedCircuits.Count +
+                "; fase=" + state.convergence.phase + "; razón=" + reason, failures);
         }
         finally { Object.DestroyImmediate(state.gameObject); }
     }
@@ -148,6 +152,37 @@ public static class ConvergenceStartupPulseValidation
         finally { Object.DestroyImmediate(state.gameObject); }
     }
 
+    private static void ValidateTransactionRecoveryIsIdempotent(List<string> failures)
+    {
+        GameState state = CreatePendingConfigurationState("Recovery Startup Pulse");
+        try
+        {
+            string transactionId = "validation_transaction";
+            state.convergence.pendingTransaction = new ConvergenceTransactionJournal
+            {
+                transactionId = transactionId,
+                targetCompletedCycles = 1,
+                awardedCircuitId = ConvergenceCircuitCatalog.StartupPulseCircuitId,
+                candidatePlacements = new List<ConvergenceCircuitPlacement>
+                {
+                    new ConvergenceCircuitPlacement { circuitId = ConvergenceCircuitCatalog.StartupPulseCircuitId, x = 0, y = 1, rotationDegrees = 0 }
+                },
+                candidateSnapshot = ConvergenceSystem.PrepareSnapshot(
+                    ConvergenceCircuitResolver.ResolveBoard(new List<ConvergenceCircuitPlacement>
+                    {
+                        new ConvergenceCircuitPlacement { circuitId = ConvergenceCircuitCatalog.StartupPulseCircuitId, x = 0, y = 1, rotationDegrees = 0 }
+                    }).candidateSnapshot, 1)
+            };
+            ConvergenceCircuitSystem.RecoverTransaction(state);
+            ConvergenceCircuitSystem.RecoverTransaction(state);
+            Check(state.convergence.completedCycles == 1 &&
+                  state.convergence.recordedTransactionIds.Count == 1 &&
+                  state.convergence.recordedTransactionIds[0] == transactionId,
+                "El recovery duplica ciclos o telemetrÃ­a de una transacciÃ³n.", failures);
+        }
+        finally { Object.DestroyImmediate(state.gameObject); }
+    }
+
     private static GameState CreatePendingConfigurationState(string name)
     {
         GameState state = CreateSynchronizationReadyState(name);
@@ -187,6 +222,7 @@ public static class ConvergenceStartupPulseValidation
         foreach (ConvergenceSignalState signal in state.convergence.signals)
             signal.activated = true;
         state.convergence.currentStability = 120.0;
+        state.convergence.phase = ConvergencePhase.Ready;
         return state;
     }
 

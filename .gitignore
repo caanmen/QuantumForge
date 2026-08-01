@@ -7,6 +7,10 @@
 [Ll]ogs/
 [Uu]serSettings/
 [Mm]emoryCaptures/
+.utmp/
+Recovery/
+*.bak
+*.bak.meta
 
 # VS / Rider
 .vs/

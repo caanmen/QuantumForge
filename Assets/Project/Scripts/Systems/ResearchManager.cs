@@ -69,6 +69,7 @@ public class ResearchManager : MonoBehaviour
 
     private void LoadDefsFromJson()
     {
+        defs = new List<ResearchDef>();
         try
         {
             TextAsset asset = Resources.Load<TextAsset>(jsonPath);
@@ -123,8 +124,6 @@ public class ResearchManager : MonoBehaviour
 
     public void ApplyLoadedResearch(List<string> ids)
     {
-        if (ids == null) return;
-
         // Reset a false
         foreach (var kv in states)
         {
@@ -132,7 +131,7 @@ public class ResearchManager : MonoBehaviour
         }
 
         // Aplicar compras
-        foreach (var id in ids)
+        foreach (var id in ids ?? new List<string>())
         {
             if (states.TryGetValue(id, out var st))
             {
@@ -282,27 +281,5 @@ public class ResearchManager : MonoBehaviour
         }
         return result;
     }
-
-
-
-    [ContextMenu("DEBUG: Comprar 'Estabilización EM I'")]
-    private void DebugBuyEmStability1()
-    {
-        if (ResearchManager.I == null)
-        {
-            Debug.LogWarning("[ResearchManager] DEBUG: No hay instancia activa de ResearchManager.");
-            return;
-        }
-
-        bool ok = ResearchManager.I.TryPurchase("em_stability_1");
-        if (ok)
-        {
-            Debug.Log("[ResearchManager] DEBUG: Comprada 'em_stability_1'.");
-        }
-        else
-        {
-        Debug.LogWarning("[ResearchManager] DEBUG: NO se pudo comprar 'em_stability_1' (faltan Trazas o prereq).");        }
-    }
-
 }
 

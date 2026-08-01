@@ -1,0 +1,316 @@
+QUANTUM FORGE
+PAUTAS DE SINCRONIZACIÓN PARA CICLOS DE CONVERGENCIA
+Especificación experimental para implementación y pruebas
+Fecha: 23 de julio de 2026
+
+
+============================================================
+1. OBJETIVO
+============================================================
+
+Implementar la recuperación de las señales dimensionales y la estabilidad de
+Convergencia utilizando actividades repetibles que ya existen en D1, D2 y D3.
+
+Esta primera versión es experimental. Sirve para validar el flujo completo y
+medir tiempos reales. Los valores todavía no representan balance definitivo.
+
+No se crearán nuevas monedas, minijuegos ni actividades especiales de
+sincronización.
+
+
+============================================================
+2. REGLA COMÚN
+============================================================
+
+- La primera actividad válida completada después de reconstruir el Receptor
+  Dimensional activa la señal de su dimensión.
+- Esa misma actividad también aporta estabilidad.
+- Las siguientes actividades válidas continúan aportando estabilidad.
+- Solo cuentan actividades completadas después de reconstruir el Receptor.
+- Las finalizaciones offline cuentan si el Receptor ya estaba reconstruido
+  antes de comenzar el periodo offline.
+- No cuentan clicks, asignaciones, producción pasiva ni acciones canceladas.
+- Las tres señales pueden activarse en cualquier orden.
+- Después de activar las tres señales, la estabilidad restante puede obtenerse
+  principalmente desde la dimensión que el jugador prefiera.
+
+
+============================================================
+3. CÁLCULO EXPERIMENTAL DE ESTABILIDAD
+============================================================
+
+Usar provisionalmente:
+
+stabilityAmount = Math.Max(0.0, baseWorkSeconds / 5.0);
+
+Crear una constante central configurable:
+
+ConvergenceBalance.SecondsPerStabilityPoint = 5.0;
+
+La estabilidad debe calcularse utilizando la duración base de la actividad,
+no su duración real después de aplicar mejoras de velocidad.
+
+Esto permite que las mejoras de velocidad sigan siendo valiosas: una acción
+mejorada termina antes, pero conserva el aporte correspondiente al trabajo
+base que representa.
+
+
+============================================================
+4. DIMENSIÓN 1: EXPLORACIONES
+============================================================
+
+ACTIVIDADES VÁLIDAS
+
+- Exploración simple completada.
+- Exploración coordinada completada.
+
+NO CUENTAN
+
+- Escaneos.
+- Mejoras de extractor.
+- Producción pasiva de metales.
+- Misiones únicas del Ark.
+- Acciones canceladas.
+
+DURACIÓN UTILIZADA
+
+- Exploración simple:
+  GetSimpleExplorationBaseDurationPreviewSeconds(destinationId)
+
+- Exploración coordinada:
+  duración base del destino multiplicada por CoordinatedDurationMultiplier.
+
+IDENTIFICADORES DE FUENTE
+
+convergence:d1:simple:{dimension1CompletedSimpleExplorations}
+
+convergence:d1:coordinated:{dimension1CompletedCoordinatedMissions}
+
+La sincronización debe registrarse después de incrementar el contador de
+finalización y antes del guardado que ya realiza la exploración.
+
+
+============================================================
+5. DIMENSIÓN 2: PEREGRINACIONES
+============================================================
+
+ACTIVIDADES VÁLIDAS
+
+- Peregrinación corta.
+- Peregrinación media.
+- Peregrinación larga.
+- Peregrinación larga guiada.
+- Peregrinación sagrada.
+
+DURACIÓN UTILIZADA
+
+D2PilgrimageSystem.GetDurationSeconds(pilgrimageId)
+
+IDENTIFICADOR DE FUENTE
+
+convergence:d2:pilgrimage:{totalPilgrimagesCompleted}
+
+La sincronización debe registrarse después de incrementar
+totalPilgrimagesCompleted y antes de limpiar la peregrinación activa.
+
+NO CUENTAN TODAVÍA
+
+- Producción pasiva de Seguidores.
+- Asignaciones.
+- Pactos activos.
+- Operaciones continuas.
+- Ritos.
+- Excavaciones o análisis.
+- Pacto Mayor, porque es un evento único.
+
+Después de las pruebas pueden añadirse otras actividades repetibles de D2 si
+depender solamente de Peregrinaciones resulta monótono.
+
+
+============================================================
+6. DIMENSIÓN 3: TRABAJOS REPETIBLES
+============================================================
+
+ACTIVIDADES VÁLIDAS
+
+- Producción de piezas.
+- Ensamblaje normal.
+- Ensamblaje con rasgo.
+
+TIPOS VÁLIDOS
+
+Dimension3Catalog.JobPartProduction
+
+Dimension3Catalog.JobAssembly
+
+DURACIÓN UTILIZADA
+
+job.baseDurationSeconds
+
+La duración base ya contiene la cantidad del lote y no depende de la velocidad
+dinámica del Banco de Procesos.
+
+IDENTIFICADOR DE FUENTE
+
+convergence:d3:job:{job.jobId}
+
+La sincronización debe registrarse después de entregar el resultado del
+trabajo y antes de eliminar el trabajo de la cola.
+
+NO CUENTAN TODAVÍA
+
+- Investigación.
+- Construcción o mejora de instalaciones.
+- Asignaciones.
+- Estabilización.
+- Diagnósticos.
+- Automatizaciones que no produzcan un trabajo D3 real.
+
+Los trabajos creados mediante automatización y los trabajos completados
+offline sí pueden contar porque siguen siendo trabajos reales, pagados y
+procesados por D3. Nunca cuentan antes de reconstruir el Receptor.
+
+
+============================================================
+7. ACTIVACIÓN DE LAS SEÑALES
+============================================================
+
+Antes de registrar una contribución, calcular:
+
+bool activateSignal =
+    !ConvergenceSynchronizationSystem.IsSignalActivated(
+        gameState,
+        dimensionId
+    );
+
+Después llamar a:
+
+ConvergenceSynchronizationSystem.TryAddSynchronization(...)
+
+La primera contribución válida de una dimensión usa activateSignal = true.
+Las siguientes utilizan activateSignal = false.
+
+
+============================================================
+8. LÍMITE DE ESTABILIDAD Y CRECIMIENTO DE FUENTES
+============================================================
+
+Para evitar que processedSynchronizationSourceIds crezca indefinidamente:
+
+- Limitar currentStability al requisito actual.
+- Si la señal ya está activa y la estabilidad alcanzó el requisito, ignorar
+  nuevas contribuciones sin guardar sourceId.
+- Si la estabilidad está completa pero todavía falta activar una señal,
+  permitir su activación y añadir cero estabilidad.
+- Limpiar la lista de fuentes procesadas al comenzar el siguiente ciclo.
+
+El requisito actual debe calcularse mediante:
+
+ConvergenceBalance.GetRequiredStabilityForNextCircuit(ownedCircuitCount)
+
+No es necesario persistir una copia de requiredStability si puede derivarse de
+la cantidad de circuitos poseídos.
+
+
+============================================================
+9. IDENTIFICADORES E IDEMPOTENCIA
+============================================================
+
+Cada actividad completada debe enviar un sourceId estable y único.
+
+La misma fuente no puede registrarse dos veces después de guardar, cargar o
+aplicar progreso offline.
+
+Fuentes iniciales:
+
+- D1 simple:
+  convergence:d1:simple:{contador}
+
+- D1 coordinada:
+  convergence:d1:coordinated:{contador}
+
+- D2 peregrinación:
+  convergence:d2:pilgrimage:{contador}
+
+- D3 trabajo:
+  convergence:d3:job:{jobId}
+
+La contribución debe ejecutarse en el mismo punto lógico donde la actividad
+pasa definitivamente de activa a completada.
+
+
+============================================================
+10. PROGRESO OFFLINE
+============================================================
+
+- El progreso offline debe utilizar los mismos métodos de finalización que el
+  progreso online.
+- Una actividad completada offline cuenta una sola vez.
+- El Receptor debe haber sido reconstruido antes de la ausencia.
+- Reconstruir el Receptor después de volver no concede estabilidad
+  retroactiva.
+- Los bonus de velocidad pueden reducir el tiempo real, pero no el trabajo
+  base utilizado para calcular estabilidad.
+- Guardar y cargar no puede repetir una contribución ya procesada.
+
+
+============================================================
+11. VALIDACIONES OBLIGATORIAS
+============================================================
+
+1. Una actividad terminada antes de reconstruir el Receptor no cuenta.
+2. La primera actividad válida activa su señal y aporta estabilidad.
+3. Reprocesar el mismo sourceId no duplica estabilidad.
+4. Las tres señales pueden activarse en cualquier orden.
+5. Después de activar las tres, la estabilidad puede completarse usando
+   principalmente una dimensión.
+6. Una exploración automática u offline no se duplica al cargar.
+7. Una peregrinación offline cuenta una sola vez.
+8. Un trabajo D3 cuenta por baseDurationSeconds y no por tiempo real reducido.
+9. Un lote D3 cuenta una sola vez mediante job.jobId.
+10. Una actividad cancelada no aporta estabilidad.
+11. Alcanzar el requisito limita currentStability al máximo necesario.
+12. Alcanzar el requisito detiene el crecimiento innecesario de fuentes.
+13. Si falta una señal, todavía puede activarse aunque la estabilidad esté
+    completa.
+14. El comienzo de un nuevo ciclo limpia receptor, señales, estabilidad y
+    fuentes procesadas.
+
+
+============================================================
+12. FUERA DE ALCANCE
+============================================================
+
+No implementar todavía:
+
+- Nuevas monedas de sincronización.
+- Minijuegos de señales.
+- Actividades exclusivas de Convergencia dentro de D1, D2 o D3.
+- Más fuentes de D2 antes de medir Peregrinaciones.
+- Investigación o instalaciones D3 como fuentes.
+- Misiones únicas como fuentes repetibles.
+- Balance definitivo de estabilidad.
+- Interfaz gráfica compleja de sincronización.
+- Convergencia Profunda.
+- Prestigio 2.
+
+
+============================================================
+13. RESULTADO ESPERADO DE LA PRIMERA PRUEBA
+============================================================
+
+La primera implementación debe permitir medir:
+
+- Cuánto tarda activar D1, D2 y D3.
+- Cuánto tarda alcanzar 120 de estabilidad.
+- Qué dimensión aporta estabilidad con mayor facilidad.
+- Cuánto influye el offline.
+- Cuánto influye la automatización de D3.
+- Si D2 depende demasiado de repetir Peregrinaciones.
+- Si SecondsPerStabilityPoint = 5.0 necesita cambiar.
+
+Después de esas mediciones se podrá ajustar únicamente ConvergenceBalance o
+ampliar la lista de actividades válidas sin reescribir el sistema central.
+
+
+FIN DEL DOCUMENTO

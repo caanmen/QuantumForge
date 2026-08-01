@@ -14,7 +14,8 @@ public static class Dimension3System
             initialized = false,
             firstEntrySeen = false,
             selectedInstallationId = Dimension3Catalog.FacilityProcessBank,
-            nextJobSequence = 1L
+            nextJobSequence = 1L,
+            presentation = DimensionPresentationState.CreateCurrent()
         };
 
         NormalizeState(state);
@@ -38,6 +39,8 @@ public static class Dimension3System
 
         if (gameState.dimension03Unlocked && !gameState.dimension3.initialized)
             InitializeUnlockedState(gameState.dimension3);
+
+        D3PresentationRules.EnsurePresentationState(gameState);
     }
 
     public static void ResetState(GameState gameState)

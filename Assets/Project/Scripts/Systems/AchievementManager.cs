@@ -132,13 +132,17 @@ public class AchievementManager : MonoBehaviour
     /// </summary>
     public void ApplyLoadedAchievements(List<string> saved)
     {
-        if (saved == null) return;
-
         #if UNITY_EDITOR
-        Debug.Log($"[AchievementManager] ApplyLoadedAchievements: {saved.Count} ids desde save.");
+        Debug.Log($"[AchievementManager] ApplyLoadedAchievements: " +
+            $"{(saved != null ? saved.Count : 0)} ids desde save.");
         #endif
 
-        foreach (var id in saved)
+        // Cargar, restaurar un checkpoint y RESET deben reemplazar el estado
+        // completo, no sumar desbloqueos sobre los que ya estaban en memoria.
+        foreach (var entry in states)
+            entry.Value.unlocked = false;
+
+        foreach (var id in saved ?? new List<string>())
         {
             if (states.TryGetValue(id, out var st))
             {

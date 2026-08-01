@@ -17,6 +17,8 @@ public class D2OperationsPanelUI : MonoBehaviour
     public Button assignAllButton;
     public Button releaseOneButton;
     public Button releaseAllButton;
+    private readonly SafeDropdownOptionMap<string> _operationOptions =
+        new SafeDropdownOptionMap<string>(System.StringComparer.Ordinal);
 
     private void Awake()
     {
@@ -50,6 +52,7 @@ public class D2OperationsPanelUI : MonoBehaviour
 
         gameState.EnsureDimension2State();
         D2Civilization2State state = gameState.dimension2.civilization2;
+        PopulateDropdown();
         string regionId = GetSelectedRegionId();
         D2RegionState region = D2Civilization2System.GetRegion(state, regionId);
         string operationId = GetSelectedOperationId();
@@ -85,32 +88,31 @@ public class D2OperationsPanelUI : MonoBehaviour
         SetInteractable(assignAllButton, hasIdle);
         SetInteractable(releaseOneButton, operation.membersAssigned > 0L);
         SetInteractable(releaseAllButton, operation.membersAssigned > 0L);
+        bool learned = operation.membersAssigned > 0L ||
+            D2Civilization2PresentationRules.GetVisibleOperationIds(state).Length > 1;
+        SetActive(assignFiveButton, learned);
+        SetActive(assignAllButton, learned);
+        SetActive(releaseAllButton, learned);
     }
 
     private void PopulateDropdown()
     {
-        if (operationDropdown == null ||
-            operationDropdown.options.Count == D2Civilization2System.OperationIds.Length)
-        {
-            return;
-        }
-
-        int selected = operationDropdown.value;
-        List<string> options = new List<string>();
-        foreach (string operationId in D2Civilization2System.OperationIds)
-            options.Add(D2Civilization2System.GetOperationDisplayName(operationId));
-        operationDropdown.ClearOptions();
-        operationDropdown.AddOptions(options);
-        operationDropdown.value = Mathf.Clamp(selected, 0, options.Count - 1);
-        operationDropdown.RefreshShownValue();
+        if (operationDropdown == null) return;
+        string selected = _operationOptions.ResolveOrDefault(
+            operationDropdown.value, D2Civilization2System.RescueOperationId);
+        D2Civilization2State state = GameState.I != null &&
+            GameState.I.dimension2 != null
+            ? GameState.I.dimension2.civilization2 : null;
+        _operationOptions.Rebuild(operationDropdown,
+            D2Civilization2PresentationRules.GetVisibleOperationIds(state),
+            D2Civilization2System.GetOperationDisplayName, selected);
     }
 
     private string GetSelectedOperationId()
     {
         int index = operationDropdown != null ? operationDropdown.value : 0;
-        return D2Civilization2System.OperationIds[
-            Mathf.Clamp(index, 0, D2Civilization2System.OperationIds.Length - 1)
-        ];
+        return _operationOptions.ResolveOrDefault(
+            index, D2Civilization2System.RescueOperationId);
     }
 
     private static string BuildEffectText(
@@ -216,5 +218,10 @@ public class D2OperationsPanelUI : MonoBehaviour
     {
         if (button != null)
             button.interactable = value;
+    }
+
+    private static void SetActive(Component component, bool active)
+    {
+        if (component != null) component.gameObject.SetActive(active);
     }
 }

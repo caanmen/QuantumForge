@@ -27,17 +27,11 @@ public class D3AutomationPanelUI : MonoBehaviour
     private string _knownRoutineSignature = "";
     private float _refreshRemaining;
 
-    private static readonly string[] ActionIds =
-    {
-        D3AutomationCatalog.ActionPortScan,
-        D3AutomationCatalog.ActionPortRepeatLast,
-        D3AutomationCatalog.ActionPortPriorityRoutes,
-        D3AutomationCatalog.ActionPortSafeRoute,
-        D3AutomationCatalog.ActionPortExtractor,
-        D3AutomationCatalog.ActionConsoleBuyHiggs,
-        D3AutomationCatalog.ActionConsoleBuyTetraquark,
-        D3AutomationCatalog.ActionConsoleCircuit
-    };
+    private readonly SafeDropdownOptionMap<string> _actionOptions =
+        new SafeDropdownOptionMap<string>(StringComparer.Ordinal);
+    private readonly SafeDropdownOptionMap<string> _targetOptions =
+        new SafeDropdownOptionMap<string>(StringComparer.Ordinal);
+    private string _actionSignature = "";
 
     private void Awake()
     {
@@ -76,12 +70,6 @@ public class D3AutomationPanelUI : MonoBehaviour
 
     private void ConfigureOptions()
     {
-        SetOptions(actionDropdown, new[]
-        {
-            "Barrido simple", "Repetir ruta", "Rutas prioritarias",
-            "Ruta segura", "Mejorar extractor", "Comprar Higgs",
-            "Comprar Tetraquark", "Mantener circuito"
-        });
         SetOptions(priorityDropdown,
             new[] { "Prioridad 0", "Prioridad 1", "Prioridad 2", "Prioridad 3" });
         SetOptions(stopDropdown,
@@ -97,22 +85,43 @@ public class D3AutomationPanelUI : MonoBehaviour
     {
         string actionId = GetActionId();
         if (actionId == D3AutomationCatalog.ActionConsoleCircuit)
-            SetOptions(targetDropdown,
-                new[] { "Energía", "Experimental", "Fase" });
+        {
+            var circuits = new List<string>();
+            for (int circuit = 1; circuit <= 3; circuit++)
+                if (D3ConsoleSystem.HasManualCircuitAuthorization(
+                        GameState.I, (TriangleCircuitType)circuit))
+                    circuits.Add(circuit.ToString());
+            _targetOptions.Rebuild(targetDropdown, circuits,
+                CircuitName, circuits.Count > 0 ? circuits[0] : "");
+        }
         else if (actionId == D3AutomationCatalog.ActionPortExtractor)
-            SetOptions(targetDropdown, new[]
+        {
+            string[] planets =
             {
-                "Planeta 1", "Planeta 2", "Planeta 3", "Planeta 4",
-                "Planeta 5", "Planeta 6", "Planeta 7"
-            });
+                Dimension1System.Planet01, Dimension1System.Planet02,
+                Dimension1System.Planet03, Dimension1System.Planet04,
+                Dimension1System.Planet05, Dimension1System.Planet06,
+                Dimension1System.Planet07
+            };
+            var learned = new List<string>();
+            for (int i = 0; i < planets.Length; i++)
+                if (GameState.I.HasManualD1ExtractorUpgrade(planets[i]))
+                    learned.Add(planets[i]);
+            _targetOptions.Rebuild(targetDropdown, learned,
+                PlanetName, learned.Count > 0 ? learned[0] : "");
+        }
         else if (IsPortRouteAction(actionId))
-            SetOptions(targetDropdown, new[]
-            {
-                "Cinturon mineral", "Cementerio de naves", "Sondas a la deriva",
-                "Nave abandonada", "Ruina orbital", "Laboratorio",
-                "Estacion abandonada", "Anomalia menor",
-                "Estructura antigua", "Zona inestable"
-            });
+        {
+            var destinations = new List<string>();
+            for (int i = 0; i < D3AutomationCatalog.Destinations.Length; i++)
+                if (GameState.I.HasManualD1SimpleDestination(
+                        D3AutomationCatalog.Destinations[i].destinationId))
+                    destinations.Add(D3AutomationCatalog.Destinations[i].destinationId);
+            _targetOptions.Rebuild(targetDropdown, destinations,
+                value => value, destinations.Count > 0 ? destinations[0] : "");
+        }
+        else _targetOptions.Rebuild(targetDropdown, new string[0],
+            value => value, "");
         Refresh();
     }
 
@@ -120,6 +129,7 @@ public class D3AutomationPanelUI : MonoBehaviour
     {
         if (GameState.I == null || GameState.I.dimension3 == null) return;
         Dimension3State state = GameState.I.dimension3;
+        RefreshLearnedActions();
         string signature = GetRoutineSignature(state);
         if (_knownRoutineSignature != signature)
         {
@@ -140,7 +150,13 @@ public class D3AutomationPanelUI : MonoBehaviour
         }
         D3AutomationRoutineState routine = GetSelectedRoutine();
         if (statusText != null)
-            statusText.text = "MOTOR ONLINE\nActivas: " +
+            statusText.text = (_actionOptions.VisibleOptionIds.Count == 0
+                    ? "PRIMERO MANUAL\nEjecuta una acción autorizada para que la fábrica aprenda el patrón.\n"
+                    : D3ProgressivePresentationRules.CanCreateRoutine(
+                        GameState.I, GetActionId())
+                        ? "CREATE ROUTINE\nPatrón aprendido e instalación disponible.\n"
+                        : "PATTERN LEARNED\nLa fábrica recordará el patrón hasta instalar la función requerida.\n") +
+                "Activas: " +
                 D3AutomationSystem.CountEnabled(state) + " / " +
                 D3AutomationSystem.GetRoutineLimit(state) +
                 " | Perfiles: " + state.automationProfiles.Count + " / " +
@@ -161,7 +177,13 @@ public class D3AutomationPanelUI : MonoBehaviour
                   "\nReserva LE: " + routine.leReserve.ToString("0") +
                   " | Trazas: " + routine.tracesReserve.ToString("0") +
                   " | Recurso: " + routine.resourceReserveAmount.ToString("0") +
-                  "\nUltimo resultado: " + routine.lastResult;
+                  "\nÚltima ejecución: " + routine.lastResult +
+                  "\nPróxima condición: evaluación en " +
+                  Math.Max(0.0, routine.evaluationRemainingSeconds).ToString("0.0") + " s" +
+                  "\nParada: " + (routine.stopAfterExecutions > 0
+                      ? routine.stopAfterExecutions + " ejecuciones" : "manual") +
+                  " · Reserva: " + routine.resourceReserveAmount.ToString("0") +
+                  " · Error/espera: " + routine.lastResult;
         SetLabel(toggleButton,
             routine != null && routine.enabled ? "PAUSAR RUTINA" : "ACTIVAR RUTINA");
         SetInteractable(toggleButton, routine != null);
@@ -170,12 +192,29 @@ public class D3AutomationPanelUI : MonoBehaviour
             D3FacilitySystem.GetAutomationCoreProfileLimit(state) > 0);
         SetInteractable(loadProfileButton, state.automationProfiles.Count > 0 &&
             D3FacilitySystem.GetAutomationCoreProfileLimit(state) > 0);
+        SetInteractable(createButton,
+            _actionOptions.VisibleOptionIds.Count > 0 &&
+            D3ProgressivePresentationRules.CanCreateRoutine(
+                GameState.I, GetActionId()));
         bool targetNeeded = GetActionId() != D3AutomationCatalog.ActionPortScan &&
             GetActionId() != D3AutomationCatalog.ActionPortSafeRoute &&
             GetActionId() != D3AutomationCatalog.ActionConsoleBuyHiggs &&
             GetActionId() != D3AutomationCatalog.ActionConsoleBuyTetraquark;
         if (targetDropdown != null)
             targetDropdown.gameObject.SetActive(targetNeeded);
+    }
+
+    private void RefreshLearnedActions()
+    {
+        List<string> learned =
+            D3ProgressivePresentationRules.GetLearnedAutomationActionIds(GameState.I);
+        string signature = string.Join("|", learned.ToArray());
+        if (_actionSignature == signature) return;
+        string selected = GetActionId();
+        _actionSignature = signature;
+        _actionOptions.Rebuild(actionDropdown, learned,
+            GetActionName, selected);
+        RefreshTargets();
     }
 
     private void CreateRoutine()
@@ -260,29 +299,18 @@ public class D3AutomationPanelUI : MonoBehaviour
     private string GetActionId()
     {
         int index = actionDropdown == null ? 0 : actionDropdown.value;
-        return ActionIds[Math.Max(0, Math.Min(index, ActionIds.Length - 1))];
+        return _actionOptions.ResolveOrDefault(index, "");
     }
 
     private string GetTargetId(string actionId)
     {
         int index = targetDropdown == null ? 0 : targetDropdown.value;
-        if (actionId == D3AutomationCatalog.ActionPortExtractor)
-        {
-            string[] planets =
-            {
-                Dimension1System.Planet01, Dimension1System.Planet02,
-                Dimension1System.Planet03, Dimension1System.Planet04,
-                Dimension1System.Planet05, Dimension1System.Planet06,
-                Dimension1System.Planet07
-            };
-            return planets[Math.Max(0, Math.Min(index, planets.Length - 1))];
-        }
-        if (actionId == D3AutomationCatalog.ActionConsoleCircuit)
-            return (Math.Max(0, Math.Min(index, 2)) + 1).ToString();
+        if (actionId == D3AutomationCatalog.ActionPortExtractor ||
+            actionId == D3AutomationCatalog.ActionConsoleCircuit ||
+            IsPortRouteAction(actionId))
+            return _targetOptions.ResolveOrDefault(index, "");
         if (!IsPortRouteAction(actionId)) return "";
-        return D3AutomationCatalog.Destinations[
-            Math.Max(0, Math.Min(index,
-                D3AutomationCatalog.Destinations.Length - 1))].destinationId;
+        return "";
     }
 
     private D3AutomationRoutineState GetSelectedRoutine()
@@ -324,6 +352,17 @@ public class D3AutomationPanelUI : MonoBehaviour
         if (actionId == D3AutomationCatalog.ActionConsoleBuyTetraquark) return "Comprar Tetraquark";
         if (actionId == D3AutomationCatalog.ActionConsoleCircuit) return "Mantener circuito";
         return actionId;
+    }
+    private static string CircuitName(string id)
+    {
+        if (id == "1") return "Energía";
+        if (id == "2") return "Experimental";
+        return "Fase";
+    }
+    private static string PlanetName(string id)
+    {
+        if (string.IsNullOrEmpty(id)) return "Planeta";
+        return id.Replace("planet_", "Planeta ");
     }
 
     private static bool IsPortRouteAction(string actionId)

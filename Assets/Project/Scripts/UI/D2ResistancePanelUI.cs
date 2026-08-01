@@ -19,6 +19,10 @@ public class D2ResistancePanelUI : MonoBehaviour
     public Button reinforceOneButton;
     public Button reinforceTenButton;
     public Button cancelButton;
+    private readonly SafeDropdownOptionMap<string> _upgradeOptions =
+        new SafeDropdownOptionMap<string>(System.StringComparer.Ordinal);
+    private readonly SafeDropdownOptionMap<string> _pactOptions =
+        new SafeDropdownOptionMap<string>(System.StringComparer.Ordinal);
 
     private void Awake()
     {
@@ -52,6 +56,7 @@ public class D2ResistancePanelUI : MonoBehaviour
             return;
 
         D2Civilization2State state = gameState.dimension2.civilization2;
+        PopulateDropdowns();
         string upgradeId = GetSelectedUpgradeId();
         int level = D2Civilization2System.GetUpgradeLevel(state, upgradeId);
         long cost = D2Civilization2System.GetUpgradeCost(level + 1);
@@ -112,24 +117,28 @@ public class D2ResistancePanelUI : MonoBehaviour
 
     private void PopulateDropdowns()
     {
-        if (upgradeDropdown != null &&
-            upgradeDropdown.options.Count != D2Civilization2System.UpgradeIds.Length)
+        if (upgradeDropdown != null)
         {
-            var labels = new List<string>();
-            foreach (string id in D2Civilization2System.UpgradeIds)
-                labels.Add(D2Civilization2System.GetUpgradeName(id));
-            upgradeDropdown.ClearOptions();
-            upgradeDropdown.AddOptions(labels);
+            string selected = _upgradeOptions.ResolveOrDefault(
+                upgradeDropdown.value, D2Civilization2System.RescueUpgradeId);
+            D2Civilization2State state = GameState.I != null &&
+                GameState.I.dimension2 != null
+                ? GameState.I.dimension2.civilization2 : null;
+            _upgradeOptions.Rebuild(upgradeDropdown,
+                D2Civilization2PresentationRules.GetVisibleUpgradeIds(state),
+                D2Civilization2System.GetUpgradeName, selected);
         }
 
-        if (pactDropdown != null &&
-            pactDropdown.options.Count != D2Civilization2System.ResistancePactIds.Length)
+        if (pactDropdown != null)
         {
-            var labels = new List<string>();
-            foreach (string id in D2Civilization2System.ResistancePactIds)
-                labels.Add(D2Civilization2System.GetResistancePactName(id));
-            pactDropdown.ClearOptions();
-            pactDropdown.AddOptions(labels);
+            string selected = _pactOptions.ResolveOrDefault(
+                pactDropdown.value, D2Civilization2System.HiddenSheltersPactId);
+            D2Civilization2State state = GameState.I != null &&
+                GameState.I.dimension2 != null
+                ? GameState.I.dimension2.civilization2 : null;
+            _pactOptions.Rebuild(pactDropdown,
+                D2Civilization2PresentationRules.GetVisibleResistancePactIds(state),
+                D2Civilization2System.GetResistancePactName, selected);
         }
     }
 
@@ -164,15 +173,15 @@ public class D2ResistancePanelUI : MonoBehaviour
     private string GetSelectedUpgradeId()
     {
         int index = upgradeDropdown != null ? upgradeDropdown.value : 0;
-        index = Mathf.Clamp(index, 0, D2Civilization2System.UpgradeIds.Length - 1);
-        return D2Civilization2System.UpgradeIds[index];
+        return _upgradeOptions.ResolveOrDefault(
+            index, D2Civilization2System.RescueUpgradeId);
     }
 
     private string GetSelectedPactId()
     {
         int index = pactDropdown != null ? pactDropdown.value : 0;
-        index = Mathf.Clamp(index, 0, D2Civilization2System.ResistancePactIds.Length - 1);
-        return D2Civilization2System.ResistancePactIds[index];
+        return _pactOptions.ResolveOrDefault(
+            index, D2Civilization2System.HiddenSheltersPactId);
     }
 
     private static string FormatSeconds(double seconds)

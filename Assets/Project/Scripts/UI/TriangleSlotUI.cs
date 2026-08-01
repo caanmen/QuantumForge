@@ -19,12 +19,30 @@ public class TriangleSlotUI : MonoBehaviour,
     [SerializeField] private Color inactiveColor = new Color(0.22f, 0.28f, 0.36f, 0.9f);
     [SerializeField] private Color activeColor = new Color(0.25f, 0.85f, 1f, 1f);
     [SerializeField] private Color lockedColor = new Color(0.18f, 0.18f, 0.2f, 0.65f);
+    [SerializeField] private bool useLayeredVisuals;
 
     private Image backgroundImage;
 
     private void Awake()
     {
         backgroundImage = GetComponent<Image>();
+        VerticalUiSkinRoot skin = GetComponentInParent<VerticalUiSkinRoot>(true);
+        if (skin != null && skin.theme != null)
+        {
+            inactiveColor = skin.theme.deepSurface;
+            activeColor = useLayeredVisuals ? skin.theme.deepSurface : skin.theme.energy;
+            lockedColor = new Color(
+                skin.theme.deepSurface.r,
+                skin.theme.deepSurface.g,
+                skin.theme.deepSurface.b,
+                0.55f);
+        }
+        else
+        {
+            inactiveColor = Dimension1DarkThemePalette.Hex("34435C");
+            activeColor = Dimension1DarkThemePalette.Active;
+            lockedColor = Dimension1DarkThemePalette.ButtonDisabled;
+        }
     }
 
     private void Update()

@@ -420,8 +420,12 @@ public class GameState : MonoBehaviour
     [Range(0f, 1f)]
     public float triangleSynchronization = 0f;
 
-    public const float TriangleSwitchSynchronization = 0.75f;
-    public const double TriangleSynchronizationRecoverySeconds = 180.0;
+    [Tooltip("Velocidad base de recuperación de la rampa activa.")]
+    public double triangleSynchronizationBaseRatePerSecond = 0.0;
+
+    public const float TriangleInitialSynchronization = 0f;
+    public const float TriangleSwitchSynchronization = 0.50f;
+    public const double TriangleSynchronizationRecoverySeconds = 90.0;
     public const double TriangleEnergyLEBonus = 0.12;
     public const double TriangleEnergyTracePenalty = 0.10;
     public const double TriangleExperimentalTraceBonus = 0.10;
@@ -6721,18 +6725,14 @@ public class GameState : MonoBehaviour
     /// </summary>
     public void Tick(double dt)
 {
-    // 1) Producir EM...
-    double emPs = CalculateEMps();
-    if (emPs > 0.0)
-    {
-        EM += emPs * dt;
+    EM = 0.0;
+    emMult = 0.0;
+    ADP = 0.0;
+    WHF = 0.0;
+    totalADPGenerada = 0.0;
+    totalWHFGenerada = 0.0;
 
-    }
-
-    // 2) Actualizar el multiplicador EM
-    emMult = CalculateEMMultiplier();
-
-    // 3) Producir LE
+    // Producir LE
     //    - CalculateTotalLEps() se sigue usando para HUD y lógica de desbloqueos.
     //    - PERO ya NO sumamos LE usando esa fórmula directamente.
     double totalLEps = CalculateTotalLEps(); // <-- solo informativo / HUD
@@ -6755,24 +6755,7 @@ public class GameState : MonoBehaviour
     // Dimensión 3: colas y procesos internos de la Fábrica.
     Dimension3System.Tick(this, dt);
 
-    // 🔹 F7.3: Producir ADP
-    double adpPs = CalculateADPps();
-    if (adpPs > 0.0)
-    {
-        ADP += adpPs * dt;
-        totalADPGenerada += adpPs * dt;
-    }
-
-    // 🔹 F7.4: WHF (Wormhole Fragments)
-    double whfPs = CalculateWHFps();
-    if (whfPs > 0.0)
-    {
-        WHF += whfPs * dt;
-        totalWHFGenerada += whfPs * dt;
-    }
-
-
-    // 5) Sincronización del circuito activo del Triángulo.
+    // Sincronización del circuito activo del Triángulo.
     UpdateTriangleSynchronization(dt);
 
     // F6.1: registrar el máximo LE alcanzado
@@ -6932,6 +6915,19 @@ public class GameState : MonoBehaviour
             GetBuildingLevel("fluctuation_antenna") > 0;
     }
 
+    public bool HasAllTriangleVertices() => AreTriangleVerticesAvailable();
+
+    public bool CanUseTriangleCircuits() => triangleSystemUnlocked && HasAllTriangleVertices();
+
+    public void PrepareNewTriangleActivation()
+    {
+        triangleActiveCircuit = TriangleCircuitType.None;
+        triangleSynchronization = 0f;
+        triangleSynchronizationBaseRatePerSecond = 0.0;
+        trianglePersistenceReserveSeconds = 0.0;
+        SyncLegacyTriangleDisplayFields();
+    }
+
     public bool IsTrianglePhaseUnlocked()
     {
         return MachineManager.I != null && MachineManager.I.MachineUnlocked;
@@ -6939,7 +6935,7 @@ public class GameState : MonoBehaviour
 
     public bool IsTriangleSystemActive()
     {
-        if (!triangleSystemUnlocked || !AreTriangleVerticesAvailable()) return false;
+        if (!CanUseTriangleCircuits()) return false;
         if (triangleActiveCircuit == TriangleCircuitType.None) return false;
         return triangleActiveCircuit != TriangleCircuitType.Phase || IsTrianglePhaseUnlocked();
     }
@@ -6951,7 +6947,7 @@ public class GameState : MonoBehaviour
 
     public bool SetTriangleCircuit(TriangleCircuitType circuit, bool recordManual = true)
     {
-        if (!triangleSystemUnlocked || !AreTriangleVerticesAvailable()) return false;
+        if (!CanUseTriangleCircuits()) return false;
         if (circuit == TriangleCircuitType.None) return false;
         if (circuit == TriangleCircuitType.Phase && !IsTrianglePhaseUnlocked()) return false;
         if (triangleActiveCircuit == circuit)
@@ -6961,8 +6957,12 @@ public class GameState : MonoBehaviour
             return true;
         }
 
+        bool firstActivation = triangleActiveCircuit == TriangleCircuitType.None;
         triangleActiveCircuit = circuit;
-        triangleSynchronization = TriangleSwitchSynchronization;
+        float switchStart = F2UpgradeManager.I != null
+            ? F2UpgradeManager.I.GetTriangleSwitchSynchronization()
+            : TriangleSwitchSynchronization;
+        BeginTriangleSynchronization(firstActivation ? TriangleInitialSynchronization : switchStart);
         SyncLegacyTriangleDisplayFields();
         if (recordManual)
             D3ConsoleSystem.RecordManualTriangleCircuit(this, circuit);
@@ -6973,25 +6973,36 @@ public class GameState : MonoBehaviour
     {
         bool valid = System.Enum.IsDefined(typeof(TriangleCircuitType), triangleActiveCircuit) &&
             triangleActiveCircuit != TriangleCircuitType.None;
+        bool hadActiveCircuit = valid;
 
         if (!valid && migrateLegacy)
             triangleActiveCircuit = GetCircuitFromLegacyState();
 
         if (triangleActiveCircuit == TriangleCircuitType.Phase && !IsTrianglePhaseUnlocked())
-            triangleActiveCircuit = TriangleCircuitType.Energy;
+            triangleActiveCircuit = TriangleCircuitType.None;
 
         if (!triangleSystemUnlocked)
             triangleActiveCircuit = TriangleCircuitType.None;
-        else if (triangleActiveCircuit == TriangleCircuitType.None)
-            triangleActiveCircuit = TriangleCircuitType.Energy;
 
         float legacySynchronization = Mathf.Clamp01(phaseModulatorCalibration);
         triangleSynchronization = Mathf.Clamp01(triangleSynchronization);
-        if (triangleActiveCircuit != TriangleCircuitType.None &&
-            triangleSynchronization <= 0f)
-            triangleSynchronization = Mathf.Max(TriangleSwitchSynchronization, legacySynchronization);
         if (triangleActiveCircuit == TriangleCircuitType.None)
+        {
             triangleSynchronization = 0f;
+            triangleSynchronizationBaseRatePerSecond = 0.0;
+        }
+        else
+        {
+            if (migrateLegacy && triangleSynchronization <= 0f)
+            {
+                BeginTriangleSynchronization(Mathf.Max(
+                    TriangleSwitchSynchronization, legacySynchronization));
+            }
+            else
+            {
+                EnsureTriangleSynchronizationRate();
+            }
+        }
 
         trianglePersistenceReserveSeconds = 0.0;
         SyncLegacyTriangleDisplayFields();
@@ -7343,14 +7354,73 @@ public class GameState : MonoBehaviour
     private double GetTriangleSynchronizationRatePerSecond()
     {
         double dimensionalMultiplier = D2Civilization3System.GetModulatorCalibrationMultiplier(this);
-        return (1.0 / TriangleSynchronizationRecoverySeconds) * dimensionalMultiplier;
+        return triangleSynchronizationBaseRatePerSecond * dimensionalMultiplier;
+    }
+
+    public double GetTriangleSynchronizationRemainingSeconds()
+    {
+        if (!IsTriangleSystemActive() || triangleSynchronization >= 1f)
+            return 0.0;
+
+        double rate = GetTriangleSynchronizationRatePerSecond();
+        if (rate <= 0.0 || double.IsNaN(rate) || double.IsInfinity(rate))
+            return 0.0;
+
+        return System.Math.Max(
+            0.0,
+            (1.0 - Mathf.Clamp01(triangleSynchronization)) / rate);
+    }
+
+    private void BeginTriangleSynchronization(float startSynchronization)
+    {
+        triangleSynchronization = Mathf.Clamp01(startSynchronization);
+        triangleSynchronizationBaseRatePerSecond =
+            triangleSynchronization >= 1f
+                ? 0.0
+                : (1.0 - triangleSynchronization) /
+                    TriangleSynchronizationRecoverySeconds;
+    }
+
+    private void EnsureTriangleSynchronizationRate()
+    {
+        if (triangleSynchronization >= 1f)
+        {
+            triangleSynchronizationBaseRatePerSecond = 0.0;
+            return;
+        }
+
+        if (triangleSynchronizationBaseRatePerSecond > 0.0 &&
+            !double.IsNaN(triangleSynchronizationBaseRatePerSecond) &&
+            !double.IsInfinity(triangleSynchronizationBaseRatePerSecond))
+            return;
+
+        // Compatibilidad con partidas anteriores que no guardaban la tasa.
+        triangleSynchronizationBaseRatePerSecond =
+            triangleSynchronization < TriangleSwitchSynchronization
+                ? 1.0 / TriangleSynchronizationRecoverySeconds
+                : (1.0 - TriangleSwitchSynchronization) /
+                    TriangleSynchronizationRecoverySeconds;
+    }
+
+    public double GetEffectiveBuildingTickInterval(string buildingId, double baseInterval)
+    {
+        double interval = baseInterval;
+        if (buildingId == "vacuum_observer" && F2UpgradeManager.I != null)
+            interval *= F2UpgradeManager.I.GetContainmentCycleMultiplier();
+        float legacyExpansionBonus = GetPhaseModulatorExpansionTickBonus();
+        if (legacyExpansionBonus > 0f)
+            interval *= 1.0 - legacyExpansionBonus;
+        return System.Math.Max(0.0001, interval);
     }
 
     private void UpdateTriangleSynchronization(double dt)
     {
-        if (dt <= 0.0 || triangleActiveCircuit == TriangleCircuitType.None) return;
+        if (dt <= 0.0 || !IsTriangleSystemActive()) return;
+        EnsureTriangleSynchronizationRate();
         triangleSynchronization = Mathf.Clamp01((float)(triangleSynchronization +
             GetTriangleSynchronizationRatePerSecond() * dt));
+        if (triangleSynchronization >= 1f)
+            triangleSynchronizationBaseRatePerSecond = 0.0;
         SyncLegacyTriangleDisplayFields();
     }
 
@@ -7468,9 +7538,6 @@ public class GameState : MonoBehaviour
         }
     }
 
-    // EM
-    double emFactor = 1.0 + emMult;
-
     // Research (lo que ya tienes)
     double researchFactor = researchGlobalLEMult;
 
@@ -7504,7 +7571,6 @@ public class GameState : MonoBehaviour
 
     double rawTotalBeforeRoom1Echo = ((baseProd + fromBuildings) * triangleImpulseFactor)
                     * multiplier
-                    * emFactor
                     * researchFactor
                     * achFactor
                     * prestigeFactor
@@ -7677,7 +7743,57 @@ private double CalculateEMMultiplier()
     public void RegisterBuildingState(BuildingState state)
     {
         if (state == null) return;
-        if (!buildingStates.Contains(state))
+
+        if (buildingStates == null)
+            buildingStates = new List<BuildingState>();
+
+        string buildingId = state.def != null ? state.def.id : null;
+        if (!string.IsNullOrEmpty(buildingId))
+        {
+            int registeredIndex = -1;
+            BuildingState registeredState = null;
+
+            // GameState sobrevive a las recargas de escena. La UI, en cambio,
+            // crea estados nuevos. Reemplazar por id evita que GetBuildingLevel
+            // lea primero una referencia vieja y mantenga bloqueado el siguiente
+            // edificio aunque la fila visible ya tenga niveles.
+            for (int i = buildingStates.Count - 1; i >= 0; i--)
+            {
+                BuildingState candidate = buildingStates[i];
+                if (candidate == null || candidate.def == null ||
+                    candidate.def.id != buildingId)
+                {
+                    continue;
+                }
+
+                if (registeredIndex < 0)
+                {
+                    registeredIndex = i;
+                    registeredState = candidate;
+                }
+                else
+                {
+                    buildingStates.RemoveAt(i);
+                    registeredIndex--;
+                }
+            }
+
+            if (registeredIndex >= 0)
+            {
+                if (!ReferenceEquals(registeredState, state))
+                {
+                    state.level = registeredState.level;
+                    state.currentCost = registeredState.currentCost;
+                    state.tickTimer = registeredState.tickTimer;
+                    buildingStates[registeredIndex] = state;
+                }
+            }
+            else
+            {
+                buildingStates.Add(state);
+            }
+        }
+        else if (!buildingStates.Contains(state))
         {
             buildingStates.Add(state);
         }
@@ -7725,6 +7841,7 @@ private double CalculateEMMultiplier()
         double tracesPerSecond = 0.03 * casimirLevel;
 
         tracesPerSecond *= GetTriangleTracesMultiplier();
+        tracesPerSecond *= ConvergenceCircuitSystem.GetBaseTracesProductionMultiplier(this);
 
         // Máquina / Zona 1: Calibración de Artefactos también afecta al Núcleo Tetraquark
         tracesPerSecond *= GetMachineArtifactProductionMultiplier("casimir_panel");
@@ -7750,6 +7867,13 @@ private double CalculateEMMultiplier()
 
     public TriangleOfflineReport ApplyOfflineBaseProgress(double offlineSeconds)
     {
+        EM = 0.0;
+        emMult = 0.0;
+        ADP = 0.0;
+        WHF = 0.0;
+        totalADPGenerada = 0.0;
+        totalWHFGenerada = 0.0;
+
         var report = new TriangleOfflineReport
         {
             appliedSeconds = System.Math.Max(0.0, offlineSeconds),
@@ -7770,19 +7894,42 @@ private double CalculateEMMultiplier()
         int residualBefore = fragmentResidualInterference;
 
         double remaining = offlineSeconds;
-        const double simulationStepSeconds = 1.0;
-        while (remaining > 0.000001)
+
+        // Los bonus positivos de Energía/Experimental dependen de la rampa de
+        // sincronización. Reproducir por segundos solo esa ventana (máximo 90 s
+        // en condiciones base) conserva el resultado histórico sin bloquear al
+        // reanudar una ausencia de hasta 12 horas.
+        bool hasSynchronizationRamp = IsTriangleSystemActive() &&
+            triangleSynchronization < 1f &&
+            (triangleActiveCircuit == TriangleCircuitType.Energy ||
+             triangleActiveCircuit == TriangleCircuitType.Experimental);
+        if (hasSynchronizationRamp)
         {
-            double step = System.Math.Min(simulationStepSeconds, remaining);
+            double rate = GetTriangleSynchronizationRatePerSecond();
+            double rampRemaining = rate > 0.0
+                ? System.Math.Min(remaining,
+                    (1.0 - Mathf.Clamp01(triangleSynchronization)) / rate)
+                : 0.0;
+            const double simulationStepSeconds = 1.0;
+            while (rampRemaining > 0.000001)
+            {
+                double step = System.Math.Min(
+                    simulationStepSeconds, rampRemaining);
+                GenerateLEFromBaseAndBuildings(step);
+                GenerateExperimentalFragments(step);
+                UpdateTriangleSynchronization(step);
+                rampRemaining -= step;
+                remaining -= step;
+            }
+        }
 
-            double emPs = CalculateEMps();
-            if (emPs > 0.0) EM += emPs * step;
-            emMult = CalculateEMMultiplier();
-
-            GenerateLEFromBaseAndBuildings(step);
-            GenerateExperimentalFragments(step);
-            UpdateTriangleSynchronization(step);
-            remaining -= step;
+        // Tras completar la rampa, todas las tasas de este bloque son constantes
+        // y sus métodos ya aceptan dt agregado (incluidos ticks y fracciones).
+        if (remaining > 0.000001)
+        {
+            GenerateLEFromBaseAndBuildings(remaining);
+            GenerateExperimentalFragments(remaining);
+            UpdateTriangleSynchronization(remaining);
         }
 
         report.leGained = System.Math.Max(0.0, LE - leBefore);
@@ -7960,6 +8107,7 @@ private double CalculateEMMultiplier()
         triangleSystemUnlocked = false;
         triangleActiveCircuit = TriangleCircuitType.None;
         triangleSynchronization = 0f;
+        triangleSynchronizationBaseRatePerSecond = 0.0;
         trianglePrimaryBuildingId = "";
         triangleReinforcementBuildingId = "";
         triangleAlterationBuildingId = "";
@@ -8095,7 +8243,7 @@ private double CalculateEMMultiplier()
     ///     * si NO tienen tickInterval -> se comportan como antes (LE/s continuo)
     ///     * si tienen tickInterval y lePerTickBase -> generan LE por tick
     /// 
-    /// Los multiplicadores globales (EM, research, achievements) se aplican igual
+    /// Los multiplicadores globales activos se aplican igual
     /// que en CalculateTotalLEps(), para que el HUD y la producción real estén alineados.
     /// </summary>
     private void GenerateLEFromBaseAndBuildings(double dt)
@@ -8127,7 +8275,6 @@ private double CalculateEMMultiplier()
         }
     }
 
-    double emFactor = 1.0 + emMult;
     double researchFactor = researchGlobalLEMult;
 
     double achFactor = 1.0;
@@ -8155,7 +8302,6 @@ private double CalculateEMMultiplier()
 
     double worldMult = triangleImpulseFactor
                     * multiplier
-                    * emFactor
                     * researchFactor
                     * achFactor
                     * prestigeFactor
@@ -8187,7 +8333,7 @@ if (buildingStates != null)
 
             if (def.tickInterval > 0.0 && def.lePerTickBase > 0.0)
             {
-                float interval = (float)def.tickInterval;
+                float interval = (float)GetEffectiveBuildingTickInterval(def.id, def.tickInterval);
 
                 float expansionBonus = GetPhaseModulatorExpansionTickBonus();
                 if (expansionBonus > 0f)
@@ -8268,27 +8414,12 @@ if (buildingStates != null)
                 tracesPerTick *= GetMachineRoom1GlobalMultiplier();
                 tracesPerTick *= GetDimension2TraceMultiplier();
                 tracesPerTick *= GetTriangleTracesMultiplier();
+                tracesPerTick *= ConvergenceCircuitSystem.GetBaseTracesProductionMultiplier(this);
 
                 double tracesGain = tracesPerTick * ticks;
                 Traces += tracesGain;
             }
 
-            // EM por tick (si aplica)
-            if (def.emPerTickBase > 0.0)
-            {
-                double emGenFactor = 1.0;
-
-                if (ResearchManager.I != null)
-                    emGenFactor *= ResearchManager.I.GetEMGenerationFactor();
-
-                emGenFactor *= GetMetaEMGenerationMultiplier();
-
-                double emPerTick = def.emPerTickBase * b.level * emGenFactor;
-                double emGain = emPerTick * ticks;
-
-                EM += emGain;
-
-            }
         }
         else
         {

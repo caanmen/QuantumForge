@@ -101,6 +101,11 @@ public static class Dimension2Block1UISetup
             valid &= Require(panel.civilization2Root, "D2.civilization2Root");
             valid &= Require(panel.civilization3Root, "D2.civilization3Root");
             valid &= Require(panel.closeDimension2Button, "D2.closeDimension2Button");
+            valid &= Require(panel.contextualHelpButton, "D2.contextualHelpButton");
+            valid &= Require(panel.helpRoot, "D2.helpRoot");
+            valid &= Require(panel.helpTitleText, "D2.helpTitleText");
+            valid &= Require(panel.helpBodyText, "D2.helpBodyText");
+            valid &= Require(panel.closeHelpButton, "D2.closeHelpButton");
             valid &= Require(panel.continueFirstEntryButton, "D2.continueFirstEntryButton");
             valid &= Require(panel.mapStatusText, "D2.mapStatusText");
             valid &= Require(panel.civilization1Button, "D2.civilization1Button");
@@ -140,6 +145,7 @@ public static class Dimension2Block1UISetup
                 valid &= Require(civilization3UI.scholarText, "D2 Civ3.scholarText");
                 valid &= Require(civilization3UI.civilization1ResourcesText, "D2 Civ3.civilization1ResourcesText");
                 valid &= Require(civilization3UI.lastResultText, "D2 Civ3.lastResultText");
+                valid &= Require(civilization3UI.objectiveText, "D2 Civ3.objectiveText");
                 valid &= Require(civilization3UI.excavateButton, "D2 Civ3.excavateButton");
                 valid &= Require(civilization3UI.zone1Button, "D2 Civ3.zone1Button");
                 valid &= Require(civilization3UI.zone2Button, "D2 Civ3.zone2Button");
@@ -681,7 +687,7 @@ public static class Dimension2Block1UISetup
         GameObject root = CreateView("D2_FirstEntry", panel.transform);
         panel.firstEntryRoot = root;
 
-        CreateText(
+        panel.firstEntryTitleText = CreateText(
             "Title",
             root.transform,
             "DIMENSIÓN DE LOS PACTOS",
@@ -691,7 +697,7 @@ public static class Dimension2Block1UISetup
             new Vector2(0.88f, 0.18f)
         );
 
-        CreateText(
+        panel.firstEntryDescriptionText = CreateText(
             "Description",
             root.transform,
             "Una aproximación revela un mundo dividido en tres territorios. " +
@@ -794,6 +800,13 @@ public static class Dimension2Block1UISetup
         civilization1UI.showVeiledThresholdButton = CreateButton(
             "Btn_ShowVeiledThreshold", root.transform, "UMBRAL",
             new Vector2(0.929f, 0.81f), new Vector2(0.125f, 0.065f)
+        );
+
+        civilization1UI.objectiveText = CreateText(
+            "Civilization1Objective", root.transform,
+            "AHORA · Asigna 1 Seguidor al Refugio.", 16f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.745f),
+            new Vector2(0.86f, 0.055f)
         );
 
         civilization1UI.refugeSectionRoot = CreateView(
@@ -1299,6 +1312,12 @@ public static class Dimension2Block1UISetup
         civilization2UI.regionDropdown = CreateDropdown(
             "Civ2RegionDropdown", root.transform,
             new Vector2(0.5f, 0.765f), new Vector2(0.28f, 0.055f)
+        );
+        civilization2UI.objectiveText = CreateText(
+            "Civilization2Objective", root.transform,
+            "AHORA · Asigna 1 Miembro a Región 1.", 16f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.735f),
+            new Vector2(0.86f, 0.045f)
         );
 
         civilization2UI.regionSectionRoot = CreateView(
@@ -1884,6 +1903,7 @@ public static class Dimension2Block1UISetup
             TextAlignmentOptions.Center, new Vector2(0.45f, 0.055f),
             new Vector2(0.36f, 0.05f)
         );
+        civilization3UI.objectiveText = civilization3UI.lastResultText;
         civilization3UI.hireScholarButton = CreateButton(
             "Btn_Civ3HireFieldScholar", root.transform, "CONTRATAR ERUDITO",
             new Vector2(0.77f, 0.055f), new Vector2(0.24f, 0.05f)
@@ -2213,6 +2233,10 @@ public static class Dimension2Block1UISetup
 
     private static void BuildGlobalCloseButton(Dimension2PanelUI panel)
     {
+        panel.contextualHelpButton = CreateButton(
+            "D2_Btn_Help", panel.transform, "REPASAR",
+            new Vector2(0.72f, 0.08f), new Vector2(0.16f, 0.07f)
+        );
         panel.closeDimension2Button = CreateButton(
             "D2_Btn_Close",
             panel.transform,
@@ -2220,7 +2244,25 @@ public static class Dimension2Block1UISetup
             new Vector2(0.89f, 0.08f),
             new Vector2(0.16f, 0.07f)
         );
+        panel.helpRoot = CreateView("D2_ContextualHelp", panel.transform);
+        Image helpBackground = Undo.AddComponent<Image>(panel.helpRoot);
+        helpBackground.color = new Color(0.035f, 0.055f, 0.1f, 0.98f);
+        panel.helpTitleText = CreateText(
+            "D2_HelpTitle", panel.helpRoot.transform,
+            "GUÍA DE DIMENSIÓN 2", 34f, TextAlignmentOptions.Center,
+            new Vector2(0.5f, 0.72f), new Vector2(0.75f, 0.08f));
+        panel.helpBodyText = CreateText(
+            "D2_HelpBody", panel.helpRoot.transform,
+            "AHORA: sigue la acción principal de la pantalla actual.", 22f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f),
+            new Vector2(0.72f, 0.28f));
+        panel.closeHelpButton = CreateButton(
+            "D2_Btn_CloseHelp", panel.helpRoot.transform, "CERRAR",
+            new Vector2(0.5f, 0.27f), new Vector2(0.22f, 0.07f));
+        panel.helpRoot.SetActive(false);
+        panel.contextualHelpButton.transform.SetAsLastSibling();
         panel.closeDimension2Button.transform.SetAsLastSibling();
+        panel.helpRoot.transform.SetAsLastSibling();
     }
 
     private static void CreateTerritoryCard(

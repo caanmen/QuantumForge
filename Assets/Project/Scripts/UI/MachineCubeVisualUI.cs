@@ -1,0 +1,838 @@
+using System.Collections;
+using System.Text;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+public sealed class MachineCubeVisualUI : MonoBehaviour
+{
+    private static readonly Color[] FaceAccents =
+    {
+        new Color(0.08f, 0.72f, 1f, 1f),
+        new Color(0.63f, 0.36f, 1f, 1f),
+        new Color(1f, 0.62f, 0.12f, 1f),
+        new Color(0.05f, 0.9f, 0.78f, 1f)
+    };
+    private static readonly Rect FullArtworkUv = new Rect(0f, 0f, 1f, 1f);
+    private static readonly Rect FrontSurfaceUv = new Rect(0.04f, 0.045f, 0.81f, 0.945f);
+
+    [Header("Integración")]
+    [SerializeField] private MachinePanelUI machinePanel;
+    [SerializeField] private GameObject visualContentRoot;
+    [SerializeField] private RectTransform faceViewport;
+    [SerializeField] private CanvasGroup interactionGroup;
+    [SerializeField] private MachineCubeFaceViewUI[] faces;
+
+    [Header("Cubo 3D real")]
+    [SerializeField] private MachineCube3DPrototypeController true3DController;
+    [SerializeField] private bool useTrue3DForBuiltFaces = true;
+
+    [Header("Navegación")]
+    [SerializeField] private Button previousFaceButton;
+    [SerializeField] private Button nextFaceButton;
+
+    [Header("Rig de rotaciÃ³n fÃ­sica")]
+    [SerializeField] private GameObject rotationRigRoot;
+    [SerializeField] private MachineCubePerspectiveFaceGraphic rotationFromFace;
+    [SerializeField] private MachineCubePerspectiveFaceGraphic rotationToFace;
+    [SerializeField] private RectTransform rotationEdgeShadow;
+    [SerializeField] private Image rotationEdgeHighlight;
+    [SerializeField, Range(0.3f, 0.9f)] private float rotationDuration = 0.52f;
+    [SerializeField, Range(2f, 8f)] private float rotationCameraDistance = 3.4f;
+    [SerializeField, Range(0.82f, 1f)] private float rotationMidFramingScale = 0.92f;
+
+    [Header("Cabecera")]
+    [SerializeField] private TextMeshProUGUI faceIndexText;
+    [SerializeField] private TextMeshProUGUI faceTitleText;
+    [SerializeField] private TextMeshProUGUI leResourceText;
+    [SerializeField] private TextMeshProUGUI tracesResourceText;
+    [SerializeField] private TextMeshProUGUI globalProgressText;
+    [SerializeField] private TextMeshProUGUI convergenceText;
+    [SerializeField] private Image globalProgressFill;
+    [SerializeField] private Image[] faceDots;
+    [SerializeField] private RectTransform selectionGuide;
+    [SerializeField] private RectTransform selectedCardRect;
+
+    [Header("Tarjeta de nodo")]
+    [SerializeField] private TextMeshProUGUI selectedNameText;
+    [SerializeField] private TextMeshProUGUI selectedIconText;
+    [SerializeField] private Image selectedIconImage;
+    [SerializeField] private TextMeshProUGUI selectedStateText;
+    [SerializeField] private TextMeshProUGUI selectedDescriptionText;
+    [SerializeField] private TextMeshProUGUI selectedEffectText;
+    [SerializeField] private TextMeshProUGUI selectedCostText;
+    [SerializeField] private TextMeshProUGUI selectedRequirementsText;
+    [SerializeField] private TextMeshProUGUI selectedFaceProgressText;
+    [SerializeField] private Sprite iconLe;
+    [SerializeField] private Sprite iconTraces;
+    [SerializeField] private Sprite iconTriangle;
+    [SerializeField] private Sprite iconArtifact;
+    [SerializeField] private Sprite iconFusion;
+    [SerializeField] private Sprite iconDiagnostic;
+    [SerializeField] private Sprite iconStructure;
+    [SerializeField] private Sprite iconConvergence;
+    [SerializeField] private Sprite iconAnchor;
+    [SerializeField] private Sprite iconSynthesis;
+
+    private int _currentFaceIndex;
+    private bool _rotating;
+    private bool _selectionGuideLayoutDirty;
+    private Coroutine _rotationRoutine;
+    private float _refreshRemaining;
+
+    public bool IsRotating => _rotating;
+
+    private bool IsTrue3DFace(int faceIndex) =>
+        useTrue3DForBuiltFaces && true3DController != null &&
+        faceIndex >= 0 && faceIndex <= 1;
+
+    private void Awake()
+    {
+        previousFaceButton?.onClick.AddListener(() => RotateBy(-1));
+        nextFaceButton?.onClick.AddListener(() => RotateBy(1));
+
+        if (faces != null)
+        {
+            foreach (MachineCubeFaceViewUI face in faces)
+                face?.Initialize(this);
+        }
+    }
+
+    private void OnEnable()
+    {
+        ResetInterruptedRotation();
+        SyncFaceImmediate();
+        RefreshNow();
+    }
+
+    private void Start()
+    {
+        SyncTrue3DPresentation();
+    }
+
+    private void OnDisable()
+    {
+        ResetInterruptedRotation();
+        true3DController?.ShowPrototype(false);
+    }
+
+    private void Update()
+    {
+        _refreshRemaining -= Time.unscaledDeltaTime;
+        if (_refreshRemaining > 0f)
+            return;
+
+        _refreshRemaining = MachineManager.I != null && MachineManager.I.IsAnalyzingNode
+            ? 0.08f
+            : 0.25f;
+        RefreshNow();
+    }
+
+    private void LateUpdate()
+    {
+        if (!_selectionGuideLayoutDirty)
+            return;
+        _selectionGuideLayoutDirty = false;
+        Canvas.ForceUpdateCanvases();
+        string selectedId = machinePanel != null ? machinePanel.SelectedNodeId : "";
+        RefreshSelectionGuide(selectedId);
+    }
+
+    public void RefreshNow()
+    {
+        bool showVisualContent = machinePanel == null || !machinePanel.HasAuxiliaryViewOpen;
+        if (visualContentRoot != null && machinePanel != null)
+            visualContentRoot.SetActive(showVisualContent);
+
+        if (!showVisualContent)
+        {
+            true3DController?.ShowPrototype(false);
+            return;
+        }
+
+        if (MachineManager.I == null || faces == null || faces.Length != 4)
+            return;
+
+        if (!_rotating && machinePanel != null)
+        {
+            int requested = Mathf.Clamp((int)machinePanel.CurrentZone - 1, 0, 3);
+            if (requested != _currentFaceIndex)
+            {
+                _currentFaceIndex = requested;
+                ApplyFaceVisibility();
+            }
+        }
+
+        SyncTrue3DPresentation();
+
+        string selectedId = machinePanel != null ? machinePanel.SelectedNodeId : "";
+        for (int i = 0; i < faces.Length; i++)
+        {
+            MachineCubeFaceViewUI face = faces[i];
+            if (face != null && (i == _currentFaceIndex || face.gameObject.activeSelf))
+                face.RefreshFace(selectedId, FaceAccents[i]);
+        }
+
+        RefreshHeader();
+        RefreshSelectedCard();
+        RefreshSelectionGuide(selectedId);
+    }
+
+    public void SelectNode(string nodeId)
+    {
+        if (_rotating)
+            return;
+        machinePanel?.SelectNodeFromCube(nodeId);
+    }
+
+    public void RotateBy(int direction)
+    {
+        if (_rotating || direction == 0 || MachineManager.I == null ||
+            faces == null || faces.Length != 4)
+            return;
+
+        if (IsTrue3DFace(_currentFaceIndex))
+        {
+            int physicalTarget = _currentFaceIndex + (direction > 0 ? 1 : -1);
+            if (!IsTrue3DFace(physicalTarget))
+                return;
+            MachineZoneType physicalZone = (MachineZoneType)(physicalTarget + 1);
+            if (!MachineManager.I.CanAccessZone(physicalZone))
+                return;
+            _rotationRoutine = StartCoroutine(
+                RotateTrue3DRoutine(physicalTarget, direction > 0 ? 1 : -1));
+            return;
+        }
+
+        int target = (_currentFaceIndex + (direction > 0 ? 1 : 3)) % 4;
+        MachineZoneType targetZone = (MachineZoneType)(target + 1);
+        if (!MachineManager.I.CanAccessZone(targetZone))
+            return;
+
+        if (_rotationRoutine != null)
+            StopCoroutine(_rotationRoutine);
+        _rotationRoutine = StartCoroutine(RotateRoutine(target, direction > 0 ? 1 : -1));
+    }
+
+    private IEnumerator RotateTrue3DRoutine(int targetIndex, int direction)
+    {
+        _rotating = true;
+        if (selectionGuide != null)
+            selectionGuide.gameObject.SetActive(false);
+        if (interactionGroup != null)
+        {
+            interactionGroup.interactable = false;
+            interactionGroup.blocksRaycasts = false;
+        }
+
+        true3DController.ShowPrototype(true);
+        if (!true3DController.RotateBy(direction))
+        {
+            RestoreInteractionAfterRotation();
+            yield break;
+        }
+
+        while (true3DController.IsRotating)
+            yield return null;
+
+        _currentFaceIndex = targetIndex;
+        RestoreInteractionAfterRotation();
+        machinePanel?.SelectZoneFromCube((MachineZoneType)(targetIndex + 1));
+        ApplyFaceVisibility();
+        RefreshNow();
+    }
+
+    private void RestoreInteractionAfterRotation()
+    {
+        _rotating = false;
+        _rotationRoutine = null;
+        if (interactionGroup != null)
+        {
+            interactionGroup.interactable = true;
+            interactionGroup.blocksRaycasts = true;
+        }
+    }
+
+    private IEnumerator RotateRoutine(int targetIndex, int direction)
+    {
+        _rotating = true;
+        if (selectionGuide != null)
+            selectionGuide.gameObject.SetActive(false);
+        if (interactionGroup != null)
+        {
+            interactionGroup.interactable = false;
+            interactionGroup.blocksRaycasts = false;
+        }
+
+        MachineCubeFaceViewUI current = faces[_currentFaceIndex];
+        MachineCubeFaceViewUI target = faces[targetIndex];
+        target.gameObject.SetActive(true);
+        target.RefreshFace(machinePanel != null ? machinePanel.SelectedNodeId : "",
+            FaceAccents[targetIndex]);
+        Canvas.ForceUpdateCanvases();
+        if (!BeginPhysicalRotation(current, target, direction))
+        {
+            Debug.LogError("[Machine Cube] El rig de rotaciÃ³n fÃ­sica no estÃ¡ configurado.");
+            current.ShowImmediate(true);
+            target.ShowImmediate(false);
+            _rotating = false;
+            _rotationRoutine = null;
+            if (interactionGroup != null)
+            {
+                interactionGroup.interactable = true;
+                interactionGroup.blocksRaycasts = true;
+            }
+            yield break;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < rotationDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / rotationDuration);
+            float eased = t * t * (3f - 2f * t);
+            ApplyPhysicalRotationPose(eased, direction);
+            yield return null;
+        }
+
+        ApplyPhysicalRotationPose(1f, direction);
+        if (rotationRigRoot != null)
+            rotationRigRoot.SetActive(false);
+
+        current.gameObject.SetActive(false);
+        target.ShowImmediate(true);
+
+        _currentFaceIndex = targetIndex;
+        _rotating = false;
+        _rotationRoutine = null;
+        if (interactionGroup != null)
+        {
+            interactionGroup.interactable = true;
+            interactionGroup.blocksRaycasts = true;
+        }
+
+        machinePanel?.SelectZoneFromCube((MachineZoneType)(targetIndex + 1));
+    }
+
+    private bool BeginPhysicalRotation(MachineCubeFaceViewUI current,
+        MachineCubeFaceViewUI target, int direction)
+    {
+        if (rotationRigRoot == null || rotationFromFace == null ||
+            rotationToFace == null || current == null || target == null ||
+            current.BaseArtworkTexture == null || target.BaseArtworkTexture == null)
+            return false;
+
+        rotationFromFace.SetFace(current.BaseArtworkTexture,
+            MachineCubePerspectiveFaceGraphic.CubePlane.Front);
+        rotationToFace.SetFace(target.BaseArtworkTexture, direction > 0
+            ? MachineCubePerspectiveFaceGraphic.CubePlane.Right
+            : MachineCubePerspectiveFaceGraphic.CubePlane.Left);
+        rotationRigRoot.transform.SetAsLastSibling();
+        rotationRigRoot.SetActive(true);
+        current.gameObject.SetActive(false);
+        target.gameObject.SetActive(false);
+        ApplyPhysicalRotationPose(0f, direction);
+        return true;
+    }
+
+    private void ApplyPhysicalRotationPose(float normalizedTime, int direction)
+    {
+        float t = Mathf.Clamp01(normalizedTime);
+        float angle = -Mathf.Sign(direction) * 90f * t;
+        float middle = Mathf.Sin(t * Mathf.PI);
+        float framing = Mathf.Lerp(1f, rotationMidFramingScale, middle);
+        Rect uv = LerpRect(FullArtworkUv, FrontSurfaceUv, middle);
+        rotationFromFace?.SetUvRect(uv);
+        rotationToFace?.SetUvRect(uv);
+        rotationFromFace?.SetPose(angle, rotationCameraDistance, framing);
+        rotationToFace?.SetPose(angle, rotationCameraDistance, framing);
+        ApplyRotationEdgePose(angle, direction, framing, middle);
+    }
+
+    private void ApplyRotationEdgePose(float angleDegrees, int direction,
+        float framing, float middle)
+    {
+        if (rotationEdgeShadow == null || faceViewport == null)
+            return;
+
+        float radians = angleDegrees * Mathf.Deg2Rad;
+        float sin = Mathf.Sin(radians);
+        float cos = Mathf.Cos(radians);
+        float sharedX = direction > 0 ? 0.5f : -0.5f;
+        const float sharedZ = 0.5f;
+        float rotatedX = sharedX * cos + sharedZ * sin;
+        float rotatedZ = -sharedX * sin + sharedZ * cos;
+        float perspective = (rotationCameraDistance - 0.5f) /
+            Mathf.Max(0.2f, rotationCameraDistance - rotatedZ);
+        float width = faceViewport.rect.width;
+        float height = faceViewport.rect.height;
+
+        rotationEdgeShadow.anchorMin = rotationEdgeShadow.anchorMax =
+            new Vector2(0.5f, 0.5f);
+        rotationEdgeShadow.anchoredPosition = new Vector2(
+            rotatedX * perspective * width * framing, 0f);
+        rotationEdgeShadow.sizeDelta = new Vector2(
+            Mathf.Lerp(8f, 18f, middle),
+            Mathf.Min(height, height * perspective * framing));
+
+        Image shadowImage = rotationEdgeShadow.GetComponent<Image>();
+        if (shadowImage != null)
+            shadowImage.color = new Color(0.005f, 0.008f, 0.01f,
+                Mathf.Lerp(0.22f, 0.78f, middle));
+        if (rotationEdgeHighlight != null)
+            rotationEdgeHighlight.color = new Color(0.42f, 0.46f, 0.47f,
+                Mathf.Lerp(0.12f, 0.68f, middle));
+    }
+
+    private static Rect LerpRect(Rect from, Rect to, float t)
+    {
+        return new Rect(
+            Mathf.Lerp(from.x, to.x, t),
+            Mathf.Lerp(from.y, to.y, t),
+            Mathf.Lerp(from.width, to.width, t),
+            Mathf.Lerp(from.height, to.height, t));
+    }
+
+#if UNITY_EDITOR
+    public bool ShowRotationPrototypePose(int targetIndex, int direction,
+        float normalizedTime)
+    {
+        if (faces == null || faces.Length != 4 || targetIndex < 0 ||
+            targetIndex >= faces.Length || direction == 0)
+            return false;
+
+        if (_rotationRoutine != null)
+            StopCoroutine(_rotationRoutine);
+        _rotationRoutine = null;
+        _rotating = true;
+        if (selectionGuide != null)
+            selectionGuide.gameObject.SetActive(false);
+        if (interactionGroup != null)
+        {
+            interactionGroup.interactable = false;
+            interactionGroup.blocksRaycasts = false;
+        }
+
+        MachineCubeFaceViewUI current = faces[_currentFaceIndex];
+        MachineCubeFaceViewUI target = faces[targetIndex];
+        target.gameObject.SetActive(true);
+        target.RefreshFace(machinePanel != null ? machinePanel.SelectedNodeId : "",
+            FaceAccents[targetIndex]);
+        Canvas.ForceUpdateCanvases();
+        if (!BeginPhysicalRotation(current, target, direction))
+            return false;
+        ApplyPhysicalRotationPose(normalizedTime, direction);
+        return true;
+    }
+
+    public void CompleteRotationPrototypePose(int targetIndex)
+    {
+        if (faces == null || faces.Length != 4 || targetIndex < 0 ||
+            targetIndex >= faces.Length)
+            return;
+
+        if (_rotationRoutine != null)
+            StopCoroutine(_rotationRoutine);
+        _rotationRoutine = null;
+        if (rotationRigRoot != null)
+            rotationRigRoot.SetActive(false);
+        _currentFaceIndex = targetIndex;
+        _rotating = false;
+        if (interactionGroup != null)
+        {
+            interactionGroup.interactable = true;
+            interactionGroup.blocksRaycasts = true;
+        }
+        ApplyFaceVisibility();
+        machinePanel?.SelectZoneFromCube((MachineZoneType)(targetIndex + 1));
+        RefreshNow();
+    }
+#endif
+
+    private void ResetInterruptedRotation()
+    {
+        if (_rotationRoutine != null)
+            StopCoroutine(_rotationRoutine);
+        _rotationRoutine = null;
+        _rotating = false;
+        if (true3DController != null && true3DController.IsRotating)
+            true3DController.SetFaceImmediate(_currentFaceIndex);
+        if (rotationRigRoot != null)
+            rotationRigRoot.SetActive(false);
+        if (interactionGroup != null)
+        {
+            interactionGroup.interactable = true;
+            interactionGroup.blocksRaycasts = true;
+        }
+
+        if (faces == null)
+            return;
+        foreach (MachineCubeFaceViewUI face in faces)
+        {
+            if (face == null)
+                continue;
+            RectTransform rect = face.FaceRect;
+            if (rect != null)
+            {
+                rect.anchoredPosition = Vector2.zero;
+                rect.localScale = Vector3.one;
+                rect.localRotation = Quaternion.identity;
+            }
+            if (face.Group != null)
+                face.Group.alpha = 1f;
+        }
+    }
+
+    private void SyncFaceImmediate()
+    {
+        _currentFaceIndex = machinePanel != null
+            ? Mathf.Clamp((int)machinePanel.CurrentZone - 1, 0, 3)
+            : MachineManager.I != null
+                ? Mathf.Clamp(MachineManager.I.SelectedMachineFaceIndex, 0, 3)
+                : 1;
+        ApplyFaceVisibility();
+    }
+
+    private void ApplyFaceVisibility()
+    {
+        if (faces == null)
+            return;
+        if (rotationRigRoot != null)
+            rotationRigRoot.SetActive(false);
+        bool showTrue3D = IsTrue3DFace(_currentFaceIndex);
+        for (int i = 0; i < faces.Length; i++)
+            faces[i]?.ShowImmediate(!showTrue3D && i == _currentFaceIndex);
+        if (true3DController != null)
+        {
+            if (showTrue3D && !_rotating)
+                true3DController.SetFaceImmediate(_currentFaceIndex);
+            true3DController.ShowPrototype(showTrue3D);
+        }
+        _selectionGuideLayoutDirty = true;
+        // AspectRatioFitter updates the board geometry during the canvas layout pass.
+        // Resolve that pass before RefreshSelectionGuide reads the active slot position.
+        Canvas.ForceUpdateCanvases();
+    }
+
+    private void SyncTrue3DPresentation()
+    {
+        if (true3DController == null)
+            return;
+        bool show = visualContentRoot != null && visualContentRoot.activeInHierarchy &&
+            IsTrue3DFace(_currentFaceIndex);
+        if (show && !_rotating &&
+            true3DController.CurrentFaceIndex != _currentFaceIndex)
+            true3DController.SetFaceImmediate(_currentFaceIndex);
+        true3DController.ShowPrototype(show);
+    }
+
+    private void RefreshHeader()
+    {
+        Color accent = FaceAccents[_currentFaceIndex];
+        if (faceIndexText != null)
+        {
+            faceIndexText.text = $"CARA {_currentFaceIndex + 1} / 4";
+            faceIndexText.color = accent;
+        }
+        if (faceTitleText != null)
+            faceTitleText.text = GetZoneTitle((MachineZoneType)(_currentFaceIndex + 1));
+        RefreshNavigationButtons();
+        if (GameState.I != null)
+        {
+            if (leResourceText != null)
+                leResourceText.text = "LE  " + FormatNumber(GameState.I.LE);
+            if (tracesResourceText != null)
+                tracesResourceText.text = "TRAZAS  " + FormatNumber(GameState.I.Traces);
+        }
+
+        double total = MachineManager.I.GetTotalMachineRepairProgress01();
+        if (globalProgressText != null)
+            globalProgressText.text = $"REPARACIÓN TOTAL  {total * 100.0:0}%  /  80%";
+        if (globalProgressFill != null)
+        {
+            globalProgressFill.fillAmount = Mathf.Clamp01((float)(total / 0.8));
+            globalProgressFill.color = total >= 0.8
+                ? new Color(0.25f, 1f, 0.72f, 1f)
+                : accent;
+        }
+
+        if (faceDots != null)
+        {
+            for (int i = 0; i < faceDots.Length; i++)
+            {
+                Image dot = faceDots[i];
+                if (dot == null)
+                    continue;
+                bool active = i == _currentFaceIndex;
+                dot.color = active
+                    ? new Color(0.86f, 0.95f, 1f, 1f)
+                    : new Color(0.34f, 0.38f, 0.40f, 0.82f);
+                dot.rectTransform.localScale = active
+                    ? Vector3.one * 1.22f
+                    : Vector3.one;
+            }
+        }
+
+        if (selectedFaceProgressText != null)
+        {
+            MachineZoneType zone = (MachineZoneType)(_currentFaceIndex + 1);
+            double faceProgress = MachineManager.I.GetZoneRepairProgress01(zone);
+            selectedFaceProgressText.text = $"PROGRESO DEL SECTOR  {faceProgress * 100.0:0}%";
+            selectedFaceProgressText.color = Color.Lerp(accent, Color.white, 0.35f);
+        }
+
+        bool channel = MachineManager.I.IsNodeRepaired("z3_convergence_channel");
+        if (convergenceText != null)
+        {
+            convergenceText.text = channel ? "CANAL: ESTABLE" : "CANAL: BLOQUEADO";
+            convergenceText.color = channel
+                ? new Color(0.25f, 1f, 0.72f, 1f)
+                : new Color(0.65f, 0.68f, 0.72f, 1f);
+        }
+    }
+
+    private void RefreshNavigationButtons()
+    {
+        if (!IsTrue3DFace(_currentFaceIndex) || MachineManager.I == null)
+            return;
+        if (previousFaceButton != null)
+            previousFaceButton.interactable = !_rotating && _currentFaceIndex > 0 &&
+                MachineManager.I.CanAccessZone(MachineZoneType.Room1Link);
+        if (nextFaceButton != null)
+            nextFaceButton.interactable = !_rotating && _currentFaceIndex < 1 &&
+                MachineManager.I.CanAccessZone(MachineZoneType.FusionSector);
+    }
+
+    private void RefreshSelectedCard()
+    {
+        MachineNodeDef node = machinePanel != null
+            ? MachineManager.I.GetDef(machinePanel.SelectedNodeId)
+            : null;
+        if (node == null)
+        {
+            SetText(selectedIconText, "--");
+            if (selectedIconImage != null)
+                selectedIconImage.enabled = false;
+            SetText(selectedNameText, "SELECCIONA UN NODO");
+            SetText(selectedStateText, "ESTADO: DESCONOCIDO");
+            SetText(selectedDescriptionText, "Explora los circuitos de la cara actual.");
+            SetText(selectedEffectText, "EFECTO  —");
+            SetText(selectedCostText, "COSTE  —");
+            SetText(selectedRequirementsText, "REQUISITOS  —");
+            return;
+        }
+
+        bool repaired = MachineManager.I.IsNodeRepaired(node.id);
+        bool analyzed = MachineManager.I.IsNodeAnalyzed(node.id);
+        bool analyzing = MachineManager.I.IsAnalyzingNode &&
+            (MachineManager.I.AnalysisNodeId == node.id ||
+             (!string.IsNullOrWhiteSpace(node.tierGroup) &&
+              MachineManager.I.AnalysisNodeId == "tierGroup:" + node.tierGroup));
+        bool canRepair = MachineManager.I.CanRepairNode(node.id, out string reason);
+
+        SetText(selectedIconText, GetEffectGlyph(node));
+        if (selectedIconImage != null)
+        {
+            selectedIconImage.sprite = ResolveEffectIcon(node);
+            selectedIconImage.enabled = selectedIconImage.sprite != null;
+            selectedIconImage.color = Color.white;
+        }
+        SetText(selectedNameText, node.name.ToUpperInvariant());
+        SetText(selectedStateText,
+            "ESTADO: " + GetStateLabel(node, repaired, analyzed, analyzing, canRepair, reason));
+        SetText(selectedDescriptionText, node.description);
+        SetText(selectedEffectText, "EFECTO  " + FormatEffect(node));
+        SetText(selectedCostText, "COSTE  " + FormatCost(MachineManager.I.GetEffectiveNodeCost(node)));
+        SetText(selectedRequirementsText, "REQUISITOS  " + FormatRequirements(node));
+    }
+
+    private void RefreshSelectionGuide(string selectedId)
+    {
+        if (IsTrue3DFace(_currentFaceIndex))
+        {
+            if (selectionGuide != null)
+                selectionGuide.gameObject.SetActive(false);
+            return;
+        }
+        if (selectionGuide == null || selectedCardRect == null ||
+            faces == null || _currentFaceIndex < 0 || _currentFaceIndex >= faces.Length)
+            return;
+
+        RectTransform slot = faces[_currentFaceIndex]?.FindSlotForNode(selectedId);
+        if (slot == null || _rotating || machinePanel == null || machinePanel.HasAuxiliaryViewOpen)
+        {
+            selectionGuide.gameObject.SetActive(false);
+            return;
+        }
+
+        RectTransform parent = selectionGuide.parent as RectTransform;
+        if (parent == null)
+            return;
+        parent.ForceUpdateRectTransforms();
+        slot.ForceUpdateRectTransforms();
+        selectedCardRect.ForceUpdateRectTransforms();
+        Bounds slotBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(parent, slot);
+        Bounds cardBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(
+            parent, selectedCardRect);
+        Vector2 start = slotBounds.center;
+        Vector2 end = new Vector2(start.x, cardBounds.max.y);
+        Vector2 delta = end - start;
+        selectionGuide.gameObject.SetActive(delta.magnitude > 6f);
+        selectionGuide.anchorMin = selectionGuide.anchorMax = new Vector2(0.5f, 0.5f);
+        selectionGuide.anchoredPosition = (start + end) * 0.5f;
+        selectionGuide.sizeDelta = new Vector2(delta.magnitude, 3f);
+        selectionGuide.localRotation = Quaternion.Euler(0f, 0f,
+            Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
+    }
+
+    private static string GetStateLabel(MachineNodeDef node, bool repaired,
+        bool analyzed, bool analyzing, bool canRepair, string reason)
+    {
+        if (repaired) return "REPARADO  [OK]";
+        if (analyzing) return "ANALIZANDO  …";
+        if (node.damaged && !analyzed) return "DAÑADO SIN ANALIZAR  !";
+        if (canRepair) return analyzed ? "ANALIZADO · REPARABLE  +" : "REPARABLE  +";
+        if (reason.StartsWith("Falta reparar nodo requerido", System.StringComparison.Ordinal))
+            return "BLOQUEADO POR REQUISITO  [X]  ·  " + reason;
+        if (reason.StartsWith("Falta LE", System.StringComparison.Ordinal) ||
+            reason.StartsWith("Faltan", System.StringComparison.Ordinal))
+            return "BLOQUEADO POR RECURSOS  ¤  ·  " + reason;
+        if (node.hidden) return "SECRETO REVELADO  ✦";
+        return "VISIBLE PENDIENTE  □";
+    }
+
+    private static string FormatRequirements(MachineNodeDef node)
+    {
+        if (node.requiredNodeIds == null || node.requiredNodeIds.Count == 0)
+            return "NINGUNO";
+
+        StringBuilder builder = new StringBuilder();
+        foreach (string id in node.requiredNodeIds)
+        {
+            if (builder.Length > 0)
+                builder.Append("  ·  ");
+            MachineNodeDef required = MachineManager.I.GetDef(id);
+            builder.Append(MachineManager.I.IsNodeRepaired(id) ? "[OK] " : "[ ] ");
+            builder.Append(required != null ? required.name : id);
+        }
+        return builder.ToString();
+    }
+
+    private static string FormatCost(MachineNodeCostDef cost)
+    {
+        if (cost == null)
+            return "—";
+        StringBuilder builder = new StringBuilder();
+        AppendCost(builder, cost.le, "LE");
+        AppendCost(builder, cost.traces, "TRAZAS");
+        AppendCost(builder, cost.hallazgo, "HALLAZGOS");
+        AppendCost(builder, cost.muestra, "MUESTRAS");
+        AppendCost(builder, cost.lecturaIncompleta, "LECTURAS");
+        AppendCost(builder, cost.compuestoUtil, "COMPUESTOS");
+        AppendCost(builder, cost.pureInstant, "PUROS");
+        AppendCost(builder, cost.stableInstant, "ESTABLES");
+        AppendCost(builder, cost.forcedInstant, "FORZADOS");
+        return builder.Length == 0 ? "SIN COSTE" : builder.ToString();
+    }
+
+    private static void AppendCost(StringBuilder builder, double value, string label)
+    {
+        if (value <= 0.0)
+            return;
+        if (builder.Length > 0)
+            builder.Append("  ·  ");
+        builder.Append(FormatNumber(value)).Append(' ').Append(label);
+    }
+
+    private static string FormatNumber(double value)
+    {
+        if (value >= 1_000_000_000.0) return (value / 1_000_000_000.0).ToString("0.##") + "B";
+        if (value >= 1_000_000.0) return (value / 1_000_000.0).ToString("0.##") + "M";
+        if (value >= 1_000.0) return (value / 1_000.0).ToString("0.##") + "K";
+        return value.ToString("0.##");
+    }
+
+    private static string FormatEffect(MachineNodeDef node)
+    {
+        string value = node.effectValue > 0.0 ? "  +" + node.effectValue.ToString("0.##") : "";
+        return node.effectType switch
+        {
+            MachineNodeEffectType.GlobalLEBonus => "PRODUCCIÓN DE LE" + value,
+            MachineNodeEffectType.TracesBonus => "GENERACIÓN DE TRAZAS" + value,
+            MachineNodeEffectType.TriangleBonus => "SINCRONIZACIÓN TRIANGULAR" + value,
+            MachineNodeEffectType.ArtifactBonus => "CALIBRACIÓN DE ARTEFACTOS" + value,
+            MachineNodeEffectType.Room1GlobalBonus => "SINCRONIZACIÓN DEL CUARTO 1" + value,
+            MachineNodeEffectType.UnlockFusionSlot => "RANURA DE FUSIÓN" + value,
+            MachineNodeEffectType.FusionFailureReduction => "REDUCCIÓN DE RIESGO" + value,
+            MachineNodeEffectType.FusionUsefulResultBonus => "RESULTADO ÚTIL" + value,
+            MachineNodeEffectType.FusionTimeReduction => "TIEMPO DE FUSIÓN" + value,
+            MachineNodeEffectType.RevealFusionProbabilities => "LECTURA DE COMPOSICIÓN",
+            MachineNodeEffectType.UnlockDiagnostics => "DIAGNÓSTICO INTERNO",
+            MachineNodeEffectType.RevealHiddenSubnodes => "REVELAR NODOS SECRETOS",
+            MachineNodeEffectType.EnablePrestige1 => "CANAL DE CONVERGENCIA",
+            MachineNodeEffectType.UnlockInstantChamber => "CÁMARA DE ANCLAJES",
+            _ => node.effectType.ToString().ToUpperInvariant().Replace('_', ' ') + value
+        };
+    }
+
+    private static string GetZoneTitle(MachineZoneType zone)
+    {
+        return zone switch
+        {
+            MachineZoneType.Room1Link => "ENLACE CON EL CUARTO 1",
+            MachineZoneType.FusionSector => "SECTOR DE FUSIONES",
+            MachineZoneType.InternalSupport => "SOPORTE INTERNO",
+            MachineZoneType.InstantChamber => "CÁMARA DE ANCLAJES",
+            _ => "SECTOR DESCONOCIDO"
+        };
+    }
+
+    public static string GetEffectGlyph(MachineNodeDef node)
+    {
+        if (node == null)
+            return "--";
+        string effect = node.effectType.ToString();
+        if (effect.Contains("LE", System.StringComparison.OrdinalIgnoreCase)) return "LE";
+        if (effect.Contains("Trace", System.StringComparison.OrdinalIgnoreCase)) return "TR";
+        if (effect.Contains("Triangle", System.StringComparison.OrdinalIgnoreCase)) return "TI";
+        if (effect.Contains("Artifact", System.StringComparison.OrdinalIgnoreCase)) return "AR";
+        if (effect.Contains("Fusion", System.StringComparison.OrdinalIgnoreCase) ||
+            effect.Contains("Synthesis", System.StringComparison.OrdinalIgnoreCase) ||
+            effect.Contains("Catal", System.StringComparison.OrdinalIgnoreCase)) return "FU";
+        if (effect.Contains("Diagnostic", System.StringComparison.OrdinalIgnoreCase) ||
+            effect.Contains("Memory", System.StringComparison.OrdinalIgnoreCase)) return "DX";
+        if (effect.Contains("Structural", System.StringComparison.OrdinalIgnoreCase) ||
+            effect.Contains("Support", System.StringComparison.OrdinalIgnoreCase) ||
+            effect.Contains("Compensation", System.StringComparison.OrdinalIgnoreCase)) return "ST";
+        if (effect.Contains("Prestige", System.StringComparison.OrdinalIgnoreCase) ||
+            effect.Contains("Convergence", System.StringComparison.OrdinalIgnoreCase)) return "CV";
+        if (effect.Contains("Instant", System.StringComparison.OrdinalIgnoreCase) ||
+            effect.Contains("Seed", System.StringComparison.OrdinalIgnoreCase) ||
+            effect.Contains("Anchor", System.StringComparison.OrdinalIgnoreCase) ||
+            effect.Contains("Archive", System.StringComparison.OrdinalIgnoreCase)) return "AN";
+        return "SY";
+    }
+
+    private Sprite ResolveEffectIcon(MachineNodeDef node)
+    {
+        return GetEffectGlyph(node) switch
+        {
+            "LE" => iconLe,
+            "TR" => iconTraces,
+            "TI" => iconTriangle,
+            "AR" => iconArtifact,
+            "FU" => iconFusion,
+            "DX" => iconDiagnostic,
+            "ST" => iconStructure,
+            "CV" => iconConvergence,
+            "AN" => iconAnchor,
+            _ => iconSynthesis
+        };
+    }
+
+    private static void SetText(TextMeshProUGUI text, string value)
+    {
+        if (text != null)
+            text.text = value ?? "";
+    }
+}

@@ -19,6 +19,8 @@ public class TriangleArtifactCardUI : MonoBehaviour, IPointerClickHandler, IBegi
 
     private void Awake()
     {
+        normalColor = Dimension1DarkThemePalette.Panel;
+        selectedColor = Dimension1DarkThemePalette.Elevated;
         SetSelected(false);
         if (backgroundImage != null)
             backgroundImage.raycastTarget = false;

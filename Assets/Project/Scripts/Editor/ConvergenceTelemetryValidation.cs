@@ -21,6 +21,7 @@ public static class ConvergenceTelemetryValidation
             long now = ConvergenceTelemetrySystem.GetCurrentUnixSeconds();
             state.convergence.cycleStartedUnix = now - 100;
             state.convergence.receiverRebuiltUnix = now - 70;
+            state.convergence.synchronizationReadyUnix = now - 10;
             state.convergence.configurationStartedUnix = now - 10;
             state.convergence.cycleOfflineSeconds = 40.0;
             state.convergence.baseRebuildOfflineSeconds = 12.0;
@@ -28,8 +29,12 @@ public static class ConvergenceTelemetryValidation
             state.convergence.configurationOfflineSeconds = 5.0;
 
             ConvergenceTelemetrySystem.RecordConfigurationConfirmed(state);
+            Check(state.convergence.normalCycleMeasurements.Count == 1,
+                "La confirmación no genera una medición del ciclo.", failures);
             ConvergenceCycleMeasurement record =
-                state.convergence.normalCycleMeasurements[0];
+                state.convergence.normalCycleMeasurements.Count > 0
+                    ? state.convergence.normalCycleMeasurements[0]
+                    : new ConvergenceCycleMeasurement();
             Check(record.baseRebuildSeconds == 30.0 &&
                   record.synchronizationSeconds == 60.0 &&
                   record.configurationSeconds >= 10.0 &&

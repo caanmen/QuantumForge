@@ -22,6 +22,8 @@ public class D2RitesPanelUI : MonoBehaviour
     public TMP_Text unlockThirdSlotButtonText;
 
     private float _refreshTimer;
+    private readonly SafeDropdownOptionMap<string> _riteOptions =
+        new SafeDropdownOptionMap<string>(System.StringComparer.Ordinal);
 
     private void Awake()
     {
@@ -68,15 +70,14 @@ public class D2RitesPanelUI : MonoBehaviour
         if (riteDropdown == null)
             return;
 
-        int selected = Mathf.Clamp(riteDropdown.value, 0, D2RiteSystem.RiteIds.Length - 1);
-        var options = new List<TMP_Dropdown.OptionData>();
-        foreach (string riteId in D2RiteSystem.RiteIds)
-            options.Add(new TMP_Dropdown.OptionData(D2RiteSystem.GetDisplayName(riteId)));
-
-        riteDropdown.ClearOptions();
-        riteDropdown.AddOptions(options);
-        riteDropdown.SetValueWithoutNotify(selected);
-        riteDropdown.RefreshShownValue();
+        string selected = _riteOptions.ResolveOrDefault(
+            riteDropdown.value, D2RiteSystem.WelcomeId);
+        D2Civilization1State state = GameState.I != null &&
+            GameState.I.dimension2 != null
+            ? GameState.I.dimension2.civilization1 : null;
+        _riteOptions.Rebuild(riteDropdown,
+            D2Civilization1PresentationRules.GetVisibleRiteIds(state),
+            D2RiteSystem.GetDisplayName, selected);
     }
 
     public void Refresh()
@@ -156,6 +157,9 @@ public class D2RitesPanelUI : MonoBehaviour
                 : "DESBLOQUEAR TERCER ESPACIO\n250 Confianza · Noviciado 3 · " +
                   "5 Acólitos · 150 Cera · 150 Pan"
         );
+        SetActive(unlockThirdSlotButton, state.thirdRiteSlotUnlocked ||
+            D2RiteSystem.CanUnlockThirdSlot(gameState) ||
+            (state.trust >= 200.0 && state.novitiateLevel >= 2));
     }
 
     public void AssignFollowerOne() => AssignFollowers(1L);
@@ -207,8 +211,7 @@ public class D2RitesPanelUI : MonoBehaviour
     private string GetSelectedRiteId()
     {
         int index = riteDropdown != null ? riteDropdown.value : 0;
-        index = Mathf.Clamp(index, 0, D2RiteSystem.RiteIds.Length - 1);
-        return D2RiteSystem.RiteIds[index];
+        return _riteOptions.ResolveOrDefault(index, D2RiteSystem.WelcomeId);
     }
 
     private void RefreshAll()
@@ -230,5 +233,10 @@ public class D2RitesPanelUI : MonoBehaviour
     {
         if (button != null)
             button.interactable = interactable;
+    }
+
+    private static void SetActive(Component component, bool active)
+    {
+        if (component != null) component.gameObject.SetActive(active);
     }
 }

@@ -43,6 +43,13 @@ public static class ConvergenceSynchronizationSystem
         }
 
         gameState.EnsureConvergenceState();
+        if (gameState.convergence.phase != ConvergencePhase.Inactive &&
+            gameState.convergence.phase != ConvergencePhase.NewCycleStarted)
+        {
+            reason = "El Receptor no puede reconstruirse durante la fase " +
+                gameState.convergence.phase + ".";
+            return false;
+        }
         if (!CanRebuildReceiver(gameState, out reason))
             return false;
 
@@ -58,10 +65,22 @@ public static class ConvergenceSynchronizationSystem
             return false;
         }
 
-        gameState.convergence.dimensionalReceiverRebuilt = true;
+        ConvergenceState state = gameState.convergence;
+        bool previousReceiverRebuilt = state.dimensionalReceiverRebuilt;
+        ConvergencePhase previousPhase = state.phase;
+        long previousReceiverRebuiltUnix = state.receiverRebuiltUnix;
+
+        state.dimensionalReceiverRebuilt = true;
         ConvergenceTelemetrySystem.RecordReceiverRebuilt(gameState);
-        if (gameState.convergence.phase == ConvergencePhase.NewCycleStarted)
-            gameState.convergence.phase = ConvergencePhase.Inactive;
+        state.phase = ConvergencePhase.Synchronizing;
+        if (SaveService.I != null && !SaveService.I.TrySave(out string saveError))
+        {
+            state.dimensionalReceiverRebuilt = previousReceiverRebuilt;
+            state.phase = previousPhase;
+            state.receiverRebuiltUnix = previousReceiverRebuiltUnix;
+            reason = "No se pudo guardar el Receptor: " + saveError;
+            return false;
+        }
         reason = "Receptor Dimensional reconstruido.";
         return true;
     }
@@ -81,6 +100,13 @@ public static class ConvergenceSynchronizationSystem
         }
 
         gameState.EnsureConvergenceState();
+        if (gameState.convergence.phase != ConvergencePhase.Synchronizing)
+        {
+            reason = gameState.convergence.phase == ConvergencePhase.Ready
+                ? "La sincronización ya está READY y no acepta nuevas fuentes."
+                : "La fase actual no acepta fuentes de sincronización.";
+            return false;
+        }
         if (!gameState.convergence.dimensionalReceiverRebuilt)
         {
             reason = "Reconstruye el Receptor Dimensional primero.";
@@ -151,13 +177,17 @@ public static class ConvergenceSynchronizationSystem
 
         if (canActivateSignal)
             signal.activated = true;
+        double creditedStability = stabilityAmount * ConvergenceCircuitSystem.GetStabilityGainMultiplier(gameState);
         gameState.convergence.currentStability = Math.Min(
             requirement,
-            currentStability + stabilityAmount
+            currentStability + creditedStability
         );
         gameState.convergence.processedSynchronizationSourceIds.Add(sourceId);
-        if (IsSynchronizationReadyForNextConvergence(gameState, ownedCircuitCount))
+        if (HasSynchronizationRequirements(gameState, ownedCircuitCount))
+        {
             ConvergenceTelemetrySystem.RecordReady(gameState);
+            gameState.convergence.phase = ConvergencePhase.Ready;
+        }
         reason = "Sincronización registrada.";
         return true;
     }
@@ -180,6 +210,13 @@ public static class ConvergenceSynchronizationSystem
             return false;
 
         gameState.EnsureConvergenceState();
+        return gameState.convergence.phase == ConvergencePhase.Ready &&
+            HasSynchronizationRequirements(gameState, ownedCircuitCount);
+    }
+
+    private static bool HasSynchronizationRequirements(
+        GameState gameState, int ownedCircuitCount)
+    {
         if (!gameState.convergence.dimensionalReceiverRebuilt ||
             !IsSignalActivated(gameState, 1) ||
             !IsSignalActivated(gameState, 2) ||

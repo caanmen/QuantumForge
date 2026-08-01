@@ -92,6 +92,10 @@ public class D2ReprisalsPanelUI : MonoBehaviour
                 ? "Aún no se ha producido ninguna Represalia."
                 : state.lastResult
         );
+        SetActive(fragmentsText,
+            state.controlFragments > 0L || state.totalReprisals > 0L);
+        SetActive(weakeningText, state.totalReprisals > 0L ||
+            !string.IsNullOrEmpty(region.weakenedOperationId));
     }
 
     private static string FormatDuration(double seconds)
@@ -114,5 +118,10 @@ public class D2ReprisalsPanelUI : MonoBehaviour
     {
         if (text != null)
             text.text = value;
+    }
+
+    private static void SetActive(Component component, bool active)
+    {
+        if (component != null) component.gameObject.SetActive(active);
     }
 }

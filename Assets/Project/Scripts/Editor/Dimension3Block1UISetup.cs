@@ -148,6 +148,16 @@ public static class Dimension3Block1UISetup
         {
             valid &= Require(panel.firstEntryRoot, "D3.firstEntryRoot");
             valid &= Require(panel.factoryRoot, "D3.factoryRoot");
+            valid &= Require(panel.objectiveCard, "D3.objectiveCard");
+            valid &= Require(panel.productionTitleText, "D3.productionTitleText");
+            valid &= Require(panel.coachmarkRoot, "D3.coachmarkRoot");
+            valid &= Require(panel.contextualHelpButton, "D3.contextualHelpButton");
+            valid &= Require(panel.helpRoot, "D3.helpRoot");
+            valid &= Require(panel.closeHelpButton, "D3.closeHelpButton");
+            valid &= Require(panel.firstCycleCompleteRoot, "D3.firstCycleCompleteRoot");
+            valid &= Require(panel.continueFirstCycleButton, "D3.continueFirstCycleButton");
+            valid &= Require(panel.replayFirstCycleButton, "D3.replayFirstCycleButton");
+            valid &= Require(panel.closeFirstCycleButton, "D3.closeFirstCycleButton");
             valid &= Require(panel.continueFirstEntryButton, "D3.continueFirstEntryButton");
             valid &= Require(panel.closeDimension3Button, "D3.closeDimension3Button");
             valid &= Require(panel.factoryStatusText, "D3.factoryStatusText");
@@ -359,8 +369,8 @@ public static class Dimension3Block1UISetup
         CreateText(
             "Description",
             root.transform,
-            "Las instalaciones despiertan alrededor de un único operario MK1. " +
-            "Produce cinco piezas V1 y ensambla la primera unidad de tu propia línea.",
+            "Aquí no compras producción: construyes a quienes la operan.\n" +
+            "Un MK1 espera tu primera orden.",
             23f,
             TextAlignmentOptions.Center,
             new Vector2(0.5f, 0.49f),
@@ -369,9 +379,18 @@ public static class Dimension3Block1UISetup
         panel.continueFirstEntryButton = CreateButton(
             "Btn_OpenFactory",
             root.transform,
-            "ABRIR BANCO DE PROCESOS",
+            "ACTIVAR BANCO DE PROCESOS",
             new Vector2(0.5f, 0.25f),
             new Vector2(0.34f, 0.09f)
+        );
+        CreateText(
+            "OfflineHint",
+            root.transform,
+            "Los trabajos continúan mientras juegas y hasta 12 h sin conexión.",
+            18f,
+            TextAlignmentOptions.Center,
+            new Vector2(0.5f, 0.14f),
+            new Vector2(0.70f, 0.07f)
         );
     }
 
@@ -394,10 +413,10 @@ public static class Dimension3Block1UISetup
             "FactoryStatus",
             root.transform,
             "BANCO DE PROCESOS — NIVEL 1",
-            18f,
-            TextAlignmentOptions.Center,
-            new Vector2(0.5f, 0.84f),
-            new Vector2(0.76f, 0.11f)
+            16f,
+            TextAlignmentOptions.Left,
+            new Vector2(0.14f, 0.83f),
+            new Vector2(0.22f, 0.08f)
         );
 
         panel.inventoryText = CreateText(
@@ -406,11 +425,11 @@ public static class Dimension3Block1UISetup
             "INVENTARIO V1",
             20f,
             TextAlignmentOptions.TopLeft,
-            new Vector2(0.15f, 0.59f),
-            new Vector2(0.25f, 0.40f)
+            new Vector2(0.15f, 0.52f),
+            new Vector2(0.25f, 0.30f)
         );
 
-        CreateText(
+        panel.productionTitleText = CreateText(
             "ProductionTitle",
             root.transform,
             "PRODUCIR LOTE DE PIEZAS",
@@ -536,6 +555,101 @@ public static class Dimension3Block1UISetup
             new Vector2(0.50f, 0.015f),
             new Vector2(0.64f, 0.03f)
         );
+
+        BuildP2Presentation(panel, root);
+    }
+
+    private static void BuildP2Presentation(Dimension3PanelUI panel, GameObject factoryRoot)
+    {
+        GameObject objectiveRoot = CreateView(
+            "D3_P2_ObjectiveCard", factoryRoot.transform);
+        GameObject objectiveBackground = CreateUIObject(
+            "Background", objectiveRoot.transform);
+        Image objectiveImage = Undo.AddComponent<Image>(objectiveBackground);
+        objectiveImage.color = new Color(0.08f, 0.18f, 0.20f, 0.96f);
+        RectTransform backgroundRect = objectiveBackground.GetComponent<RectTransform>();
+        backgroundRect.anchorMin = new Vector2(0.28f, 0.65f);
+        backgroundRect.anchorMax = new Vector2(0.72f, 0.88f);
+        backgroundRect.offsetMin = Vector2.zero;
+        backgroundRect.offsetMax = Vector2.zero;
+
+        PresentationObjectiveCardUI card = Undo.AddComponent<PresentationObjectiveCardUI>(
+            objectiveRoot);
+        card.nowTitleText = CreateText(
+            "NowTitle", objectiveRoot.transform, "AHORA", 20f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.855f),
+            new Vector2(0.40f, 0.045f));
+        card.nowBodyText = CreateText(
+            "NowBody", objectiveRoot.transform, "Objetivo actual", 17f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.815f),
+            new Vector2(0.40f, 0.045f));
+        card.progressText = CreateText(
+            "Progress", objectiveRoot.transform, "Progreso", 15f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.775f),
+            new Vector2(0.40f, 0.04f));
+        card.primaryActionButton = CreateButton(
+            "PrimaryAction", objectiveRoot.transform, "CONTINUAR",
+            new Vector2(0.5f, 0.725f), new Vector2(0.25f, 0.055f));
+        card.primaryActionText = card.primaryActionButton.GetComponentInChildren<TMP_Text>(true);
+        card.nextRoot = CreateView("Next", objectiveRoot.transform);
+        card.nextTitleText = CreateText(
+            "NextTitle", card.nextRoot.transform, "DESPUÉS", 14f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.685f),
+            new Vector2(0.40f, 0.03f));
+        card.nextBodyText = CreateText(
+            "NextBody", card.nextRoot.transform, "Próximo hito", 14f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.66f),
+            new Vector2(0.40f, 0.03f));
+        panel.objectiveCard = card;
+
+        panel.coachmarkRoot = CreateView(
+            "D3_P2_Coachmark", factoryRoot.transform);
+        panel.coachmarkText = CreateText(
+            "CoachmarkText", panel.coachmarkRoot.transform,
+            "MK1 NORMAL → POTENCIA", 15f, TextAlignmentOptions.Center,
+            new Vector2(0.18f, 0.39f), new Vector2(0.28f, 0.09f));
+
+        panel.contextualHelpButton = CreateButton(
+            "D3_P2_Help", factoryRoot.transform, "AYUDA",
+            new Vector2(0.07f, 0.93f), new Vector2(0.10f, 0.055f));
+
+        panel.helpRoot = CreateView("D3_P2_HelpRoot", factoryRoot.transform);
+        Image helpBackground = Undo.AddComponent<Image>(panel.helpRoot);
+        helpBackground.color = new Color(0.025f, 0.055f, 0.065f, 0.985f);
+        panel.helpTitleText = CreateText(
+            "HelpTitle", panel.helpRoot.transform, "AYUDA · DIMENSIÓN 3", 30f,
+            TextAlignmentOptions.Center, new Vector2(0.5f, 0.78f),
+            new Vector2(0.72f, 0.09f));
+        panel.helpBodyText = CreateText(
+            "HelpBody", panel.helpRoot.transform, "Ayuda contextual", 20f,
+            TextAlignmentOptions.TopLeft, new Vector2(0.5f, 0.51f),
+            new Vector2(0.70f, 0.38f));
+        panel.closeHelpButton = CreateButton(
+            "CloseHelp", panel.helpRoot.transform, "VOLVER",
+            new Vector2(0.5f, 0.22f), new Vector2(0.22f, 0.065f));
+
+        panel.firstCycleCompleteRoot = CreateView(
+            "D3_P2_FirstCycleComplete", factoryRoot.transform);
+        Image completeBackground = Undo.AddComponent<Image>(panel.firstCycleCompleteRoot);
+        completeBackground.color = new Color(0.035f, 0.10f, 0.11f, 0.99f);
+        panel.firstCycleCompleteText = CreateText(
+            "CompleteText", panel.firstCycleCompleteRoot.transform,
+            "PRIMER CICLO COMPLETADO", 25f, TextAlignmentOptions.Center,
+            new Vector2(0.5f, 0.62f), new Vector2(0.72f, 0.35f));
+        panel.continueFirstCycleButton = CreateButton(
+            "Continue", panel.firstCycleCompleteRoot.transform, "CONTINUAR",
+            new Vector2(0.37f, 0.28f), new Vector2(0.20f, 0.07f));
+        panel.replayFirstCycleButton = CreateButton(
+            "Review", panel.firstCycleCompleteRoot.transform, "REPASAR",
+            new Vector2(0.63f, 0.28f), new Vector2(0.20f, 0.07f));
+        panel.closeFirstCycleButton = CreateButton(
+            "CloseD3", panel.firstCycleCompleteRoot.transform, "CERRAR D3",
+            new Vector2(0.5f, 0.16f), new Vector2(0.20f, 0.065f));
+
+        objectiveRoot.SetActive(false);
+        panel.coachmarkRoot.SetActive(false);
+        panel.helpRoot.SetActive(false);
+        panel.firstCycleCompleteRoot.SetActive(false);
     }
 
     private static void BuildCalibration(Dimension3PanelUI panel)

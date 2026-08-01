@@ -20,6 +20,9 @@ public class D2CivilizationPactsPanelUI : MonoBehaviour
     public TMP_Text unlockSecondSlotButtonText;
 
     private float _refreshTimer;
+    private readonly SafeDropdownOptionMap<string> _pactOptions =
+        new SafeDropdownOptionMap<string>(System.StringComparer.Ordinal);
+    private bool _inspectedThisVisit;
 
     private void Awake()
     {
@@ -37,8 +40,19 @@ public class D2CivilizationPactsPanelUI : MonoBehaviour
     private void OnEnable()
     {
         ConfigureDropdown();
+        _inspectedThisVisit = true;
         _refreshTimer = 0f;
         Refresh();
+    }
+
+    private void OnDisable()
+    {
+        if (_inspectedThisVisit && GameState.I != null &&
+            GameState.I.dimension2 != null)
+            PresentationStateUtility.Acknowledge(
+                GameState.I.dimension2.presentation,
+                PresentationFeatureIds.D2C1Pacts);
+        _inspectedThisVisit = false;
     }
 
     private void Update()
@@ -56,23 +70,20 @@ public class D2CivilizationPactsPanelUI : MonoBehaviour
         if (pactDropdown == null)
             return;
 
-        int selected = Mathf.Clamp(
-            pactDropdown.value,
-            0,
-            D2CivilizationPactSystem.PactIds.Length - 1
-        );
-        var options = new List<TMP_Dropdown.OptionData>();
-        foreach (string pactId in D2CivilizationPactSystem.PactIds)
-        {
-            options.Add(new TMP_Dropdown.OptionData(
-                D2CivilizationPactSystem.GetDisplayName(pactId)
-            ));
-        }
-
-        pactDropdown.ClearOptions();
-        pactDropdown.AddOptions(options);
-        pactDropdown.SetValueWithoutNotify(selected);
-        pactDropdown.RefreshShownValue();
+        string selected = _pactOptions.ResolveOrDefault(
+            pactDropdown.value, D2CivilizationPactSystem.HospitalityId);
+        D2Civilization1State state = GameState.I != null &&
+            GameState.I.dimension2 != null
+            ? GameState.I.dimension2.civilization1 : null;
+        bool catalogKnown = GameState.I != null && GameState.I.dimension2 != null &&
+            PresentationStateUtility.Contains(
+                GameState.I.dimension2.presentation.acknowledgedFeatureIds,
+                PresentationFeatureIds.D2C1Pacts);
+        string[] ids = catalogKnown
+            ? D2CivilizationPactSystem.PactIds
+            : D2Civilization1PresentationRules.GetVisiblePactIds(state);
+        _pactOptions.Rebuild(pactDropdown, ids,
+            D2CivilizationPactSystem.GetDisplayName, selected);
     }
 
     public void Refresh()
@@ -160,6 +171,10 @@ public class D2CivilizationPactsPanelUI : MonoBehaviour
             unlockSecondSlotButton,
             D2CivilizationPactSystem.CanUnlockSecondSlot(gameState)
         );
+        SetActive(unlockSecondSlotButton,
+            state.secondCivilizationPactSlotUnlocked ||
+            D2CivilizationPactSystem.CanUnlockSecondSlot(gameState) ||
+            (state.trust >= 350.0 && state.novitiateLevel >= 3));
     }
 
     public void ActivateSelected()
@@ -188,8 +203,8 @@ public class D2CivilizationPactsPanelUI : MonoBehaviour
     private string GetSelectedPactId()
     {
         int index = pactDropdown != null ? pactDropdown.value : 0;
-        index = Mathf.Clamp(index, 0, D2CivilizationPactSystem.PactIds.Length - 1);
-        return D2CivilizationPactSystem.PactIds[index];
+        return _pactOptions.ResolveOrDefault(
+            index, D2CivilizationPactSystem.HospitalityId);
     }
 
     private void RefreshAll()
@@ -211,5 +226,10 @@ public class D2CivilizationPactsPanelUI : MonoBehaviour
     {
         if (button != null)
             button.interactable = interactable;
+    }
+
+    private static void SetActive(Component component, bool active)
+    {
+        if (component != null) component.gameObject.SetActive(active);
     }
 }

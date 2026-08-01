@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -15,11 +16,29 @@ public static class ConvergenceSynchronizationValidation
         }
 
         var failures = new List<string>();
-        ValidateLegacyNormalization(failures);
-        ValidateReceiverAndSynchronization(failures);
-        ValidateCycleReset(failures);
-        ValidateTentativeRequirement(failures);
-        ValidateStabilityCap(failures);
+        var machineObject = new GameObject("Convergence Sync Machine Validation")
+        {
+            hideFlags = HideFlags.HideAndDontSave
+        };
+        MachineManager machine = machineObject.AddComponent<MachineManager>();
+        PropertyInfo singletonProperty = typeof(MachineManager).GetProperty(
+            "I", BindingFlags.Public | BindingFlags.Static);
+        MachineManager previousMachine = MachineManager.I;
+        try
+        {
+            singletonProperty.SetValue(null, machine, null);
+            PrepareMachineForConvergence(machine);
+            ValidateLegacyNormalization(failures);
+            ValidateReceiverAndSynchronization(failures);
+            ValidateCycleReset(failures);
+            ValidateTentativeRequirement(failures);
+            ValidateStabilityCap(failures);
+        }
+        finally
+        {
+            singletonProperty.SetValue(null, previousMachine, null);
+            Object.DestroyImmediate(machineObject);
+        }
 
         if (failures.Count == 0)
         {
@@ -34,6 +53,28 @@ public static class ConvergenceSynchronizationValidation
     public static void ValidateSynchronizationStateBatch()
     {
         ValidateSynchronizationState();
+    }
+
+    private static void PrepareMachineForConvergence(MachineManager machine)
+    {
+        List<MachineNodeDef> visibleNodes = machine.GetAllNodes(false);
+        var repairedNodeIds = new List<string>();
+        for (int i = 0; i < visibleNodes.Count; i++)
+        {
+            MachineNodeDef node = visibleNodes[i];
+            if (node != null)
+                repairedNodeIds.Add(node.id);
+        }
+        if (!repairedNodeIds.Contains("z3_convergence_channel"))
+            repairedNodeIds.Add("z3_convergence_channel");
+
+        machine.LoadProgressFromSave(new SaveData
+        {
+            machineIntroSeen = true,
+            machineUnlocked = true,
+            machineAllZonesUnlocked = true,
+            machineRepairedNodeIds = repairedNodeIds
+        });
     }
 
     private static void ValidateLegacyNormalization(List<string> failures)
@@ -69,7 +110,7 @@ public static class ConvergenceSynchronizationValidation
                       state, 1, true, 1.0, "d1_before_receiver", out reason),
                 "Acepta sincronización antes de reconstruir el Receptor.", failures);
             Check(ConvergenceSynchronizationSystem.TryRebuildReceiver(state, out reason),
-                "No permite reconstruir el Receptor con las tres dimensiones completas.",
+                "No permite reconstruir el Receptor con las tres dimensiones completas: " + reason,
                 failures);
             Check(ConvergenceSynchronizationSystem.TryAddSynchronization(
                       state, 1, true, 12.5, "d1_final_activity", out reason) &&

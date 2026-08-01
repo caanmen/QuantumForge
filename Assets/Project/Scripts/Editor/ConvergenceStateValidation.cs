@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -19,6 +20,8 @@ public static class ConvergenceStateValidation
         ValidateLegacySaveState(failures);
         ValidateNormalization(failures);
         ValidateSaveRoundTrip(failures);
+        ValidateV3MigrationAndFutureGuard(failures);
+        ValidateAtomicSaveAndBackup(failures);
 
         if (failures.Count == 0)
         {
@@ -69,7 +72,7 @@ public static class ConvergenceStateValidation
         {
             state.convergence = new ConvergenceState
             {
-                progressVersion = 99,
+                progressVersion = 3,
                 phase = (ConvergencePhase)99,
                 completedCycles = -3
             };
@@ -98,6 +101,71 @@ public static class ConvergenceStateValidation
               loaded.convergence.phase == ConvergencePhase.ConfigurationPending &&
               loaded.convergence.completedCycles == 4,
             "El save no conserva la fase y los ciclos de Convergencia.", failures);
+    }
+
+    private static void ValidateV3MigrationAndFutureGuard(List<string> failures)
+    {
+        GameState state = CreateState("Convergence V3 Migration State");
+        try
+        {
+            state.convergence = new ConvergenceState
+            {
+                progressVersion = 3,
+                phase = ConvergencePhase.ConfigurationPending,
+                ownedCircuits = new List<OwnedConvergenceCircuit>
+                {
+                    new OwnedConvergenceCircuit { circuitId = ConvergenceCircuitCatalog.StartupPulseCircuitId, obtained = true }
+                },
+                boardPlacements = new List<ConvergenceCircuitPlacement>
+                {
+                    new ConvergenceCircuitPlacement { circuitId = ConvergenceCircuitCatalog.StartupPulseCircuitId, x = 0, y = 1, rotationDegrees = 0 }
+                },
+                modifierSnapshot = new ConvergenceModifierSnapshot { baseLEProductionMultiplier = 1.10 }
+            };
+            state.EnsureConvergenceState();
+            Check(state.convergence.progressVersion == 4 && state.convergence.draftPlacements.Count == 1 &&
+                  System.Math.Abs(state.convergence.activeSnapshot.baseLEProductionMultiplier - 1.10) < 0.0001,
+                "La migraciÃ³n v3 no separa borrador y snapshot activo.", failures);
+
+            state.convergence.progressVersion = 99;
+            state.convergence.completedCycles = 42;
+            state.EnsureConvergenceState();
+            Check(state.convergence.progressVersion == 99 && state.convergence.completedCycles == 42,
+                "Un save futuro se rebaja o normaliza indebidamente.", failures);
+        }
+        finally { Object.DestroyImmediate(state.gameObject); }
+    }
+
+    private static void ValidateAtomicSaveAndBackup(List<string> failures)
+    {
+        string folder = Path.Combine(Path.GetTempPath(), "QuantumForgeConvergenceValidation_" + System.Guid.NewGuid().ToString("N"));
+        string path = Path.Combine(folder, "save.json");
+        try
+        {
+            Check(SaveService.TryWriteAtomicJson(path, JsonUtility.ToJson(new SaveData { LE = 10.0 }), out _), "No se pudo crear el save atÃ³mico inicial.", failures);
+            Check(SaveService.TryWriteAtomicJson(path, JsonUtility.ToJson(new SaveData { LE = 20.0 }), out _), "No se pudo reemplazar el save atÃ³mico.", failures);
+            Check(SaveService.TryReadSaveData(path + ".bak", out SaveData backup) && backup.LE == 10.0, "El backup no conserva el save anterior.", failures);
+            foreach (SaveFailureInjectionPoint point in new[]
+            {
+                SaveFailureInjectionPoint.BeforeTempWrite,
+                SaveFailureInjectionPoint.AfterTempWrite,
+                SaveFailureInjectionPoint.AfterTempValidation,
+                SaveFailureInjectionPoint.BeforeReplace
+            })
+            {
+                SaveService.FailureInjectionPoint = point;
+                Check(!SaveService.TryWriteAtomicJson(path,
+                    JsonUtility.ToJson(new SaveData { LE = 30.0 }), out _),
+                    "El fallo inyectado " + point + " no interrumpe el reemplazo.", failures);
+                Check(SaveService.TryReadSaveData(path, out SaveData current) && current.LE == 20.0,
+                    "El fallo inyectado " + point + " altera el save confirmado.", failures);
+            }
+        }
+        finally
+        {
+            SaveService.FailureInjectionPoint = SaveFailureInjectionPoint.None;
+            if (Directory.Exists(folder)) Directory.Delete(folder, true);
+        }
     }
 
     private static GameState CreateState(string name)

@@ -30,6 +30,14 @@ public class D3FacilitiesPanelUI : MonoBehaviour
     public D3DiagnosticPanelUI diagnosticPanel;
 
     private float _refreshRemaining;
+    private readonly SafeDropdownOptionMap<string> _facilityOptions =
+        new SafeDropdownOptionMap<string>(StringComparer.Ordinal);
+    private readonly SafeDropdownOptionMap<string> _channelOptions =
+        new SafeDropdownOptionMap<string>(StringComparer.Ordinal);
+    private readonly SafeDropdownOptionMap<int> _mkOptions =
+        new SafeDropdownOptionMap<int>();
+    private readonly SafeDropdownOptionMap<string> _traitOptions =
+        new SafeDropdownOptionMap<string>(StringComparer.Ordinal);
 
     private void Awake()
     {
@@ -72,18 +80,18 @@ public class D3FacilitiesPanelUI : MonoBehaviour
 
     private void ConfigureOptions()
     {
-        SetOptions(facilityDropdown,
-            new[]
+        _facilityOptions.Rebuild(facilityDropdown, new[]
             {
-                "Consola de Producción",
-                "Banco de Diagnóstico",
-                "Puerto de Expediciones",
-                "Núcleo de Automatización"
-            });
-        SetOptions(mkDropdown,
-            new[] { "MK1", "MK2", "MK3", "MK4", "MK5", "MK6" });
-        SetOptions(traitDropdown,
-            new[] { "Normal", "Rápido", "Eficiente", "Coordinador" });
+                Dimension3Catalog.FacilityProductionConsole,
+                Dimension3Catalog.FacilityDiagnosticBank,
+                Dimension3Catalog.FacilityExpeditionPort,
+                Dimension3Catalog.FacilityAutomationCore
+            }, GetFacilityName, Dimension3Catalog.FacilityProductionConsole);
+        _mkOptions.Rebuild(mkDropdown,
+            D3ProgressivePresentationRules.GetUnlockedAssemblyMks(GameState.I),
+            value => "MK" + value, 1);
+        _traitOptions.Rebuild(traitDropdown, Dimension3Catalog.TraitIds,
+            GetTraitName, Dimension3Catalog.TraitNormal);
         RefreshFacilityOptions();
     }
 
@@ -91,14 +99,22 @@ public class D3FacilitiesPanelUI : MonoBehaviour
     {
         string facilityId = GetFacilityId();
         if (facilityId == Dimension3Catalog.FacilityProductionConsole)
-            SetOptions(channelDropdown,
-                new[] { "Capacidad", "Respuesta", "Disciplina", "Coordinación" });
+            _channelOptions.Rebuild(channelDropdown,
+                Dimension3Catalog.ProductionConsoleChannelIds,
+                GetChannelName, Dimension3Catalog.ChannelConsoleCapacity);
         else if (facilityId == Dimension3Catalog.FacilityDiagnosticBank ||
                  facilityId == Dimension3Catalog.FacilityExpeditionPort)
-            SetOptions(channelDropdown,
-                new[] { "Capacidad", "Respuesta", "Coordinación" });
+            _channelOptions.Rebuild(channelDropdown,
+                facilityId == Dimension3Catalog.FacilityDiagnosticBank
+                    ? Dimension3Catalog.DiagnosticBankChannelIds
+                    : Dimension3Catalog.ExpeditionPortChannelIds,
+                GetChannelName, facilityId == Dimension3Catalog.FacilityDiagnosticBank
+                    ? Dimension3Catalog.ChannelDiagnosticCapacity
+                    : Dimension3Catalog.ChannelPortCapacity);
         else
-            SetOptions(channelDropdown, new[] { "Coordinación" });
+            _channelOptions.Rebuild(channelDropdown,
+                Dimension3Catalog.AutomationCoreChannelIds,
+                GetChannelName, Dimension3Catalog.ChannelCoreCoordination);
         Refresh();
     }
 
@@ -108,6 +124,11 @@ public class D3FacilitiesPanelUI : MonoBehaviour
         Dimension3State state = GameState.I.dimension3;
         string facilityId = GetFacilityId();
         int level = D3FacilitySystem.GetFacilityLevel(state, facilityId);
+        int selectedMk = _mkOptions.ResolveOrDefault(
+            mkDropdown == null ? 0 : mkDropdown.value, 1);
+        _mkOptions.Rebuild(mkDropdown,
+            D3ProgressivePresentationRules.GetUnlockedAssemblyMks(GameState.I),
+            value => "MK" + value, selectedMk);
         double capacity = D3FacilitySystem.GetEffectiveCapacity(state, facilityId);
         int nextFunction = Math.Min(5, Math.Max(1, level));
         D3AssignmentState assignment = D3FacilitySystem.GetAssignment(
@@ -116,33 +137,31 @@ public class D3FacilitiesPanelUI : MonoBehaviour
         long stable = assignment == null ? 0L : assignment.stabilizedAmount;
         if (statusText != null)
         {
-            statusText.text = GetFacilityName(facilityId) + " — NIVEL " + level +
-                "\nCapacidad efectiva: " + capacity.ToString("0.##") +
-                " | Requerida N" + nextFunction + ": " +
-                D3FacilitySystem.GetRequiredEffectiveCapacity(nextFunction).ToString("0") +
-                "\nCanal seleccionado: " + GetChannelName() +
-                " | Asignados: " + assigned + " | Estables: " + stable;
+            D3FacilityLevelDefinition next =
+                Dimension3Catalog.GetFacilityLevelDefinition(facilityId, level + 1);
+            if (level == 0 && next != null)
+                statusText.text = GetFacilityName(facilityId) +
+                    "\nFUNCIÓN: " + GetHumanFunction(facilityId) +
+                    "\nCosto: " + D3PowerSystem.GetModifiedCost(state, next.leCost).ToString("0") +
+                    " LE + " + D3PowerSystem.GetModifiedCost(state, next.tracesCost).ToString("0") +
+                    " T · " + Math.Ceiling(next.durationSeconds) + " s" +
+                    "\nRequisito: " + next.requiredAssemblyAmount +
+                    " ensamblajes MK" + next.requiredAssemblyMk;
+            else
+                statusText.text = GetFacilityName(facilityId) + " — NIVEL " + level +
+                    "\nFunción actual: " + GetHumanFunction(facilityId) +
+                    "\nCapacidad efectiva: " + capacity.ToString("0.##") +
+                    " | Siguiente nivel: " + (level >= 5 ? "máximo" : "N" + (level + 1)) +
+                    "\nCanal seleccionado: " + GetChannelName() +
+                    " | Asignados: " + assigned + " | Estables: " + stable;
         }
         if (functionsText != null)
         {
-            functionsText.text = facilityId == Dimension3Catalog.FacilityProductionConsole
-                ? "FUNCIONES\nN1 Compras simples ya usadas manualmente\n" +
-                  "N2 Prioridad y reservas\nN3 Mejoras repetibles ya usadas\n" +
-                  "N4 Fase preferida del Modulador\nN5 Configuración básica del Triángulo\n\n" +
-                  "Control operativo disponible desde el nivel 1."
-                : "FUNCIONES\nN1 Autoanálisis de nodos válidos\n" +
-                  "N2 Autorreparación con reservas\nN3 Prioridad por zona\n" +
-                  "N4 Recetas de fusión marcadas\nN5 Rutina offline con Núcleo N5";
-            if (facilityId == Dimension3Catalog.FacilityExpeditionPort)
-                functionsText.text = "FUNCIONES\nN1 Repetir la última ruta simple conocida\n" +
-                    "N2 Prioridades entre rutas conocidas\n" +
-                    "N3 Selección de ruta segura\nN4 Mejoras de extractores ya usadas\n" +
-                    "N5 Expediciones externas offline con Núcleo N5";
-            else if (facilityId == Dimension3Catalog.FacilityAutomationCore)
-                functionsText.text = "FUNCIONES\nN1 Dos rutinas y +5% de eficiencia\n" +
-                    "N2 Tres rutinas y un perfil\nN3 Cuatro rutinas y +10% de eficiencia\n" +
-                    "N4 Cinco rutinas y dos perfiles\nN5 Automatización externa offline\n\n" +
-                    "Límite activo: " +
+            functionsText.text = level == 0
+                ? "DETALLE\nSe mostrará el control operativo cuando termine la construcción."
+                : "FUNCIÓN OPERATIVA\n" + GetCurrentFunction(facilityId, level);
+            if (level > 0 && facilityId == Dimension3Catalog.FacilityAutomationCore)
+                functionsText.text += "\n\nCapacidad actual: " +
                     D3FacilitySystem.GetAutomationCoreRoutineLimit(state) +
                     " rutinas | " +
                     D3FacilitySystem.GetAutomationCoreProfileLimit(state) +
@@ -270,37 +289,24 @@ public class D3FacilitiesPanelUI : MonoBehaviour
     private string GetFacilityId()
     {
         int index = facilityDropdown == null ? 0 : facilityDropdown.value;
-        switch (index)
-        {
-            case 1: return Dimension3Catalog.FacilityDiagnosticBank;
-            case 2: return Dimension3Catalog.FacilityExpeditionPort;
-            case 3: return Dimension3Catalog.FacilityAutomationCore;
-            default: return Dimension3Catalog.FacilityProductionConsole;
-        }
+        return _facilityOptions.ResolveOrDefault(index,
+            Dimension3Catalog.FacilityProductionConsole);
     }
 
     private string GetChannelId()
     {
         int index = channelDropdown == null ? 0 : channelDropdown.value;
         string facilityId = GetFacilityId();
-        string[] channels;
-        if (facilityId == Dimension3Catalog.FacilityProductionConsole)
-            channels = Dimension3Catalog.ProductionConsoleChannelIds;
-        else if (facilityId == Dimension3Catalog.FacilityDiagnosticBank)
-            channels = Dimension3Catalog.DiagnosticBankChannelIds;
-        else if (facilityId == Dimension3Catalog.FacilityExpeditionPort)
-            channels = Dimension3Catalog.ExpeditionPortChannelIds;
-        else
-            channels = Dimension3Catalog.AutomationCoreChannelIds;
-        return channels[Math.Max(0, Math.Min(index, channels.Length - 1))];
+        return _channelOptions.ResolveOrDefault(index,
+            D3FacilitySystem.GetCoordinationChannel(facilityId));
     }
 
-    private int GetMk() => mkDropdown == null ? 1 : mkDropdown.value + 1;
+    private int GetMk() => _mkOptions.ResolveOrDefault(
+        mkDropdown == null ? 0 : mkDropdown.value, 1);
     private string GetTraitId()
     {
         int index = traitDropdown == null ? 0 : traitDropdown.value;
-        return Dimension3Catalog.TraitIds[
-            Math.Max(0, Math.Min(index, Dimension3Catalog.TraitIds.Length - 1))];
+        return _traitOptions.ResolveOrDefault(index, Dimension3Catalog.TraitNormal);
     }
     private string GetChannelName() => channelDropdown == null ||
         channelDropdown.options.Count == 0 ? "-" :
@@ -314,6 +320,35 @@ public class D3FacilitiesPanelUI : MonoBehaviour
         if (id == Dimension3Catalog.FacilityAutomationCore)
             return "NÚCLEO DE AUTOMATIZACIÓN";
         return "CONSOLA DE PRODUCCIÓN";
+    }
+    private static string GetHumanFunction(string id)
+    {
+        if (id == Dimension3Catalog.FacilityDiagnosticBank)
+            return "analiza y repara sistemas ya autorizados";
+        if (id == Dimension3Catalog.FacilityExpeditionPort)
+            return "repite expediciones D1 conocidas manualmente";
+        if (id == Dimension3Catalog.FacilityAutomationCore)
+            return "coordina rutinas y automatización offline";
+        return "compra producción base ya autorizada";
+    }
+    private static string GetCurrentFunction(string id, int level)
+    {
+        return GetHumanFunction(id) + " · función N" + level + " activa" +
+            (level < 5 ? " · siguiente: N" + (level + 1) : "");
+    }
+    private static string GetTraitName(string id)
+    {
+        if (id == Dimension3Catalog.TraitFast) return "Rápido";
+        if (id == Dimension3Catalog.TraitEfficient) return "Eficiente";
+        if (id == Dimension3Catalog.TraitCoordinator) return "Coordinador";
+        return "Normal";
+    }
+    private static string GetChannelName(string id)
+    {
+        if (id != null && id.IndexOf("capacity", StringComparison.Ordinal) >= 0) return "Capacidad";
+        if (id != null && id.IndexOf("response", StringComparison.Ordinal) >= 0) return "Respuesta";
+        if (id != null && id.IndexOf("cost", StringComparison.Ordinal) >= 0) return "Disciplina";
+        return "Coordinación";
     }
     private void SetNotice(string value)
     {

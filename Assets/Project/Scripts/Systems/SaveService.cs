@@ -3,9 +3,20 @@ using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum SaveFailureInjectionPoint
+{
+    None = 0,
+    BeforeTempWrite = 1,
+    AfterTempWrite = 2,
+    AfterTempValidation = 3,
+    BeforeReplace = 4
+}
+
 [Serializable]
 public class SaveData
 {
+    public int removedLegacyResourcesVersion;
+    public int f2ProgressionMigrationVersion;
 
         // F3 / Cuarto 2 - recursos
     public int fragmentCondensation;
@@ -37,6 +48,7 @@ public class SaveData
     public int triangleCircuitSaveVersion;
     public int triangleActiveCircuit;
     public float triangleSynchronization;
+    public double triangleSynchronizationBaseRatePerSecond;
     public string trianglePrimaryBuildingId;
     public string triangleReinforcementBuildingId;
     public string triangleAlterationBuildingId;
@@ -48,10 +60,11 @@ public class SaveData
     public bool machineUnlocked;
     public bool machineFusionPanelUnlocked;
     public bool machineAllZonesUnlocked;
+    public int machineSelectedFaceIndex = 1;
     public double LE;
     public double Traces;
     public double VP;
-    // Mid-game: recurso EM
+    // Compatibilidad heredada: conservar para leer JSON anterior al retiro.
     public double EM;
     public double emMult;
     public int phaseModulatorMode;
@@ -74,12 +87,12 @@ public class SaveData
     // F6.1: Máximo LE alcanzado en el run
     public double maxLEAlcanzado;
     public List<SavedF2UpgradeTier> f2UpgradeTiers = new();
-    // F7: Recursos late-game
+    // Compatibilidad heredada: conservar para leer JSON anterior al retiro.
     public double ADP;
     public double WHF;
     // F7: Prestigio 2 (Lambda)
     public double Lambda;
-    // F7: Estadísticas acumuladas para meta-prestigio
+    // Compatibilidad heredada: conservar para leer JSON anterior al retiro.
     public double totalADPGenerada;
     public double totalWHFGenerada;
     // Lista de investigaciones compradas (ids)
@@ -155,6 +168,7 @@ public class SaveData
 
 public class SaveService : MonoBehaviour
 {
+    public const int RemovedLegacyResourcesVersion = 1;
     public static List<string> LastLoadedResearchIds;
     public static List<string> LastLoadedAchievementIds;
     public static List<SavedBuildingLevel> LastLoadedBuildingLevels;
@@ -164,9 +178,17 @@ public class SaveService : MonoBehaviour
     public static SaveService I { get; private set; }
 
     private string SavePath => Path.Combine(Application.persistentDataPath, "save.json");
+    private string SaveBackupPath => SavePath + ".bak";
+
+    public string CurrentSavePath => SavePath;
+
+    public static SaveFailureInjectionPoint FailureInjectionPoint = SaveFailureInjectionPoint.None;
 
     [Tooltip("Autosave cada N segundos.")]
     public int autosaveSeconds = 30;
+
+    private bool resumePending;
+    private bool pauseSaveSucceeded;
 
     private void Awake()
     {
@@ -197,27 +219,82 @@ public class SaveService : MonoBehaviour
 
     private void OnApplicationPause(bool pause)
     {
+        TickSystem.I?.ResetAccumulator();
+
         if (pause)
         {
 #if UNITY_EDITOR
             Debug.Log("[SaveService] OnApplicationPause(true) -> Save()");
 #endif
+            resumePending = true;
+            pauseSaveSucceeded = TrySave(out string error);
+            if (!pauseSaveSucceeded)
+                Debug.LogError("[SaveService] No se pudo guardar al pausar: " + error);
+            return;
+        }
+
+        // Unity también puede enviar pause=false durante el arranque. Solo se
+        // procesa una reanudación si antes recibimos una pausa real.
+        if (!resumePending)
+            return;
+
+        resumePending = false;
+        bool canRestoreFromPauseSave = pauseSaveSucceeded;
+        pauseSaveSucceeded = false;
+        if (!canRestoreFromPauseSave || GameState.I == null)
+            return;
+
+        try
+        {
+            // El save de la pausa contiene el instante exacto de salida. Load
+            // aplica el tiempo ausente mediante las reglas offline ya validadas.
+            Load();
+            GameState.I.ApplyBuildingLevelsFromSave(
+                LastLoadedBuildingLevels);
+
+            // Persistir inmediatamente el estado ya reanudado evita volver a
+            // conceder el mismo intervalo si Android mata el proceso enseguida.
             Save();
+#if UNITY_EDITOR
+            Debug.Log("[SaveService] Reanudacion completada desde pausa.");
+#endif
+        }
+        catch (Exception exception)
+        {
+            Debug.LogException(exception);
         }
     }
 
     public void Save()
     {
+        if (!TrySave(out string error))
+            Debug.LogError("[SaveService] No se pudo guardar: " + error);
+    }
+
+    public bool TrySave(out string error)
+    {
+        error = null;
         if (GameState.I == null)
         {
         #if UNITY_EDITOR
             Debug.LogWarning("[SaveService] Save() cancelado: GameState.I es null.");
         #endif
-            return;
+            error = "GameState.I es null.";
+            return false;
         }
+
+        if (ConvergenceSystem.IsFutureVersion(GameState.I.convergence))
+        {
+            error = "El estado de Convergencia pertenece a una versiÃ³n futura.";
+            return false;
+        }
+
+        ApplyRemovedLegacyResourcesMigration(null, GameState.I);
 
         var data = new SaveData
         {
+        removedLegacyResourcesVersion = RemovedLegacyResourcesVersion,
+        f2ProgressionMigrationVersion = F2UpgradeManager.ProgressionMigrationVersion,
         LE = GameState.I.LE,
         Traces = GameState.I.Traces,
         VP = GameState.I.VP,
@@ -230,6 +307,8 @@ public class SaveService : MonoBehaviour
         triangleCircuitSaveVersion = 1,
         triangleActiveCircuit = (int)GameState.I.triangleActiveCircuit,
         triangleSynchronization = GameState.I.triangleSynchronization,
+        triangleSynchronizationBaseRatePerSecond =
+            GameState.I.triangleSynchronizationBaseRatePerSecond,
 
         // Prestigio 1 - descubrimiento dimensional
         prestige1Count = GameState.I.prestige1Count,
@@ -361,11 +440,13 @@ public class SaveService : MonoBehaviour
         }
 
         var json = JsonUtility.ToJson(data, prettyPrint: true);
-        File.WriteAllText(SavePath, json);
+        if (!TryWriteAtomicJson(SavePath, json, out error))
+            return false;
 
 #if UNITY_EDITOR
         Debug.Log($"[SaveService] Saved: {SavePath}");
 #endif
+        return true;
     }
 
     public void Load()
@@ -382,8 +463,18 @@ public class SaveService : MonoBehaviour
             return;
         }
 
-        var json = File.ReadAllText(SavePath);
-        var data = JsonUtility.FromJson<SaveData>(json);
+        if (!TryReadSaveData(SavePath, out SaveData data))
+        {
+            if (!TryReadSaveData(SaveBackupPath, out data))
+            {
+                Debug.LogError("[SaveService] El save y su backup no son legibles; se inicia una partida nueva.");
+                InitNewGame();
+                return;
+            }
+            Debug.LogWarning("[SaveService] Se recuperÃ³ la partida desde save.json.bak.");
+        }
+
+        ApplyRemovedLegacyResourcesMigration(data, GameState.I);
 
         bool noBuildings = (data.buildingLevels == null || data.buildingLevels.Count == 0);
         bool looksFresh = data.LE <= 0.0 && data.maxLEAlcanzado <= 0.0 && data.Lambda <= 0.0 && noBuildings;
@@ -398,13 +489,15 @@ public class SaveService : MonoBehaviour
         GameState.I.LE = data.LE;
         GameState.I.Traces = data.Traces;
         GameState.I.VP = data.VP;
-        GameState.I.EM = data.EM;
-        GameState.I.emMult = data.emMult;
+        GameState.I.EM = 0.0;
+        GameState.I.emMult = 0.0;
         GameState.I.baseLEps = data.baseLEps;
         GameState.I.phaseModulatorMode = (PhaseModulatorMode)data.phaseModulatorMode;
         GameState.I.phaseModulatorCalibration = data.phaseModulatorCalibration;
         GameState.I.triangleActiveCircuit = (TriangleCircuitType)data.triangleActiveCircuit;
         GameState.I.triangleSynchronization = data.triangleSynchronization;
+        GameState.I.triangleSynchronizationBaseRatePerSecond =
+            data.triangleSynchronizationBaseRatePerSecond;
         // GameState.I.trianglePersistenceMaturation = data.trianglePersistenceMaturation;
         GameState.I.trianglePersistenceReserveSeconds = data.trianglePersistenceReserveSeconds;
         GameState.I.experimentalChamberUnlocked = data.experimentalChamberUnlocked;
@@ -486,7 +579,6 @@ public class SaveService : MonoBehaviour
         GameState.I.EnsureDimension2State();
         GameState.I.EnsureDimension3State();
         GameState.I.EnsureConvergenceState();
-        ConvergenceCircuitSystem.RecoverTransaction(GameState.I);
 
         // La moneda previa conserva su saldo y nodos comprados. Su nuevo baseline
         // se fija contra el progreso D1 actual para no repetir recompensas antiguas.
@@ -507,11 +599,12 @@ public class SaveService : MonoBehaviour
         GameState.I.maxLEAlcanzado = data.maxLEAlcanzado;
 
         // F7: recursos late-game y Lambda
-        GameState.I.ADP = data.ADP;
-        GameState.I.WHF = data.WHF;
+        GameState.I.ADP = 0.0;
+        GameState.I.WHF = 0.0;
         GameState.I.Lambda = data.Lambda;
-        GameState.I.totalADPGenerada = data.totalADPGenerada;
-        GameState.I.totalWHFGenerada = data.totalWHFGenerada;
+        GameState.I.totalADPGenerada = 0.0;
+        GameState.I.totalWHFGenerada = 0.0;
+        GameState.I.researchGlobalLEMult = 1.0;
 
 
         // F7.5: meta-upgrades
@@ -558,13 +651,24 @@ public class SaveService : MonoBehaviour
             MachineManager.I.LoadProgressFromSave(data);
         }
 
-        GameState.I.SanitizeTriangleCircuit(data.triangleCircuitSaveVersion < 1);
+        if (ConvergenceSystem.IsFutureVersion(GameState.I.convergence))
+        {
+            Debug.LogError("[SaveService] Save de Convergencia de una versiÃ³n futura; no se sobrescribirÃ¡.");
+            return;
+        }
+        // El recovery puede reiniciar el juego base: necesita la MÃ¡quina restaurada.
+        ConvergenceCircuitSystem.RecoverTransaction(GameState.I);
 
         if (F2UpgradeManager.I != null)
         {
-            F2UpgradeManager.I.ApplyLoadedPurchasedTiers(data.f2UpgradeTiers);
+            F2UpgradeManager.I.ApplyLoadedPurchasedTiers(
+                data.f2UpgradeTiers, data.f2ProgressionMigrationVersion);
         }
 
+        GameState.I.SanitizeTriangleCircuit(data.triangleCircuitSaveVersion < 1);
+
+        PresentationReturnSnapshot presentationBeforeOffline =
+            PresentationReturnReportService.Capture(GameState.I);
         long nowUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         double offlineSeconds = Math.Max(0.0, nowUnix - data.lastUnix);
         ConvergenceTelemetrySystem.RecordOfflineElapsed(GameState.I, offlineSeconds);
@@ -587,6 +691,13 @@ public class SaveService : MonoBehaviour
             : Dimension1System.ApplyOfflineMining(GameState.I, offlineSeconds);
         double d2OfflineApplied = Dimension2System.ApplyOfflineProgress(GameState.I, offlineSeconds);
         double d3OfflineApplied = Dimension3System.ApplyOfflineProgress(GameState.I, offlineSeconds);
+
+        PresentationReturnReportService.Prepare(
+            presentationBeforeOffline,
+            GameState.I,
+            offlineSeconds,
+            d2OfflineApplied,
+            d3OfflineApplied);
 
         GameState.I.ApplyOfflineBaseProgress(baseOfflineApplied);
         if (machineWasAnalyzing)
@@ -740,6 +851,88 @@ public class SaveService : MonoBehaviour
         return result;
     }
 
+    public static bool TryWriteAtomicJson(string savePath, string json, out string error)
+    {
+        error = null;
+        string tempPath = savePath + ".tmp";
+        string backupPath = savePath + ".bak";
+        try
+        {
+            if (FailureInjectionPoint == SaveFailureInjectionPoint.BeforeTempWrite)
+                throw new IOException("Fallo inyectado antes del temporal.");
+            string directory = Path.GetDirectoryName(savePath);
+            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+            using (var stream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (var writer = new StreamWriter(stream))
+            {
+                writer.Write(json);
+                writer.Flush();
+                stream.Flush(true);
+            }
+            if (FailureInjectionPoint == SaveFailureInjectionPoint.AfterTempWrite)
+                throw new IOException("Fallo inyectado despuÃ©s del temporal.");
+            if (!TryReadSaveData(tempPath, out _))
+                throw new InvalidDataException("El save temporal no se puede deserializar.");
+            if (FailureInjectionPoint == SaveFailureInjectionPoint.AfterTempValidation)
+                throw new IOException("Fallo inyectado despuÃ©s de validar el temporal.");
+            if (FailureInjectionPoint == SaveFailureInjectionPoint.BeforeReplace)
+                throw new IOException("Fallo inyectado antes de reemplazar el save.");
+
+            if (File.Exists(savePath))
+                File.Replace(tempPath, savePath, backupPath, true);
+            else
+                File.Move(tempPath, savePath);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+            return false;
+        }
+        finally
+        {
+            FailureInjectionPoint = SaveFailureInjectionPoint.None;
+            if (File.Exists(tempPath)) File.Delete(tempPath);
+        }
+    }
+
+    public static bool TryReadSaveData(string path, out SaveData data)
+    {
+        data = null;
+        try
+        {
+            if (!File.Exists(path)) return false;
+            string json = File.ReadAllText(path);
+            data = JsonUtility.FromJson<SaveData>(json);
+            return data != null;
+        }
+        catch (Exception) { data = null; return false; }
+    }
+
+    public static void ApplyRemovedLegacyResourcesMigration(
+        SaveData data, GameState state)
+    {
+        if (data != null)
+        {
+            data.EM = 0.0;
+            data.emMult = 0.0;
+            data.ADP = 0.0;
+            data.WHF = 0.0;
+            data.totalADPGenerada = 0.0;
+            data.totalWHFGenerada = 0.0;
+            data.removedLegacyResourcesVersion = RemovedLegacyResourcesVersion;
+        }
+
+        if (state == null) return;
+        state.EM = 0.0;
+        state.emMult = 0.0;
+        state.ADP = 0.0;
+        state.WHF = 0.0;
+        state.totalADPGenerada = 0.0;
+        state.totalWHFGenerada = 0.0;
+        state.researchGlobalLEMult = 1.0;
+    }
+
     private void InitNewGame()
     {
         if (GameState.I == null) return;
@@ -750,6 +943,7 @@ public class SaveService : MonoBehaviour
 
         GameState.I.EM = 0.0;
         GameState.I.emMult = 0.0;
+        GameState.I.researchGlobalLEMult = 1.0;
 
         GameState.I.baseLEps = 0.0;
         GameState.I.phaseModulatorMode = PhaseModulatorMode.None;
@@ -757,6 +951,7 @@ public class SaveService : MonoBehaviour
         GameState.I.trianglePersistenceReserveSeconds = 0.0;
         GameState.I.triangleActiveCircuit = TriangleCircuitType.None;
         GameState.I.triangleSynchronization = 0f;
+        GameState.I.triangleSynchronizationBaseRatePerSecond = 0.0;
         GameState.I.experimentalChamberUnlocked = false;
         GameState.I.experimentalChamberInitialPackGranted = false;
         // Sistema de dimensiones
@@ -837,6 +1032,7 @@ public class SaveService : MonoBehaviour
         GameState.I.triangleSystemUnlocked = false;
         GameState.I.triangleActiveCircuit = TriangleCircuitType.None;
         GameState.I.triangleSynchronization = 0f;
+        GameState.I.triangleSynchronizationBaseRatePerSecond = 0.0;
         GameState.I.trianglePrimaryBuildingId = "";
         GameState.I.triangleReinforcementBuildingId = "";
         GameState.I.triangleAlterationBuildingId = "";
@@ -909,6 +1105,7 @@ public class SaveService : MonoBehaviour
             GameState.I.triangleSystemUnlocked = false;
             GameState.I.triangleActiveCircuit = TriangleCircuitType.None;
             GameState.I.triangleSynchronization = 0f;
+            GameState.I.triangleSynchronizationBaseRatePerSecond = 0.0;
             GameState.I.trianglePrimaryBuildingId = "";
             GameState.I.triangleReinforcementBuildingId = "";
             GameState.I.triangleAlterationBuildingId = "";
@@ -926,6 +1123,18 @@ public class SaveService : MonoBehaviour
         {
             MachineManager.I.ResetOperationalProgress();
         }
+
+        // GameState y algunos managers sobreviven a la recarga de la escena.
+        // No dejar que los buffers del save anterior vuelvan a aplicar niveles,
+        // investigaciones o logros después de pulsar RESET.
+        LastLoadedResearchIds = new List<string>();
+        LastLoadedAchievementIds = new List<string>();
+        LastLoadedBuildingLevels = new List<SavedBuildingLevel>();
+
+        if (ResearchManager.I != null)
+            ResearchManager.I.ApplyLoadedResearch(LastLoadedResearchIds);
+        if (AchievementManager.I != null)
+            AchievementManager.I.ApplyLoadedAchievements(LastLoadedAchievementIds);
 
     #if UNITY_EDITOR
         Debug.Log("[SaveService] Save deleted.");

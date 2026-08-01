@@ -124,6 +124,8 @@ public class TrianglePanelUI : MonoBehaviour
     private string GetCircuitButtonText(TriangleCircuitType circuit)
     {
         var lm = LocalizationManager.I;
+        if (GameState.I == null || !GameState.I.CanUseTriangleCircuits())
+            return string.Empty;
         switch (circuit)
         {
             case TriangleCircuitType.Energy:
@@ -140,6 +142,37 @@ public class TrianglePanelUI : MonoBehaviour
     }
 
     private string GetProtocolStatusText()
+    {
+        var lm = LocalizationManager.I;
+
+        if (GameState.I == null || !GameState.I.IsPhaseModulatorOwned())
+            return lm != null ? lm.T("triangle.progress.locked.title") : "Triángulo bloqueado";
+        if (!GameState.I.triangleSystemUnlocked)
+            return lm != null ? lm.T("triangle.progress.ready.title") : "Vértices listos";
+        if (!GameState.I.HasAllTriangleVertices())
+            return lm != null ? lm.T("triangle.progress.locked.title") : "Triángulo bloqueado";
+        if (GameState.I.triangleActiveCircuit == TriangleCircuitType.None)
+            return lm != null ? lm.T("triangle.progress.choose") : "Elige un circuito";
+
+        string activeName = GetCircuitName(GameState.I.triangleActiveCircuit);
+        int pct = Mathf.RoundToInt(GameState.I.triangleSynchronization * 100f);
+        if (pct >= 100)
+            return string.Format(lm != null ? lm.T("triangle.progress.stable") : "{0} estable", activeName);
+        int remaining = Mathf.CeilToInt(
+            (float)GameState.I.GetTriangleSynchronizationRemainingSeconds());
+        return string.Format(lm != null ? lm.T("triangle.progress.syncing") : "{0} · {1}% · {2} s", activeName, pct, remaining);
+    }
+
+    private string GetCircuitName(TriangleCircuitType circuit)
+    {
+        var lm = LocalizationManager.I;
+        if (circuit == TriangleCircuitType.Energy) return lm != null ? lm.T("triangle.circuit.energy") : "Energía";
+        if (circuit == TriangleCircuitType.Experimental) return lm != null ? lm.T("triangle.circuit.experimental") : "Experimental";
+        if (circuit == TriangleCircuitType.Phase) return lm != null ? lm.T("triangle.circuit.phase") : "Fase";
+        return string.Empty;
+    }
+
+    private string GetLegacyProtocolStatusText()
     {
         var lm = LocalizationManager.I;
 
@@ -197,9 +230,10 @@ public class TrianglePanelUI : MonoBehaviour
             : "Sincronización";
 
         if (GameState.I == null || !GameState.I.IsPhaseModulatorOwned())
-        {
-            return $"{label}: 0%";
-        }
+            return lm != null ? lm.T("triangle.progress.locked.modulator") : "Falta: Modulador";
+        if (!GameState.I.triangleSystemUnlocked)
+            return lm != null ? lm.T("triangle.progress.ready.coupling") : "Investiga Acople · 250 Trazas";
+        if (GameState.I.triangleActiveCircuit == TriangleCircuitType.None) return string.Empty;
         int synchronizationPercent = Mathf.RoundToInt(GameState.I.triangleSynchronization * 100f);
         return $"{label}: {synchronizationPercent}%";
     }
@@ -212,7 +246,7 @@ public class TrianglePanelUI : MonoBehaviour
             ? lm.T("triangle.circuit.effect.label")
             : "Efecto";
 
-        if (GameState.I == null || !GameState.I.IsPhaseModulatorOwned())
+        if (GameState.I == null || !GameState.I.IsTriangleSystemActive())
         {
             string inactive = lm != null
                 ? lm.T("triangle.modulator.effect.inactive")

@@ -36,14 +36,22 @@ public class D3CalibrationPanelUI : MonoBehaviour
     private readonly List<D3CalibrationControlState> _controls =
         new List<D3CalibrationControlState>();
     private readonly HashSet<string> _recordedParts = new HashSet<string>();
+    private readonly SafeDropdownOptionMap<string> _partOptions =
+        new SafeDropdownOptionMap<string>(StringComparer.Ordinal);
+    private readonly SafeDropdownOptionMap<int> _mkOptions =
+        new SafeDropdownOptionMap<int>();
+    private readonly SafeDropdownOptionMap<long> _quantityOptions =
+        new SafeDropdownOptionMap<long>();
     private float _refreshRemaining;
 
     private void Awake()
     {
-        ConfigureDropdown(partDropdown,
-            new[] { "Chasis", "Sistema Motriz", "Herramienta", "Módulo de Control", "Regulador" });
-        ConfigureDropdown(mkDropdown, new[] { "MK1", "MK2", "MK3", "MK4", "MK5", "MK6" });
-        ConfigureDropdown(quantityDropdown, new[] { "Cantidad 1", "Cantidad 2", "Cantidad 3", "Cantidad 4", "Cantidad 5" });
+        _partOptions.Rebuild(partDropdown,
+            new[] { Dimension3Catalog.PartChassis }, GetPartDisplayName,
+            Dimension3Catalog.PartChassis);
+        _mkOptions.Rebuild(mkDropdown, new[] { 1 }, value => "MK" + value, 1);
+        _quantityOptions.Rebuild(quantityDropdown, new long[] { 1L },
+            value => "Cantidad " + value, 1L);
         if (partDropdown != null) partDropdown.onValueChanged.AddListener(OnPartChanged);
         AddListener(recordPartButton, RecordSelectedPart);
         AddListener(saveProfileButton, SaveProfile);
@@ -237,8 +245,10 @@ public class D3CalibrationPanelUI : MonoBehaviour
     {
         List<D3CalibrationReadingState> readings = BuildReadings();
         string reason;
-        int mk = mkDropdown == null ? 1 : mkDropdown.value + 1;
-        long quantity = quantityDropdown == null ? 1L : quantityDropdown.value + 1L;
+        int mk = _mkOptions.ResolveOrDefault(
+            mkDropdown == null ? 0 : mkDropdown.value, 1);
+        long quantity = _quantityOptions.ResolveOrDefault(
+            quantityDropdown == null ? 0 : quantityDropdown.value, 1L);
         if (Dimension3System.TryQueueTraitAssembly(GameState.I, mk, quantity, readings, out reason))
         {
             D3CalibrationEvaluation evaluation = D3CalibrationSystem.Evaluate(readings);
@@ -252,6 +262,7 @@ public class D3CalibrationPanelUI : MonoBehaviour
     private void Refresh()
     {
         if (GameState.I == null || GameState.I.dimension3 == null) return;
+        RefreshProgressiveOptions();
         List<D3CalibrationReadingState> readings = BuildReadings();
         if (readingsText != null)
         {
@@ -269,26 +280,66 @@ public class D3CalibrationPanelUI : MonoBehaviour
         D3CalibrationEvaluation evaluation = D3CalibrationSystem.Evaluate(readings);
         if (previewText != null)
         {
-            previewText.text = evaluation.calibratedCount == 0
-                ? "PREVIEW\nCalibra al menos una pieza."
-                : "PREVIEW\nCandidato: " + GetTraitDisplayName(evaluation.candidateTraitId) +
-                  "\nAfinidad: " + evaluation.affinity.ToString("0.##") + "% (" +
-                  evaluation.GetAffinityBand() + ")\nResultado actual: " +
-                  GetTraitDisplayName(evaluation.resultTraitId);
+            if (evaluation.calibratedCount == 0)
+                previewText.text = "CAPA BÁSICA\nCalibra el primer módulo para obtener una afinidad provisional.";
+            else if (evaluation.calibratedCount < 5)
+                previewText.text = "CAPA DE COMPARACIÓN\nAfinidad provisional: " +
+                    GetTraitDisplayName(evaluation.candidateTraitId) + " · " +
+                    evaluation.GetAffinityBand() +
+                    "\nCompleta el checklist para confirmar el resultado.";
+            else
+                previewText.text = "CAPA TÉCNICA\nCandidato: " +
+                    GetTraitDisplayName(evaluation.candidateTraitId) +
+                    "\nAfinidad: " + evaluation.affinity.ToString("0.##") + "% (" +
+                    evaluation.GetAffinityBand() + ")\nResultado: " +
+                    GetTraitDisplayName(evaluation.resultTraitId) +
+                    (evaluation.resultTraitId == Dimension3Catalog.TraitNormal
+                        ? "\nAfinidad insuficiente: el ensamblaje será Normal."
+                        : "");
         }
         int level = D3FacilitySystem.GetProcessBankLevel(GameState.I.dimension3);
-        SetInteractable(saveProfileButton, readings.Count == 5 && level >= 1);
+        SetActive(saveProfileButton, level >= 1);
+        SetActive(loadProfileButton, level >= 2);
+        SetActive(autoRepeatPartButton, level >= 3);
+        SetActive(autoRepeatAllButton, level >= 4);
+        SetActive(quantityDropdown, level >= 5);
+        SetInteractable(saveProfileButton, readings.Count == 5);
         SetInteractable(loadProfileButton,
-            level >= 2 && GameState.I.dimension3.calibrationProfiles.Count > 0);
+            GameState.I.dimension3.calibrationProfiles.Count > 0);
         SetInteractable(autoRepeatPartButton,
-            level >= 3 && GameState.I.dimension3.calibrationProfiles.Count > 0);
+            GameState.I.dimension3.calibrationProfiles.Count > 0);
         SetInteractable(autoRepeatAllButton,
-            level >= 4 && GameState.I.dimension3.calibrationProfiles.Count > 0);
-        if (quantityDropdown != null) quantityDropdown.interactable = level >= 5;
-        int mk = mkDropdown == null ? 1 : mkDropdown.value + 1;
+            GameState.I.dimension3.calibrationProfiles.Count > 0);
+        int mk = _mkOptions.ResolveOrDefault(
+            mkDropdown == null ? 0 : mkDropdown.value, 1);
         SetInteractable(queueTraitAssemblyButton,
             readings.Count == 5 && D3AssemblySystem.IsNormalMkUnlocked(GameState.I, mk));
         UpdateLiveLabels();
+    }
+
+    private void RefreshProgressiveOptions()
+    {
+        string selectedPart = GetSelectedPartId();
+        int visibleCount = Math.Min(Dimension3Catalog.PartIds.Length,
+            Math.Max(1, _recordedParts.Count + 1));
+        var parts = new List<string>();
+        for (int i = 0; i < visibleCount; i++)
+            parts.Add(Dimension3Catalog.PartIds[i]);
+        _partOptions.Rebuild(partDropdown, parts, GetPartDisplayName, selectedPart);
+
+        int selectedMk = _mkOptions.ResolveOrDefault(
+            mkDropdown == null ? 0 : mkDropdown.value, 1);
+        _mkOptions.Rebuild(mkDropdown,
+            D3ProgressivePresentationRules.GetUnlockedAssemblyMks(GameState.I),
+            value => "MK" + value, selectedMk);
+        long selectedQuantity = _quantityOptions.ResolveOrDefault(
+            quantityDropdown == null ? 0 : quantityDropdown.value, 1L);
+        long[] quantities = D3FacilitySystem.GetProcessBankLevel(
+            GameState.I.dimension3) >= 5
+            ? new long[] { 1L, 2L, 3L, 4L, 5L }
+            : new long[] { 1L };
+        _quantityOptions.Rebuild(quantityDropdown, quantities,
+            value => "Cantidad " + value, selectedQuantity);
     }
 
     private void UpdateLiveLabels()
@@ -412,8 +463,8 @@ public class D3CalibrationPanelUI : MonoBehaviour
     private string GetSelectedPartId()
     {
         int index = partDropdown == null ? 0 : partDropdown.value;
-        return Dimension3Catalog.PartIds[Math.Max(0,
-            Math.Min(index, Dimension3Catalog.PartIds.Length - 1))];
+        return _partOptions.ResolveOrDefault(
+            index, Dimension3Catalog.PartChassis);
     }
 
     private void SetInstructions(string text)

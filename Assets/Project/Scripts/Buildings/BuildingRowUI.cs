@@ -18,6 +18,10 @@ public class BuildingRowUI : MonoBehaviour
     public Button buyButton;
     public TextMeshProUGUI statsText;
     public Image tickFill;
+    public Image artifactIcon;
+    public Sprite higgsIcon;
+    public Sprite tetraIcon;
+    public Sprite modulatorIcon;
 
 
 
@@ -50,7 +54,6 @@ public class BuildingRowUI : MonoBehaviour
     private int _lastLang = -999;
 
     private double _lastStatsLeTick = double.NaN;
-    private double _lastStatsEmTick = double.NaN;
     private double _lastStatsInterval = double.NaN;
     private double _lastStatsWorld = double.NaN;
     private double _lastStatsTracesPs = double.NaN;
@@ -90,11 +93,13 @@ public class BuildingRowUI : MonoBehaviour
         this.gameState = gameState;
 
         _cachedName = GetLocalizedBuildingName();
+        RefreshArtifactIcon();
 
         if (buyButton != null)
         {
             buyButton.onClick.RemoveListener(OnBuyClicked);
             buyButton.onClick.AddListener(OnBuyClicked);
+            MobileQaFriendlyLayout.ConfigureButtonForMobile(buyButton);
         }
 
 
@@ -104,7 +109,6 @@ public class BuildingRowUI : MonoBehaviour
         _lastCost = double.NaN;
         _lastReqText = null;
         _lastStatsLeTick = double.NaN;
-        _lastStatsEmTick = double.NaN;
         _lastStatsInterval = double.NaN;
         _lastStatsTracesPs = double.NaN;
         _lastStatsWorld = double.NaN;
@@ -114,6 +118,36 @@ public class BuildingRowUI : MonoBehaviour
         _lastConservationDiscount = float.NaN;
 
         Refresh();
+    }
+
+    public string BuildingId => state != null && state.def != null
+        ? state.def.id
+        : string.Empty;
+
+    public bool IsKnown => state != null && state.def != null &&
+        BuildingUnlock.IsUnlocked(state.def);
+
+    private void RefreshArtifactIcon()
+    {
+        if (artifactIcon == null || state == null || state.def == null)
+            return;
+
+        switch (state.def.id)
+        {
+            case "vacuum_observer":
+                artifactIcon.sprite = higgsIcon;
+                artifactIcon.color = new Color(0f, 0.84f, 1f, 1f);
+                break;
+            case "casimir_panel":
+                artifactIcon.sprite = tetraIcon;
+                artifactIcon.color = new Color(0.73f, 0.31f, 0.93f, 1f);
+                break;
+            case "fluctuation_antenna":
+                artifactIcon.sprite = modulatorIcon;
+                artifactIcon.color = new Color(1f, 0.60f, 0.13f, 1f);
+                break;
+        }
+        artifactIcon.enabled = artifactIcon.sprite != null;
     }
 
     private void Update()
@@ -144,7 +178,8 @@ public class BuildingRowUI : MonoBehaviour
 
         tickFill.transform.parent.gameObject.SetActive(true);
 
-       float interval = (float)state.def.tickInterval;
+       float interval = (float)gameState.GetEffectiveBuildingTickInterval(
+           state.def.id, state.def.tickInterval);
 
         interval = Mathf.Max(0.0001f, interval);
 
@@ -197,8 +232,10 @@ public class BuildingRowUI : MonoBehaviour
             {
                 if (state.def.id == "fluctuation_antenna" && gameState != null)
                 {
-                    int pct = Mathf.RoundToInt(gameState.triangleSynchronization * 100f);
-                    shownName = $"{_cachedName} — {pct}%";
+                    if (state.level <= 0) shownName = $"{_cachedName} — Nv. {state.level}";
+                    else if (!gameState.triangleSystemUnlocked)
+                        shownName = $"{_cachedName} — {L("building.modulator.ready", "Vértice listo")}";
+                    else shownName = $"{_cachedName} — {L("building.modulator.active", "Triángulo activo")}";
                 }
                 else
                 {
@@ -400,7 +437,9 @@ public class BuildingRowUI : MonoBehaviour
             state.level > 0;
 
         if (modulatorBought)
-            return "Gestionar en el Triángulo";
+            return gameState != null && gameState.triangleSystemUnlocked
+                ? L("building.modulator.active", "Triángulo activo")
+                : L("building.modulator.ready", "Vértice listo");
 
         return (LocalizationManager.I != null)
             ? LocalizationManager.I.T("ui.buy")
@@ -416,23 +455,20 @@ public class BuildingRowUI : MonoBehaviour
 
         string desired = GetBuyButtonLabel();
         if (label.text != desired)
+        {
             label.SetText(desired);
+            MobileQaFriendlyLayout.ConfigureButtonForMobile(buyButton);
+        }
     }
 
         private double GetEffectiveShownInterval(double baseInterval)
     {
         if (gameState == null) return baseInterval;
 
-        double effectiveInterval = baseInterval;
+        double effectiveInterval = gameState.GetEffectiveBuildingTickInterval(
+            state.def.id, baseInterval);
 
-        float expansionBonus = gameState.GetPhaseModulatorExpansionTickBonus();
-        if (expansionBonus > 0f)
-        {
-            effectiveInterval *= (1.0 - expansionBonus);
-        }
-
-        double devMult = (TickSystem.I != null) ? TickSystem.I.devMultiplier : 1.0;
-        if (devMult <= 0.0) devMult = 1.0;
+        double devMult = QaRuntimeService.SimulationMultiplier;
 
         return effectiveInterval / devMult;
     }
@@ -465,7 +501,7 @@ public class BuildingRowUI : MonoBehaviour
         ? AchievementManager.I.GetGlobalLEFactor()
         : 1.0;
 
-    double worldMult = (1.0 + gameState.emMult) * gameState.researchGlobalLEMult * achFactor;
+    double worldMult = gameState.researchGlobalLEMult * achFactor;
 
     double baseLeTick = def.lePerTickBase * state.level;
 
@@ -493,7 +529,6 @@ public class BuildingRowUI : MonoBehaviour
     double leTickReal = baseLeTick * worldMult;
     leTickReal *= gameState.GetTriangleLEMultiplier();
 
-    double emTick = 0.0;
     double tracesPs = 0.0;
 
     if (def.id == "casimir_panel")
@@ -509,17 +544,6 @@ public class BuildingRowUI : MonoBehaviour
         tracesPs = shownInterval > 0.0 ? (tracesPerTick / shownInterval) : 0.0;
     }
 
-    if (def.emPerTickBase > 0.0)
-    {
-        double emGenFactor = 1.0;
-        if (ResearchManager.I != null)
-            emGenFactor *= ResearchManager.I.GetEMGenerationFactor();
-
-        emGenFactor *= gameState.GetMetaEMGenerationMultiplier();
-
-        emTick = def.emPerTickBase * state.level * emGenFactor;
-    }
-
         int langNow = (LocalizationManager.I != null) ? (int)LocalizationManager.I.CurrentLanguage : -1;
         float expansionBonus = (gameState != null) ? gameState.GetPhaseModulatorExpansionTickBonus() : 0f;
         float modulatorCalibration = (gameState != null) ? gameState.phaseModulatorCalibration : 0f;
@@ -528,7 +552,6 @@ public class BuildingRowUI : MonoBehaviour
 
         if (NearlyEqual(shownInterval, _lastStatsInterval) &&
             NearlyEqual(leTickReal, _lastStatsLeTick) &&
-            NearlyEqual(emTick, _lastStatsEmTick) &&
             NearlyEqual(tracesPs, _lastStatsTracesPs) &&
             NearlyEqual(worldMult, _lastStatsWorld) &&
             Mathf.Abs(expansionBonus - _lastExpansionBonus) < 0.0001f &&
@@ -542,7 +565,6 @@ public class BuildingRowUI : MonoBehaviour
 
         _lastStatsInterval = shownInterval;
         _lastStatsLeTick = leTickReal;
-        _lastStatsEmTick = emTick;
         _lastStatsTracesPs = tracesPs;
         _lastStatsWorld = worldMult;
         _lastExpansionBonus = expansionBonus;
@@ -552,13 +574,7 @@ public class BuildingRowUI : MonoBehaviour
         _lastStatsLang = langNow;
 
 
-    if (def.emPerTickBase > 0.0)
-    {
-        statsText.SetText(
-            $"{costLine}\nTick: +{(float)leTickReal:0.00} LE / {(float)shownInterval:0.0}s\n+{(float)emTick:0.00} EM"
-        );
-    }
-        else if (def.id == "casimir_panel")
+    if (def.id == "casimir_panel")
         {
             statsText.SetText(
                 $"{costLine}\nTick: +{(float)leTickReal:0.00} LE / {(float)shownInterval:0.00}s\n+{(float)tracesPs:0.00} Trazas/s"
@@ -566,14 +582,15 @@ public class BuildingRowUI : MonoBehaviour
         }
     else if (def.id == "fluctuation_antenna")
     {
-        int pct = Mathf.RoundToInt(gameState.triangleSynchronization * 100f);
-
-        string modeLabel = GetPhaseModulatorModeLabel();
-
-        statsText.SetText(
-            $"{costLine}\n" +
-            $"Circuito: {modeLabel} | Sincronización: {pct}%"
-        );
+        if (state.level <= 0)
+            statsText.SetText($"{costLine}\n{L("building.modulator.vertex_description", "Tercer vértice. Permite activar el Triángulo.")}");
+        else if (!gameState.triangleSystemUnlocked)
+            statsText.SetText(L("building.modulator.needs_coupling", "Falta Acople de Vértices"));
+        else
+        {
+            int pct = Mathf.RoundToInt(gameState.triangleSynchronization * 100f);
+            statsText.SetText($"{L("building.modulator.active", "Triángulo activo")}\n{GetPhaseModulatorModeLabel()} · {pct}%");
+        }
     }
     else
     {
@@ -676,7 +693,6 @@ public class BuildingRowUI : MonoBehaviour
         D3ConsoleSystem.RecordManualModulatorMode(gameState, nextMode);
 
         _lastStatsLeTick = double.NaN;
-        _lastStatsEmTick = double.NaN;
         _lastStatsTracesPs = double.NaN;
         _lastStatsInterval = double.NaN;
         _lastStatsWorld = double.NaN;
@@ -691,38 +707,13 @@ public class BuildingRowUI : MonoBehaviour
     private void OnBuyClicked()
     {
         if (state == null || gameState == null) return;
-
-        // Por seguridad, no dejar comprar si aún está bloqueado
-        if (!BuildingUnlock.IsUnlocked(state.def))
+        if (!BuildingPurchaseService.TryPurchase(gameState, state))
             return;
-
-        // El Modulador es un vértice fijo; los circuitos se cambian en el Triángulo.
-        if (state.def.id == "fluctuation_antenna" && state.level > 0)
-        {
-            return;
-        }
-
-        if (state.IsAtMaxLevel())
-            return;
-
-        double effectiveCost = gameState.GetEffectiveBuildingCost(state);
-
-        // ¿Puede pagar?
-        if (gameState.LE < effectiveCost)
-            return;
-
-        // Pagar coste efectivo
-        gameState.LE -= effectiveCost;
-
-        // Subir nivel y recalcular coste
-        state.OnPurchased();
-        D3ConsoleSystem.RecordManualBuildingPurchase(gameState, state.def.id);
 
         // Forzar refresh de nivel/coste
         _lastLevel = -1;
         _lastCost = double.NaN;
         _lastStatsLeTick = double.NaN;
-        _lastStatsEmTick = double.NaN;
         _lastStatsTracesPs = double.NaN;
         _lastStatsInterval = double.NaN;
         _lastStatsWorld = double.NaN;

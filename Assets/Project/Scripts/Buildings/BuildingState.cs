@@ -162,7 +162,10 @@ public class BuildingState
             // El buff especial del B1 por el B2 lo aplicaremos en GameState,
             // donde tenemos acceso a todos los edificios. Aquí solo devolvemos
             // la producción base de este edificio.
-            return lePerTick / def.tickInterval;
+            double interval = def.tickInterval;
+            if (def.id == "vacuum_observer" && F2UpgradeManager.I != null)
+                interval *= F2UpgradeManager.I.GetContainmentCycleMultiplier();
+            return lePerTick / System.Math.Max(0.0001, interval);
         }
 
         // Comportamiento clásico (Fases anteriores): LE/s directo

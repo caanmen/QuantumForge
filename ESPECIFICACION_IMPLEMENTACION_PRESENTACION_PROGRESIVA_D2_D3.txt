@@ -1,0 +1,1713 @@
+ESPECIFICACIÓN DE IMPLEMENTACIÓN
+QUANTUM FORGE — PRESENTACIÓN PROGRESIVA, ONBOARDING Y NAVEGACIÓN DE DIMENSIONES 2 Y 3
+
+Documento destinado a: implementación con Terra Medium y revisión posterior con Sol High.
+Proyecto Unity: C:\Users\nedfla\Quantum Forge
+Estado del diseño: aprobado para implementación por bloques.
+Tipo de trabajo: presentación, navegación, tutorial contextual y compatibilidad de UI.
+
+======================================================================
+0. INSTRUCCIÓN PRINCIPAL PARA EL CHAT IMPLEMENTADOR
+======================================================================
+
+Implementar este documento por bloques y detenerse al terminar cada bloque.
+
+No implementar todos los bloques en una sola respuesta.
+No cambiar fórmulas, costes, tiempos, recompensas, probabilidades ni requisitos
+canónicos de Dimensión 2 o Dimensión 3.
+No añadir arte definitivo, animaciones complejas, sonido ni contenido nuevo.
+No rediseñar las mecánicas existentes.
+No borrar sistemas, botones o datos existentes: cambiar cuándo y cómo se presentan.
+No hacer stage ni commit salvo autorización expresa.
+
+Al cerrar cada bloque:
+
+1. Compilar Unity en batch.
+2. Ejecutar los validadores nuevos del bloque.
+3. Ejecutar regresiones existentes de D2 y D3 relacionadas.
+4. Ejecutar git diff --check.
+5. Informar archivos modificados, pruebas y cualquier limitación visual.
+6. DETENERSE y esperar la orden de continuar.
+
+Si aparece una incompatibilidad real entre este diseño y la lógica existente:
+
+- no inventar una fórmula o desbloqueo;
+- identificar la API o estado real que causa el conflicto;
+- proponer el cambio mínimo;
+- detenerse y solicitar decisión.
+
+======================================================================
+1. OBJETIVO DEL REDISEÑO
+======================================================================
+
+El juego ya posee su esqueleto funcional. Este trabajo no añade una nueva capa de
+progresión: añade una capa de presentación que permita entender la progresión
+existente.
+
+Problema actual:
+
+- Dimensión 2 separa las civilizaciones, pero muestra demasiadas subsecciones,
+  botones bloqueados, requisitos futuros y texto desde la primera visita.
+- Dimensión 3 muestra casi de inmediato producción, versiones, lotes, ensamblaje,
+  inventario, colas, asignaciones, Banco, calibración, investigación,
+  instalaciones, Consola, Diagnóstico y automatización.
+- El jugador puede no distinguir qué debe hacer ahora, qué será relevante pronto
+  y qué pertenece a una etapa muy posterior.
+- firstEntrySeen es insuficiente para describir un onboarding de varias acciones.
+
+Resultado esperado:
+
+- Una acción principal inequívoca en cada etapa.
+- Como máximo dos acciones secundarias nuevas junto a la principal.
+- Información revelada por acciones y progreso reales.
+- Sistemas activos siempre accesibles.
+- Partidas antiguas y avanzadas no repiten tutoriales obsoletos.
+- Ninguna bandera tutorial se convierte en requisito económico.
+- El jugador puede cerrar, volver, guardar o progresar offline sin romper el flujo.
+
+======================================================================
+2. PRINCIPIOS NO NEGOCIABLES
+======================================================================
+
+2.1 LA LÓGICA DE DOMINIO SIGUE SIENDO AUTORIDAD
+
+La UI nunca decide si una acción puede ejecutarse. Debe consultar los sistemas
+actuales y sus métodos Can..., Is...Unlocked o Try....
+
+La capa de presentación decide solamente:
+
+- si una función se muestra;
+- si se muestra como próxima o disponible;
+- qué explicación contextual aparece;
+- qué vista se abre de forma predeterminada;
+- qué CTA se destaca.
+
+Al pulsar, la acción vuelve a validarse mediante la API de dominio correspondiente.
+
+2.2 PRESENTACIÓN NO ES DESBLOQUEO ECONÓMICO
+
+Ocultar temporalmente una función durante el tutorial no debe cambiar sus fórmulas
+ni sus requisitos reales. Si una partida ya cumple el requisito real o tiene una
+actividad asociada en curso, la función se fuerza a visible.
+
+2.3 UNA PANTALLA, UNA PRIORIDAD
+
+Cada vista principal debe tener una tarjeta superior:
+
+AHORA
+[acción concreta]
+[progreso o requisito inmediato]
+[CTA principal]
+
+Opcionalmente:
+
+DESPUÉS
+[próximo hito en una línea]
+
+2.4 NO USAR SOLO BOTONES GRISES
+
+No llenar la pantalla de opciones deshabilitadas. Usar los estados definidos en la
+sección 4. Un botón visible bloqueado siempre debe explicar una condición cercana y
+alcanzable.
+
+2.5 NO OCULTAR ACTIVIDADES EN CURSO
+
+Si existe una actividad persistente, su función debe estar visible aunque una marca
+de presentación esté ausente:
+
+- peregrinación;
+- formación de Acólitos;
+- rito activo;
+- operación o Represalia;
+- excavación o análisis;
+- investigación;
+- trabajo de producción, ensamblaje, instalación o investigación D3;
+- calibración incompleta relevante;
+- rutina o automatización activa.
+
+2.6 NAVEGACIÓN SEGURA
+
+Nunca ocultar:
+
+- Atrás;
+- Mapa de D2;
+- Fábrica base de D3;
+- Cerrar dimensión;
+- Cancelar o gestionar una actividad activa cuando el dominio lo permita;
+- acceso al resumen de colas cuando existe más de un trabajo o una cancelación
+  pendiente.
+
+2.7 SPOILERS NARRATIVOS
+
+Permanecen ocultos hasta su evento canónico:
+
+- Umbral Velado;
+- Alerta de Civ 2;
+- Contención;
+- Anomalías;
+- investigación/naturaleza del Ente;
+- funciones futuras que el jugador todavía no puede interpretar.
+
+======================================================================
+3. INFORMACIÓN EN TRES CAPAS
+======================================================================
+
+CAPA 1 — DECISIÓN
+
+- Qué obtengo.
+- Qué cuesta.
+- Cuánto tarda.
+- Qué botón debo pulsar.
+
+Debe ser la capa predeterminada.
+
+CAPA 2 — COMPARACIÓN
+
+- Bonificación actual.
+- Requisitos inmediatos.
+- Reserva u ocupación.
+- Alternativas conocidas.
+- Riesgo o penalización antes de confirmar.
+
+Se muestra al seleccionar una opción o abrir DETALLES.
+
+CAPA 3 — SISTEMA
+
+- Fórmulas.
+- Potencia efectiva.
+- Afinidades completas.
+- Historial.
+- Simultaneidad.
+- Reglas offline.
+- Cadenas futuras completas.
+
+Debe estar en DETALLES AVANZADOS, AYUDA o paneles ya dominados. No debe ocupar la
+pantalla inicial de una mecánica.
+
+======================================================================
+4. ESTADOS VISUALES DE UNA FUNCIÓN
+======================================================================
+
+Crear un enum o equivalente:
+
+Hidden
+    No aparece. Aún no ayuda a decidir o es un spoiler.
+
+Teaser
+    Aparece como tarjeta/silueta de próximo objetivo. No abre controles completos.
+    Debe mostrar un requisito inmediato y comprensible.
+
+Available
+    Puede abrirse y muestra sus controles normales.
+
+Active
+    Contiene una actividad en curso, resultado pendiente o riesgo actual. Se fuerza
+    visible y debe recibir prioridad de navegación.
+
+Completed
+    Ya fue dominada/completada. Permanece consultable sin reclamar atención.
+
+New
+    No es un estado de autoridad separado; es un badge temporal aplicado a Available
+    o Active hasta abrir o reconocer la función.
+
+Precedencia obligatoria:
+
+Active > Available/Completed > Teaser > Hidden
+
+Una actividad activa nunca puede degradarse a Teaser o Hidden.
+
+======================================================================
+5. ARQUITECTURA PROPUESTA
+======================================================================
+
+Flujo:
+
+GameState y sistemas existentes
+        ↓
+D2PresentationRules / D3PresentationRules
+        ↓
+FeaturePresentationState calculado
+        ↓
+D2PresentationRouter / D3PresentationRouter
+        ↓
+Paneles UI actuales
+
+5.1 REGLAS PURAS
+
+D2PresentationRules y D3PresentationRules deben ser funciones puras o casi puras:
+
+- reciben GameState y el estado persistente de presentación;
+- no modifican recursos, colas ni progreso;
+- devuelven el estado visual de cada función;
+- devuelven la CTA y siguiente objetivo;
+- pueden inferir introducciones desde progreso monotónico.
+
+No guardar fórmulas ni costes en las reglas de presentación. Consultar catálogos y
+sistemas reales.
+
+5.2 ROUTER POR DIMENSIÓN
+
+Cada dimensión necesita un único coordinador de vistas.
+
+Responsabilidades:
+
+- abrir una screenId válida;
+- cerrar subpaneles incompatibles;
+- recordar lastScreenId;
+- elegir una pantalla base segura;
+- redirigir si una pantalla guardada ya no es válida;
+- priorizar actividades activas;
+- no manipular recursos ni requisitos.
+
+Fallback D2:
+
+1. actividad activa visible;
+2. territorio actualmente seleccionado si sigue disponible;
+3. Mapa;
+4. Refugio de Civ 1.
+
+Fallback D3:
+
+1. actividad activa que requiere atención;
+2. Fábrica base;
+3. Producción V1;
+4. pantalla de primera entrada si realmente nunca fue reconocida.
+
+5.3 NO DEPENDER DE POSICIONES DE DROPDOWN
+
+En D3 existen selecciones que hoy pueden depender de dropdown.value + 1.
+Al filtrar versiones, MK o funciones bloqueadas, esa relación puede seleccionar un
+ID incorrecto.
+
+Todo dropdown filtrado debe usar una lista explícita visibleOptionIds:
+
+- índice visual -> ID/version/MK real;
+- repoblar conserva la selección por ID cuando sea posible;
+- si desaparece una opción inválida, seleccionar la primera opción válida;
+- no calcular una versión real únicamente sumando 1 al índice visual.
+
+======================================================================
+6. ESTADO PERSISTENTE DE PRESENTACIÓN
+======================================================================
+
+Añadir estado serializable separado para D2 y D3. Puede vivir dentro de
+Dimension2State y Dimension3State o como clases hijas serializables.
+
+Modelo recomendado:
+
+DimensionPresentationState
+
+- int presentationVersion
+- int onboardingStage
+- List<string> introducedFeatureIds
+- List<string> acknowledgedFeatureIds
+- string lastScreenId
+- bool contextualHelpEnabled
+- bool advancedControlsExpanded
+
+No guardar un bool independiente para cada botón si puede evitarse.
+Usar IDs estables y listas normalizadas sin duplicados.
+
+6.1 IDs RECOMENDADOS D2
+
+d2.map
+d2.c1.refuge
+d2.c1.altars
+d2.c1.pilgrimages
+d2.c1.novitiate
+d2.c1.rites
+d2.c1.pacts
+d2.c1.veiled_threshold
+d2.c2.regions
+d2.c2.operations
+d2.c2.defense
+d2.c2.resistance
+d2.c2.alert
+d2.c2.containment
+d2.c2.major_pact
+d2.c3.archaeology
+d2.c3.analysis
+d2.c3.archive
+d2.c3.clues
+d2.c3.anomalies
+d2.c3.entity_research
+d2.c3.entity_pact
+
+6.2 IDs RECOMENDADOS D3
+
+d3.factory
+d3.assignment_basic
+d3.production_first_part
+d3.production_set
+d3.assembly_normal
+d3.queues_compact
+d3.queues_full
+d3.process_bank
+d3.calibration
+d3.research
+d3.facilities
+d3.facility.console
+d3.facility.diagnostic
+d3.facility.port
+d3.facility.core
+d3.automation
+d3.offline_automation
+
+6.3 REGLAS DEL ESTADO
+
+- introducedFeatureIds: la función ya fue presentada y no debe volver a ocultarse
+  por una condición reversible.
+- acknowledgedFeatureIds: el jugador abrió o aceptó su explicación.
+- onboardingStage: se usa para el tutorial inicial secuencial, especialmente D3.
+- lastScreenId: comodidad de navegación; nunca autoridad.
+- contextualHelpEnabled: permite desactivar coachmarks sin ocultar funciones.
+- advancedControlsExpanded: preferencia de presentación; no revela spoilers.
+
+No usar introducedFeatureIds como permiso para ejecutar acciones.
+
+======================================================================
+7. MIGRACIÓN Y PARTIDAS EXISTENTES
+======================================================================
+
+Al cargar una partida sin PresentationState:
+
+1. Crear estado con presentationVersion actual.
+2. Inferir funciones introducidas desde progreso persistente real.
+3. Forzar como introducida toda función con actividad activa.
+4. Calcular onboardingStage mínimo coherente.
+5. No repetir tutoriales de una partida avanzada.
+6. No eliminar IDs de presentación desconocidos; conservarlos e ignorarlos.
+7. Normalizar listas y lastScreenId.
+
+Inferencias D2 recomendadas:
+
+- cualquier progreso de Civ 1 -> d2.c1.refuge;
+- ofrendas o asignaciones de altar -> d2.c1.altars;
+- peregrinación activa/completada o Confianza > 0 -> d2.c1.pilgrimages;
+- Acólitos/Noviciado -> d2.c1.novitiate;
+- rito activo o histórico -> d2.c1.rites;
+- pactos desbloqueados/activos -> d2.c1.pacts;
+- Umbral canónicamente disponible/preparado -> d2.c1.veiled_threshold;
+- Civ 2 desbloqueada -> regiones y operaciones;
+- Amenaza, protección o Represalia histórica -> defensa;
+- fragmentos/mejoras -> resistencia;
+- alertActive -> alerta;
+- containmentAvailable/entityContained -> contención;
+- majorPactEstablished -> pacto mayor;
+- Civ 3 desbloqueada -> arqueología;
+- restos/análisis -> análisis;
+- archiveUnlocked -> Archivo;
+- indicios -> clues;
+- anomalía revelada/leída -> anomalies;
+- entityResearchUnlocked/progreso -> entity_research;
+- entityPactEstablished -> entity_pact.
+
+Inferencias D3 recomendadas:
+
+- initialized -> Fábrica;
+- asignaciones existentes -> assignment_basic;
+- piezas, trabajos o producción histórica -> producción;
+- set o ensamblajes -> assembly_normal;
+- más de un trabajo, cola no vacía o cancelación pendiente -> queues_full;
+- nivel del Banco > 1 o asignaciones avanzadas -> process_bank;
+- lecturas/perfiles/calibración -> calibration;
+- investigación o versiones V4–V6 -> research;
+- cualquier instalación construida -> facilities y su feature ID;
+- rutinas/perfiles de automatización -> automation;
+- configuración offline válida -> offline_automation.
+
+Si una partida avanzada cruza muchas introducciones, mostrar un resumen de máximo
+tres novedades, no una cadena de veinte modales.
+
+======================================================================
+8. PATRÓN COMÚN DE TUTORIAL
+======================================================================
+
+8.1 COACHMARKS
+
+- Máximo uno activo.
+- Atenuar el resto únicamente durante las primeras acciones esenciales.
+- No impedir Cerrar o Atrás.
+- El pulso visual desaparece tras la primera interacción.
+- No mover la cámara/panel mientras el jugador selecciona.
+- Color acompañado por texto e icono.
+
+8.2 AYUDA RECUPERABLE
+
+Cada pantalla con tutorial debe ofrecer AYUDA o REPASAR.
+
+- cerrar ayuda no bloquea progreso;
+- volver a abrir reconstruye el paso desde el estado real;
+- no reiniciar una introducción completa;
+- las explicaciones vistas se pueden consultar después.
+
+8.3 MENSAJES
+
+Formato:
+
+Resultado · cambio importante · siguiente acción opcional
+
+Ejemplos:
+
+Peregrinación completada · +18 Confianza · Civ 2 está más cerca.
+MK1 construido · 1 libre · Asígnalo para reforzar el Banco.
+No se pudo iniciar · faltan 30 Trazas.
+Rutina pausada · reserva mínima de LE alcanzada.
+
+No usar solamente “No disponible” o “Recursos insuficientes”. Indicar qué falta.
+
+======================================================================
+9. FLUJO DETALLADO DE DIMENSIÓN 2
+======================================================================
+
+No cambiar los requisitos económicos canónicos. Los criterios siguientes controlan
+presentación. Si una API real permite una acción antes, no duplicar su fórmula en UI.
+
+-----------------------------------------------------------------------
+D2-0 — PRIMERA ENTRADA Y MAPA
+-----------------------------------------------------------------------
+
+Primera pantalla:
+
+DIMENSIÓN 2 · PACTOS
+La influencia se gana acogiendo, guiando y cumpliendo compromisos.
+
+CTA única:
+
+ABRIR MAPA
+
+Mapa inicial:
+
+- Civ 1 disponible y resaltada.
+- Civ 2 como silueta próxima: Confianza 0/300.
+- Civ 3 como territorio no localizado. No revelar arqueología.
+
+CTA:
+
+ENTRAR AL SANTUARIO
+
+No mostrar monedas, pactos mayores, porcentajes avanzados ni nombres narrativos
+futuros en esta entrada.
+
+-----------------------------------------------------------------------
+D2-1 — CIV 1: REFUGIO
+-----------------------------------------------------------------------
+
+Mostrar:
+
+- Seguidores disponibles.
+- llegada por minuto;
+- Refugio;
+- inicialmente Asignar +1 y Retirar;
+- texto breve: asignar mejora la llegada y es reversible.
+
+Ocultar:
+
+- Altares;
+- Peregrinaciones;
+- Noviciado;
+- Ritos;
+- Pactos;
+- Umbral.
+
+AHORA:
+
+Asigna 1 Seguidor al Refugio.
+
+Después de la primera asignación:
+
+- revelar +10 y Todos;
+- marcar Refugio como aprendido;
+- presentar Altares.
+
+Fallback para evitar atasco tutorial:
+
+- si totalFollowersReceived > 5, revelar Altares aunque la CTA no se haya seguido.
+
+No exigir asignar todos los Seguidores.
+
+-----------------------------------------------------------------------
+D2-2 — CIV 1: ALTARES INICIALES
+-----------------------------------------------------------------------
+
+Mostrar únicamente:
+
+- Altar de Cera;
+- Altar de Pan Ritual.
+
+Los otros espacios pueden aparecer como siluetas sin nombre:
+
+Otros espacios del Santuario permanecen inertes.
+
+Secuencia de CTA:
+
+1. Asigna 1 Seguidor a Cera.
+2. Asigna 1 Seguidor a Pan.
+3. Reúne 2 Cera y 2 Pan.
+
+Revelar Peregrinaciones cuando:
+
+- ambos altares hayan producido al menos una vez; o
+- existan las ofrendas suficientes para la primera Peregrinación; o
+- haya una peregrinación activa/importada desde un save.
+
+-----------------------------------------------------------------------
+D2-3 — CIV 1: PRIMERA PEREGRINACIÓN
+-----------------------------------------------------------------------
+
+Mostrar solamente Peregrinación Corta.
+
+La tarjeta debe indicar:
+
+- coste;
+- duración;
+- recompensa principal;
+- ocupación temporal;
+- regla de cancelación si produce pérdida.
+
+CTA:
+
+INICIAR PEREGRINACIÓN CORTA
+
+Mientras esté activa:
+
+- priorizar progreso y resultado;
+- mantener cancelación accesible;
+- no desplegar cinco opciones nuevas.
+
+Al completarse:
+
+- revelar medidor de Confianza;
+- mostrar Civ 2 como meta: Confianza X/300;
+- mostrar Peregrinación Media como próxima;
+- explicar continuidad offline una sola vez.
+
+Revelado posterior:
+
+- Media tras completar Corta.
+- Larga tras completar Media.
+- Larga guiada tras primer Acólito.
+- Sagrada cuando Acólitos y recursos hagan su requisito cercano.
+
+No presentar cinco Peregrinaciones simultáneamente desde el inicio.
+
+-----------------------------------------------------------------------
+D2-4 — CIV 1: NOVICIADO
+-----------------------------------------------------------------------
+
+Presentar después de una Peregrinación Media o cuando los requisitos reales sean
+alcanzables y exista la capacidad de iniciar formación.
+
+AHORA:
+
+Forma tu primer Acólito.
+
+Mostrar inicialmente:
+
+- coste actual;
+- duración;
+- ocupación;
+- resultado.
+
+No mostrar desde N1 toda la tabla N1–N5. Mostrar nivel actual y próximo nivel.
+
+-----------------------------------------------------------------------
+D2-5 — CIV 1: RITOS
+-----------------------------------------------------------------------
+
+Presentar cuando totalAcolytesCreated > 0 o exista un Rito activo.
+
+Al presentar:
+
+- revelar Altar de Incienso si corresponde al progreso real;
+- mostrar inicialmente Rito de Acogida y Rito de Ofrenda;
+- explicar que unidades asignadas quedan ocupadas;
+- presentar el resto después de activar/inspeccionar el primero.
+
+AHORA:
+
+Activa un Rito.
+
+El tercer espacio debe aparecer como próximo solamente cuando el jugador esté cerca
+de su requisito real. No mostrar desde el inicio todos sus costes avanzados.
+
+-----------------------------------------------------------------------
+D2-6 — CIV 1: PACTOS Y CIV 2
+-----------------------------------------------------------------------
+
+Pactos aparece como Teaser al acercarse al umbral real y pasa a Available mediante
+la consulta real del sistema de Pactos.
+
+Primera presentación:
+
+- un pacto de ejemplo;
+- beneficio;
+- mantenimiento;
+- compromiso/penalización;
+- pérdida o no devolución antes de confirmar.
+
+Después de inspeccionar o activar el primero, mostrar el catálogo conocido.
+
+A 300 de Confianza:
+
+- aviso: Se ha localizado otro territorio.
+- marcar Civ 2 como Nuevo.
+- no cambiar automáticamente de pantalla.
+
+-----------------------------------------------------------------------
+D2-7 — CIV 1: UMBRAL
+-----------------------------------------------------------------------
+
+Permanecer Hidden hasta 500 de Confianza y el evento canónico.
+
+Al revelarse:
+
+- cambiar la pestaña oculta por UMBRAL;
+- presentar primero preparación del lugar de vínculo;
+- mostrar únicamente el requisito actual;
+- revelar asignación y líneas posteriores después de preparar el lugar.
+
+No mostrar “Umbral” como botón gris antes del evento.
+
+-----------------------------------------------------------------------
+D2-8 — CIV 2: ENTRADA, REGIÓN Y OPERACIÓN
+-----------------------------------------------------------------------
+
+Primera entrada muestra:
+
+- Miembros iniciales;
+- Región 1;
+- Dominio total;
+- una frase: reducir Dominio aumenta el peligro;
+- Regiones.
+
+Ocultar:
+
+- Resistencia avanzada;
+- Alerta;
+- Contención;
+- Pacto Mayor.
+
+Secuencia:
+
+1. Asigna 1 Miembro a Región 1.
+2. Revelar Operaciones.
+3. Destacar Rescate como primera operación.
+
+No revelar todas las operaciones como un tutorial independiente. Mostrar una
+primera opción y luego las demás opciones conocidas/permitidas.
+
+-----------------------------------------------------------------------
+D2-9 — CIV 2: AMENAZA Y DEFENSA
+-----------------------------------------------------------------------
+
+Defensa debe revelarse cuando aparece la primera Amenaza, antes de la primera
+Represalia.
+
+Debe explicar:
+
+- Amenaza regional;
+- que 100% provoca Represalia;
+- Cobertura;
+- pérdidas esperadas;
+- cómo Protección/Espionaje reducen el riesgo según las APIs reales.
+
+AHORA:
+
+Asigna Protección o reduce Amenaza antes de la Represalia.
+
+Revelado de operaciones/riesgo:
+
+- Espionaje cuando Amenaza o progreso lo vuelve relevante.
+- Sabotaje después de comprender la Represalia o cuando el sistema lo habilite.
+- Fragmentos solamente después de obtenerlos.
+
+-----------------------------------------------------------------------
+D2-10 — CIV 2: RESISTENCIA Y REGIONES
+-----------------------------------------------------------------------
+
+Tras primera Represalia o primer Fragmento:
+
+- revelar mejoras de Resistencia;
+- destacar una mejora asequible;
+- explicar que los Pactos de Resistencia tienen mantenimiento y ruptura.
+
+Regiones:
+
+- Región 2 como única próxima antes de su umbral real.
+- Región 3 Hidden hasta abrir Región 2.
+- Al abrir una región, CTA: Asigna Miembros a la nueva Región.
+- Recordar una sola vez que Amenaza/Cobertura/Represalias son regionales.
+
+No mostrar Región 4 como “actualización futura” en el flujo inicial. Puede quedar
+fuera de la navegación normal de esta versión.
+
+-----------------------------------------------------------------------
+D2-11 — CIV 2: ALERTA, CONTENCIÓN Y PACTO MAYOR
+-----------------------------------------------------------------------
+
+Cuando el dominio real active simultáneamente Alerta, Contención y Civ 3, presentar
+en este orden:
+
+1. EL ENTE HA ENTRADO EN ALERTA.
+2. Explicar marcas/bonificación de Amenaza mediante datos reales.
+3. Revelar Contención.
+4. Marcar Civ 3 como Nuevo sin forzar apertura.
+
+Contención muestra:
+
+- probabilidad actual;
+- pérdida por fallo;
+- recomendación;
+- requisito para mejorar la probabilidad.
+
+Si probabilidad < 50%, permitir el intento si el dominio lo permite, pero exigir
+confirmación clara.
+
+Tras éxito:
+
+- reemplazar controles de Contención por Pacto Mayor;
+- CTA: Establecer Pacto Mayor;
+- después: asignar mantenimiento si corresponde.
+
+La UI debe comunicar que el Pacto Mayor de Civ 2 es el hito reconocido para cerrar
+Dimensión 2. No confundirlo con beneficios opcionales de Civ 3.
+
+-----------------------------------------------------------------------
+D2-12 — CIV 3: ARQUEOLOGÍA
+-----------------------------------------------------------------------
+
+Primera entrada muestra solamente:
+
+- Zona 1;
+- duración de excavación;
+- Excavar.
+
+Ocultar:
+
+- Zona 3;
+- Archivo;
+- Indicios;
+- Anomalías;
+- Ente.
+
+AHORA:
+
+Realiza una Excavación.
+
+Después de la primera excavación:
+
+- revelar inventario de Restos;
+- mostrar Erudito como requisito cercano;
+- mostrar solo análisis de calidades poseídas.
+
+-----------------------------------------------------------------------
+D2-13 — CIV 3: ANÁLISIS, INVESTIGACIÓN Y ARCHIVO
+-----------------------------------------------------------------------
+
+Después del primer análisis:
+
+- revelar Conocimiento Antiguo;
+- investigación de Zona 1;
+- Archivo I;
+- Próximo descubrimiento.
+
+No listar todos los hitos 20/40/60/80 desde el inicio. Mostrar el actual y, en
+DETALLES, la cadena conocida si el jugador la solicita.
+
+Zona 2:
+
+- aparecer como Teaser cuando el progreso la vuelva próxima;
+- mostrar coste exacto solo cuando sea relevante;
+- al desbloquearla, aplicar el ciclo ya aprendido: excavar -> analizar -> investigar.
+
+Zona 3 permanece Hidden hasta que Zona 2 sea conocida y su requisito se aproxime.
+
+-----------------------------------------------------------------------
+D2-14 — CIV 3: INDICIOS, ANOMALÍAS Y ENTE
+-----------------------------------------------------------------------
+
+Indicios:
+
+- Hidden hasta que el progreso real habilite detección;
+- al obtener el primero: Patrón incompleto X/N.
+
+Anomalías:
+
+- Hidden hasta que existan Indicios;
+- revelar lectura solo cuando el requisito se cumpla.
+
+Ente:
+
+- Hidden hasta obtener los datos canónicos necesarios;
+- entonces presentar investigación con badge Nuevo;
+- mostrar solamente el hito de investigación actual;
+- cuando un hito requiera recursos, priorizar APORTAR RECURSOS;
+- no listar desde el inicio todos los pagos 30/60/85/100.
+
+Al 100%:
+
+- reemplazar investigación por su Pacto/beneficios;
+- presentarlo como contenido avanzado opcional;
+- conservar como objetivo principal de cierre el Pacto Mayor de Civ 2.
+
+======================================================================
+10. FLUJO DETALLADO DE DIMENSIÓN 3
+======================================================================
+
+La primera sesión debe enseñar el ciclo:
+
+asignar -> producir -> observar cola -> completar set -> ensamblar -> asignar
+
+Objetivo UX: entenderlo en 8–12 minutos de interacción distribuida sin obligar a
+mantener la pantalla abierta durante temporizadores.
+
+-----------------------------------------------------------------------
+D3-0 — DESCUBRIMIENTO
+-----------------------------------------------------------------------
+
+Pantalla:
+
+DIMENSIÓN 3 · FÁBRICA
+Aquí no compras producción: construyes a quienes la operan.
+Un MK1 espera tu primera orden.
+
+CTA:
+
+ACTIVAR BANCO DE PROCESOS
+
+Texto secundario:
+
+Los trabajos continúan mientras juegas y hasta 12 h sin conexión.
+
+No mencionar todavía:
+
+- rasgos;
+- cinco minijuegos;
+- investigación avanzada;
+- instalaciones;
+- perfiles;
+- automatización.
+
+-----------------------------------------------------------------------
+D3-1 — ASIGNAR EL MK1 INICIAL
+-----------------------------------------------------------------------
+
+Mostrar únicamente:
+
+- LE y Trazas;
+- Banco N1;
+- MK1 disponibles: 1;
+- canal Potencia;
+- tarjeta AHORA.
+
+AHORA:
+
+Pon en marcha el Banco.
+Asigna el MK1 inicial al canal Potencia.
+
+CTA:
+
+ASIGNAR MK1
+
+Coachmark:
+
+- resaltar MK1 y canal;
+- explicar que asignar no consume la unidad;
+- explicar que puede retirarse;
+- mostrar estabilización de 30 s después de asignar.
+
+Tras asignar:
+
+MK1 asignado · Estabilización 0:30.
+Puedes comenzar a producir mientras se estabiliza.
+
+-----------------------------------------------------------------------
+D3-2 — PRIMERA PIEZA
+-----------------------------------------------------------------------
+
+Mostrar solamente:
+
+- Chasis V1;
+- lote fijo ×1;
+- coste total;
+- duración;
+- Producir.
+
+AHORA:
+
+Fabrica una pieza.
+Añade un Chasis V1 a Producción.
+
+Al pulsar:
+
+Chasis añadido a Producción.
+
+Revelar franja compacta:
+
+PRODUCCIÓN · Chasis V1 · tiempo restante
+
+No abrir todavía Gestión completa de Colas.
+
+Mensaje único:
+
+Los trabajos continúan al cambiar de pantalla y durante tu ausencia, hasta 12 h.
+
+-----------------------------------------------------------------------
+D3-3 — SET V1
+-----------------------------------------------------------------------
+
+Al completar el Chasis:
+
+Chasis V1 recibido.
+
+Mostrar checklist:
+
+SET V1 · 1/5
+Chasis ✓
+Sistema motriz —
+Herramienta —
+Control —
+Regulador —
+
+Revelar las otras cuatro piezas juntas. No crear un tutorial independiente para
+cada una.
+
+AHORA:
+
+Completa un set V1.
+Produce una pieza de cada tipo.
+
+Botones muestran:
+
+- nombre;
+- coste total;
+- tiempo;
+- estado en inventario/cola.
+
+Fórmulas y multiplicadores van a DETALLES.
+
+Si faltan recursos:
+
+Faltan [cantidad] [recurso] para [pieza].
+
+-----------------------------------------------------------------------
+D3-4 — PRIMER ENSAMBLAJE
+-----------------------------------------------------------------------
+
+Cuando existe un set completo, revelar Ensamblaje.
+
+AHORA:
+
+Ensambla tu primer Autómata.
+
+Preview:
+
+- consume cinco piezas V1;
+- coste adicional;
+- duración;
+- entrega MK1 Normal.
+
+CTA:
+
+ENSAMBLAR MK1
+
+Al iniciar:
+
+- mostrar Producción y Ensamblaje como colas independientes;
+- explicar que se puede fabricar el siguiente set mientras se ensambla;
+- revelar GESTIONAR COLAS.
+
+-----------------------------------------------------------------------
+D3-5 — CERRAR PRIMER CICLO
+-----------------------------------------------------------------------
+
+Al terminar:
+
+MK1 construido · 2 operarios totales · 1 libre.
+
+Distinguir claramente:
+
+- MK1 inicial otorgado;
+- MK1 fabricados por el jugador;
+- libres;
+- asignados.
+
+CTA:
+
+ASIGNAR NUEVO MK1
+
+Después:
+
+PRIMER CICLO COMPLETADO
+Ya sabes producir piezas, ensamblar Autómatas y reforzar el Banco.
+
+Siguiente meta:
+
+Construye los MK1 necesarios para preparar Banco N2.
+
+Usar el requisito real consultado al sistema. No duplicar el número en UI.
+
+Botones:
+
+- CONTINUAR;
+- REPASAR;
+- CERRAR D3.
+
+No revelar cinco sistemas avanzados durante esta celebración.
+
+-----------------------------------------------------------------------
+D3-6 — REVELADO POSTERIOR
+-----------------------------------------------------------------------
+
+Reglas recomendadas:
+
+Primer trabajo añadido
+    Revelar cola compacta y continuidad offline.
+
+Primera pieza recibida
+    Revelar checklist e inventario contextual.
+
+Primer set completo
+    Revelar Ensamblaje Normal.
+
+Primer MK1 fabricado
+    Revelar lotes básicos, cantidades y Gestión de Colas.
+
+Primer MK1 fabricado / segundo operario total
+    Presentar Mesa de Calibración como nueva estación opcional.
+
+Varios MK1 fabricados y requisitos cercanos
+    Mostrar Instalaciones como Teaser, sin controles completos.
+
+Banco N2
+    Revelar su nuevo canal/función y la siguiente versión permitida.
+
+Banco N3
+    Revelar el siguiente canal y mostrar Investigación como Teaser.
+
+Requisito real de Investigación cumplido
+    Pasar Investigación a Available.
+
+Instalación construida
+    Revelar únicamente la pantalla operativa de esa instalación.
+
+Acción manual autorizada registrada
+    Mostrar badge PATRÓN APRENDIDO.
+
+Puerto/Núcleo u otra instalación autorizante operativa
+    Ofrecer CREAR RUTINA desde patrones aprendidos.
+
+Requisitos offline reales cumplidos
+    Revelar automatización offline y perfiles correspondientes.
+
+La condición final debe consultarse a APIs reales. Los hitos de cantidad usados para
+presentación pueden ajustarse tras pruebas, pero nunca pueden habilitar una acción
+que el dominio rechaza.
+
+-----------------------------------------------------------------------
+D3-7 — VERSIONES, MK Y DROPDOWNS
+-----------------------------------------------------------------------
+
+Mostrar:
+
+- opciones desbloqueadas;
+- como máximo la siguiente opción como Teaser fuera del dropdown;
+- requisito próximo en una tarjeta.
+
+No mostrar V1–V6 y MK1–MK6 completos desde el inicio.
+
+Dropdowns contienen solo opciones seleccionables reales y usan mapeo índice->ID.
+
+Al desbloquear una nueva versión:
+
+NUEVA VERSIÓN DISPONIBLE · V2
+[beneficio/uso en una línea]
+[IR A PRODUCCIÓN]
+
+-----------------------------------------------------------------------
+D3-8 — CALIBRACIÓN
+-----------------------------------------------------------------------
+
+Primera presentación:
+
+NUEVA ESTACIÓN · MESA DE CALIBRACIÓN
+Un Autómata puede adquirir un rasgo si calibras sus cinco módulos.
+
+Primer acceso:
+
+1. Mostrar un módulo.
+2. Explicar únicamente su interacción.
+3. Registrar resultado.
+4. Mostrar afinidad provisional.
+5. Revelar los otros módulos como checklist.
+
+Capas:
+
+- básica: resultado probable y módulos completados;
+- comparativa: afinidades y rasgo líder;
+- técnica: fórmula, empate, 60%, valores exactos.
+
+Si el resultado sería Normal:
+
+Afinidad insuficiente: este ensamblaje produciría Normal.
+
+No mostrar desde N1:
+
+- cargar perfil;
+- repetir pieza;
+- repetir todo;
+- lote 50;
+- automatización avanzada.
+
+Cada control aparece con el nivel real que lo habilita.
+
+-----------------------------------------------------------------------
+D3-9 — INVESTIGACIÓN
+-----------------------------------------------------------------------
+
+No ocupar la navegación inicial.
+
+Teaser sugerido cuando el Banco se acerque al límite de fabricación directa:
+
+El Banco ha alcanzado el límite de fabricación directa.
+Las versiones avanzadas requieren Investigación.
+
+Cada investigación muestra inicialmente:
+
+- qué desbloquea;
+- equipo reservado;
+- coste;
+- duración;
+- requisito inmediato.
+
+La cadena completa queda en CADENA COMPLETA.
+
+Si existe una investigación activa, el panel se fuerza a Active.
+
+-----------------------------------------------------------------------
+D3-10 — INSTALACIONES
+-----------------------------------------------------------------------
+
+Mapa/tarjetas por función humana:
+
+Consola
+    Repite compras base autorizadas.
+
+Diagnóstico
+    Analiza y repara la Máquina.
+
+Puerto
+    Repite expediciones conocidas de D1.
+
+Núcleo
+    Coordina rutinas y habilita operación offline.
+
+Antes de construir:
+
+- mostrar función principal;
+- coste real;
+- requisito real;
+- no mostrar controles N1–N5 completos.
+
+Después de construir:
+
+- función actual;
+- capacidad actual;
+- próximo nivel;
+- controles realmente utilizables.
+
+Las funciones futuras N3–N5 quedan en DETALLES/PRÓXIMO NIVEL, no como muro de
+botones grises.
+
+-----------------------------------------------------------------------
+D3-11 — AUTOMATIZACIÓN
+-----------------------------------------------------------------------
+
+Promesa de UX:
+
+primero manual, después automático.
+
+Después de una acción manual autorizada:
+
+PATRÓN APRENDIDO · [acción legible]
+
+Si aún no puede automatizar:
+
+La Fábrica recordará este patrón cuando construyas [instalación].
+
+Si puede automatizar:
+
+CREAR RUTINA
+
+Flujo:
+
+1. Elegir patrón aprendido.
+2. Definir reserva o parada.
+3. Crear pausada.
+4. Mostrar simulación legible.
+5. Activar manualmente.
+
+Ejemplo:
+
+Comprará Higgs cuando LE sea al menos 50 000.
+Mantendrá una reserva de 20 000 LE.
+
+Botones:
+
+- CREAR PAUSADA;
+- ACTIVAR;
+- PAUSAR;
+- ELIMINAR con confirmación.
+
+Estados:
+
+- última ejecución;
+- próxima condición;
+- motivo de parada;
+- reserva alcanzada;
+- error persistente.
+
+No comenzar con un dropdown masivo de acciones o IDs sin contexto humano.
+
+======================================================================
+11. INFORME DE RETORNO Y OFFLINE
+======================================================================
+
+No apilar un modal por sistema desbloqueado.
+
+Ausencia corta, aproximadamente menor a 20–30 minutos:
+
+- sin modal obligatorio;
+- badge de resultados;
+- resaltar recursos/procesos terminados.
+
+Ausencia significativa:
+
+MIENTRAS ESTABAS FUERA · [duración]
+Progreso aplicado: [usado] / máximo 12 h donde corresponda.
+
+Mostrar máximo:
+
+1. resultado principal;
+2. sistema nuevo más importante;
+3. proceso detenido o siguiente acción.
+
+D2 puede resumir:
+
+- Seguidores recibidos;
+- Peregrinaciones terminadas;
+- Pactos mantenidos/interrumpidos;
+- territorio/sistema revelado;
+- CTA siguiente.
+
+D3 puede resumir:
+
+- trabajos de Producción;
+- Ensamblajes recibidos;
+- Investigación terminada;
+- asignaciones estabilizadas;
+- rutinas ejecutadas/detenidas;
+- CTA RELLENAR PRODUCCIÓN o RETOMAR OBJETIVO.
+
+Durante onboarding, derivar el paso real:
+
+- Chasis en cola -> enfocar cola.
+- Chasis recibido -> mostrar SET 1/5.
+- Set completo -> revelar Ensamblaje.
+- MK1 terminado offline -> celebrar y continuar con asignación.
+
+Nunca reiniciar la introducción completa por una bandera intermedia ausente.
+
+======================================================================
+12. LOCALIZACIÓN Y TEXTO
+======================================================================
+
+Todos los textos nuevos deben ser localizables EN/ES mediante el sistema existente o
+una extensión coherente. No depender de sustituciones parciales frágiles.
+
+Cada mensaje tutorial debe tener una clave semántica estable, por ejemplo:
+
+d3.onboarding.assign.title
+d3.onboarding.assign.body
+d3.onboarding.first_part.title
+d2.c1.refuge.assign.title
+d2.c2.threat.warning
+
+Si el proyecto actual no tiene un catálogo adecuado para estos textos, crear una
+capa pequeña y centralizada; no dispersar traducciones dentro de múltiples Refresh.
+
+Evitar párrafos que cambian cada 0.2 s. Separar:
+
+- estado dinámico;
+- explicación estable;
+- feedback de última acción;
+- siguiente objetivo.
+
+======================================================================
+13. ORDEN DE IMPLEMENTACIÓN POR BLOQUES
+======================================================================
+
+-----------------------------------------------------------------------
+BLOQUE P1 — FUNDACIÓN DE PRESENTACIÓN
+-----------------------------------------------------------------------
+
+Implementar solamente:
+
+1. Estado serializable de presentación D2/D3.
+2. presentationVersion y migración inicial.
+3. enum de estados visuales.
+4. D2PresentationRules y D3PresentationRules base.
+5. Router seguro por dimensión.
+6. tarjeta común AHORA/DESPUÉS.
+7. helpers para show/hide/teaser/new sin modificar dominio.
+8. mapeo seguro de dropdowns D3 que vaya a filtrarse después.
+9. validadores de migración, IDs, fallback y actividades activas.
+
+No hacer todavía:
+
+- secuencia completa D3;
+- cambios masivos D2;
+- informe offline nuevo;
+- arte/animación.
+
+Validaciones mínimas:
+
+- save nuevo inicializa PresentationState;
+- save antiguo avanzado infiere funciones;
+- IDs duplicados se normalizan;
+- ID de pantalla inválido cae a pantalla segura;
+- actividad activa fuerza visible;
+- dropdown filtrado conserva ID correcto;
+- compilación y regresiones D2/D3.
+
+DETENERSE Y ESPERAR: “continúa con el bloque P2”.
+
+-----------------------------------------------------------------------
+BLOQUE P2 — ONBOARDING INICIAL DE D3
+-----------------------------------------------------------------------
+
+Implementar solamente D3-0 a D3-5:
+
+- descubrimiento;
+- asignar MK1;
+- Chasis V1;
+- checklist del set;
+- primer Ensamblaje;
+- asignar nuevo MK1;
+- REPASAR y ayuda contextual;
+- reanudación tras cerrar/cargar/offline.
+
+No implementar todavía:
+
+- Calibración progresiva;
+- Investigación progresiva;
+- Instalaciones/Automatización progresivas;
+- D2.
+
+Validaciones mínimas:
+
+- partida nueva solo ve la CTA correspondiente;
+- cerrar/abrir retoma el paso correcto;
+- producir Chasis revela set;
+- set completo revela Ensamblaje;
+- trabajo activo nunca queda oculto;
+- MK1 offline avanza a asignación sin reiniciar;
+- jugador puede ignorar coachmark y usar navegación segura;
+- ningún sistema avanzado aparece en primera sesión;
+- compilación, D3 Blocks 1–7D y git diff --check.
+
+DETENERSE Y ESPERAR: “continúa con el bloque P3”.
+
+-----------------------------------------------------------------------
+BLOQUE P3 — REVELADO AVANZADO DE D3
+-----------------------------------------------------------------------
+
+Implementar:
+
+- versiones/MK filtrados y próximo teaser;
+- Colas completas cuando sean relevantes;
+- Calibración por capas;
+- Investigación contextual;
+- Instalaciones por función y nivel actual;
+- Automatización desde patrones aprendidos;
+- actividades activas forzadas visibles.
+
+No cambiar requisitos reales de niveles, versiones, investigación o instalaciones.
+
+Validaciones mínimas:
+
+- cada sistema aparece con su requisito real;
+- versión bloqueada no altera dropdown->ID;
+- Calibración N1 no muestra controles N2–N5;
+- instalación no construida no muestra controles operativos;
+- rutina activa fuerza Automatización visible;
+- partida avanzada revela todo lo coherente sin tutorial obligatorio;
+- regresiones D3 completas.
+
+DETENERSE Y ESPERAR: “continúa con el bloque P4”.
+
+-----------------------------------------------------------------------
+BLOQUE P4 — CIVILIZACIÓN 1 DE D2
+-----------------------------------------------------------------------
+
+Implementar D2-0 a D2-7:
+
+- mapa progresivo;
+- Refugio;
+- Altares;
+- Peregrinaciones;
+- Noviciado;
+- Ritos;
+- Pactos;
+- Umbral oculto hasta evento.
+
+No modificar costes o umbrales.
+
+Validaciones mínimas:
+
+- primera entrada solo conduce a Civ 1;
+- primera asignación revela Altares;
+- ofrendas revelan Peregrinación;
+- Acólito revela Ritos;
+- Pactos usan la API real;
+- Civ 2 se marca Nueva a 300;
+- Umbral no existe visualmente antes de 500;
+- save avanzado no repite tutorial;
+- actividad activa fuerza su sección.
+
+DETENERSE Y ESPERAR: “continúa con el bloque P5”.
+
+-----------------------------------------------------------------------
+BLOQUE P5 — CIVILIZACIÓN 2 DE D2
+-----------------------------------------------------------------------
+
+Implementar D2-8 a D2-11:
+
+- Región/Operación inicial;
+- Defensa antes de primera Represalia;
+- Resistencia y regiones progresivas;
+- Alerta priorizada;
+- Contención con riesgo;
+- Pacto Mayor como cierre.
+
+Validaciones mínimas:
+
+- Amenaza revela Defensa y no vuelve a ocultarla;
+- Represalia revela Fragmentos/Resistencia;
+- Región 3 no se adelanta a Región 2;
+- Alerta/Contención/Civ 3 se presentan en orden;
+- intento <50% exige confirmación visual;
+- Pacto Mayor es objetivo principal;
+- operaciones activas siguen accesibles;
+- regresiones D2 Civ 2.
+
+DETENERSE Y ESPERAR: “continúa con el bloque P6”.
+
+-----------------------------------------------------------------------
+BLOQUE P6 — CIVILIZACIÓN 3 DE D2
+-----------------------------------------------------------------------
+
+Implementar D2-12 a D2-14:
+
+- Arqueología inicial;
+- Restos y Erudito;
+- Análisis;
+- Investigación/Archivo;
+- Zonas progresivas;
+- Indicios/Anomalías;
+- Ente y Pacto avanzado.
+
+Validaciones mínimas:
+
+- primera entrada solo Zona 1/Excavar;
+- excavación revela Restos;
+- análisis revela Archivo/Investigación;
+- solo próxima Zona aparece como teaser;
+- Indicios y Anomalías no producen spoilers;
+- Ente permanece oculto hasta datos requeridos;
+- actividad activa fuerza sección;
+- regresiones D2 Civ 3.
+
+DETENERSE Y ESPERAR: “continúa con el bloque P7”.
+
+-----------------------------------------------------------------------
+BLOQUE P7 — RETORNO, OFFLINE, LOCALIZACIÓN Y CIERRE
+-----------------------------------------------------------------------
+
+Implementar:
+
+- informe compacto de retorno;
+- cola de máximo tres novedades;
+- reanudación de onboarding por estado;
+- textos EN/ES nuevos;
+- ayuda/repasar;
+- validación integral de navegación;
+- prueba manual de Main.unity cuando sea posible.
+
+Validaciones mínimas:
+
+- ausencia corta no abre modal obligatorio;
+- ausencia larga resume D2/D3;
+- múltiples desbloqueos no encadenan modales;
+- CTA lleva a pantalla válida;
+- save antiguo avanzado no repite tutoriales;
+- no hay softlock con trabajos activos;
+- EN/ES cubre todos los textos nuevos;
+- regresiones completas del juego;
+- git diff --check.
+
+DETENERSE. No iniciar arte definitivo, balance ni Prestigio 2.
+
+======================================================================
+14. MATRIZ DE PRUEBAS OBLIGATORIA
+======================================================================
+
+PRESENTACIÓN BASE
+
+- Hidden no ocupa layout ni navegación.
+- Teaser no ejecuta acciones y muestra requisito.
+- Available abre pantalla correcta.
+- Active prevalece sobre flags tutoriales.
+- Completed permanece consultable.
+- badge New desaparece al reconocer.
+
+NAVEGACIÓN
+
+- Atrás siempre funciona.
+- Mapa/Fábrica siempre accesibles.
+- lastScreenId válido se restaura.
+- lastScreenId inválido usa fallback.
+- abrir una nueva función cierra panel incompatible.
+- actividad activa no queda detrás de pantalla oculta.
+
+MIGRACIÓN
+
+- partida nueva;
+- partida antigua sin PresentationState;
+- partida D2 avanzada;
+- partida D3 avanzada;
+- actividad activa durante migración;
+- IDs desconocidos conservados;
+- migración repetida idempotente.
+
+D3 ONBOARDING
+
+- MK1 inicial no se duplica.
+- asignación inicial;
+- Chasis en cola;
+- Chasis offline;
+- set 1/5;
+- set 5/5;
+- Ensamblaje activo;
+- MK1 completado online/offline;
+- cerrar/reabrir en cada paso;
+- ayuda desactivada sin bloquear acciones.
+
+D3 AVANZADO
+
+- dropdown filtrado V/MK;
+- Calibración N1–N5;
+- Investigación bloqueada/activa/completada;
+- instalación no construida/construida;
+- patrón aprendido sin instalación;
+- patrón aprendido con instalación;
+- rutina activa/pausada/detenida;
+- offline permitido/rechazado.
+
+D2 CIV 1
+
+- primera asignación;
+- producción de ofrendas;
+- primera Peregrinación;
+- Acólito;
+- Rito;
+- Pacto;
+- 300 Confianza;
+- 500 Confianza;
+- actividades online/offline.
+
+D2 CIV 2
+
+- primera operación;
+- primera Amenaza;
+- Defensa antes de Represalia;
+- primera Represalia;
+- Región 2/3;
+- Alerta;
+- Contención <50% y >=50%;
+- Pacto Mayor.
+
+D2 CIV 3
+
+- primera Excavación;
+- primer Resto;
+- primer Análisis;
+- Archivo I–IV;
+- Zona 2/3;
+- primer Indicio;
+- Anomalía revelada/leída;
+- Ente investigado;
+- Pacto avanzado.
+
+OFFLINE
+
+- ningún cambio;
+- una finalización;
+- varios desbloqueos;
+- máximo tres novedades;
+- CTA válida;
+- onboarding reanudado desde estado real.
+
+REGRESIÓN
+
+- fórmulas D2 idénticas;
+- fórmulas D3 idénticas;
+- costes/tiempos idénticos;
+- guardado/carga intactos;
+- progresión offline intacta;
+- Convergencia y Prestigio 1 sin regresiones.
+
+======================================================================
+15. CRITERIOS DE ACEPTACIÓN FINAL
+======================================================================
+
+1. En menos de 10 segundos el jugador identifica la siguiente acción de D2/D3.
+2. Ninguna pantalla inicial muestra más de una acción principal y dos secundarias.
+3. D3 enseña producir y ensamblar antes de Calibración/Investigación/Instalaciones.
+4. D2 presenta cada civilización como un ciclo comprensible, no como un catálogo.
+5. Ningún sistema activo puede ocultarse.
+6. Ningún tutorial es requisito económico.
+7. Una partida avanzada no repite tutoriales antiguos.
+8. Umbral, Alerta, Anomalías y Ente no se revelan antes de su evento.
+9. Los dropdowns filtrados ejecutan el ID real correcto.
+10. Cerrar, cargar y offline reanudan el paso coherente.
+11. Todo botón bloqueado visible explica una condición próxima.
+12. Toda acción sigue validándose en el sistema de dominio.
+13. EN/ES cubre los textos nuevos.
+14. Las regresiones D2, D3, Prestigio 1 y Convergencia pasan.
+15. No se ha modificado balance, arte definitivo ni contenido futuro.
+
+======================================================================
+16. RESUMEN PARA EJECUCIÓN
+======================================================================
+
+Prioridad:
+
+1. Fundación común.
+2. Primera sesión de D3.
+3. D3 avanzado.
+4. Civ 1 de D2.
+5. Civ 2 de D2.
+6. Civ 3 de D2.
+7. Offline/localización/cierre.
+
+Idea rectora:
+
+UN OBJETIVO PRESENTE
+UNA ACCIÓN PRINCIPAL
+UN PRÓXIMO HITO
+INFORMACIÓN AVANZADA BAJO DEMANDA
+
+La capa de presentación guía. Los sistemas existentes mandan.

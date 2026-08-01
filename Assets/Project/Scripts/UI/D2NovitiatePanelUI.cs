@@ -66,7 +66,7 @@ public class D2NovitiatePanelUI : MonoBehaviour
 
         SetText(
             acolytesText,
-            "NOVICIADO — Nivel " + level + "/5" +
+            "NOVICIADO — Nivel actual " + level +
             "   |   Acólitos disponibles: " + state.acolytesAvailable.ToString("N0") +
             "   |   Totales presentes: " + totalAcolytes.ToString("N0")
         );
@@ -152,6 +152,12 @@ public class D2NovitiatePanelUI : MonoBehaviour
                   " Cera · " + upgradeOfferingCost.ToString("0") + " Pan"
         );
         SetInteractable(upgradeButton, !maxed && D2NovitiateSystem.CanUpgrade(gameState));
+        bool learned = state.novitiateBatchesCompleted > 0L ||
+            state.totalAcolytesCreated > 0L;
+        SetActive(supportText, learned || active.active);
+        SetActive(addSupportButton, learned && !active.active);
+        SetActive(removeSupportButton, learned && !active.active);
+        SetActive(upgradeButton, learned);
     }
 
     public void StartTraining()
@@ -203,5 +209,10 @@ public class D2NovitiatePanelUI : MonoBehaviour
     {
         if (target != null)
             target.interactable = value;
+    }
+
+    private static void SetActive(Component target, bool value)
+    {
+        if (target != null) target.gameObject.SetActive(value);
     }
 }

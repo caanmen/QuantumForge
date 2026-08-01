@@ -37,6 +37,7 @@ public class D2Civilization1PanelUI : MonoBehaviour
     public Button releaseAllButton;
     public Button upgradeRefugeButton;
     public TMP_Text upgradeRefugeButtonText;
+    public TMP_Text objectiveText;
 
     private float _refreshTimer;
 
@@ -115,6 +116,7 @@ public class D2Civilization1PanelUI : MonoBehaviour
         long upgradeCost = D2Civilization1System.GetNextRefugeUpgradeCost(state);
         bool refugeMaxed = state.refugeLevel >= D2Civilization1System.MaxRefugeLevel;
         bool veiledThresholdUnlocked = D2VeiledThresholdSystem.IsUnlocked(state);
+        RefreshProgressivePresentation(gameState, state);
 
         SetText(
             followersText,
@@ -193,8 +195,75 @@ public class D2Civilization1PanelUI : MonoBehaviour
             veiledThresholdPanelUI.Refresh();
     }
 
+    private void RefreshProgressivePresentation(
+        GameState gameState, D2Civilization1State state)
+    {
+        bool refugeLearned =
+            D2Civilization1PresentationRules.HasLearnedRefuge(state);
+        FeaturePresentationState altars = D2PresentationRules.GetFeatureState(
+            gameState, PresentationFeatureIds.D2C1Altars);
+        FeaturePresentationState pilgrimages = D2PresentationRules.GetFeatureState(
+            gameState, PresentationFeatureIds.D2C1Pilgrimages);
+        FeaturePresentationState novitiate = D2PresentationRules.GetFeatureState(
+            gameState, PresentationFeatureIds.D2C1Novitiate);
+        FeaturePresentationState rites = D2PresentationRules.GetFeatureState(
+            gameState, PresentationFeatureIds.D2C1Rites);
+        FeaturePresentationState pacts = D2PresentationRules.GetFeatureState(
+            gameState, PresentationFeatureIds.D2C1Pacts);
+        FeaturePresentationState threshold = D2PresentationRules.GetFeatureState(
+            gameState, PresentationFeatureIds.D2C1VeiledThreshold);
+
+        SetActive(showRefugeButton, true);
+        SetActive(showAltarsButton, altars.IsVisible);
+        SetActive(showPilgrimagesButton, pilgrimages.IsVisible);
+        SetActive(showNovitiateButton, novitiate.IsVisible);
+        SetActive(showRitesButton, rites.IsVisible);
+        SetActive(showPactsButton, pacts.IsVisible);
+        SetActive(showVeiledThresholdButton, threshold.IsVisible);
+        SetInteractable(showAltarsButton, altars.CanOpen);
+        SetInteractable(showPilgrimagesButton, pilgrimages.CanOpen);
+        SetInteractable(showNovitiateButton, novitiate.CanOpen);
+        SetInteractable(showRitesButton, rites.CanOpen);
+        SetInteractable(showPactsButton, pacts.CanOpen);
+        SetInteractable(showVeiledThresholdButton, threshold.CanOpen);
+        SetButtonLabel(showAltarsButton, "ALTARES", altars.isNew);
+        SetButtonLabel(showPilgrimagesButton, "PEREGRINACIONES", pilgrimages.isNew);
+        SetButtonLabel(showNovitiateButton, "NOVICIADO", novitiate.isNew);
+        SetButtonLabel(showRitesButton, "RITOS", rites.isNew);
+        SetButtonLabel(showPactsButton,
+            pacts.CanOpen ? "PACTOS" : "PACTOS · PRÓXIMO", pacts.isNew);
+        SetButtonLabel(showVeiledThresholdButton, "UMBRAL", threshold.isNew);
+
+        SetActive(assignTenButton, refugeLearned);
+        SetActive(assignAllButton, refugeLearned);
+        SetActive(releaseAllButton, refugeLearned);
+        SetActive(upgradeRefugeButton, refugeLearned);
+
+        string objective;
+        if (!refugeLearned)
+            objective = "AHORA · Asigna 1 Seguidor al Refugio.\nDESPUÉS · Los Altares responderán.";
+        else if (!pilgrimages.IsVisible)
+            objective = "AHORA · Asigna 1 Seguidor a Cera y 1 a Pan; reúne 2 de cada Ofrenda.\nDESPUÉS · Peregrinación Corta.";
+        else if (state.totalPilgrimagesCompleted == 0L)
+            objective = "AHORA · Inicia la Peregrinación Corta.\nDESPUÉS · Confianza y nuevas rutas.";
+        else if (novitiate.CanOpen && state.totalAcolytesCreated == 0L)
+            objective = "AHORA · Forma tu primer Acólito.\nDESPUÉS · Ritos del Santuario.";
+        else if (rites.CanOpen && D2RiteSystem.GetActiveRiteCount(state) == 0)
+            objective = "AHORA · Activa un Rito asignando una unidad.\nDESPUÉS · Fortalece la Confianza.";
+        else if (threshold.CanOpen && !state.bondPlacePrepared)
+            objective = "AHORA · Prepara el Lugar de Vínculo.\nDESPUÉS · Asigna Acólitos al vínculo.";
+        else if (pacts.CanOpen)
+            objective = "AHORA · Inspecciona un Pacto y confirma su compromiso.\nDESPUÉS · Otro territorio a 300 de Confianza.";
+        else if (pacts.IsVisible)
+            objective = "AHORA · Acércate al requisito real de Pactos.\nDESPUÉS · Compromisos permanentes.";
+        else
+            objective = "AHORA · Eleva la Confianza hacia 300.\nDESPUÉS · Se localizará otro territorio.";
+        SetText(objectiveText, objective);
+    }
+
     public void ShowRefugeSection()
     {
+        RecognizeSection(PresentationFeatureIds.D2C1Refuge);
         if (refugeSectionRoot != null)
             refugeSectionRoot.SetActive(true);
 
@@ -219,6 +288,7 @@ public class D2Civilization1PanelUI : MonoBehaviour
 
     public void ShowAltarsSection()
     {
+        RecognizeSection(PresentationFeatureIds.D2C1Altars);
         if (refugeSectionRoot != null)
             refugeSectionRoot.SetActive(false);
 
@@ -247,6 +317,7 @@ public class D2Civilization1PanelUI : MonoBehaviour
 
     public void ShowPilgrimagesSection()
     {
+        RecognizeSection(PresentationFeatureIds.D2C1Pilgrimages);
         if (refugeSectionRoot != null)
             refugeSectionRoot.SetActive(false);
 
@@ -272,6 +343,7 @@ public class D2Civilization1PanelUI : MonoBehaviour
 
     public void ShowNovitiateSection()
     {
+        RecognizeSection(PresentationFeatureIds.D2C1Novitiate);
         if (refugeSectionRoot != null)
             refugeSectionRoot.SetActive(false);
         if (altarsSectionRoot != null)
@@ -292,6 +364,7 @@ public class D2Civilization1PanelUI : MonoBehaviour
 
     public void ShowRitesSection()
     {
+        RecognizeSection(PresentationFeatureIds.D2C1Rites);
         if (refugeSectionRoot != null)
             refugeSectionRoot.SetActive(false);
         if (altarsSectionRoot != null)
@@ -315,6 +388,7 @@ public class D2Civilization1PanelUI : MonoBehaviour
 
     public void ShowPactsSection()
     {
+        RecognizeSection(PresentationFeatureIds.D2C1Pacts);
         if (refugeSectionRoot != null)
             refugeSectionRoot.SetActive(false);
         if (altarsSectionRoot != null)
@@ -345,6 +419,7 @@ public class D2Civilization1PanelUI : MonoBehaviour
         gameState.EnsureDimension2State();
         if (!D2VeiledThresholdSystem.IsUnlocked(gameState.dimension2.civilization1))
             return;
+        RecognizeSection(PresentationFeatureIds.D2C1VeiledThreshold);
 
         if (refugeSectionRoot != null)
             refugeSectionRoot.SetActive(false);
@@ -362,6 +437,15 @@ public class D2Civilization1PanelUI : MonoBehaviour
             veiledThresholdSectionRoot.SetActive(true);
         if (veiledThresholdPanelUI != null)
             veiledThresholdPanelUI.Refresh();
+    }
+
+    private static void RecognizeSection(string featureId)
+    {
+        GameState gameState = GameState.I;
+        if (gameState?.dimension2?.presentation == null) return;
+        D2PresentationRouter.RememberScreen(gameState, featureId);
+        PresentationStateUtility.Acknowledge(
+            gameState.dimension2.presentation, featureId);
     }
 
     public void AssignOne()
@@ -410,5 +494,17 @@ public class D2Civilization1PanelUI : MonoBehaviour
     {
         if (button != null)
             button.interactable = interactable;
+    }
+
+    private static void SetActive(Component component, bool active)
+    {
+        if (component != null) component.gameObject.SetActive(active);
+    }
+
+    private static void SetButtonLabel(Button button, string label, bool isNew)
+    {
+        if (button == null) return;
+        TMP_Text text = button.GetComponentInChildren<TMP_Text>(true);
+        if (text != null) text.text = (isNew ? "NUEVO · " : "") + label;
     }
 }

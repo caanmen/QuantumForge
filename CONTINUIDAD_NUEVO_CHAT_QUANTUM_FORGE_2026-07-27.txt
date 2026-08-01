@@ -1,0 +1,570 @@
+QUANTUM FORGE — CONTINUIDAD COMPLETA PARA UN CHAT NUEVO
+Fecha de corte: 2026-07-27
+Proyecto Unity: C:\Users\nedfla\Quantum Forge
+
+======================================================================
+0. INSTRUCCIÓN PARA EL CHAT NUEVO
+======================================================================
+
+Lee completamente este documento y después inspecciona directamente los
+archivos actuales del proyecto antes de modificar nada. El proyecto tiene
+muchos cambios válidos todavía sin commit y no se puede asumir que Git HEAD
+representa el estado actual.
+
+En el momento de crear este resumen, otro chat con Sol Medium está terminando
+la recuperación y validación de Main.unity. No modificar el proyecto en
+paralelo mientras ese trabajo siga activo. El usuario avisará cuando Sol haya
+terminado y mostrará su informe. Primero revisar ese resultado y el estado real
+del disco.
+
+No continuar automáticamente al siguiente bloque. El trabajo se realiza por
+bloques: implementar, compilar, validar, informar y DETENERSE hasta que el
+usuario diga que se continúe.
+
+======================================================================
+1. OBJETIVO GENERAL DEL USUARIO
+======================================================================
+
+Quantum Forge es un juego idle de Unity destinado también a Android.
+
+El esqueleto funcional del juego ya está construido, sin contar el acabado
+gráfico definitivo. El recorrido actual incluye:
+
+- Juego base.
+- Cuarto 2 / cámara experimental.
+- Máquina.
+- Prestigio 1.
+- Dimensión 1.
+- Dimensión 2 con sus tres civilizaciones.
+- Dimensión 3.
+- Convergencia normal C1–C6.
+- Un final temporal “???” después de estabilizar C6.
+
+El objetivo inmediato es crear herramientas de QA para que el usuario pueda
+hacer una run completa en su celular sin pasar horas esperando. Después de esa
+run se revisarán bugs, claridad de interfaz, progresión y balance numérico.
+
+Las herramientas QA deben acelerar la lógica real del juego. No deben regalar
+progreso arbitrario, inventar estados ni reemplazar las decisiones manuales
+del jugador.
+
+======================================================================
+2. ESTADO FUNCIONAL PREVIO AL TRABAJO QA
+======================================================================
+
+2.1. Esqueleto del juego
+
+Se consideró terminado el esqueleto funcional general, sujeto a pruebas reales
+en Android, correcciones de bugs y balance. La parte gráfica/arte definitivo no
+se considera terminada.
+
+2.2. Dimensión 1
+
+Existe su progresión funcional con galaxia, sectores, escáner, exploraciones,
+planetas, minería, naves, matrices, reliquias, misiones coordinadas, sincronía
+central, Arca y Ancla Galáctica. Sus validaciones habían pasado antes del
+incidente de escena.
+
+2.3. Dimensión 2
+
+Existen las tres civilizaciones y sus sistemas funcionales. Incluyen, entre
+otros, seguidores/acólitos, peregrinaciones, altares, ritos, pactos, regiones,
+represalias, alerta, contención, zonas, arqueología, archivo, investigación del
+Ente y pactos finales. Sus sistemas de dominio no deben ser rediseñados durante
+el trabajo QA.
+
+2.4. Dimensión 3
+
+Existe la fábrica dimensional con piezas, ensamblajes, asignaciones, colas,
+Banco de Procesos, calibración, investigación, instalaciones, Consola,
+Diagnóstico y automatizaciones. Antes del incidente de Main.unity pasaban las
+13 regresiones D3 utilizadas en las revisiones.
+
+2.5. Presentación progresiva D2/D3
+
+Se implementó por bloques P1–P7 la capa de presentación progresiva para evitar
+mostrar demasiada información de golpe.
+
+Principios implementados:
+
+- Una prioridad clara y tarjeta “AHORA”.
+- Presentación gradual de funciones según progreso real.
+- La UI no reemplaza la autoridad de los sistemas de dominio.
+- Una actividad ya iniciada nunca se oculta.
+- Navegación segura y posibilidad de cerrar o regresar.
+- Ayuda contextual.
+- Onboarding progresivo D3.
+- Presentación progresiva para las tres civilizaciones D2.
+- Informes de regreso.
+- Compatibilidad con partidas antiguas.
+- Textos semánticos localizados ES/EN.
+
+Los validadores Presentation P1–P7 y las regresiones relacionadas estaban en
+PASS antes de comenzar el Bloque QA 0. Deben volver a ejecutarse después de la
+recuperación de Main.unity.
+
+Documento canónico:
+
+ESPECIFICACION_IMPLEMENTACION_PRESENTACION_PROGRESIVA_D2_D3.txt
+
+2.6. Triángulo del juego base
+
+El Triángulo fue rediseñado e implementado como tres circuitos seleccionables
+con los artefactos en posiciones fijas:
+
+- Energía: +12% LE, -10% Trazas.
+- Experimental: +10% Trazas, +6% fragmentos, -10% LE.
+- Fase: +15% análisis de Máquina, +10% respuesta de rutinas D3,
+  -10% LE y Trazas.
+
+Reglas aprobadas:
+
+- El beneficio positivo escala con sincronización.
+- La penalización se aplica inmediatamente.
+- Primera activación: 0% a 100% en 90 segundos. Cambios posteriores: 50% a 100% en 90 segundos.
+- Recupera 100% en tres minutos, también offline.
+- Fase permanece bloqueado hasta desbloquear la Máquina.
+- Fase no acelera los ticks normales de LE/Trazas, Dimensión 1 o Dimensión 2.
+- Todos los circuitos funcionan dentro del límite offline general de 12 horas.
+- Se migran las configuraciones antiguas sin romper saves.
+
+La lógica y la UI de selección existen en GameState, TrianglePanelUI y
+TriangleSlotUI. Existe TriangleRedesignValidation. El usuario todavía debe
+confirmar en una run móvil que los tres botones sean visibles, seleccionables y
+comprensibles durante la progresión normal.
+
+Documento de diseño:
+
+REDISENO_FUTURO_TRIANGULO_JUEGO_BASE.md
+
+2.7. Convergencia C1–C6
+
+Convergencia normal fue implementada y revisada con Sol High.
+
+Canon actual:
+
+- C1 es Pulso de Arranque.
+- Existen C1, C2, C3, C4, C5 y C6.
+- Cada ciclo exige reconstrucción normal, Receptor, tres señales D1/D2/D3,
+  estabilidad, configuración de placa y confirmación.
+- La placa es una red 5x5 con conectores ortogonales.
+- Las dimensiones conservan su progreso durante Convergencia.
+- Después de C6 el estado pasa a completado y aparece “???”.
+- No existe C7.
+- No se puede iniciar otra sincronización sin recompensa después de C6.
+- “???” es solamente el detonante futuro de Prestigio 2.
+- Prestigio 2, Dimensión 4 y Convergencia Profunda NO están implementados.
+
+Balance provisional de estabilidad:
+
+requiredStability = ceil(120 * (1 + 0.55 * ownedCircuitCount)^2)
+
+C1 120, C2 289, C3 530, C4 843, C5 1229, C6 1688.
+
+Los valores son tentativos y se ajustarán después de las runs.
+
+Documento canónico:
+
+ESPECIFICACION_IMPLEMENTACION_CONVERGENCIA_C1_C6_TRIGGER_PRESTIGIO2.txt
+
+======================================================================
+3. DECISIÓN SOBRE EM, ADP Y WHF
+======================================================================
+
+EM, ADP y WHF ya no forman parte del juego activo. No existen edificios
+activos que los generen y no deben reaparecer en la interfaz, producción,
+investigaciones, logros ni herramientas QA.
+
+Sin embargo, sus campos serializados se conservan temporalmente para poder leer
+saves antiguos. Al cargar deben migrarse/neutralizarse a cero. No se convierten
+en LE ni Trazas y no se concede compensación.
+
+Este cierre de recursos retirados es el Bloque QA 0.
+
+======================================================================
+4. PLAN CANÓNICO DE MODO QA GLOBAL Y RUNS RÁPIDAS
+======================================================================
+
+Documento completo obligatorio:
+
+PLAN_CODIFICACION_MODO_QA_GLOBAL_Y_RUNS_RAPIDAS.txt
+
+Reglas generales del modo QA:
+
+- Disponible únicamente en Editor o Development Build.
+- Una build pública oculta QA y fuerza velocidad x1.
+- No usar Time.timeScale.
+- No acelerar animaciones, UI ni controles táctiles.
+- No alterar DateTimeOffset.UtcNow, lastUnix ni el progreso offline real.
+- La aceleración se aplica a segundos de simulación online.
+- Las decisiones, compras, selecciones y confirmaciones siguen siendo manuales.
+- No reactivar EM, ADP ni WHF.
+
+4.1. BLOQUE 0 — EM/ADP/WHF
+
+Estado: CÓDIGO IMPLEMENTADO; ACEPTACIÓN Y REGRESIONES PENDIENTES tras recuperar
+Main.unity.
+
+Cambios esperados/realizados:
+
+- Versión de migración removedLegacyResourcesVersion.
+- Conservación temporal de campos legacy en SaveData.
+- Neutralización a cero al cargar y guardar.
+- Retiro de producción online/offline de EM, ADP y WHF.
+- emMult deja de participar en producción LE.
+- researchGlobalLEMult queda neutral en 1 si solo provenía del sistema retirado.
+- BuildingRowUI no muestra EM.
+- HUD no actualiza monedas retiradas.
+- research.json tolera lista activa vacía.
+- Logros imposibles retirados.
+- Textos visibles de esas monedas limpiados.
+
+Archivos modificados por este bloque:
+
+- Assets/Project/Scripts/Core/GameState.cs
+- Assets/Project/Scripts/Systems/SaveService.cs
+- Assets/Project/Scripts/UI/HUD.cs
+- Assets/Project/Scripts/Buildings/BuildingRowUI.cs
+- Assets/Project/Scripts/Systems/ResearchManager.cs
+- Assets/Project/Resources/Data/research.json
+- Assets/Project/Resources/Data/achievements.json
+- Assets/Project/Resources/Localization/lang_es.json
+- Assets/Project/Resources/Localization/lang_en.json
+- Assets/Project/Scripts/Editor/QaBlock0Validation.cs (nuevo)
+
+No existe todavía Assets/Project/Scripts/QA. Los Bloques 1–5 no han empezado.
+
+4.2. BLOQUE 1 — Servicio central de tiempo QA
+
+Estado: PENDIENTE.
+
+Crear una única autoridad QaRuntimeService con velocidades exactas:
+
+x1, x5, x10 y x20.
+
+Debe validar valores, ocultarse en build pública, mantener Time.timeScale en 1,
+escalar solamente segundos online y no guardar la velocidad dentro de SaveData.
+
+4.3. BLOQUE 2 — Reemplazar DEV x5 y aplicar velocidad global
+
+Estado: PENDIENTE.
+
+- TickSystem escala el dt una sola vez mediante QaRuntimeService.
+- DevMultiplierButton se reutiliza y cicla x1/x5/x10/x20.
+- El texto siempre muestra el valor real: QA x1, QA x5, etc.
+- BuildingRowUI muestra duraciones coherentes con QA.
+- MachineManager escala análisis exactamente una vez.
+- Room2PanelUI escala el cooldown de fusión exactamente una vez.
+- D1/D2/D3 no vuelven a multiplicar internamente el dt ya escalado.
+- UI, offline, telemetría y reloj real no se aceleran.
+
+4.4. BLOQUE 3 — Panel QA para celular
+
+Estado: PENDIENTE.
+
+Panel táctil dentro de Safe Area con:
+
+- Aviso “MODO QA — NO REPRESENTA EL BALANCE FINAL”.
+- Estado actual x1/x5/x10/x20.
+- Botones de velocidad.
+- +5 MIN, +30 MIN y +1 H.
+- Checkpoints A, B y C.
+- Cerrar.
+
+El setup de escena debe ser idempotente. No editar YAML de Main.unity a mano.
+
+4.5. BLOQUE 4 — Avance manual de tiempo
+
+Estado: PENDIENTE.
+
+- +5 MIN = 300 segundos simulados exactos.
+- +30 MIN = 1800 segundos simulados exactos.
+- +1 H = 3600 segundos simulados exactos.
+- Independiente de estar en x1/x5/x10/x20.
+- Procesar en pasos pequeños, recomendado 1 segundo.
+- No usar ApplyOfflineProgress.
+- Avanzar GameState, análisis de Máquina y cooldown compatible sin duplicar dt.
+- No comprar, elegir, iniciar misiones ni ejecutar prestigios automáticamente.
+- Guardar antes y después; no congelar el celular.
+
+4.6. BLOQUE 5 — Checkpoints manuales QA
+
+Estado: PENDIENTE.
+
+- Slots A/B/C dentro de persistentDataPath/qa_checkpoints.
+- Guardado y restauración atómicos.
+- Crear pre_restore antes de cargar un checkpoint.
+- Validar JSON antes de reemplazar save.json.
+- Pasar por las migraciones normales de SaveService.
+- Actualizar lastUnix a la hora real al restaurar para no regalar offline.
+- Inaccesible desde build pública.
+
+4.7. BLOQUE 6 — Validación integral y Android Development Build
+
+Estado: PENDIENTE.
+
+Debe comprobar:
+
+- EM/ADP/WHF siempre en cero.
+- Migración de save antiguo.
+- x1/x5/x10/x20.
+- Rechazo de valores inválidos.
+- Multiplicador aplicado exactamente una vez.
+- D1/D2/D3, Máquina y cooldown correctos.
+- UI y Time.timeScale normales.
+- Fast-forward exacto y determinista.
+- Checkpoints válidos/corruptos/pre_restore.
+- Offline y telemetría en reloj real.
+- QA oculto en build pública.
+- Todas las validaciones previas.
+- Android Development Build y smoke test táctil.
+
+======================================================================
+5. INCIDENTE DE MAIN.UNITY DURANTE EL BLOQUE 0
+======================================================================
+
+5.1. Qué ocurrió
+
+Antes del Bloque 0, la validación de las 09:47 estaba limpia.
+
+Durante una modificación textual de Main.unity para retirar una referencia
+visible a recursos legacy, se corrompió una sección grande del YAML. Apareció:
+
+m_Father: {fileID:tId: blueprint_cargo_stabilizer
+
+Se mezclaron datos de GameState dentro de un RectTransform. Desaparecieron el
+GameObject y MonoBehaviour de GameState y componentes TMP, mientras quedaron
+Transforms y referencias huérfanas.
+
+Unity registró:
+
+- Parser Failure.
+- Unable to parse Main.unity.
+- Muchos Broken text PPtr.
+- Falta GameState en D2.
+
+Los PASS parciales no eran suficientes porque algunos validadores podían seguir
+ejecutándose sobre objetos temporales o sobre la parte cargada de la escena.
+
+5.2. Copias y recuperación
+
+Copia del archivo corrupto:
+
+Assets/Project/Scenes/Main.block0-corrupt-backup-20260727-1545.unity.bak
+Hash: 1051169c9aaa35eec18c0e76e67226d81f745afa
+
+Instantánea correcta recuperada desde objetos automáticos de Codex/Git:
+
+Recovery/Main.pre-block0-recovered.unity
+Hash: 89bce66edf05d3f7c0e0cd051985592f8554aefd
+Tamaño: 5.075.081 bytes
+
+La instantánea contiene:
+
+- Exactamente un GameState.
+- GameObject 1189287368.
+- MonoBehaviour 1189287369.
+- Transform 1189287370.
+- Componentes TMP 1183840945 y 1183840946.
+- Presentación P1–P7.
+- La cadena original “LE, EM, IP, ADP, WHF”.
+- Ninguna línea YAML malformada detectada.
+
+5.3. Estado en disco al crear este resumen
+
+Main.unity YA fue reemplazada por Sol Medium con la instantánea correcta:
+
+Assets/Project/Scenes/Main.unity
+Hash actual comprobado: 89bce66edf05d3f7c0e0cd051985592f8554aefd
+Tamaño actual comprobado: 5.075.081 bytes
+
+Esto confirma que la restauración de bytes ya ocurrió correctamente. Sol Medium
+está ejecutando o terminando las validaciones. La restauración NO debe repetirse
+ni reemplazarse desde Git HEAD.
+
+5.4. Qué debe exigir el informe de Sol
+
+- Cero Parser Failure.
+- Cero Unable to parse.
+- Cero Broken text PPtr.
+- Cero “Problem detected while opening the Scene”.
+- Exactamente un GameState.
+- Cero Missing Scripts.
+- Main puede abrirse, guardarse y reabrirse.
+- Presentation P1–P7 en PASS.
+- 13 regresiones D3 en PASS.
+- D2 en PASS.
+- Triángulo en PASS.
+- Convergencia en PASS.
+- Bloque QA 0 en PASS.
+
+Si algún punto falla, el Bloque 0 no está aceptado y NO se continúa al Bloque 1.
+
+======================================================================
+6. ADVERTENCIA SOBRE GIT Y EL WORKTREE
+======================================================================
+
+El worktree contiene una gran cantidad de cambios válidos y archivos nuevos de
+trabajos anteriores. No ejecutar:
+
+- git checkout
+- git restore
+- git reset
+- git clean
+- git stash
+- commits, stage o push
+
+salvo petición explícita del usuario.
+
+No usar Git HEAD para reconstruir Main.unity: HEAD es anterior a Convergencia y
+Presentación actuales y perdería trabajo.
+
+
+Los cambios ajenos o preexistentes pertenecen al usuario y deben conservarse.
+
+======================================================================
+7. REGLAS DE IMPLEMENTACIÓN Y VALIDACIÓN
+======================================================================
+
+1. Trabajar por bloques.
+2. Antes de cada bloque, inspeccionar código, escena, prefabs, datos y logs.
+3. Informar brevemente qué se modificará y por qué.
+4. No inventar fórmulas, monedas, recompensas, desbloqueos o narrativa.
+5. Si falta una decisión de diseño, detener solo la parte afectada y preguntar.
+6. No cambiar balance durante la implementación QA.
+7. No hacer ediciones manuales amplias de YAML en Main.unity.
+8. Para escena, usar APIs de Unity y configuradores idempotentes.
+9. Hacer copia de seguridad antes de cualquier modificación de escena.
+10. Tras modificar escena, abrirla en Unity y revisar el log completo, no solo
+    el mensaje final del validador.
+11. Tratar Parser Failure, Broken text PPtr y Missing Script como fallos críticos.
+12. Compilar y ejecutar validadores del bloque más regresiones relacionadas.
+13. Ejecutar git diff --check, sin modificar cambios ajenos.
+14. Informar archivos modificados, pruebas, resultados y limitaciones.
+15. Detenerse al finalizar el bloque y esperar al usuario.
+
+La dirección creativa y las decisiones de juego pertenecen al usuario. El chat
+implementador debe seguir el diseño aprobado, no reemplazarlo con preferencias
+propias. Los valores provisionales también requieren autorización.
+
+======================================================================
+8. ORDEN EXACTO PARA CONTINUAR EN EL CHAT NUEVO
+======================================================================
+
+PASO 1
+
+Esperar el mensaje del usuario con el informe final de Sol Medium sobre la
+recuperación de Main.unity y Bloque 0.
+
+PASO 2
+
+Inspeccionar directamente:
+
+- Hash/tamaño de Main.unity.
+- Logs nuevos de validación.
+- Existencia única de GameState.
+- Ausencia de errores de parser/PPtr/Missing Script.
+- Cambios reales del Bloque 0.
+
+PASO 3
+
+Si todo pasa, declarar el Bloque 0 terminado. No volver a tocarlo salvo una
+regresión demostrable.
+
+PASO 4
+
+Solo cuando el usuario diga “continúa”, implementar el BLOQUE 1 del plan QA:
+QaRuntimeService y sus validaciones unitarias/editoriales. No modificar todavía
+Main.unity ni construir todo el panel QA en ese mismo bloque.
+
+PASO 5
+
+Continuar sucesivamente Bloques 2, 3, 4, 5 y 6, deteniéndose después de cada uno.
+
+PASO 6
+
+Crear Android Development Build para la run móvil. La run rápida se utilizará
+para encontrar bugs y evaluar progresión. El balance definitivo se hará después,
+comparando también con una run normal.
+
+======================================================================
+9. ARCHIVOS CANÓNICOS QUE EL CHAT NUEVO DEBE LEER
+======================================================================
+
+Prioridad inmediata:
+
+1. CONTINUIDAD_NUEVO_CHAT_QUANTUM_FORGE_2026-07-27.txt
+2. PLAN_CODIFICACION_MODO_QA_GLOBAL_Y_RUNS_RAPIDAS.txt
+3. REGLAS_DE_TRABAJO_Y_CONTINUIDAD.md
+
+Contexto de sistemas ya implementados:
+
+4. ESPECIFICACION_IMPLEMENTACION_PRESENTACION_PROGRESIVA_D2_D3.txt
+5. ESPECIFICACION_IMPLEMENTACION_CONVERGENCIA_C1_C6_TRIGGER_PRESTIGIO2.txt
+6. DISENO_CONVERGENCIA_Y_CIRCUITOS_PARA_PRUEBAS.txt
+7. PAUTAS_SINCRONIZACION_CONVERGENCIA_PRUEBAS.txt
+8. REDISENO_FUTURO_TRIANGULO_JUEGO_BASE.md
+9. DIMENSION1_PARTE1_PENDIENTES_BALANCE_Y_PULIDO.md
+10. DIMENSION2_DISENO_CANONICO_COMPLETO.md
+11. DIMENSION3_AUDITORIA_CIERRE_FUNCIONAL.md
+12. DIMENSION3_CATALOGO_MAESTRO_AUTOMATIZACIONES.md
+
+======================================================================
+10. MODELOS Y AGENTES PARA LOS TRABAJOS FUTUROS
+======================================================================
+
+El usuario quiere conservar este flujo de trabajo:
+
+- Las decisiones importantes de diseño se hacen con Sol High.
+- Para diseños grandes, Sol High debe crear agentes/subagentes especializados,
+  darles tareas concretas en paralelo y después sintetizar una única propuesta
+  coherente para que el usuario la apruebe.
+- La codificación extensa por bloques puede realizarse con Terra Medium.
+- Las correcciones técnicas acotadas pueden realizarse con Sol Medium.
+- Después de la implementación, Sol High vuelve a revisar arquitectura,
+  coherencia con el diseño, fórmulas, progresión y resultados de pruebas.
+- El balance definitivo no se decide solo por agentes: se afina con las runs
+  reales del usuario y con los datos observados.
+
+Equipo recomendado de agentes para una futura fase de diseño:
+
+1. Agente de progresión y economía idle:
+   revisa ritmo, costes, recompensas, cuellos de botella y balance online/offline.
+
+2. Agente de UX, onboarding y presentación:
+   revisa orden de aparición, claridad, carga de información, navegación móvil y
+   comprensión de cada mecánica.
+
+3. Agente de sistemas y compatibilidad técnica:
+   revisa interacción con saves, dimensiones, Triángulo, Convergencia,
+   automatizaciones, rendimiento Android y riesgos de implementación.
+
+Sol High actúa como coordinador y debe comparar los informes, resolver
+contradicciones y entregar al usuario una propuesta final. Ningún agente puede
+cambiar el canon por su cuenta ni implementar antes de que el usuario apruebe.
+
+Los agentes/subagentes no son permanentes y normalmente no aparecen como chats
+separados en el panel derecho. Existen durante la tarea en que fueron creados.
+En un chat nuevo hay que pedir explícitamente algo equivalente a:
+
+“Usa agentes especializados para estudiar este diseño desde progresión,
+UX/onboarding y compatibilidad técnica. Después sintetiza sus conclusiones con
+Sol High y preséntame una propuesta única antes de codificar.”
+
+No crear agentes para trabajos pequeños que no puedan ejecutarse de manera
+independiente. No permitir que varios agentes editen simultáneamente los mismos
+archivos de escena.
+
+======================================================================
+11. MENSAJE CORTO SUGERIDO PARA ABRIR EL CHAT NUEVO
+======================================================================
+
+“Lee completo CONTINUIDAD_NUEVO_CHAT_QUANTUM_FORGE_2026-07-27.txt y después
+revisa directamente el estado actual del proyecto. No modifiques nada hasta
+comprobar el informe más reciente de Sol Medium sobre Main.unity y Bloque 0.
+Trabajaremos por bloques y debes detenerte al final de cada uno. No uses Git ni
+edites Main.unity manualmente. Primero dime si la recuperación y todas las
+regresiones quedaron realmente en PASS; después yo te indicaré cuándo continuar
+al Bloque 1.”
+
+FIN DEL DOCUMENTO

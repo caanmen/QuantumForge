@@ -28,6 +28,13 @@ public class F2UpgradeDef
     public string description;
     public F2UpgradeCurrency currency;
     public F2UpgradeEffectType effectType;
+    public string requiredBuildingId;
+    public int requiredBuildingLevel;
+    public string requiredUpgradeId;
+    public int requiredUpgradeTier;
+    public bool requiresTriangleUnlocked;
+    public bool requiresAllTriangleVertices;
+    public bool retired;
     public List<F2UpgradeTierDef> tiers;
 }
 

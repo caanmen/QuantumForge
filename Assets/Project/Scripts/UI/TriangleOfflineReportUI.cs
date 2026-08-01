@@ -59,6 +59,11 @@ public sealed class TriangleOfflineReportUI : MonoBehaviour
     private void Update()
     {
         if (displayedThisSession || panel == null || GameState.I == null) return;
+        if (PresentationReturnReportService.UnifiedReportPreparedThisLoad)
+        {
+            displayedThisSession = true;
+            return;
+        }
         TriangleOfflineReport report = GameState.I.lastTriangleOfflineReport;
         if (report == null || !report.hasResults || report.appliedSeconds <= 0.0)
             return;

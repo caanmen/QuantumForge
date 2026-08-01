@@ -41,11 +41,18 @@ public static class ConvergenceTelemetrySystem
             gameState.convergence.configurationStartedUnix = GetCurrentUnixSeconds();
     }
 
-    public static void RecordConfigurationConfirmed(GameState gameState)
+    public static void RecordConfigurationConfirmed(GameState gameState, string transactionId = null)
     {
         if (gameState == null) return;
         gameState.EnsureConvergenceState();
         ConvergenceState state = gameState.convergence;
+        if (!string.IsNullOrWhiteSpace(transactionId))
+        {
+            state.recordedTransactionIds ??= new System.Collections.Generic.List<string>();
+            if (state.recordedTransactionIds.Contains(transactionId))
+                return;
+            state.recordedTransactionIds.Add(transactionId);
+        }
         long now = GetCurrentUnixSeconds();
         if (state.cycleStartedUnix > 0L && state.receiverRebuiltUnix > 0L &&
             state.synchronizationReadyUnix > 0L && state.configurationStartedUnix > 0L)
