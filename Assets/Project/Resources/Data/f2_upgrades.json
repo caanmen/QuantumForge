@@ -79,8 +79,8 @@
     ,
     {
       "id": "triangle_impulse_tuning",
-      "name": "Amplificador de Energía",
-      "description": "Refuerza la potencia de LE del Circuito de Energía.",
+      "name": "Condensación Dirigida",
+      "description": "Refuerza la producción de LE del enfoque LE.",
       "currency": 1,
       "effectType": 0,
       "requiresTriangleUnlocked": true,
@@ -91,14 +91,14 @@
     },
     {
       "id": "triangle_synergy_resonance",
-      "name": "Resonancia Experimental",
-      "description": "Refuerza Trazas y fragmentos del Circuito Experimental.",
+      "name": "Rastreo Resonante",
+      "description": "Refuerza la producción del enfoque Trazas.",
       "currency": 1,
       "effectType": 0,
       "requiresTriangleUnlocked": true,
       "tiers": [
-        { "cost": 140.0, "effectValue": 1.0 },
-        { "cost": 260.0, "effectValue": 2.0 }
+        { "cost": 140.0, "effectValue": 0.13 },
+        { "cost": 260.0, "effectValue": 0.15 }
       ]
     },
     {
@@ -111,6 +111,19 @@
       "tiers": [
         { "cost": 160.0, "effectValue": 0.65 },
         { "cost": 300.0, "effectValue": 0.80 }
+      ]
+    },
+    {
+      "id": "triangle_energy_efficiency",
+      "name": "Captación Resonante",
+      "description": "Aumenta toda la Energía producida por el Triángulo.",
+      "currency": 1,
+      "effectType": 0,
+      "requiresTriangleUnlocked": true,
+      "tiers": [
+        { "cost": 180.0, "effectValue": 0.20 },
+        { "cost": 360.0, "effectValue": 0.40 },
+        { "cost": 700.0, "effectValue": 0.65 }
       ]
     }
   ]

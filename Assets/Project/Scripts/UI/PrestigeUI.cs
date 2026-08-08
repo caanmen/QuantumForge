@@ -18,6 +18,8 @@ public class PrestigeUI : MonoBehaviour
 
     [Header("Rendimiento UI")]
     [SerializeField] private float uiRefreshInterval = 0.25f;
+    [Header("Transición dimensional")]
+    [SerializeField] private PrestigeDimensionTransitionUI dimensionTransition;
     private float _uiTimer = 0f;
     private GameObject _dimensionSelectionRoot;
     private Button[] _dimensionSelectionButtons;
@@ -28,7 +30,11 @@ public class PrestigeUI : MonoBehaviour
 
     private void Awake()
     {
-        BuildDimensionSelectionUI();
+        if (dimensionTransition == null)
+            dimensionTransition = GetComponent<PrestigeDimensionTransitionUI>();
+        if (dimensionTransition == null)
+            dimensionTransition = gameObject.AddComponent<PrestigeDimensionTransitionUI>();
+        dimensionTransition.Initialize(this);
         BuildDimensionObjectiveUI();
         BuildConvergencePanel();
     }
@@ -102,7 +108,10 @@ public class PrestigeUI : MonoBehaviour
             return;
         }
 
-        ShowDimensionSelection();
+        if (dimensionTransition != null)
+            dimensionTransition.BeginTransition();
+        else
+            ShowDimensionSelection();
     }
 
     private void ShowDimensionSelection()
@@ -123,11 +132,19 @@ public class PrestigeUI : MonoBehaviour
 
     private void SelectDimensionForPrestige1(int dimensionId)
     {
+        CommitDimensionForPrestige1(dimensionId);
+    }
+
+    public bool CommitDimensionForPrestige1(int dimensionId)
+    {
         GameState gs = GameState.I;
         if (gs == null || !gs.DoPrestige1Reset(dimensionId))
-            return;
+            return false;
 
-        HideDimensionSelection();
+        if (dimensionTransition != null)
+            dimensionTransition.HideAfterCommit();
+        else
+            HideDimensionSelection();
         ShowDimensionObjective(dimensionId);
         Debug.Log(
             "[PrestigeUI] Prestigio 1 realizado al sintonizar " +
@@ -141,7 +158,12 @@ public class PrestigeUI : MonoBehaviour
             TabsUI.Instance.RefreshDimension3ButtonVisibility();
             TabsUI.Instance.RefreshPrestigeButtonVisibility();
         }
+
+        return true;
     }
+
+    public TMP_FontAsset InterfaceFont =>
+        entActualText != null ? entActualText.font : null;
 
     private void BuildDimensionSelectionUI()
     {

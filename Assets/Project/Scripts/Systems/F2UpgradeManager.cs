@@ -16,6 +16,7 @@ public enum F2UpgradeLockReason
     MissingUpgrade,
     MissingVertices,
     TriangleLocked,
+    ResearchRequired,
     InsufficientFunds,
     Maxed
 }
@@ -31,6 +32,7 @@ public class F2UpgradeManager : MonoBehaviour
     public int GetTriangleImpulseTuningTier() => GetPurchasedTierCount("triangle_impulse_tuning");
     public int GetTriangleSynergyResonanceTier() => GetPurchasedTierCount("triangle_synergy_resonance");
     public int GetTrianglePersistenceAnchorTier() => GetPurchasedTierCount("triangle_persistence_anchor");
+    public int GetTriangleEnergyEfficiencyTier() => GetPurchasedTierCount("triangle_energy_efficiency");
 
     private void Awake()
     {
@@ -95,9 +97,12 @@ public class F2UpgradeManager : MonoBehaviour
     public bool ShouldBeVisible(string id)
     {
         var def = GetDef(id);
-        if (def == null || def.retired || GameState.I == null) return false;
-        if (id == "triangle_unlock_1") return GameState.I.GetBuildingLevel("fluctuation_antenna") >= 1;
-        return MeetsPrerequisites(id);
+        GameState state = GameState.I;
+        if (def == null || def.retired || state == null) return false;
+        if (GetPurchasedTierCount(id) > 0) return true;
+        if (UpgradeStudySystem.IsDiscovered(state, id))
+            return MeetsPrerequisites(id);
+        return UpgradeStudySystem.ShouldShowStudyOpportunity(state, id);
     }
 
     public F2UpgradeLockReason GetLockReason(string id)
@@ -106,6 +111,8 @@ public class F2UpgradeManager : MonoBehaviour
         var state = GameState.I;
         if (def == null || def.retired || state == null) return F2UpgradeLockReason.Hidden;
         if (IsMaxed(id)) return F2UpgradeLockReason.Maxed;
+        if (!UpgradeStudySystem.IsDiscovered(state, id))
+            return F2UpgradeLockReason.ResearchRequired;
         if (!string.IsNullOrEmpty(def.requiredBuildingId) && state.GetBuildingLevel(def.requiredBuildingId) < Mathf.Max(1, def.requiredBuildingLevel)) return F2UpgradeLockReason.MissingBuilding;
         if (!string.IsNullOrEmpty(def.requiredUpgradeId) && GetPurchasedTierCount(def.requiredUpgradeId) < Mathf.Max(1, def.requiredUpgradeTier)) return F2UpgradeLockReason.MissingUpgrade;
         if (def.requiresAllTriangleVertices && !state.HasAllTriangleVertices()) return F2UpgradeLockReason.MissingVertices;
@@ -188,6 +195,12 @@ public class F2UpgradeManager : MonoBehaviour
     public double GetTotalGlobalLEMultBonus() => GetCurrentTotalValue("emission_focus");
     public double GetContainmentCycleMultiplier() => GetCurrentTotalValue("containment_tuning", 1.0);
     public double GetTetraquarkTraceBonus() => GetCurrentTotalValue("tetraquark_stabilization");
+    public double GetTriangleEnergyLEBonus(double baseValue) =>
+        GetCurrentTotalValue("triangle_impulse_tuning", baseValue);
+    public double GetTriangleExperimentalTraceBonus(double baseValue) =>
+        GetCurrentTotalValue("triangle_synergy_resonance", baseValue);
+    public double GetTriangleEnergyProductionBonus() =>
+        GetCurrentTotalValue("triangle_energy_efficiency");
     public double GetContainmentTuningBonus() => 0.0;
     public double GetTetraquarkStabilizationBonus() => 0.0;
     public double GetResidualAnalysisBonus() => GetTetraquarkTraceBonus();

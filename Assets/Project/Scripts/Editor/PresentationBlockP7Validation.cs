@@ -1,27 +1,44 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 
 public static class PresentationBlockP7Validation
 {
+    public static void ValidateAwayLogBatch()
+    {
+        var failures = new List<string>();
+        ValidateShortAndLongAbsence(failures);
+        ValidateNewsLimitAndSingleAction(failures);
+        ValidateReturnModalStructure(failures);
+        ValidateLocalization(failures);
+        if (failures.Count > 0)
+            throw new System.InvalidOperationException(
+                "[Away Log Validation] FAIL\n- " + string.Join("\n- ", failures));
+        Debug.Log("[Away Log Validation] PASS | balance LE/Trazas/Energía | " +
+            "tiempo base + D2/D3 | un solo Continuar | ES/EN");
+    }
+
     [MenuItem("Tools/Quantum Forge/Presentation/Validate Block P7")]
     public static void ValidateBlockP7()
     {
         var failures = new List<string>();
         ValidateSceneHelp(failures);
         ValidateShortAndLongAbsence(failures);
-        ValidateNewsLimitAndCta(failures);
+        ValidateNewsLimitAndSingleAction(failures);
+        ValidateReturnModalStructure(failures);
         ValidateAdvancedResume(failures);
         ValidateActiveWorkNavigation(failures);
         ValidateLocalization(failures);
         if (failures.Count == 0)
         {
-            Debug.Log("[Presentation P7] PASS | retorno compacto | máximo 3 novedades | " +
-                "reanudación | CTA seguro | ayuda | EN/ES | trabajos activos");
+            Debug.Log("[Presentation P7] PASS | bitácora offline | balance real | " +
+                "un solo Continuar | ayuda | EN/ES | trabajos activos");
             return;
         }
         Debug.LogError("[Presentation P7] FAIL\n- " +
@@ -80,15 +97,34 @@ public static class PresentationBlockP7Validation
             PresentationReturnReport longReport =
                 PresentationReturnReportService.Build(before, state,
                     3600.0, 3600.0, 3600.0);
+            state.LE += 1250.0;
+            state.Traces += 8.0;
+            state.triangleEnergy += 42.0;
+            longReport = PresentationReturnReportService.Build(before, state,
+                3600.0, 3600.0, 3600.0, 3600.0);
             Check(longReport != null &&
                     longReport.newsKeys.Contains("return.d2") &&
-                    longReport.newsKeys.Contains("return.d3"),
-                "Ausencia larga no resume conjuntamente D2/D3.", failures);
+                    longReport.newsKeys.Contains("return.d3") &&
+                    System.Math.Abs(longReport.leDelta - 1250.0) < 0.0001 &&
+                    System.Math.Abs(longReport.tracesDelta - 8.0) < 0.0001 &&
+                    System.Math.Abs(longReport.triangleEnergyDelta - 42.0) < 0.0001 &&
+                    System.Math.Abs(longReport.appliedSeconds - 3600.0) < 0.0001,
+                "Ausencia larga no resume D2/D3 y monedas reales.", failures);
+
+            double maximum = Dimension1System.DefaultOfflineCapSeconds;
+            PresentationReturnReport cappedReport =
+                PresentationReturnReportService.Build(before, state,
+                    17.0 * 60.0 * 60.0, maximum, maximum, maximum);
+            Check(cappedReport != null &&
+                    System.Math.Abs(cappedReport.elapsedSeconds - 17.0 * 60.0 * 60.0) < 0.0001 &&
+                    System.Math.Abs(cappedReport.appliedSeconds - maximum) < 0.0001,
+                "El informe no diferencia 17 h de ausencia y el máximo de 12 h aplicado.",
+                failures);
         }
         finally { UnityEngine.Object.DestroyImmediate(state.gameObject); }
     }
 
-    private static void ValidateNewsLimitAndCta(List<string> failures)
+    private static void ValidateNewsLimitAndSingleAction(List<string> failures)
     {
         GameState state = CreateState("Presentation P7 Queue");
         try
@@ -100,8 +136,6 @@ public static class PresentationBlockP7Validation
             Check(report != null && report.newsKeys.Count <=
                     PresentationReturnReportService.MaxNewsItems,
                 "Múltiples desbloqueos producen más de tres novedades.", failures);
-            Check(PresentationReturnReportService.HasValidTarget(state, report),
-                "CTA del informe no resuelve una pantalla válida.", failures);
             Check(PresentationReturnReportService.UnifiedReportPreparedThisLoad,
                 "Informe unificado no suprime la cadena de modales offline.", failures);
             Check(PresentationReturnReportService.Consume() == report &&
@@ -110,6 +144,34 @@ public static class PresentationBlockP7Validation
                 failures);
         }
         finally { UnityEngine.Object.DestroyImmediate(state.gameObject); }
+    }
+
+    private static void ValidateReturnModalStructure(List<string> failures)
+    {
+        GameObject root = new GameObject("Presentation P7 Modal Validation");
+        try
+        {
+            PresentationReturnReportUI ui =
+                root.AddComponent<PresentationReturnReportUI>();
+            MethodInfo build = typeof(PresentationReturnReportUI).GetMethod(
+                "Build", BindingFlags.Instance | BindingFlags.NonPublic);
+            Check(build != null, "El informe no expone su constructor interno.", failures);
+            build?.Invoke(ui, null);
+            Button[] buttons = root.GetComponentsInChildren<Button>(true);
+            Check(buttons.Length == 1 && buttons[0].name == "Continue",
+                "El informe debe contener únicamente el botón Continuar.", failures);
+            Check(root.transform.Find("ReturnModal/ReturnPanel/BalanceTitle") != null &&
+                root.transform.Find("ReturnModal/ReturnPanel/LeBalance") != null &&
+                root.transform.Find("ReturnModal/ReturnPanel/TracesBalance") != null &&
+                root.transform.Find("ReturnModal/ReturnPanel/EnergyBalance") != null,
+                "El informe no contiene el balance visual de las tres monedas.", failures);
+        }
+        catch (System.Exception exception)
+        {
+            failures.Add("No se pudo construir el informe: " +
+                exception.GetBaseException().Message);
+        }
+        finally { UnityEngine.Object.DestroyImmediate(root); }
     }
 
     private static void ValidateAdvancedResume(List<string> failures)

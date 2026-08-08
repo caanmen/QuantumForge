@@ -132,22 +132,48 @@ public class BuildingRowUI : MonoBehaviour
         if (artifactIcon == null || state == null || state.def == null)
             return;
 
+        Color accent = Color.white;
         switch (state.def.id)
         {
             case "vacuum_observer":
                 artifactIcon.sprite = higgsIcon;
-                artifactIcon.color = new Color(0f, 0.84f, 1f, 1f);
+                accent = new Color(0f, 0.84f, 1f, 1f);
                 break;
             case "casimir_panel":
                 artifactIcon.sprite = tetraIcon;
-                artifactIcon.color = new Color(0.73f, 0.31f, 0.93f, 1f);
+                accent = new Color(0.73f, 0.31f, 0.93f, 1f);
                 break;
             case "fluctuation_antenna":
                 artifactIcon.sprite = modulatorIcon;
-                artifactIcon.color = new Color(1f, 0.60f, 0.13f, 1f);
+                accent = new Color(1f, 0.60f, 0.13f, 1f);
                 break;
         }
+        artifactIcon.color = Color.white;
         artifactIcon.enabled = artifactIcon.sprite != null;
+        ApplyArtifactAccent(accent);
+    }
+
+    private void ApplyArtifactAccent(Color accent)
+    {
+        Transform glowTransform = artifactIcon.transform.Find("ArtifactGlow");
+        Image glow = glowTransform != null
+            ? glowTransform.GetComponent<Image>()
+            : null;
+        if (glow != null)
+        {
+            accent.a = 0.14f;
+            glow.color = accent;
+            accent.a = 1f;
+        }
+
+        Transform accentTransform = transform.Find("AccentBar");
+        Image accentBar = accentTransform != null
+            ? accentTransform.GetComponent<Image>()
+            : null;
+        if (accentBar != null)
+            accentBar.color = accent;
+        if (tickFill != null)
+            tickFill.color = accent;
     }
 
     private void Update()
@@ -232,10 +258,9 @@ public class BuildingRowUI : MonoBehaviour
             {
                 if (state.def.id == "fluctuation_antenna" && gameState != null)
                 {
-                    if (state.level <= 0) shownName = $"{_cachedName} — Nv. {state.level}";
-                    else if (!gameState.triangleSystemUnlocked)
-                        shownName = $"{_cachedName} — {L("building.modulator.ready", "Vértice listo")}";
-                    else shownName = $"{_cachedName} — {L("building.modulator.active", "Triángulo activo")}";
+                    shownName = state.level <= 0
+                        ? $"{_cachedName} — Nv. {state.level}"
+                        : $"{L("building.energy_collector.name", "Captador de Energía")} — Nv. {state.level}";
                 }
                 else
                 {
@@ -317,15 +342,14 @@ public class BuildingRowUI : MonoBehaviour
 
         // ---------- MODO DESBLOQUEADO ----------
         double effectiveCost = gameState.GetEffectiveBuildingCost(state);
-        bool canAfford = !state.IsAtMaxLevel() && gameState.LE >= effectiveCost;
+        double tracesCost = state.def.id == "fluctuation_antenna" && state.level > 0
+            ? gameState.GetTriangleEnergyGeneratorTraceCost()
+            : 0.0;
+        bool canAfford = !state.IsAtMaxLevel() && gameState.LE >= effectiveCost &&
+            gameState.Traces >= tracesCost;
 
         if (buyButton != null)
-        {
-            if (state.def.id == "fluctuation_antenna" && state.level > 0)
-                buyButton.interactable = false;
-            else
-                buyButton.interactable = canAfford;
-        }
+            buyButton.interactable = canAfford;
 
         RefreshBuyButtonLabel();
 
@@ -396,11 +420,11 @@ public class BuildingRowUI : MonoBehaviour
         switch (gameState.triangleActiveCircuit)
         {
             case TriangleCircuitType.Energy:
-                return "Energía";
+                return "LE";
             case TriangleCircuitType.Experimental:
-                return "Experimental";
+                return "Trazas";
             case TriangleCircuitType.Phase:
-                return gameState.IsTrianglePhaseUnlocked() ? "Fase" : "Fase bloqueado";
+                return "Energía";
             default:
                 return "Sin circuito";
         }
@@ -413,13 +437,11 @@ public class BuildingRowUI : MonoBehaviour
         switch (gameState.triangleActiveCircuit)
         {
             case TriangleCircuitType.Energy:
-                return "Energía: prioriza LE.";
+                return "LE: prioriza la producción de LE.";
             case TriangleCircuitType.Experimental:
-                return "Experimental: prioriza Trazas y fragmentos.";
+                return "Trazas: prioriza la producción de Trazas.";
             case TriangleCircuitType.Phase:
-                return gameState.IsTrianglePhaseUnlocked()
-                    ? "Fase: acelera análisis y rutinas compatibles."
-                    : "Fase: bloqueado hasta desbloquear la Máquina.";
+                return "Energía: prioriza la Energía del Triángulo.";
             default:
                 return "Sin circuito seleccionado.";
         }
@@ -432,18 +454,23 @@ public class BuildingRowUI : MonoBehaviour
                 ? LocalizationManager.I.T("ui.buy")
                 : "Buy";
 
-        bool modulatorBought =
-            state.def.id == "fluctuation_antenna" &&
-            state.level > 0;
-
-        if (modulatorBought)
-            return gameState != null && gameState.triangleSystemUnlocked
-                ? L("building.modulator.active", "Triángulo activo")
-                : L("building.modulator.ready", "Vértice listo");
-
-        return (LocalizationManager.I != null)
+        string action = LocalizationManager.I != null
             ? LocalizationManager.I.T("ui.buy")
-            : "Buy";
+            : "Comprar";
+        if (gameState == null) return action;
+        if (state.def.id == "fluctuation_antenna" && state.level <= 0)
+            return $"{action}\n{L("building.modulator.unlock_gain", "Desbloquea el Triángulo")}";
+
+        double le = gameState.GetBuildingNextLevelLEPerSecond(state);
+        double traces = gameState.GetBuildingNextLevelTracesPerSecond(state);
+        double energy = gameState.GetBuildingNextLevelTriangleEnergyPerSecond(state);
+        var gains = new List<string>();
+        if (le > 0.0) gains.Add($"+{FormatProductionValue(le)} LE/s");
+        if (traces > 0.0) gains.Add($"+{FormatProductionValue(traces)} Trazas/s");
+        if (energy > 0.0) gains.Add($"+{FormatProductionValue(energy)} Energía/s");
+        return gains.Count > 0
+            ? $"{action}\n{string.Join(" · ", gains)}"
+            : action;
     }
 
         private void RefreshBuyButtonLabel()
@@ -484,7 +511,9 @@ public class BuildingRowUI : MonoBehaviour
     ? LocalizationManager.I.T("ui.cost_prefix")
     : "Cost:";
 
-    string costLine = $"{costPrefix} {(float)gameState.GetEffectiveBuildingCost(state):0} LE";
+    string costLine = $"{costPrefix} {gameState.GetEffectiveBuildingCost(state):0.##} LE";
+    if (def.id == "fluctuation_antenna" && state.level > 0)
+        costLine += $" + {gameState.GetTriangleEnergyGeneratorTraceCost():0.##} Trazas";
 
     if (def.tickInterval <= 0.0)
     {
@@ -502,6 +531,8 @@ public class BuildingRowUI : MonoBehaviour
         : 1.0;
 
     double worldMult = gameState.researchGlobalLEMult * achFactor;
+    if (F2UpgradeManager.I != null)
+        worldMult *= 1.0 + F2UpgradeManager.I.GetTotalGlobalLEMultBonus();
 
     double baseLeTick = def.lePerTickBase * state.level;
 
@@ -574,31 +605,22 @@ public class BuildingRowUI : MonoBehaviour
         _lastStatsLang = langNow;
 
 
-    if (def.id == "casimir_panel")
-        {
-            statsText.SetText(
-                $"{costLine}\nTick: +{(float)leTickReal:0.00} LE / {(float)shownInterval:0.00}s\n+{(float)tracesPs:0.00} Trazas/s"
-            );
-        }
-    else if (def.id == "fluctuation_antenna")
+    if (def.id == "fluctuation_antenna")
     {
         if (state.level <= 0)
             statsText.SetText($"{costLine}\n{L("building.modulator.vertex_description", "Tercer vértice. Permite activar el Triángulo.")}");
-        else if (!gameState.triangleSystemUnlocked)
-            statsText.SetText(L("building.modulator.needs_coupling", "Falta Acople de Vértices"));
         else
-        {
-            int pct = Mathf.RoundToInt(gameState.triangleSynchronization * 100f);
-            statsText.SetText($"{L("building.modulator.active", "Triángulo activo")}\n{GetPhaseModulatorModeLabel()} · {pct}%");
-        }
+            statsText.SetText(costLine);
     }
     else
-    {
-        statsText.SetText(
-            $"{costLine}\nTick: +{(float)leTickReal:0.00} LE / {(float)shownInterval:0.00}s"
-        );
-    }
+        statsText.SetText(costLine);
 }
+
+    private static string FormatProductionValue(double value)
+    {
+        return value.ToString("0.#####",
+            System.Globalization.CultureInfo.CurrentCulture);
+    }
     
 
 

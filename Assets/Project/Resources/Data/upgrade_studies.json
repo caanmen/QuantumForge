@@ -1,0 +1,97 @@
+{
+  "studies": [
+    {
+      "id": "study_emission_focus",
+      "unlockId": "emission_focus",
+      "requiredBuildingId": "vacuum_observer",
+      "durationSeconds": 90.0,
+      "energyCost": 0.0,
+      "tuningBoostFraction": 0.18,
+      "tuningStages": 3
+    },
+    {
+      "id": "study_containment_tuning",
+      "unlockId": "containment_tuning",
+      "requiredBuildingId": "vacuum_observer",
+      "durationSeconds": 90.0,
+      "energyCost": 0.0,
+      "tuningBoostFraction": 0.18,
+      "tuningStages": 3
+    },
+    {
+      "id": "study_tetraquark_stabilization",
+      "unlockId": "tetraquark_stabilization",
+      "requiredBuildingId": "casimir_panel",
+      "durationSeconds": 180.0,
+      "energyCost": 0.0,
+      "tuningBoostFraction": 0.18,
+      "tuningStages": 3
+    },
+    {
+      "id": "study_triangle_unlock_1",
+      "unlockId": "triangle_unlock_1",
+      "requiredBuildingId": "fluctuation_antenna",
+      "requiresAllTriangleVertices": true,
+      "durationSeconds": 180.0,
+      "energyCost": 0.0,
+      "tuningBoostFraction": 0.18,
+      "tuningStages": 3
+    },
+    {
+      "id": "study_triangle_impulse_tuning",
+      "unlockId": "triangle_impulse_tuning",
+      "requiresTriangleUnlocked": true,
+      "requiredCircuit": 0,
+      "durationSeconds": 240.0,
+      "energyCost": 120.0,
+      "tuningBoostFraction": 0.18,
+      "tuningStages": 3
+    },
+    {
+      "id": "study_triangle_synergy_resonance",
+      "unlockId": "triangle_synergy_resonance",
+      "requiresTriangleUnlocked": true,
+      "requiredCircuit": 2,
+      "durationSeconds": 240.0,
+      "energyCost": 160.0,
+      "tuningBoostFraction": 0.18,
+      "tuningStages": 3
+    },
+    {
+      "id": "study_triangle_persistence_anchor",
+      "unlockId": "triangle_persistence_anchor",
+      "requiresTriangleUnlocked": true,
+      "requiredCircuit": 3,
+      "minimumCircuitSwitches": 1,
+      "durationSeconds": 300.0,
+      "energyCost": 200.0,
+      "tuningBoostFraction": 0.18,
+      "tuningStages": 3
+    },
+    {
+      "id": "study_triangle_energy_efficiency",
+      "unlockId": "triangle_energy_efficiency",
+      "requiresTriangleUnlocked": true,
+      "requiredCircuit": 4,
+      "durationSeconds": 300.0,
+      "energyCost": 180.0,
+      "tuningBoostFraction": 0.18,
+      "tuningStages": 3
+    },
+    {
+      "id": "study_experimental_chamber_keycard",
+      "unlockId": "project_experimental_chamber_keycard",
+      "requiresTriangleUnlocked": true,
+      "requiredCircuit": 3,
+      "requiredDiscoveredIds": [
+        "triangle_impulse_tuning",
+        "triangle_synergy_resonance"
+      ],
+      "durationSeconds": 360.0,
+      "energyCost": 300.0,
+      "tuningBoostFraction": 0.18,
+      "tuningStages": 3,
+      "unlocksKeycardProject": true
+    }
+  ]
+}

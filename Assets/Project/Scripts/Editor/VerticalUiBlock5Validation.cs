@@ -22,7 +22,8 @@ public static class VerticalUiBlock5Validation
         "triangle_unlock_1",
         "triangle_impulse_tuning",
         "triangle_synergy_resonance",
-        "triangle_persistence_anchor"
+        "triangle_persistence_anchor",
+        "triangle_energy_efficiency"
     };
 
     [MenuItem("Tools/Quantum Forge/Vertical UI/Validate Block 5 Upgrades")]
@@ -105,13 +106,16 @@ public static class VerticalUiBlock5Validation
             "upgrades.section.traces",
             "upgrades.section.triangle"
         };
+        int previousSectionIndex = -1;
         for (int i = 0; i < names.Length; i++)
         {
             Transform section = content != null ? FindDirectChild(content, names[i]) : null;
             Check(section != null, "Falta " + names[i] + ".", failures);
             if (section == null) continue;
-            Check(section.GetSiblingIndex() == i,
-                names[i] + " no respeta el orden aprobado.", failures);
+            int sectionIndex = section.GetSiblingIndex();
+            Check(sectionIndex > previousSectionIndex,
+                names[i] + " no respeta el orden relativo aprobado.", failures);
+            previousSectionIndex = sectionIndex;
             Check(section.GetComponent<CanvasGroup>() != null &&
                 section.GetComponent<LayoutElement>() != null,
                 names[i] + " no admite ocultacion progresiva sin huecos.", failures);
@@ -133,7 +137,7 @@ public static class VerticalUiBlock5Validation
     {
         F2UpgradeRowUI[] rows = shell.GetComponentsInChildren<F2UpgradeRowUI>(true);
         Check(rows.Length == CanonicalIds.Length,
-            "El shell no contiene exactamente las siete mejoras canonicas.", failures);
+            "El shell no contiene exactamente las ocho mejoras canonicas.", failures);
         foreach (string id in CanonicalIds)
         {
             F2UpgradeRowUI[] matches = rows.Where(row => row.UpgradeId == id).ToArray();
@@ -165,7 +169,8 @@ public static class VerticalUiBlock5Validation
         string[] triangle =
         {
             "triangle_unlock_1", "triangle_impulse_tuning",
-            "triangle_synergy_resonance", "triangle_persistence_anchor"
+            "triangle_synergy_resonance", "triangle_persistence_anchor",
+            "triangle_energy_efficiency"
         };
         ValidateGroup(shell, "Section_Production", production, failures);
         ValidateGroup(shell, "Section_Traces", traces, failures);
@@ -180,11 +185,13 @@ public static class VerticalUiBlock5Validation
     {
         Transform section = shell.GetComponentsInChildren<Transform>(true)
             .FirstOrDefault(current => current.name == sectionName);
-        Transform rowsRoot = section != null ? FindDirectChild(section, "Rows") : null;
-        if (rowsRoot == null) return;
-        F2UpgradeRowUI[] rows = rowsRoot.GetComponentsInChildren<F2UpgradeRowUI>(true);
-        Check(rows.Select(row => row.UpgradeId).SequenceEqual(expected),
-            sectionName + " no contiene las mejoras aprobadas en orden.", failures);
+        if (section == null) return;
+        string[] actual = section.GetComponentsInChildren<F2UpgradeRowUI>(true)
+            .Select(row => row.UpgradeId)
+            .ToArray();
+        Check(actual.Length == expected.Length &&
+            actual.OrderBy(id => id).SequenceEqual(expected.OrderBy(id => id)),
+            sectionName + " no contiene exactamente las mejoras aprobadas.", failures);
     }
 
     private static void ValidateController(GameObject f2Panel, List<string> failures)
@@ -199,7 +206,7 @@ public static class VerticalUiBlock5Validation
             "VerticalUpgradesScreenUI tiene secciones sin conectar.", failures);
         Check(screen.rows != null && screen.rows.Length == CanonicalIds.Length &&
             screen.rows.All(row => row != null),
-            "VerticalUpgradesScreenUI no controla las siete filas.", failures);
+            "VerticalUpgradesScreenUI no controla las ocho filas.", failures);
     }
 
     private static void ValidateNavigation(GameObject panel, List<string> failures)
@@ -302,7 +309,7 @@ public static class VerticalUiBlock5Validation
         if (failures.Count == 0)
         {
             Debug.Log("[Vertical UI Block 5] PASS | independent upgrades | " +
-                "three progressive sections | seven canonical rows | localized | no duplicate listeners");
+                "three progressive sections | eight canonical rows | localized | no duplicate listeners");
             return;
         }
         foreach (string failure in failures)

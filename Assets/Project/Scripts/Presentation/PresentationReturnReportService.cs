@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 public sealed class PresentationReturnSnapshot
 {
+    public double le;
+    public double traces;
+    public double triangleEnergy;
     public readonly HashSet<string> d2Features =
         new HashSet<string>(StringComparer.Ordinal);
     public readonly HashSet<string> d3Features =
@@ -14,6 +17,11 @@ public sealed class PresentationReturnReport
 {
     public double elapsedSeconds;
     public double appliedSeconds;
+    public double d2AppliedSeconds;
+    public double d3AppliedSeconds;
+    public double leDelta;
+    public double tracesDelta;
+    public double triangleEnergyDelta;
     public int targetDimension;
     public string targetScreenId = "";
     public readonly List<string> newsKeys = new List<string>();
@@ -31,6 +39,9 @@ public static class PresentationReturnReportService
     {
         var snapshot = new PresentationReturnSnapshot();
         if (gameState == null) return snapshot;
+        snapshot.le = gameState.LE;
+        snapshot.traces = gameState.Traces;
+        snapshot.triangleEnergy = gameState.triangleEnergy;
         gameState.EnsureDimension2State();
         gameState.EnsureDimension3State();
         Copy(gameState.dimension2?.presentation?.introducedFeatureIds,
@@ -45,10 +56,11 @@ public static class PresentationReturnReportService
         GameState gameState,
         double elapsedSeconds,
         double d2AppliedSeconds,
-        double d3AppliedSeconds)
+        double d3AppliedSeconds,
+        double baseAppliedSeconds = 0.0)
     {
         PendingReport = Build(before, gameState, elapsedSeconds,
-            d2AppliedSeconds, d3AppliedSeconds);
+            d2AppliedSeconds, d3AppliedSeconds, baseAppliedSeconds);
         // Esta capa decide si corresponde mostrar algo. Incluso una ausencia corta
         // debe suprimir reportes legacy para evitar un modal obligatorio.
         UnifiedReportPreparedThisLoad = true;
@@ -67,7 +79,8 @@ public static class PresentationReturnReportService
         GameState gameState,
         double elapsedSeconds,
         double d2AppliedSeconds,
-        double d3AppliedSeconds)
+        double d3AppliedSeconds,
+        double baseAppliedSeconds = 0.0)
     {
         if (gameState == null || elapsedSeconds < SignificantAbsenceSeconds)
             return null;
@@ -80,7 +93,14 @@ public static class PresentationReturnReportService
         var report = new PresentationReturnReport
         {
             elapsedSeconds = Math.Max(0.0, elapsedSeconds),
-            appliedSeconds = Math.Max(d2AppliedSeconds, d3AppliedSeconds)
+            appliedSeconds = Math.Max(baseAppliedSeconds,
+                Math.Max(d2AppliedSeconds, d3AppliedSeconds)),
+            d2AppliedSeconds = Math.Max(0.0, d2AppliedSeconds),
+            d3AppliedSeconds = Math.Max(0.0, d3AppliedSeconds),
+            leDelta = SafeDelta(gameState.LE, before.le),
+            tracesDelta = SafeDelta(gameState.Traces, before.traces),
+            triangleEnergyDelta = SafeDelta(
+                gameState.triangleEnergy, before.triangleEnergy)
         };
         if (d2AppliedSeconds > 0.0) Add(report, "return.d2");
         if (d3AppliedSeconds > 0.0) Add(report, "return.d3");
@@ -96,8 +116,6 @@ public static class PresentationReturnReportService
             report.newFeatureId = !string.IsNullOrEmpty(newD3) ? newD3 : newD2;
             Add(report, "return.new");
         }
-        Add(report, "return.resume");
-
         bool preferD3 = !string.IsNullOrEmpty(newD3) ||
             (string.IsNullOrEmpty(newD2) && d3AppliedSeconds > 0.0);
         if (preferD3 && Dimension3System.CanAccessDimension3(gameState))
@@ -142,6 +160,12 @@ public static class PresentationReturnReportService
         if (source == null) return;
         foreach (string id in source)
             if (!string.IsNullOrEmpty(id)) target.Add(id);
+    }
+
+    private static double SafeDelta(double current, double previous)
+    {
+        double value = current - previous;
+        return double.IsNaN(value) || double.IsInfinity(value) ? 0.0 : value;
     }
 
     private static string FindNewFeature(

@@ -128,10 +128,12 @@ public static class MachineCubeBlock1Setup
             leIcon, tracesIcon);
         for (int i = 0; i < effectIcons.Length; i++)
             Require(effectIcons[i] != null, "Missing shared machine pictogram: " + EffectIconPaths[i]);
+        ModeTabParts modeTabs = BuildModeTabs(root.transform, font, buttonSprite,
+            selectedSprite);
         SectorParts sector = BuildSectorHeader(root.transform, font, panelSprite);
 
         GameObject viewportObject = CreateRect("FaceViewport", root.transform,
-            new Vector2(0.005f, 0.245f), new Vector2(0.995f, 0.825f),
+            new Vector2(0.005f, 0.245f), new Vector2(0.995f, 0.785f),
             Vector2.zero, Vector2.zero);
         RectTransform viewport = viewportObject.GetComponent<RectTransform>();
         RectMask2D mask = viewportObject.AddComponent<RectMask2D>();
@@ -218,7 +220,8 @@ public static class MachineCubeBlock1Setup
         SetObject(panelSo, "btnNextNode", null);
         SetObject(panelSo, "btnRepairNode", card.repair);
         SetObject(panelSo, "btnAnalyzeNode", card.analyze);
-        SetObject(panelSo, "btnFusionPanel", card.fusion);
+        SetObject(panelSo, "btnFusionPanel", modeTabs.mixes);
+        SetObject(panelSo, "btnNodesTab", modeTabs.nodes);
         SetObject(panelSo, "btnOpenSeedsPanel", card.seeds);
         SetObject(panelSo, "btnZone1", null);
         SetObject(panelSo, "btnZone2", null);
@@ -298,19 +301,23 @@ public static class MachineCubeBlock1Setup
         AddTitleLight(titlePanel.transform, "RightLight", 0.73f, 0.92f);
 
         TextMeshProUGUI le = CreateText("LE", lePanel.transform, "LE  —",
-            new Vector2(0.27f, 0.10f), new Vector2(0.94f, 0.90f), font, 24f,
+            new Vector2(0.27f, 0.10f), new Vector2(0.94f, 0.90f), font, 28f,
             TextPrimary, TextAlignmentOptions.Left);
+        le.fontSizeMin = 21f;
         TextMeshProUGUI traces = CreateText("Traces", tracesPanel.transform, "TRAZAS  —",
-            new Vector2(0.27f, 0.10f), new Vector2(0.94f, 0.90f), font, 24f,
+            new Vector2(0.27f, 0.10f), new Vector2(0.94f, 0.90f), font, 28f,
             TextPrimary, TextAlignmentOptions.Left);
+        traces.fontSizeMin = 21f;
 
         TextMeshProUGUI progress = CreateText("TotalProgress", titlePanel.transform,
             "REPARACIÓN TOTAL  0%  /  80%",
-            new Vector2(0.035f, 0.015f), new Vector2(0.61f, 0.25f), font, 16f,
+            new Vector2(0.035f, 0.015f), new Vector2(0.61f, 0.25f), font, 20f,
             TextSecondary, TextAlignmentOptions.Left);
+        progress.fontSizeMin = 17f;
         TextMeshProUGUI convergence = CreateText("Convergence", titlePanel.transform,
             "CANAL: BLOQUEADO", new Vector2(0.61f, 0.015f), new Vector2(0.965f, 0.25f),
-            font, 16f, TextSecondary, TextAlignmentOptions.Right);
+            font, 20f, TextSecondary, TextAlignmentOptions.Right);
+        convergence.fontSizeMin = 17f;
 
         GameObject track = CreateRect("ProgressTrack", titlePanel.transform,
             new Vector2(0.035f, 0.006f), new Vector2(0.965f, 0.025f),
@@ -347,7 +354,7 @@ public static class MachineCubeBlock1Setup
         Sprite panelSprite)
     {
         GameObject sector = CreateRect("MachineSectorHeader", parent,
-            new Vector2(0.10f, 0.825f), new Vector2(0.90f, 0.884f),
+            new Vector2(0.10f, 0.785f), new Vector2(0.90f, 0.838f),
             Vector2.zero, Vector2.zero);
         TextMeshProUGUI faceTitle = CreateText("FaceTitle", sector.transform,
             "SECTOR DE FUSIONES", new Vector2(0.04f, 0.38f), new Vector2(0.96f, 0.98f),
@@ -356,8 +363,31 @@ public static class MachineCubeBlock1Setup
         faceTitle.characterSpacing = 2f;
         TextMeshProUGUI faceIndex = CreateText("FaceIndex", sector.transform,
             "CARA 2 / 4", new Vector2(0.04f, 0.01f), new Vector2(0.96f, 0.43f),
-            font, 24f, Accents[1], TextAlignmentOptions.Center);
+            font, 26f, Accents[1], TextAlignmentOptions.Center);
+        faceIndex.fontSizeMin = 20f;
         return new SectorParts { faceTitle = faceTitle, faceIndex = faceIndex };
+    }
+
+    private static ModeTabParts BuildModeTabs(Transform parent, TMP_FontAsset font,
+        Sprite buttonSprite, Sprite selectedSprite)
+    {
+        GameObject tabs = CreateRect("MachineContextTabs", parent,
+            new Vector2(0.245f, 0.840f), new Vector2(0.755f, 0.880f),
+            Vector2.zero, Vector2.zero);
+
+        Button nodes = BuildCardButton(tabs.transform, "NodesTab", "NODOS",
+            new Vector2(0.00f, 0.04f), new Vector2(0.49f, 0.96f), font,
+            selectedSprite != null ? selectedSprite : buttonSprite, 20f);
+        Button mixes = BuildCardButton(tabs.transform, "MixesTab", "MEZCLAS",
+            new Vector2(0.51f, 0.04f), new Vector2(1.00f, 0.96f), font,
+            buttonSprite, 20f);
+
+        if (nodes.targetGraphic is Image nodesImage)
+            nodesImage.color = new Color(0.10f, 0.70f, 0.84f, 0.98f);
+        if (mixes.targetGraphic is Image mixesImage)
+            mixesImage.color = new Color(0.42f, 0.28f, 0.55f, 0.96f);
+
+        return new ModeTabParts { nodes = nodes, mixes = mixes };
     }
 
     private static MachineCubeFaceViewUI BuildFace(RectTransform parent, int index,
@@ -533,8 +563,9 @@ public static class MachineCubeBlock1Setup
         pictogram.raycastTarget = false;
 
         TextMeshProUGUI tier = CreateText("Tier", buttonObject.transform, "",
-            new Vector2(0.58f, 0.03f), new Vector2(0.94f, 0.28f), font, 13f,
+            new Vector2(0.58f, 0.03f), new Vector2(0.94f, 0.28f), font, 18f,
             TextPrimary, TextAlignmentOptions.BottomRight);
+        tier.fontSizeMin = 16f;
 
         MachineCubeNodeVisualUI node = root.AddComponent<MachineCubeNodeVisualUI>();
         SerializedObject so = new SerializedObject(node);
@@ -586,26 +617,30 @@ public static class MachineCubeBlock1Setup
         TextMeshProUGUI state = CreateText("NodeState", card.transform,
             "ESTADO: DESCONOCIDO", new Vector2(0.205f, 0.59f), new Vector2(0.73f, 0.77f),
             font, 22f, Selection, TextAlignmentOptions.Left);
+        state.fontSizeMin = 18f;
         TextMeshProUGUI description = CreateText("NodeDescription", card.transform,
             "Explora los circuitos de la cara actual.", new Vector2(0.205f, 0.37f),
             new Vector2(0.73f, 0.61f), font, 21f, TextSecondary,
             TextAlignmentOptions.TopLeft);
         description.textWrappingMode = TextWrappingModes.Normal;
         TextMeshProUGUI effect = CreateText("NodeEffect", card.transform, "EFECTO  —",
-            new Vector2(0.205f, 0.25f), new Vector2(0.73f, 0.39f), font, 19f,
+            new Vector2(0.205f, 0.25f), new Vector2(0.73f, 0.39f), font, 22f,
             TextPrimary, TextAlignmentOptions.Left);
+        effect.fontSizeMin = 17f;
         TextMeshProUGUI requirements = CreateText("NodeRequirements", card.transform,
             "REQUISITOS  —", new Vector2(0.205f, 0.12f), new Vector2(0.73f, 0.27f),
-            font, 18f, Hex("CDA15B"), TextAlignmentOptions.Left);
+            font, 21f, Hex("CDA15B"), TextAlignmentOptions.Left);
+        requirements.fontSizeMin = 17f;
         requirements.textWrappingMode = TextWrappingModes.Normal;
         TextMeshProUGUI cost = CreateText("NodeCost", card.transform, "COSTE  —",
-            new Vector2(0.205f, 0.02f), new Vector2(0.73f, 0.14f), font, 18f,
+            new Vector2(0.205f, 0.02f), new Vector2(0.73f, 0.14f), font, 22f,
             Hex("9BB7C4"), TextAlignmentOptions.Left);
+        cost.fontSizeMin = 18f;
 
         Button repair = BuildCardButton(card.transform, "RepairNode", "REPARAR",
             new Vector2(0.755f, 0.54f), new Vector2(0.975f, 0.88f), font, buttonSprite, 24f);
         Button analyze = BuildCardButton(card.transform, "AnalyzeNode", "ANALIZAR",
-            new Vector2(0.755f, 0.18f), new Vector2(0.975f, 0.50f), font, buttonSprite, 22f);
+            new Vector2(0.755f, 0.54f), new Vector2(0.975f, 0.88f), font, buttonSprite, 22f);
         Button fusion = BuildCardButton(card.transform, "OpenFusion", "PANEL DE FUSIÓN",
             new Vector2(0.755f, 0.18f), new Vector2(0.975f, 0.50f), font, buttonSprite, 18f);
         Button seeds = BuildCardButton(card.transform, "OpenAnchors", "ANCLAJES",
@@ -615,8 +650,9 @@ public static class MachineCubeBlock1Setup
 
         TextMeshProUGUI faceProgress = CreateText("FaceProgress", card.transform,
             "PROGRESO DEL SECTOR  0%", new Vector2(0.755f, 0.015f),
-            new Vector2(0.975f, 0.145f), font, 15f, TextSecondary,
+            new Vector2(0.975f, 0.145f), font, 19f, TextSecondary,
             TextAlignmentOptions.Center);
+        faceProgress.fontSizeMin = 17f;
         faceProgress.fontStyle = FontStyles.Normal;
 
         return new CardParts { root = card.GetComponent<RectTransform>(), icon = icon,
@@ -837,6 +873,12 @@ public static class MachineCubeBlock1Setup
     {
         public TextMeshProUGUI faceTitle;
         public TextMeshProUGUI faceIndex;
+    }
+
+    private sealed class ModeTabParts
+    {
+        public Button nodes;
+        public Button mixes;
     }
 
     private sealed class CardParts

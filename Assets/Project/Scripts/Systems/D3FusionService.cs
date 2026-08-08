@@ -121,8 +121,9 @@ public static class D3FusionService
         failureChance -= MachineManager.I.GetTotalEffectValue(
             MachineNodeEffectType.FusionFailureReduction);
         if (MachineManager.I.GetTotalEffectValue(
-                MachineNodeEffectType.CatalystTuning) > 0.0)
-            failureChance -= 0.03;
+                MachineNodeEffectType.CatalystTuning) > 0.0 &&
+            catalyst == ExperimentalCatalystType.Beta)
+            failureChance -= 0.05;
         failureChance = Math.Max(0.0, Math.Min(1.0, failureChance));
         bool stable = MachineManager.I.GetTotalEffectValue(
             MachineNodeEffectType.StableReactionChamber) > 0.0;
@@ -151,8 +152,9 @@ public static class D3FusionService
                 MachineManager.I.GetZoneProgressSyncBonus(
                     MachineZoneType.FusionSector);
             if (MachineManager.I.GetTotalEffectValue(
-                    MachineNodeEffectType.CatalystTuning) > 0.0)
-                bonusChance += 0.03;
+                    MachineNodeEffectType.CatalystTuning) > 0.0 &&
+                catalyst == ExperimentalCatalystType.Alpha)
+                bonusChance += 0.05;
             if (coreCharged) bonusChance += 0.15;
             if (bonusChance > 0.0 && UnityEngine.Random.value < bonusChance)
                 reward++;

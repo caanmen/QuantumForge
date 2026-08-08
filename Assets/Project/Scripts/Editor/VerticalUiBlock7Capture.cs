@@ -185,13 +185,13 @@ public static class VerticalUiBlock7Capture
                     break;
                 case 5:
                     Capture("04_generation_energy_en_1080x2340.png", 1080, 2340);
-                    PreparePhaseLockedSpanish();
+                    PrepareEnergyFocusSpanish();
                     PrepareResolution(1080, 1920);
                     Advance(6);
                     break;
                 case 6:
-                    ValidatePhaseLocked();
-                    Capture("05_generation_phase_locked_es_1080x1920.png", 1080, 1920);
+                    ValidateEnergyFocusAvailable();
+                    Capture("05_generation_energy_focus_es_1080x1920.png", 1080, 1920);
                     PrepareProgressiveNavigation();
                     PrepareResolution(1080, 1920);
                     Advance(7);
@@ -297,11 +297,13 @@ public static class VerticalUiBlock7Capture
         foreach (string id in BuildingIds)
             Require(BuildingPurchaseService.TryPurchase(state, RequireBuilding(id)),
                 "No se pudo preparar el vertice visual " + id + ".");
+        state.upgradeStudies.discoveredIds.Add("triangle_unlock_1");
         Require(F2UpgradeManager.I.TryBuy("triangle_unlock_1"),
             "No se pudo preparar Acople para la captura avanzada.");
-        Require(state.SetTriangleCircuit(TriangleCircuitType.Energy),
-            "No se pudo preparar Energia para la captura avanzada.");
+        Require(state.SetTriangleCircuit(TriangleCircuitType.Phase),
+            "No se pudo preparar el enfoque Energía para la captura avanzada.");
         state.experimentalChamberUnlocked = true;
+        state.triangleEnergy = 480.0;
         state.dimension01Unlocked = true;
         state.dimension02Unlocked = true;
         state.dimension03Unlocked = true;
@@ -399,13 +401,20 @@ public static class VerticalUiBlock7Capture
         BuyBuildingFromEarlyRow("fluctuation_antenna");
         int modulatorLevel = state.GetBuildingLevel("fluctuation_antenna");
         Require(modulatorLevel == 1, "El Modulador no quedo en nivel 1.");
-        Require(!BuildingPurchaseService.TryPurchase(
-                state, state.GetBuildingState("fluctuation_antenna")) &&
-            state.GetBuildingLevel("fluctuation_antenna") == 1,
-            "El Modulador admitio una compra repetida.");
+        BuildingState energyGenerator = state.GetBuildingState("fluctuation_antenna");
+        double leCost = state.GetTriangleEnergyGeneratorLECost();
+        double traceCost = state.GetTriangleEnergyGeneratorTraceCost();
+        double leBefore = state.LE;
+        double tracesBefore = state.Traces;
+        Require(BuildingPurchaseService.TryPurchase(state, energyGenerator) &&
+            state.GetBuildingLevel("fluctuation_antenna") == 2,
+            "El Captador no admitio su segundo nivel repetible.");
+        Require(Math.Abs(state.LE - (leBefore - leCost)) < 0.0001 &&
+            Math.Abs(state.Traces - (tracesBefore - traceCost)) < 0.0001,
+            "El Captador no desconto LE y Trazas de forma atomica.");
 
         Debug.Log("[Vertical UI Block 7] FUNCTION PASS | F2 desde Mejoras | " +
-            "Tetra y Modulador desde Generacion | Modulador compra unica");
+            "Tetra y Modulador desde Generacion | Captador repetible con LE + Trazas");
     }
 
     private static void BuyTriangleUnlockFromUi()
@@ -471,23 +480,22 @@ public static class VerticalUiBlock7Capture
         Debug.Log("[Vertical UI Block 7] FUNCTION PASS | selector Energy | compra desde tarjeta avanzada | EN");
     }
 
-    private static void PreparePhaseLockedSpanish()
+    private static void PrepareEnergyFocusSpanish()
     {
         LocalizationManager.I?.SetLanguage(LocalizationManager.Language.ES);
         TabsUI.Instance.ShowGeneracion();
         RefreshAllUi();
     }
 
-    private static void ValidatePhaseLocked()
+    private static void ValidateEnergyFocusAvailable()
     {
         TriangleSlotUI phase = FindNamedComponent<TriangleSlotUI>("Circuit_Phase");
-        Require(phase != null, "No se encontro el selector Fase.");
-        TriangleCircuitType before = GameState.I.triangleActiveCircuit;
+        Require(phase != null, "No se encontro el selector de Energia.");
         phase.OnPointerClick(null);
-        Require(!GameState.I.IsTrianglePhaseUnlocked() &&
-            GameState.I.triangleActiveCircuit == before,
-            "Fase se activo antes de desbloquear la Maquina.");
-        Debug.Log("[Vertical UI Block 7] FUNCTION PASS | Fase bloqueada hasta la Maquina");
+        Require(GameState.I.IsTrianglePhaseUnlocked() &&
+            GameState.I.triangleActiveCircuit == TriangleCircuitType.Phase,
+            "El enfoque de Energia no se activo con el Triangulo completo.");
+        Debug.Log("[Vertical UI Block 7] FUNCTION PASS | enfoque Energia disponible desde el Triangulo");
     }
 
     private static void PrepareProgressiveNavigation()

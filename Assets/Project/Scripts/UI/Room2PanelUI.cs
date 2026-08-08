@@ -32,6 +32,14 @@ public class Room2PanelUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI fragmentSlotAText;
     [SerializeField] private TextMeshProUGUI fragmentSlotBText;
     [SerializeField] private TextMeshProUGUI catalystSlotText;
+    [SerializeField] private Image fragmentSlotAIcon;
+    [SerializeField] private Image fragmentSlotBIcon;
+    [SerializeField] private Image catalystSlotIcon;
+    [SerializeField] private Sprite fragmentCondensationIcon;
+    [SerializeField] private Sprite fragmentConfinementIcon;
+    [SerializeField] private Sprite fragmentResidualIcon;
+    [SerializeField] private Sprite catalystAlphaIcon;
+    [SerializeField] private Sprite catalystBetaIcon;
     [SerializeField] private TextMeshProUGUI modeText;
     [SerializeField] private Button modeButton;
     [SerializeField] private TextMeshProUGUI modeButtonText;
@@ -50,6 +58,8 @@ public class Room2PanelUI : MonoBehaviour
     private ExperimentalCatalystType selectedCatalyst = ExperimentalCatalystType.None;
     private int currentInstability = 0;
     private int lastRewardAmount = 0;
+    private ExperimentalResultType lastFusionResult = ExperimentalResultType.None;
+    private bool hasCompletedFusion;
     private const int instabilityLowMax = 5;
     private const int instabilityMediumMax = 12;
     private const int coolTraceCost = 30;
@@ -79,6 +89,58 @@ public class Room2PanelUI : MonoBehaviour
 
     private TrialMode currentTrialMode = TrialMode.Balanced;
     private GuidedSynthesisIntent currentGuidedIntent = GuidedSynthesisIntent.None;
+
+    public bool FusionSelectionComplete =>
+        selectedFragmentA != ExperimentalFragmentType.None &&
+        selectedFragmentB != ExperimentalFragmentType.None &&
+        selectedCatalyst != ExperimentalCatalystType.None;
+    public int UnlockedFusionSlotCount => GetUnlockedFusionSlotCount();
+    public bool HasUnlockedFusionSlot => UnlockedFusionSlotCount > 0;
+    public bool HasRequiredFragmentsForSelection =>
+        FusionSelectionComplete && HasRequiredFragmentsForCurrentSelection();
+    public bool CanExecuteFusion =>
+        GameState.I != null &&
+        GameState.I.experimentalChamberUnlocked &&
+        HasUnlockedFusionSlot &&
+        FusionSelectionComplete &&
+        HasRequiredFragmentsForSelection &&
+        !FusionCoolingDown;
+    public string FusionStatusTitle => BuildFusionStatusTitle();
+    public string FusionGuidanceMessage => BuildFusionGuidanceMessage();
+    public bool FragmentASelected => selectedFragmentA != ExperimentalFragmentType.None;
+    public bool FragmentBSelected => selectedFragmentB != ExperimentalFragmentType.None;
+    public bool CatalystSelected => selectedCatalyst != ExperimentalCatalystType.None;
+    public int CurrentInstability => currentInstability;
+    public float CurrentFusionRisk01 => (float)GetCurrentFusionFailureChance();
+    public bool FusionCoolingDown => IsFusionCoolingDown();
+    public double FusionCooldownRemaining => currentFusionCooldownSeconds;
+    public bool CanCoolCurrentInstability =>
+        GameState.I != null && currentInstability > 0 && GameState.I.Traces >= coolTraceCost;
+    public bool HasCompletedFusion => hasCompletedFusion;
+    public ExperimentalResultType LastFusionResult => lastFusionResult;
+    public int LastFusionRewardAmount => lastRewardAmount;
+    public int LastFusionInstabilityGain => GetTrialModeInstabilityGain();
+    public int SynthesisCoreCounter => GameState.I != null
+        ? GameState.I.synthesisCoreFusionCounter
+        : 0;
+    public string InstabilityStateDisplayName => GetInstabilityStateName();
+    public string LastFusionResultDisplayName => GetResultDisplayName(lastFusionResult);
+    public int ExperimentalLogEntryCount
+    {
+        get
+        {
+            if (GameState.I == null || GameState.I.experimentalMixLog == null)
+                return 0;
+
+            int count = 0;
+            foreach (ExperimentalMixLogEntry entry in GameState.I.experimentalMixLog)
+            {
+                if (entry != null)
+                    count++;
+            }
+            return count;
+        }
+    }
 
     private void Awake()
     {
@@ -167,31 +229,24 @@ public class Room2PanelUI : MonoBehaviour
             return;
 
         int slots = GetUnlockedFusionSlotCount();
-
-        fusionSlotsText.text = "Ranuras de fusión: " + slots;
-
-        if (IsFusionCoolingDown())
-        {
-            fusionSlotsText.text += "\nEnfriamiento de fusión: " +
-                currentFusionCooldownSeconds.ToString("0.0") + "s";
-        }
-        else
-        {
-            fusionSlotsText.text += "\nFusión lista";
-        }
+        bool english = LocalizationManager.I != null &&
+            LocalizationManager.I.CurrentLanguage == LocalizationManager.Language.EN;
+        string readiness = slots <= 0
+            ? (english ? "FUSION TABLE LOCKED" : "MESA DE FUSIÓN BLOQUEADA")
+            : IsFusionCoolingDown()
+                ? (english ? "COOLDOWN " : "ENFRIAMIENTO ") +
+                    currentFusionCooldownSeconds.ToString("0.0") + "s"
+                : (english ? "FUSION READY" : "FUSIÓN LISTA");
+        fusionSlotsText.text = (english ? "SLOTS " : "RANURAS ") + slots +
+            "     •     " + readiness;
 
         if (HasSynthesisCore() && GameState.I != null)
         {
             int counter = GameState.I.synthesisCoreFusionCounter;
-
-            if (counter >= 10)
-            {
-                fusionSlotsText.text += "\nNúcleo de Síntesis: cargado";
-            }
-            else
-            {
-                fusionSlotsText.text += "\nNúcleo de Síntesis: " + counter + "/10";
-            }
+            string coreState = counter >= 10
+                ? (english ? "CORE CHARGED" : "NÚCLEO CARGADO")
+                : (english ? "CORE " : "NÚCLEO ") + counter + "/10";
+            fusionSlotsText.text += "     •     " + coreState;
         }
     }
 
@@ -473,9 +528,9 @@ public class Room2PanelUI : MonoBehaviour
             failureChance -= MachineManager.I.GetTotalEffectValue(MachineNodeEffectType.FusionFailureReduction);
         }
 
-        if (HasCatalystTuning() && selectedCatalyst != ExperimentalCatalystType.None)
+        if (HasCatalystTuning() && selectedCatalyst == ExperimentalCatalystType.Beta)
         {
-            failureChance -= 0.03;
+            failureChance -= 0.05;
         }
 
         failureChance = Mathf.Clamp01((float)failureChance);
@@ -589,9 +644,9 @@ public class Room2PanelUI : MonoBehaviour
         // Núcleo de Sincronización: progreso de Zona 2 mejora resultados útiles.
         bonusChance += MachineManager.I.GetZoneProgressSyncBonus(MachineZoneType.FusionSector);
 
-        if (HasCatalystTuning() && selectedCatalyst != ExperimentalCatalystType.None)
+        if (HasCatalystTuning() && selectedCatalyst == ExperimentalCatalystType.Alpha)
         {
-            bonusChance += 0.03;
+            bonusChance += 0.05;
         }
 
         if (IsSynthesisCoreCharged())
@@ -713,9 +768,9 @@ public class Room2PanelUI : MonoBehaviour
             : "Estado:";
 
         instabilityText.text =
-            instabilityLabel + " " + currentInstability +
-            "\n" +
-            stateLabel + " " + GetInstabilityStateName();
+            instabilityLabel.ToUpperInvariant() + " " + currentInstability + " / 20" +
+            "\n" + stateLabel.ToUpperInvariant() + " " +
+            GetInstabilityStateName().ToUpperInvariant();
     }
 
     private void RefreshCoolButtonUI()
@@ -726,7 +781,10 @@ public class Room2PanelUI : MonoBehaviour
                 ? LocalizationManager.I.T("room2.cool.button")
                 : "Enfriar";
 
-            coolButtonText.text = coolLabel + " (" + coolTraceCost + " Trazas)";
+            bool english = LocalizationManager.I != null &&
+                LocalizationManager.I.CurrentLanguage == LocalizationManager.Language.EN;
+            coolButtonText.text = coolLabel.ToUpperInvariant() + " · " +
+                coolTraceCost + (english ? " TRACES" : " TRAZAS");
         }
 
         if (coolButton != null)
@@ -808,8 +866,8 @@ public class Room2PanelUI : MonoBehaviour
         if (guidedIntentButtonText != null)
         {
             guidedIntentButtonText.text = unlocked
-                ? "Cambiar intención"
-                : "Bloqueado";
+                ? "INTENCIÓN: " + GetGuidedIntentDisplayName().ToUpperInvariant()
+                : "INTENCIÓN: BLOQUEADA";
         }
 
         if (guidedIntentButton != null)
@@ -828,15 +886,12 @@ public class Room2PanelUI : MonoBehaviour
             ? LocalizationManager.I.T(GetTrialModeKey())
             : "Balanceado";
 
-        string buttonLabel = LocalizationManager.I != null
-            ? LocalizationManager.I.T("room2.mode.button")
-            : "Cambiar modo";
-
         if (modeText != null)
             modeText.text = modeLabel + "\n" + modeName;
 
         if (modeButtonText != null)
-            modeButtonText.text = buttonLabel;
+            modeButtonText.text = modeLabel.TrimEnd(':').ToUpperInvariant() +
+                ": " + modeName.ToUpperInvariant();
     }
 
     private void RefreshLocalizationIfNeeded()
@@ -850,6 +905,10 @@ public class Room2PanelUI : MonoBehaviour
             RefreshTrialModeUI();
             RefreshInstabilityUI();
             RefreshCoolButtonUI();
+            RefreshGuidedSynthesisUI();
+            RefreshFusionSlotsUI();
+            RefreshCompositionReadingUI();
+            RefreshStaticRoom2Texts();
         }
     }
     private void OnClickLogCloseButton()
@@ -885,17 +944,14 @@ public class Room2PanelUI : MonoBehaviour
 
     private void RefreshUI()
     {
-        if (GameState.I == null) return;
+        if (GameState.I == null)
+            return;
 
         bool unlocked = GameState.I.experimentalChamberUnlocked;
 
         if (closedBlock != null) closedBlock.SetActive(!unlocked);
         if (openedBlock != null) openedBlock.SetActive(unlocked);
-
-        if (machinePanelRoot != null)
-        {
-            machinePanelRoot.SetActive(unlocked);
-        }
+        if (machinePanelRoot != null) machinePanelRoot.SetActive(unlocked);
 
         RefreshFusionSlotsUI();
         RefreshCompositionReadingUI();
@@ -910,19 +966,17 @@ public class Room2PanelUI : MonoBehaviour
 
         if (!unlocked)
         {
-        if (introText != null)
-        {
-            introText.text = LocalizationManager.I != null
-                ? LocalizationManager.I.T("room2.intro_locked")
-                : "La cámara permanece sellada. Se requiere una keycard para habilitar el acceso al Cuarto 2.";
-        }
+            if (introText != null)
+            {
+                introText.text = LocalizationManager.I != null
+                    ? LocalizationManager.I.T("room2.intro_locked")
+                    : "La cámara permanece sellada. Se requiere una keycard para habilitar el acceso al Cuarto 2.";
+            }
 
             if (fragmentSlotAText != null) fragmentSlotAText.text = "-";
             if (fragmentSlotBText != null) fragmentSlotBText.text = "-";
             if (catalystSlotText != null) catalystSlotText.text = "-";
-            if (statusText != null)
-            statusText.text = "Cámara bloqueada";
-
+            if (statusText != null) statusText.text = FusionStatusTitle;
             return;
         }
 
@@ -933,45 +987,143 @@ public class Room2PanelUI : MonoBehaviour
                 : "Selecciona dos fragmentos, elige un catalizador y ejecuta un ensayo.";
         }
 
-        if (statusText != null)
-        {
-        if (statusText != null)
-        {
-            if (statusText != null && !isShowingLogPreview)
-            {
-                if (selectedFragmentA == ExperimentalFragmentType.None &&
-                    selectedFragmentB == ExperimentalFragmentType.None &&
-                    selectedCatalyst == ExperimentalCatalystType.None)
-                {
-                statusText.text = LocalizationManager.I != null
-                ? LocalizationManager.I.T("room2.status.select_all")
-                : "Selecciona fragmentos y catalizador";                }
-                else if (selectedFragmentA == ExperimentalFragmentType.None)
-                {
-                statusText.text = LocalizationManager.I != null
-                ? LocalizationManager.I.T("room2.status.missing_a")
-                : "Falta seleccionar Fragmento A";                
-                }
-                else if (selectedFragmentB == ExperimentalFragmentType.None)
-                {
-                    statusText.text = "Falta seleccionar Fragmento B";
-                }
-                else if (selectedCatalyst == ExperimentalCatalystType.None)
-                {
-                    statusText.text = "Falta seleccionar catalizador";
-                }
-            }
-        }
+        if (statusText != null && !isShowingLogPreview && !hasCompletedFusion)
+            statusText.text = FusionStatusTitle;
 
         if (fragmentSlotAText != null)
             fragmentSlotAText.text = BuildFragmentSlotText(selectedFragmentA);
-
         if (fragmentSlotBText != null)
             fragmentSlotBText.text = BuildFragmentSlotText(selectedFragmentB);
-
         if (catalystSlotText != null)
             catalystSlotText.text = BuildCatalystSlotText(selectedCatalyst);
+
+        RefreshFusionSlotIcons();
     }
+
+    private string BuildFusionStatusTitle()
+    {
+        bool english = IsEnglishLanguage();
+        if (GameState.I == null || !GameState.I.experimentalChamberUnlocked)
+            return english ? "EXPERIMENTAL CHAMBER LOCKED" : "CÁMARA EXPERIMENTAL BLOQUEADA";
+        if (!HasUnlockedFusionSlot)
+            return english ? "FUSION TABLE NOT REPAIRED" : "MESA DE FUSIÓN SIN REPARAR";
+        if (FusionCoolingDown)
+            return (english ? "FUSION COOLING DOWN: " : "FUSIÓN EN ENFRIAMIENTO: ") +
+                FusionCooldownRemaining.ToString("0.0") + " s";
+        if (selectedFragmentA == ExperimentalFragmentType.None &&
+            selectedFragmentB == ExperimentalFragmentType.None &&
+            selectedCatalyst == ExperimentalCatalystType.None)
+            return english ? "SELECT THE THREE COMPONENTS" : "SELECCIONA LOS TRES COMPONENTES";
+        if (selectedFragmentA == ExperimentalFragmentType.None)
+            return english ? "FRAGMENT A IS MISSING" : "FALTA EL FRAGMENTO A";
+        if (selectedFragmentB == ExperimentalFragmentType.None)
+            return english ? "FRAGMENT B IS MISSING" : "FALTA EL FRAGMENTO B";
+        if (selectedCatalyst == ExperimentalCatalystType.None)
+            return english ? "CATALYST IS MISSING" : "FALTA EL CATALIZADOR";
+        if (!HasRequiredFragmentsForSelection)
+            return english ? "INSUFFICIENT FRAGMENTS" : "FRAGMENTOS INSUFICIENTES";
+        return english ? "FUSION CONFIGURATION READY" : "CONFIGURACIÓN DE FUSIÓN LISTA";
+    }
+
+    private string BuildFusionGuidanceMessage()
+    {
+        bool english = IsEnglishLanguage();
+        if (GameState.I == null || !GameState.I.experimentalChamberUnlocked)
+            return english
+                ? "Obtain the Room 2 keycard to access the experimental chamber."
+                : "Obtén la keycard del Cuarto 2 para acceder a la cámara experimental.";
+        if (!HasUnlockedFusionSlot)
+            return english
+                ? "Repair Fusion Table on the cube's Mixes face (60K LE and 60 Traces)."
+                : "Repara Mesa de Fusión en la cara Mezclas del cubo (60K LE y 60 Trazas).";
+        if (FusionCoolingDown)
+            return (english ? "Wait for stabilization. Remaining time: " :
+                "Espera a que termine la estabilización. Tiempo restante: ") +
+                FusionCooldownRemaining.ToString("0.0") + " s.";
+        if (!FusionSelectionComplete)
+            return english
+                ? "Choose Fragment A, Fragment B and an Alpha or Beta catalyst."
+                : "Elige Fragmento A, Fragmento B y un catalizador Alpha o Beta.";
+        if (!HasRequiredFragmentsForSelection)
+            return BuildMissingFragmentMessage(english);
+        return english
+            ? "All requirements are met. Press FUSE to run the experiment."
+            : "Todos los requisitos están completos. Pulsa FUSIONAR para ejecutar el ensayo.";
+    }
+
+    private string BuildMissingFragmentMessage(bool english)
+    {
+        if (GameState.I == null)
+            return english ? "Fragment inventory is unavailable." : "El inventario de fragmentos no está disponible.";
+
+        if (selectedFragmentA == selectedFragmentB)
+        {
+            int available = GameState.I.GetFragmentCount(selectedFragmentA);
+            string name = GetFragmentDisplayName(selectedFragmentA);
+            return english
+                ? "This recipe needs 2 " + name + " fragments; you have " + available + "."
+                : "Esta receta necesita 2 fragmentos de " + name + "; tienes " + available + ".";
+        }
+
+        ExperimentalFragmentType missing =
+            GameState.I.GetFragmentCount(selectedFragmentA) <= 0
+                ? selectedFragmentA
+                : selectedFragmentB;
+        string missingName = GetFragmentDisplayName(missing);
+        return english
+            ? "You need 1 " + missingName + " fragment for this recipe."
+            : "Necesitas 1 fragmento de " + missingName + " para esta receta.";
+    }
+
+    private static bool IsEnglishLanguage()
+    {
+        return LocalizationManager.I != null &&
+            LocalizationManager.I.CurrentLanguage == LocalizationManager.Language.EN;
+    }
+
+    private void RefreshFusionSlotIcons()
+    {
+        SetSlotIcon(fragmentSlotAIcon, GetFragmentIcon(selectedFragmentA));
+        SetSlotIcon(fragmentSlotBIcon, GetFragmentIcon(selectedFragmentB));
+        SetSlotIcon(catalystSlotIcon, GetCatalystIcon(selectedCatalyst));
+    }
+
+    private Sprite GetFragmentIcon(ExperimentalFragmentType fragmentType)
+    {
+        switch (fragmentType)
+        {
+            case ExperimentalFragmentType.Condensation:
+                return fragmentCondensationIcon;
+            case ExperimentalFragmentType.Confinement:
+                return fragmentConfinementIcon;
+            case ExperimentalFragmentType.ResidualInterference:
+                return fragmentResidualIcon;
+            default:
+                return null;
+        }
+    }
+
+    private Sprite GetCatalystIcon(ExperimentalCatalystType catalystType)
+    {
+        switch (catalystType)
+        {
+            case ExperimentalCatalystType.Alpha:
+                return catalystAlphaIcon;
+            case ExperimentalCatalystType.Beta:
+                return catalystBetaIcon;
+            default:
+                return null;
+        }
+    }
+
+    private static void SetSlotIcon(Image image, Sprite sprite)
+    {
+        if (image == null)
+            return;
+
+        image.sprite = sprite;
+        image.color = Color.white;
+        image.enabled = sprite != null;
     }
     private void OnClickFragmentSlotA()
     {
@@ -1098,6 +1250,9 @@ public class Room2PanelUI : MonoBehaviour
     private void ClearMixPreview()
     {
         isShowingLogPreview = false;
+        hasCompletedFusion = false;
+        lastFusionResult = ExperimentalResultType.None;
+        lastRewardAmount = 0;
 
         if (statusText != null)
         {
@@ -1109,55 +1264,12 @@ public class Room2PanelUI : MonoBehaviour
     {
         isShowingLogPreview = false;
 
-        if (GameState.I == null || !GameState.I.experimentalChamberUnlocked)
-            return;
-
-        if (statusText == null)
-            return;
-
-        if (IsFusionCoolingDown())
+        if (!CanExecuteFusion)
         {
-            statusText.text =
-                "La cámara de fusión se está enfriando. Tiempo restante: " +
-                currentFusionCooldownSeconds.ToString("0.0") + "s";
-
+            hasCompletedFusion = false;
+            if (statusText != null)
+                statusText.text = FusionStatusTitle;
             return;
-        }
-
-        if (GetUnlockedFusionSlotCount() <= 0)
-        {
-            statusText.text = "Repara la Mesa de Fusión para habilitar los ensayos.";
-            return;
-        }
-
-        if (selectedFragmentA == ExperimentalFragmentType.None)
-        {
-        statusText.text = LocalizationManager.I != null
-        ? LocalizationManager.I.T("room2.status.missing_a")
-        : "Falta seleccionar Fragmento A";    
-            return;
-        }
-
-        if (selectedFragmentB == ExperimentalFragmentType.None)
-        {
-        statusText.text = LocalizationManager.I != null
-        ? LocalizationManager.I.T("room2.status.missing_b")
-        : "Falta seleccionar Fragmento B";            return;
-        }
-
-        if (selectedCatalyst == ExperimentalCatalystType.None)
-        {
-        statusText.text = LocalizationManager.I != null
-        ? LocalizationManager.I.T("room2.status.missing_catalyst")
-        : "Falta seleccionar catalizador"; 
-            return;
-        }
-
-        if (!HasRequiredFragmentsForCurrentSelection())
-        {
-        statusText.text = LocalizationManager.I != null
-        ? LocalizationManager.I.T("room2.status.not_enough_fragments")
-        : "No hay fragmentos suficientes para este ensayo";            return;
         }
 
         ExperimentalResultType result = D3FusionService.ResolveRecipeResult(
@@ -1201,6 +1313,9 @@ public class Room2PanelUI : MonoBehaviour
             lastRewardAmount = rewardAmount;
             GameState.I.AddExperimentalResult(result, rewardAmount);
         }
+
+        lastFusionResult = result;
+        hasCompletedFusion = true;
 
         RegisterCurrentMixResult(result);
         D3DiagnosticSystem.RegisterManualFusionRecipe(

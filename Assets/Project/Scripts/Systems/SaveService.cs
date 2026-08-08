@@ -17,6 +17,7 @@ public class SaveData
 {
     public int removedLegacyResourcesVersion;
     public int f2ProgressionMigrationVersion;
+    public UpgradeStudyState upgradeStudies;
 
         // F3 / Cuarto 2 - recursos
     public int fragmentCondensation;
@@ -49,6 +50,8 @@ public class SaveData
     public int triangleActiveCircuit;
     public float triangleSynchronization;
     public double triangleSynchronizationBaseRatePerSecond;
+    public int triangleEnergySaveVersion;
+    public double triangleEnergy;
     public string trianglePrimaryBuildingId;
     public string triangleReinforcementBuildingId;
     public string triangleAlterationBuildingId;
@@ -249,8 +252,6 @@ public class SaveService : MonoBehaviour
             // El save de la pausa contiene el instante exacto de salida. Load
             // aplica el tiempo ausente mediante las reglas offline ya validadas.
             Load();
-            GameState.I.ApplyBuildingLevelsFromSave(
-                LastLoadedBuildingLevels);
 
             // Persistir inmediatamente el estado ya reanudado evita volver a
             // conceder el mismo intervalo si Android mata el proceso enseguida.
@@ -304,11 +305,14 @@ public class SaveService : MonoBehaviour
         phaseModulatorMode = (int)GameState.I.phaseModulatorMode,
         phaseModulatorCalibration = GameState.I.phaseModulatorCalibration,
         trianglePersistenceReserveSeconds = GameState.I.trianglePersistenceReserveSeconds,
-        triangleCircuitSaveVersion = 1,
+        triangleCircuitSaveVersion = 2,
+        triangleEnergySaveVersion = 1,
+        triangleEnergy = GameState.I.triangleEnergy,
         triangleActiveCircuit = (int)GameState.I.triangleActiveCircuit,
         triangleSynchronization = GameState.I.triangleSynchronization,
         triangleSynchronizationBaseRatePerSecond =
             GameState.I.triangleSynchronizationBaseRatePerSecond,
+        upgradeStudies = GameState.I.upgradeStudies,
 
         // Prestigio 1 - descubrimiento dimensional
         prestige1Count = GameState.I.prestige1Count,
@@ -498,6 +502,11 @@ public class SaveService : MonoBehaviour
         GameState.I.triangleSynchronization = data.triangleSynchronization;
         GameState.I.triangleSynchronizationBaseRatePerSecond =
             data.triangleSynchronizationBaseRatePerSecond;
+        GameState.I.triangleEnergy = data.triangleEnergySaveVersion >= 1 &&
+            !double.IsNaN(data.triangleEnergy) &&
+            !double.IsInfinity(data.triangleEnergy)
+                ? System.Math.Max(0.0, data.triangleEnergy)
+                : 0.0;
         // GameState.I.trianglePersistenceMaturation = data.trianglePersistenceMaturation;
         GameState.I.trianglePersistenceReserveSeconds = data.trianglePersistenceReserveSeconds;
         GameState.I.experimentalChamberUnlocked = data.experimentalChamberUnlocked;
@@ -664,8 +673,16 @@ public class SaveService : MonoBehaviour
             F2UpgradeManager.I.ApplyLoadedPurchasedTiers(
                 data.f2UpgradeTiers, data.f2ProgressionMigrationVersion);
         }
+        UpgradeStudySystem.ApplyLoadedState(GameState.I, data.upgradeStudies);
 
         GameState.I.SanitizeTriangleCircuit(data.triangleCircuitSaveVersion < 1);
+
+        // En un arranque en frio BuildingListUI todavia no ha registrado los
+        // productores. Deben reconstruirse antes del cálculo offline para que
+        // los niveles guardados sí generen recursos durante la ausencia.
+        GameState.I.PrepareBuildingLevelsForOffline(
+            LastLoadedBuildingLevels,
+            BuildingDatabase.I != null ? BuildingDatabase.I.buildings : null);
 
         PresentationReturnSnapshot presentationBeforeOffline =
             PresentationReturnReportService.Capture(GameState.I);
@@ -674,13 +691,8 @@ public class SaveService : MonoBehaviour
         ConvergenceTelemetrySystem.RecordOfflineElapsed(GameState.I, offlineSeconds);
         double baseOfflineApplied = Math.Min(
             offlineSeconds, Dimension1System.DefaultOfflineCapSeconds);
-        bool machineWasAnalyzing = MachineManager.I != null &&
-            MachineManager.I.IsAnalyzingNode;
-        double phaseAnalysisMultiplier =
-            GameState.I.GetTrianglePhaseAnalysisSpeedMultiplierForPeriod(baseOfflineApplied);
-
         if (MachineManager.I != null)
-            MachineManager.I.ApplyOfflineAnalysis(baseOfflineApplied * phaseAnalysisMultiplier);
+            MachineManager.I.ApplyOfflineAnalysis(baseOfflineApplied);
 
         // Sistema de dimensiones
         // minería offline con cap inicial de 12 horas.
@@ -692,17 +704,17 @@ public class SaveService : MonoBehaviour
         double d2OfflineApplied = Dimension2System.ApplyOfflineProgress(GameState.I, offlineSeconds);
         double d3OfflineApplied = Dimension3System.ApplyOfflineProgress(GameState.I, offlineSeconds);
 
+        GameState.I.ApplyOfflineBaseProgress(baseOfflineApplied);
+
+        // El informe se prepara al final para que el balance incluya todas las
+        // fuentes offline sin volver a entregar ni recalcular recompensas.
         PresentationReturnReportService.Prepare(
             presentationBeforeOffline,
             GameState.I,
             offlineSeconds,
             d2OfflineApplied,
-            d3OfflineApplied);
-
-        GameState.I.ApplyOfflineBaseProgress(baseOfflineApplied);
-        if (machineWasAnalyzing)
-            GameState.I.RecordOfflinePhaseAnalysisSeconds(
-                baseOfflineApplied * phaseAnalysisMultiplier);
+            d3OfflineApplied,
+            baseOfflineApplied);
 
         #if UNITY_EDITOR
         if (d1OfflineApplied > 0.0)
@@ -952,6 +964,7 @@ public class SaveService : MonoBehaviour
         GameState.I.triangleActiveCircuit = TriangleCircuitType.None;
         GameState.I.triangleSynchronization = 0f;
         GameState.I.triangleSynchronizationBaseRatePerSecond = 0.0;
+        GameState.I.triangleEnergy = 0.0;
         GameState.I.experimentalChamberUnlocked = false;
         GameState.I.experimentalChamberInitialPackGranted = false;
         // Sistema de dimensiones
@@ -1033,9 +1046,11 @@ public class SaveService : MonoBehaviour
         GameState.I.triangleActiveCircuit = TriangleCircuitType.None;
         GameState.I.triangleSynchronization = 0f;
         GameState.I.triangleSynchronizationBaseRatePerSecond = 0.0;
+        GameState.I.triangleEnergy = 0.0;
         GameState.I.trianglePrimaryBuildingId = "";
         GameState.I.triangleReinforcementBuildingId = "";
         GameState.I.triangleAlterationBuildingId = "";
+        UpgradeStudySystem.ResetForNewRun(GameState.I);
 
         GameState.I.prestige1Count = 0;
         GameState.I.hasDonePrestige1 = false;
@@ -1106,9 +1121,11 @@ public class SaveService : MonoBehaviour
             GameState.I.triangleActiveCircuit = TriangleCircuitType.None;
             GameState.I.triangleSynchronization = 0f;
             GameState.I.triangleSynchronizationBaseRatePerSecond = 0.0;
+            GameState.I.triangleEnergy = 0.0;
             GameState.I.trianglePrimaryBuildingId = "";
             GameState.I.triangleReinforcementBuildingId = "";
             GameState.I.triangleAlterationBuildingId = "";
+            UpgradeStudySystem.ResetForNewRun(GameState.I);
             // Sistema de dimensiones
             GameState.I.ResetDimensionSystemState();
         }

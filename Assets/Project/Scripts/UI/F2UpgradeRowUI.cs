@@ -84,18 +84,16 @@ public class F2UpgradeRowUI : MonoBehaviour
 
     private string Describe(int tier)
     {
-        bool room2 = GameState.I != null && GameState.I.experimentalChamberUnlocked;
         switch (upgradeId)
         {
             case "emission_focus": return tier == 0 ? B("Actual: +0% LE · Siguiente: +5%", "Current: +0% LE · Next: +5%") : tier == 1 ? B("Actual: +5% LE · Siguiente: +15%", "Current: +5% LE · Next: +15%") : B("Total: +15% LE", "Total: +15% LE");
             case "containment_tuning": return tier == 0 ? B("Higgs: ciclo 1,0 s → 0,9 s", "Higgs: cycle 1.0 s → 0.9 s") : tier == 1 ? B("Higgs: ciclo 0,9 s → 0,8 s", "Higgs: cycle 0.9 s → 0.8 s") : B("Higgs: ciclo 0,8 s", "Higgs: 0.8 s cycle");
             case "tetraquark_stabilization": return tier == 0 ? B("Actual: +0% Trazas · Siguiente: +15%", "Current: +0% Traces · Next: +15%") : tier == 1 ? B("Actual: +15% Trazas · Siguiente: +35%", "Current: +15% Traces · Next: +35%") : B("Total: +35% Trazas", "Total: +35% Traces");
             case "triangle_unlock_1": return tier > 0 ? B("Conecta Higgs, Tetraquark y Modulador. Circuitos activos.", "Connects Higgs, Tetraquark and Modulator. Circuits active.") : B("Conecta Higgs, Tetraquark y Modulador. Activa los circuitos.", "Connects Higgs, Tetraquark and Modulator. Activates circuits.");
-            case "triangle_impulse_tuning": return tier == 0 ? B("Energía: +12% → +16% LE", "Energy: +12% → +16% LE") : tier == 1 ? B("Energía: +16% → +20% LE", "Energy: +16% → +20% LE") : B("Energía: +20% LE", "Energy: +20% LE");
-            case "triangle_synergy_resonance":
-                if (!room2) return tier == 0 ? B("+10% Trazas · fragmentos al abrir Cuarto 2", "+10% Traces · fragments after opening Room 2") : tier == 1 ? B("+13% Trazas · fragmentos al abrir Cuarto 2", "+13% Traces · fragments after opening Room 2") : B("+15% Trazas · fragmentos al abrir Cuarto 2", "+15% Traces · fragments after opening Room 2");
-                return tier == 0 ? B("+10% Trazas · +6% fragmentos", "+10% Traces · +6% fragments") : tier == 1 ? B("+13% Trazas · +8% fragmentos", "+13% Traces · +8% fragments") : B("+15% Trazas · +10% fragmentos", "+15% Traces · +10% fragments");
-            case "triangle_persistence_anchor": return tier == 0 ? B("Cambio de circuito: inicia al 50% → 65%", "Circuit change: starts at 50% → 65%") : tier == 1 ? B("Cambio de circuito: inicia al 65% → 80%", "Circuit change: starts at 65% → 80%") : B("Cambio de circuito: inicia al 80%", "Circuit change: starts at 80%");
+            case "triangle_impulse_tuning": return tier == 0 ? B("LE: +12% → +16%; escala con la sincronización", "LE: +12% → +16%; scales with synchronization") : tier == 1 ? B("LE: +16% → +20%; escala con la sincronización", "LE: +16% → +20%; scales with synchronization") : B("LE: +20%; escala con la sincronización", "LE: +20%; scales with synchronization");
+            case "triangle_synergy_resonance": return tier == 0 ? B("Trazas: +10% → +13%; escala con la sincronización", "Traces: +10% → +13%; scales with synchronization") : tier == 1 ? B("Trazas: +13% → +15%; escala con la sincronización", "Traces: +13% → +15%; scales with synchronization") : B("Trazas: +15%; escala con la sincronización", "Traces: +15%; scales with synchronization");
+            case "triangle_persistence_anchor": return tier == 0 ? B("Próximos cambios: sincronización inicial 50% → 65%", "Future switches: starting synchronization 50% → 65%") : tier == 1 ? B("Próximos cambios: sincronización inicial 65% → 80%", "Future switches: starting synchronization 65% → 80%") : B("Próximos cambios: sincronización inicial 80%", "Future switches: starting synchronization 80%");
+            case "triangle_energy_efficiency": return tier == 0 ? B("Energía: +0% → +20%", "Energy: +0% → +20%") : tier == 1 ? B("Energía: +20% → +40%", "Energy: +20% → +40%") : tier == 2 ? B("Energía: +40% → +65%", "Energy: +40% → +65%") : B("Energía total: +65%", "Total Energy: +65%");
             default: return F2UpgradeManager.I.GetDef(upgradeId)?.description ?? string.Empty;
         }
     }
@@ -106,6 +104,14 @@ public class F2UpgradeRowUI : MonoBehaviour
         var def = manager != null ? manager.GetDef(upgradeId) : null;
         if (def == null) return;
         int bought = manager.GetPurchasedTierCount(upgradeId);
+        bool discovered = bought > 0 ||
+            UpgradeStudySystem.IsDiscovered(GameState.I, upgradeId);
+        if (!discovered)
+        {
+            RefreshStudyState();
+            return;
+        }
+
         bool maxed = manager.IsMaxed(upgradeId);
         double cost = manager.GetNextCost(upgradeId);
         string currency = def.currency == F2UpgradeCurrency.LE ? "LE" : L("ui.traces", "Trazas");
@@ -124,6 +130,98 @@ public class F2UpgradeRowUI : MonoBehaviour
             if (label != null)
                 label.text = BuildButtonLabel(reason, cost, currency).ToUpperInvariant();
         }
+    }
+
+    private void RefreshStudyState()
+    {
+        UpgradeStudyDef study = UpgradeStudySystem.GetStudyForUnlock(upgradeId);
+        if (study == null || GameState.I == null) return;
+
+        bool active = UpgradeStudySystem.IsStudyActiveForUnlock(
+            GameState.I, upgradeId);
+        bool conclusion = active && UpgradeStudySystem.IsConclusionPending(GameState.I);
+        double progress = active
+            ? UpgradeStudySystem.GetActiveProgress01(GameState.I)
+            : 0.0;
+        double remaining = active
+            ? UpgradeStudySystem.GetRemainingSeconds(GameState.I)
+            : study.durationSeconds;
+
+        if (titleText != null)
+            titleText.text = L($"study.{study.id}.title", B("Estudio de artefacto", "Artifact study"));
+        if (descriptionText != null)
+            descriptionText.text = L($"study.{study.id}.hint", B(
+                "Analiza este fenómeno para descubrir una mejora.",
+                "Analyze this phenomenon to discover an upgrade."));
+
+        if (tierText != null)
+        {
+            if (conclusion)
+                tierText.text = L("study.status.conclusion", "Conclusión disponible");
+            else if (active)
+                tierText.text = L("study.status.active", "Investigando");
+            else
+                tierText.text = L("study.status.clue", "Indicio");
+        }
+
+        if (costText != null)
+        {
+            costText.text = active
+                ? LF("study.progress", "Progreso: {0:0}% · {1}", progress * 100.0,
+                    FormatDuration(remaining))
+                : (study.energyCost > 0.000001
+                    ? LF("study.energy_cost", "Inicio: {0:0.##} Energía", study.energyCost) + " · "
+                    : string.Empty) +
+                  LF("study.duration", "Duración: {0}", FormatDuration(remaining));
+        }
+
+        UpgradeStudyBlockReason reason = UpgradeStudySystem.GetStartBlockReason(
+            GameState.I, study.id);
+        if (buyButton != null)
+        {
+            buyButton.interactable = conclusion ||
+                reason == UpgradeStudyBlockReason.None;
+            ApplyButtonStyle(false);
+            TextMeshProUGUI label = buyButton.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (label != null)
+                label.text = BuildStudyButtonLabel(study, reason, conclusion)
+                    .ToUpperInvariant();
+        }
+    }
+
+    private string BuildStudyButtonLabel(
+        UpgradeStudyDef study,
+        UpgradeStudyBlockReason reason,
+        bool conclusion)
+    {
+        if (conclusion) return L("study.action.reveal", "Revelar");
+        if (reason == UpgradeStudyBlockReason.None)
+            return L($"study.{study.id}.action", L("study.action.start", "Investigar"));
+        if (reason == UpgradeStudyBlockReason.StudyAlreadyActive)
+            return L("study.status.active", "Investigando");
+        if (reason == UpgradeStudyBlockReason.AnotherStudyActive)
+            return L("study.lock.another_active", "Otro estudio activo");
+        if (reason == UpgradeStudyBlockReason.CircuitNotSynchronized)
+            return L("study.lock.synchronize", "Sincroniza el circuito");
+        if (reason == UpgradeStudyBlockReason.CircuitSwitchRequired)
+            return L("study.lock.switch", "Cambia de circuito");
+        if (reason == UpgradeStudyBlockReason.MissingVertices)
+            return L("f2.lock.missing_vertices", "Faltan vértices");
+        if (reason == UpgradeStudyBlockReason.TriangleLocked)
+            return L("f2.lock.missing_triangle", "Requiere Acople");
+        if (reason == UpgradeStudyBlockReason.MissingDiscovery)
+            return L("study.lock.missing_discovery", "Faltan estudios");
+        if (reason == UpgradeStudyBlockReason.InsufficientEnergy)
+            return L("study.lock.energy", "Falta Energía");
+        return L("study.action.start", "Investigar");
+    }
+
+    private static string FormatDuration(double seconds)
+    {
+        int total = Mathf.Max(0, Mathf.CeilToInt((float)seconds));
+        int minutes = total / 60;
+        int remainder = total % 60;
+        return $"{minutes:0}:{remainder:00}";
     }
 
     private void ApplyButtonStyle(bool maxed)
@@ -175,7 +273,8 @@ public class F2UpgradeRowUI : MonoBehaviour
         if (upgradeId == "triangle_unlock_1" ||
             upgradeId == "triangle_impulse_tuning" ||
             upgradeId == "triangle_synergy_resonance" ||
-            upgradeId == "triangle_persistence_anchor")
+            upgradeId == "triangle_persistence_anchor" ||
+            upgradeId == "triangle_energy_efficiency")
             return _verticalTheme.triangle;
         return _verticalTheme.energy;
     }
@@ -185,6 +284,7 @@ public class F2UpgradeRowUI : MonoBehaviour
         if (reason == F2UpgradeLockReason.Maxed) return L("f2.action.completed", "Completado");
         if (reason == F2UpgradeLockReason.MissingVertices) return L("f2.lock.missing_vertices", "Faltan vértices");
         if (reason == F2UpgradeLockReason.TriangleLocked) return L("f2.lock.missing_triangle", "Requiere Acople");
+        if (reason == F2UpgradeLockReason.ResearchRequired) return L("study.action.start", "Investigar");
         if (reason == F2UpgradeLockReason.InsufficientFunds)
         {
             double balance = F2UpgradeManager.I.GetDef(upgradeId).currency == F2UpgradeCurrency.LE ? GameState.I.LE : GameState.I.Traces;
@@ -195,11 +295,36 @@ public class F2UpgradeRowUI : MonoBehaviour
 
     private void OnBuyClicked()
     {
-        if (F2UpgradeManager.I != null && F2UpgradeManager.I.TryBuy(upgradeId))
+        if (GameState.I == null) return;
+        bool changed = false;
+
+        bool discovered = UpgradeStudySystem.IsDiscovered(GameState.I, upgradeId) ||
+            (F2UpgradeManager.I != null &&
+             F2UpgradeManager.I.GetPurchasedTierCount(upgradeId) > 0);
+        if (!discovered)
         {
+            UpgradeStudyDef study = UpgradeStudySystem.GetStudyForUnlock(upgradeId);
+            if (study == null) return;
+            if (UpgradeStudySystem.IsStudyActiveForUnlock(GameState.I, upgradeId) &&
+                UpgradeStudySystem.IsConclusionPending(GameState.I))
+            {
+                changed = UpgradeStudySystem.TryRevealConclusion(GameState.I, out _);
+            }
+            else
+            {
+                changed = UpgradeStudySystem.TryStartStudy(GameState.I, study.id);
+            }
             RefreshNow();
-            var visibility = FindFirstObjectByType<F2UpgradeVisibilityController>();
-            if (visibility != null) visibility.RefreshAll();
         }
+        else if (F2UpgradeManager.I != null && F2UpgradeManager.I.TryBuy(upgradeId))
+        {
+            changed = true;
+            RefreshNow();
+        }
+
+        if (changed) SaveService.I?.Save();
+
+        var visibility = FindFirstObjectByType<F2UpgradeVisibilityController>();
+        if (visibility != null) visibility.RefreshAll();
     }
 }

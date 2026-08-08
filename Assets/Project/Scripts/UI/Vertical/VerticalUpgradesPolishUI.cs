@@ -33,8 +33,10 @@ public sealed class VerticalUpgradesPolishUI : MonoBehaviour
     [Header("Cabecera compartida visualmente")]
     public TextMeshProUGUI sourceLeText;
     public TextMeshProUGUI sourceTracesText;
+    public TextMeshProUGUI sourceEnergyText;
     public TextMeshProUGUI leText;
     public TextMeshProUGUI tracesText;
+    public TextMeshProUGUI energyText;
 
     [Header("Tema")]
     public VerticalUiTheme theme;
@@ -70,6 +72,9 @@ public sealed class VerticalUpgradesPolishUI : MonoBehaviour
         if (tracesText != null && sourceTracesText != null &&
             tracesText.text != sourceTracesText.text)
             tracesText.text = sourceTracesText.text;
+        if (energyText != null && sourceEnergyText != null &&
+            energyText.text != sourceEnergyText.text)
+            energyText.text = sourceEnergyText.text;
     }
 
     private void AnimateSections()

@@ -9,8 +9,17 @@
 [Mm]emoryCaptures/
 .utmp/
 Recovery/
+/Assets/_Recovery/
+/tmp/
 *.bak
 *.bak.meta
+*.blend1
+__pycache__/
+*.py[cod]
+
+# Purchased Unity Asset Store sources (local licensed dependency)
+/Assets/SciFi_Materials_vol2/
+/Assets/SciFi_Materials_vol2.meta
 
 # VS / Rider
 .vs/

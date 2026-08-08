@@ -14,11 +14,12 @@ public static class VerticalGenerationVisualPolishValidation
     private const string ScenePath = "Assets/Project/Scenes/Main.unity";
     private const string PolishFolder =
         "Assets/Project/UI/Vertical/GenerationPolish";
+    private const string EarlyRowPrefabPath =
+        "Assets/Project/UI/Vertical/Generated/VerticalBuildingRow.prefab";
 
     [MenuItem("Tools/Quantum Forge/Vertical UI/Validate Generation Visual Polish")]
     public static void Validate()
     {
-        VerticalUiBlock4Validation.Validate();
         VerticalUiFinalValidation.Validate();
 
         Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
@@ -28,10 +29,11 @@ public static class VerticalGenerationVisualPolishValidation
             "Debe existir exactamente un VerticalGenerationPolishUI.", failures);
 
         GameObject header = FindNamed(scene, "VerticalGenerationHeader");
+        GameObject beforeRoot = FindNamed(scene, "GenerationBeforeTriangleRoot");
         GameObject root = FindNamed(scene, "GenerationTriangleRoot");
         GameObject focus = FindNamed(scene, "TriangleFocus");
         VerticalSafeAreaLayout safe = FindAll<VerticalSafeAreaLayout>(scene).FirstOrDefault();
-        Check(header != null && root != null && focus != null,
+        Check(header != null && beforeRoot != null && root != null && focus != null,
             "Falta la estructura principal de Generación pulida.", failures);
 
         if (header != null)
@@ -39,6 +41,19 @@ public static class VerticalGenerationVisualPolishValidation
             RectTransform rect = (RectTransform)header.transform;
             Check(Near(rect.rect.height, 92f, 1f) && rect.sizeDelta.x <= -240f,
                 "La cabecera no conserva la proporción compacta objetivo.", failures);
+            TextMeshProUGUI[] values =
+                header.GetComponentsInChildren<TextMeshProUGUI>(true);
+            Check(header.transform.Find("Resource_LE") != null &&
+                header.transform.Find("Resource_Traces") != null &&
+                header.transform.Find("Resource_Energy") != null,
+                "La cabecera debe mostrar LE, Trazas y Energía.", failures);
+            HUD hud = FindAll<HUD>(scene).FirstOrDefault();
+            Check(hud != null && hud.leText != null && hud.tracesText != null &&
+                hud.energyText != null,
+                "El HUD no tiene enlazados los tres recursos.", failures);
+            Check(values.Where(value => value.name == "Value")
+                .All(value => value.fontSize >= 29f && value.fontSizeMin >= 22f),
+                "Los contadores de recursos son demasiado pequenos para movil.", failures);
         }
         Check(safe != null && Near(safe.headerHeight, 0f, 0.1f),
             "HeaderSlot todavia reserva espacio duplicado sobre Generacion.", failures);
@@ -54,13 +69,75 @@ public static class VerticalGenerationVisualPolishValidation
             Check(content != null && content.Find("CircuitSelectors") != null &&
                 content.Find("TriangleArtifactCards") != null,
                 "Selectores o artefactos dejaron de conservar la jerarquía validada.", failures);
+            if (content is RectTransform contentRect)
+                Check(Near(contentRect.sizeDelta.y, 1440f, 1f),
+                    "El contenido avanzado no ocupa el alto disponible.", failures);
+            Check(content != null && content.Find("TriangleObservatory") == null &&
+                content.Find("TrianglePurchasesFrame") != null,
+                "La pantalla principal conserva el Observatorio antiguo o perdió Compras.", failures);
+            RectTransform purchases = content?.Find("TrianglePurchasesFrame") as RectTransform;
+            Check(purchases != null && Near(purchases.rect.height, 508f, 1f),
+                "Compras no aprovecha el espacio inferior objetivo.", failures);
+        }
+
+        if (beforeRoot != null)
+        {
+            RectTransform rect = (RectTransform)beforeRoot.transform;
+            Check(Near(rect.offsetMin.x, 96f, 1f) &&
+                Near(rect.offsetMax.x, -96f, 1f),
+                "La columna anterior al Triangulo no coincide con la avanzada.", failures);
+            Transform frame = beforeRoot.transform.Find("ArtifactsFrame");
+            Check(beforeRoot.transform.Find("EarlyGenerationTitleFrame") != null &&
+                frame != null && frame.Find("EarlyTechnologyGrid") != null &&
+                frame.Find("EarlyInnerFrame") != null &&
+                frame.Find("EarlySectionRail") != null,
+                "Faltan capas tecnologicas anteriores al Triangulo.", failures);
+            BuildingListUI list = beforeRoot.GetComponentInChildren<BuildingListUI>(true);
+            Check(list != null && list.buildingRowPrefab != null &&
+                AssetDatabase.GetAssetPath(list.buildingRowPrefab) == EarlyRowPrefabPath,
+                "La lista temprana no conserva VerticalBuildingRow.prefab.", failures);
+        }
+
+        GameObject earlyRowPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+            EarlyRowPrefabPath);
+        BuildingRowUI earlyRow = earlyRowPrefab != null
+            ? earlyRowPrefab.GetComponent<BuildingRowUI>()
+            : null;
+        Check(earlyRow != null && earlyRow.higgsIcon != null &&
+            earlyRow.tetraIcon != null && earlyRow.modulatorIcon != null &&
+            earlyRow.higgsIcon.name == "qf_node_higgs" &&
+            earlyRow.tetraIcon.name == "qf_node_tetraquark" &&
+            earlyRow.modulatorIcon.name == "qf_node_modulator",
+            "Las filas tempranas no usan los nodos mecanicos definitivos.", failures);
+        if (earlyRowPrefab != null)
+        {
+            LayoutElement earlyLayout = earlyRowPrefab.GetComponent<LayoutElement>();
+            Transform earlyBuy = earlyRowPrefab.transform.Find("BuyButton");
+            LayoutElement earlyBuyLayout = earlyBuy != null
+                ? earlyBuy.GetComponent<LayoutElement>()
+                : null;
+            Check(earlyRowPrefab.transform.Find("EarlyCardInnerFrame") != null &&
+                earlyRowPrefab.transform.Find("AccentBar") != null &&
+                earlyRowPrefab.transform.Find("ArtifactIcon/ArtifactGlow") != null,
+                "La fila temprana carece de profundidad visual mecanica.", failures);
+            Check(earlyLayout != null && earlyLayout.preferredHeight >= 190f,
+                "La fila temprana perdio su altura tactil.", failures);
+            Check(earlyBuyLayout != null && earlyBuyLayout.minWidth >= 120f &&
+                earlyBuyLayout.minHeight >= 50f,
+                "La compra temprana perdio su minimo tactil.", failures);
+            TextMeshProUGUI earlyStats = earlyRowPrefab.transform.Find("Stats")
+                ?.GetComponent<TextMeshProUGUI>();
+            Check(earlyStats != null && earlyStats.fontSize >= 22f &&
+                earlyStats.fontSizeMin >= 17f,
+                "Los costes y tasas tempranos son demasiado pequenos para movil.", failures);
         }
 
         string[] requiredNames =
         {
             "EnergyGauge", "GaugeCircuit", "GaugeProgress", "GaugeProgressRing",
             "TechnologyGrid", "FocusInnerFrame",
-            "BeamGlow", "BeamCore", "BeamSegments", "BeamChevrons", "EnergyFlow",
+            "BeamGlow", "BeamCore", "BeamHotCore", "BeamSegments", "BeamChevrons",
+            "BeamStartConnector", "BeamEndConnector", "EnergyFlow",
             "StateBorder", "CircuitIcon", "AccentBar"
         };
         foreach (string name in requiredNames)
@@ -70,8 +147,8 @@ public static class VerticalGenerationVisualPolishValidation
         if (focus != null)
         {
             RectTransform rect = (RectTransform)focus.transform;
-            Check(Near(rect.rect.height, 1090f, 1f),
-                "TriangleFocus no conserva la altura compacta objetivo.", failures);
+            Check(Near(rect.rect.height, 1348f, 1f),
+                "TriangleFocus no aprovecha la altura objetivo.", failures);
             Image[] nodeImages = new[]
             {
                 FindImage(focus.transform, "Vertex_Higgs/Icon"),
@@ -88,10 +165,10 @@ public static class VerticalGenerationVisualPolishValidation
             RectTransform gaugeRect =
                 focus.transform.Find("EnergyGauge") as RectTransform;
             Check(higgsRect != null && tetraRect != null &&
-                Near(higgsRect.anchoredPosition.y, 400f, 1f) &&
-                Near(tetraRect.anchoredPosition.y, 400f, 1f),
+                Near(higgsRect.anchoredPosition.y, 515f, 1f) &&
+                Near(tetraRect.anchoredPosition.y, 515f, 1f),
                 "Los nodos superiores no tienen la altura del mockup.", failures);
-            Check(gaugeRect != null && Near(gaugeRect.anchoredPosition.y, 265f, 1f),
+            Check(gaugeRect != null && Near(gaugeRect.anchoredPosition.y, 330f, 1f),
                 "El medidor central no tiene la altura del mockup.", failures);
             string[] corners = { "Corner_TL", "Corner_TR", "Corner_BL", "Corner_BR" };
             Check(corners.All(name => focus.transform.Find(name) == null ||
@@ -108,10 +185,14 @@ public static class VerticalGenerationVisualPolishValidation
             LayoutElement buy = card.buyButton != null
                 ? card.buyButton.GetComponent<LayoutElement>()
                 : null;
-            Check(row != null && row.preferredHeight <= 90f,
-                card.name + " no es una fila compacta.", failures);
-            Check(buy != null && buy.minWidth >= 120f && buy.minHeight >= 50f,
+            Check(row != null && row.preferredHeight >= 130f &&
+                row.preferredHeight <= 136f,
+                card.name + " no tiene la nueva altura táctil.", failures);
+            Check(buy != null && buy.minWidth >= 170f && buy.minHeight >= 70f,
                 card.name + " perdió el tamaño táctil mínimo.", failures);
+            Check(card.stateText != null && card.stateText.fontSize >= 22f &&
+                card.stateText.fontSizeMin >= 18f,
+                card.name + " tiene costes demasiado pequenos para movil.", failures);
         }
 
         string[] spritePaths =
@@ -126,7 +207,8 @@ public static class VerticalGenerationVisualPolishValidation
             PolishFolder + "/qf_circuit_phase.png",
             PolishFolder + "/qf_resource_le.png",
             PolishFolder + "/qf_resource_traces.png",
-            PolishFolder + "/qf_beam_chevrons.png"
+            PolishFolder + "/qf_beam_chevrons.png",
+            PolishFolder + "/qf_selector_frame.png"
         };
         foreach (string path in spritePaths)
         {

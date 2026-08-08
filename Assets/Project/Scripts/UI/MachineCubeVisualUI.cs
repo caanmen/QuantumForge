@@ -15,6 +15,11 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
     };
     private static readonly Rect FullArtworkUv = new Rect(0f, 0f, 1f, 1f);
     private static readonly Rect FrontSurfaceUv = new Rect(0.04f, 0.045f, 0.81f, 0.945f);
+    private static readonly Color CardText = new Color(0.61f, 0.72f, 0.77f, 1f);
+    private static readonly Color RequirementText = new Color(0.80f, 0.63f, 0.36f, 1f);
+    private static readonly Color BlockerGlow = new Color(1f, 0.58f, 0.10f, 1f);
+    private static readonly Color AnalysisColor = new Color(1f, 0.62f, 0.12f, 1f);
+    private static readonly Color RepairedColor = new Color(0.16f, 0.92f, 0.62f, 1f);
 
     [Header("Integración")]
     [SerializeField] private MachinePanelUI machinePanel;
@@ -80,11 +85,27 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
     private Coroutine _rotationRoutine;
     private float _refreshRemaining;
 
+    private static readonly string[] NodeContentNames =
+    {
+        "MachineSectorHeader",
+        "FaceViewport",
+        "SelectionGuide",
+        "PreviousFaceButton",
+        "NextFaceButton",
+        "SelectedNodeCard",
+        "RotationArc",
+        "SwipeHint",
+        "FaceDot_1",
+        "FaceDot_2",
+        "FaceDot_3",
+        "FaceDot_4"
+    };
+
     public bool IsRotating => _rotating;
 
     private bool IsTrue3DFace(int faceIndex) =>
         useTrue3DForBuiltFaces && true3DController != null &&
-        faceIndex >= 0 && faceIndex <= 1;
+        true3DController.SupportsFace(faceIndex);
 
     private void Awake()
     {
@@ -140,13 +161,22 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
 
     public void RefreshNow()
     {
-        bool showVisualContent = machinePanel == null || !machinePanel.HasAuxiliaryViewOpen;
+        // Fusion is presented as an overlay over the machine shell. Keep the shell
+        // alive so its shared title, resources and NODOS / MEZCLAS tabs remain visible.
+        bool fusionOverlayOpen = machinePanel != null && machinePanel.FusionPanelVisible;
+        bool showVisualContent = machinePanel == null ||
+            !machinePanel.HasAuxiliaryViewOpen || fusionOverlayOpen;
         if (visualContentRoot != null && machinePanel != null)
             visualContentRoot.SetActive(showVisualContent);
 
-        if (!showVisualContent)
+        if (showVisualContent)
+            SetNodeContentVisible(!fusionOverlayOpen);
+
+        if (!showVisualContent || fusionOverlayOpen)
         {
             true3DController?.ShowPrototype(false);
+            if (fusionOverlayOpen)
+                RefreshHeader();
             return;
         }
 
@@ -178,6 +208,20 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
         RefreshSelectionGuide(selectedId);
     }
 
+    private void SetNodeContentVisible(bool visible)
+    {
+        if (visualContentRoot == null)
+            return;
+
+        Transform root = visualContentRoot.transform;
+        foreach (string childName in NodeContentNames)
+        {
+            Transform child = root.Find(childName);
+            if (child != null && child.gameObject.activeSelf != visible)
+                child.gameObject.SetActive(visible);
+        }
+    }
+
     public void SelectNode(string nodeId)
     {
         if (_rotating)
@@ -191,27 +235,37 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
             faces == null || faces.Length != 4)
             return;
 
-        if (IsTrue3DFace(_currentFaceIndex))
-        {
-            int physicalTarget = _currentFaceIndex + (direction > 0 ? 1 : -1);
-            if (!IsTrue3DFace(physicalTarget))
-                return;
-            MachineZoneType physicalZone = (MachineZoneType)(physicalTarget + 1);
-            if (!MachineManager.I.CanAccessZone(physicalZone))
-                return;
-            _rotationRoutine = StartCoroutine(
-                RotateTrue3DRoutine(physicalTarget, direction > 0 ? 1 : -1));
+        int target = GetAdjacentFaceIndex(_currentFaceIndex, direction);
+        if (target < 0)
             return;
-        }
-
-        int target = (_currentFaceIndex + (direction > 0 ? 1 : 3)) % 4;
         MachineZoneType targetZone = (MachineZoneType)(target + 1);
         if (!MachineManager.I.CanAccessZone(targetZone))
             return;
 
+        if (IsTrue3DFace(_currentFaceIndex) && IsTrue3DFace(target))
+        {
+            _rotationRoutine = StartCoroutine(
+                RotateTrue3DRoutine(target, direction > 0 ? 1 : -1));
+            return;
+        }
+
+        if (IsTrue3DFace(_currentFaceIndex) || IsTrue3DFace(target))
+        {
+            _rotationRoutine = StartCoroutine(SwitchHybridFaceRoutine(target));
+            return;
+        }
+
         if (_rotationRoutine != null)
             StopCoroutine(_rotationRoutine);
         _rotationRoutine = StartCoroutine(RotateRoutine(target, direction > 0 ? 1 : -1));
+    }
+
+    public static int GetAdjacentFaceIndex(int currentFaceIndex, int direction)
+    {
+        if (currentFaceIndex < 0 || currentFaceIndex > 3 || direction == 0)
+            return -1;
+        int target = currentFaceIndex + (direction > 0 ? 1 : -1);
+        return target >= 0 && target <= 3 ? target : -1;
     }
 
     private IEnumerator RotateTrue3DRoutine(int targetIndex, int direction)
@@ -238,6 +292,30 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
         _currentFaceIndex = targetIndex;
         RestoreInteractionAfterRotation();
         machinePanel?.SelectZoneFromCube((MachineZoneType)(targetIndex + 1));
+        ApplyFaceVisibility();
+        RefreshNow();
+    }
+
+    private IEnumerator SwitchHybridFaceRoutine(int targetIndex)
+    {
+        _rotating = true;
+        if (selectionGuide != null)
+            selectionGuide.gameObject.SetActive(false);
+        if (interactionGroup != null)
+        {
+            interactionGroup.interactable = false;
+            interactionGroup.blocksRaycasts = false;
+        }
+
+        // Faces 1-2 already use real 3D geometry. Faces 3-4 still use their
+        // functional 2D views, so crossing the boundary swaps presentations
+        // instead of simulating a missing 3D side with a moving flat image.
+        true3DController?.ShowPrototype(false);
+        yield return null;
+
+        _currentFaceIndex = targetIndex;
+        machinePanel?.SelectZoneFromCube((MachineZoneType)(targetIndex + 1));
+        RestoreInteractionAfterRotation();
         ApplyFaceVisibility();
         RefreshNow();
     }
@@ -593,14 +671,16 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
 
     private void RefreshNavigationButtons()
     {
-        if (!IsTrue3DFace(_currentFaceIndex) || MachineManager.I == null)
+        if (MachineManager.I == null)
             return;
+        int previousIndex = GetAdjacentFaceIndex(_currentFaceIndex, -1);
+        int nextIndex = GetAdjacentFaceIndex(_currentFaceIndex, 1);
         if (previousFaceButton != null)
-            previousFaceButton.interactable = !_rotating && _currentFaceIndex > 0 &&
-                MachineManager.I.CanAccessZone(MachineZoneType.Room1Link);
+            previousFaceButton.interactable = !_rotating && previousIndex >= 0 &&
+                MachineManager.I.CanAccessZone((MachineZoneType)(previousIndex + 1));
         if (nextFaceButton != null)
-            nextFaceButton.interactable = !_rotating && _currentFaceIndex < 1 &&
-                MachineManager.I.CanAccessZone(MachineZoneType.FusionSector);
+            nextFaceButton.interactable = !_rotating && nextIndex >= 0 &&
+                MachineManager.I.CanAccessZone((MachineZoneType)(nextIndex + 1));
     }
 
     private void RefreshSelectedCard()
@@ -628,7 +708,7 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
             (MachineManager.I.AnalysisNodeId == node.id ||
              (!string.IsNullOrWhiteSpace(node.tierGroup) &&
               MachineManager.I.AnalysisNodeId == "tierGroup:" + node.tierGroup));
-        bool canRepair = MachineManager.I.CanRepairNode(node.id, out string reason);
+        MachineManager.I.CanRepairNode(node.id, out string reason);
 
         SetText(selectedIconText, GetEffectGlyph(node));
         if (selectedIconImage != null)
@@ -639,11 +719,27 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
         }
         SetText(selectedNameText, node.name.ToUpperInvariant());
         SetText(selectedStateText,
-            "ESTADO: " + GetStateLabel(node, repaired, analyzed, analyzing, canRepair, reason));
+            "NODO SELECCIONADO  •  " +
+            GetStateLabel(node, repaired, analyzed, analyzing));
         SetText(selectedDescriptionText, node.description);
         SetText(selectedEffectText, "EFECTO  " + FormatEffect(node));
         SetText(selectedCostText, "COSTE  " + FormatCost(MachineManager.I.GetEffectiveNodeCost(node)));
         SetText(selectedRequirementsText, "REQUISITOS  " + FormatRequirements(node));
+
+        bool blockedByRequirement = !repaired && IsRequirementBlock(reason);
+        bool blockedByResources = !repaired && IsResourceBlock(reason);
+        ApplyBlockerEmphasis(selectedRequirementsText, blockedByRequirement,
+            RequirementText);
+        ApplyBlockerEmphasis(selectedCostText, blockedByResources, CardText);
+
+        if (selectedStateText != null)
+        {
+            selectedStateText.color = repaired
+                ? RepairedColor
+                : analyzing || (node.damaged && !analyzed)
+                    ? AnalysisColor
+                    : FaceAccents[Mathf.Clamp(_currentFaceIndex, 0, FaceAccents.Length - 1)];
+        }
     }
 
     private void RefreshSelectionGuide(string selectedId)
@@ -686,19 +782,42 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
     }
 
     private static string GetStateLabel(MachineNodeDef node, bool repaired,
-        bool analyzed, bool analyzing, bool canRepair, string reason)
+        bool analyzed, bool analyzing)
     {
-        if (repaired) return "REPARADO  [OK]";
-        if (analyzing) return "ANALIZANDO  …";
-        if (node.damaged && !analyzed) return "DAÑADO SIN ANALIZAR  !";
-        if (canRepair) return analyzed ? "ANALIZADO · REPARABLE  +" : "REPARABLE  +";
-        if (reason.StartsWith("Falta reparar nodo requerido", System.StringComparison.Ordinal))
-            return "BLOQUEADO POR REQUISITO  [X]  ·  " + reason;
-        if (reason.StartsWith("Falta LE", System.StringComparison.Ordinal) ||
-            reason.StartsWith("Faltan", System.StringComparison.Ordinal))
-            return "BLOQUEADO POR RECURSOS  ¤  ·  " + reason;
-        if (node.hidden) return "SECRETO REVELADO  ✦";
-        return "VISIBLE PENDIENTE  □";
+        if (repaired) return "REPARADO";
+        if (analyzing) return "ANALIZANDO";
+        if (node.damaged && !analyzed) return "DAÑADO";
+        if (analyzed) return "ANALIZADO";
+        if (node.hidden) return "REVELADO";
+        return "PENDIENTE";
+    }
+
+    private static bool IsRequirementBlock(string reason) =>
+        !string.IsNullOrWhiteSpace(reason) &&
+        reason.StartsWith("Falta reparar nodo requerido", System.StringComparison.Ordinal);
+
+    private static bool IsResourceBlock(string reason) =>
+        !string.IsNullOrWhiteSpace(reason) &&
+        (reason.StartsWith("Falta LE", System.StringComparison.Ordinal) ||
+         reason.StartsWith("Faltan", System.StringComparison.Ordinal));
+
+    private static void ApplyBlockerEmphasis(TextMeshProUGUI text, bool emphasize,
+        Color normalColor)
+    {
+        if (text == null)
+            return;
+
+        if (!emphasize)
+        {
+            text.color = normalColor;
+            text.fontStyle = FontStyles.Normal;
+            return;
+        }
+
+        float pulse = 0.68f + 0.32f *
+            (0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 5.5f));
+        text.color = Color.Lerp(normalColor, BlockerGlow, pulse);
+        text.fontStyle = FontStyles.Bold;
     }
 
     private static string FormatRequirements(MachineNodeDef node)
@@ -755,9 +874,12 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
     private static string FormatEffect(MachineNodeDef node)
     {
         string value = node.effectValue > 0.0 ? "  +" + node.effectValue.ToString("0.##") : "";
+        string percentValue = node.effectValue > 0.0
+            ? "  +" + (node.effectValue * 100.0).ToString("0.##") + "%"
+            : "";
         return node.effectType switch
         {
-            MachineNodeEffectType.GlobalLEBonus => "PRODUCCIÓN DE LE" + value,
+            MachineNodeEffectType.GlobalLEBonus => "PRODUCCIÓN GLOBAL DE LE" + percentValue,
             MachineNodeEffectType.TracesBonus => "GENERACIÓN DE TRAZAS" + value,
             MachineNodeEffectType.TriangleBonus => "SINCRONIZACIÓN TRIANGULAR" + value,
             MachineNodeEffectType.ArtifactBonus => "CALIBRACIÓN DE ARTEFACTOS" + value,

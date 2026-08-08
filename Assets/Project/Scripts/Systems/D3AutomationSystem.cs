@@ -461,14 +461,7 @@ public static class D3AutomationSystem
                 routine.lastResult = "Espera: accion no autorizada offline.";
                 continue;
             }
-            double routineProgressSeconds = dt;
-            if (gameState != null)
-            {
-                routineProgressSeconds *= offline
-                    ? gameState.GetTriangleD3RoutineSpeedMultiplierForPeriod(dt)
-                    : gameState.GetTriangleD3RoutineSpeedMultiplier();
-            }
-            routine.evaluationRemainingSeconds -= routineProgressSeconds;
+            routine.evaluationRemainingSeconds -= dt;
             if (routine.evaluationRemainingSeconds > 0.0) continue;
             routine.evaluationRemainingSeconds = GetEvaluationInterval(
                 gameState.dimension3, definition);

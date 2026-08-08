@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -22,7 +23,8 @@ public static class VerticalUpgradesVisualPolishValidation
         "triangle_unlock_1",
         "triangle_impulse_tuning",
         "triangle_synergy_resonance",
-        "triangle_persistence_anchor"
+        "triangle_persistence_anchor",
+        "triangle_energy_efficiency"
     };
 
     [MenuItem("Tools/Quantum Forge/Vertical UI/Validate Upgrades Visual Polish")]
@@ -37,9 +39,17 @@ public static class VerticalUpgradesVisualPolishValidation
         VerticalUpgradesPolishUI polish =
             UnityEngine.Object.FindFirstObjectByType<VerticalUpgradesPolishUI>(
                 FindObjectsInactive.Include);
+        VerticalUpgradesScreenUI screen =
+            UnityEngine.Object.FindFirstObjectByType<VerticalUpgradesScreenUI>(
+                FindObjectsInactive.Include);
+        KeycardPurchaseUI keycard =
+            UnityEngine.Object.FindFirstObjectByType<KeycardPurchaseUI>(
+                FindObjectsInactive.Include);
 
         Check(panel != null && header != null && shell != null && polish != null,
             "La jerarquia de pulido de Mejoras esta incompleta.", failures);
+        Check(screen != null && keycard != null && screen.keycardRow == keycard,
+            "La Keycard no esta conectada a la pantalla vertical activa.", failures);
         Check(CountNamed(scene, "VerticalUpgradesHeader") == 1 &&
             FindAll<VerticalUpgradesPolishUI>(scene).Length == 1,
             "La cabecera o el controlador visual de Mejoras esta duplicado.", failures);
@@ -56,15 +66,23 @@ public static class VerticalUpgradesVisualPolishValidation
             Check(header.transform.Find("UpgradeResource_LE/Icon") != null &&
                 header.transform.Find("UpgradeResource_LE/Value") != null &&
                 header.transform.Find("UpgradeResource_Traces/Icon") != null &&
-                header.transform.Find("UpgradeResource_Traces/Value") != null,
-                "La cabecera no contiene ambos contadores mecanicos.", failures);
+                header.transform.Find("UpgradeResource_Traces/Value") != null &&
+                header.transform.Find("UpgradeResource_Energy/Icon") != null &&
+                header.transform.Find("UpgradeResource_Energy/Value") != null,
+                "La cabecera no contiene los tres contadores mecánicos.", failures);
+            TextMeshProUGUI[] values =
+                header.GetComponentsInChildren<TextMeshProUGUI>(true);
+            Check(values.Where(value => value.name == "Value")
+                .All(value => value.fontSize >= 29f && value.fontSizeMin >= 22f),
+                "Los contadores de Mejoras son demasiado pequenos para movil.", failures);
         }
 
         if (polish != null)
         {
             Check(polish.theme != null && polish.leText != null &&
-                polish.tracesText != null && polish.sourceLeText != null &&
-                polish.sourceTracesText != null,
+                polish.tracesText != null && polish.energyText != null &&
+                polish.sourceLeText != null && polish.sourceTracesText != null &&
+                polish.sourceEnergyText != null,
                 "VerticalUpgradesPolishUI tiene referencias de cabecera rotas.", failures);
             Check(generationHeader != null && polish.sourceLeText != null &&
                 polish.sourceLeText.transform.IsChildOf(generationHeader.transform) &&
@@ -78,7 +96,7 @@ public static class VerticalUpgradesVisualPolishValidation
                 polish.rows.All(item => item != null && item.row != null &&
                     item.frame != null && item.innerFrame != null &&
                     item.icon != null && item.buttonFrame != null),
-                "Las siete filas no estan conectadas al controlador visual.", failures);
+                "Las ocho filas no estan conectadas al controlador visual.", failures);
         }
 
         if (shell != null)
@@ -93,6 +111,7 @@ public static class VerticalUpgradesVisualPolishValidation
                 "Falta la barra mecanica del titulo MEJORAS.", failures);
             ValidateSections(shell.transform, failures);
             ValidateRows(shell.transform, failures);
+            ValidateKeycard(shell.transform, keycard, failures);
         }
 
         ValidateAssets(failures);
@@ -155,6 +174,10 @@ public static class VerticalUpgradesVisualPolishValidation
             Check(row.BuyButton == null ||
                 row.BuyButton.onClick.GetPersistentEventCount() == 0,
                 id + " agrego un listener serializado de compra.", failures);
+            Check(row.CostText != null && row.CostText.fontSize >= 23f &&
+                row.CostText.fontSizeMin >= 18f && row.TierText != null &&
+                row.TierText.fontSize >= 22f && row.TierText.fontSizeMin >= 17f,
+                id + " conserva numeros demasiado pequenos para movil.", failures);
         }
 
         F2UpgradeRowUI unlock = rows.FirstOrDefault(
@@ -162,6 +185,40 @@ public static class VerticalUpgradesVisualPolishValidation
         Check(unlock != null && unlock.transform.Find("IconSymbol") != null &&
             unlock.transform.Find("IconSymbol").gameObject.activeSelf,
             "Acople de Vertices no muestra el simbolo triangular.", failures);
+    }
+
+    private static void ValidateKeycard(
+        Transform shell,
+        KeycardPurchaseUI keycard,
+        List<string> failures)
+    {
+        Transform triangleSection = FindDescendant(shell, "Section_Triangle");
+        Check(keycard != null && triangleSection != null &&
+            keycard.transform.parent == triangleSection,
+            "La Keycard sigue fuera de la seccion activa del Triangulo.", failures);
+        if (keycard == null) return;
+
+        LayoutElement layout = keycard.GetComponent<LayoutElement>();
+        RectTransform button = keycard.buyButton != null
+            ? (RectTransform)keycard.buyButton.transform
+            : null;
+        Check(layout != null && layout.preferredHeight >= 196f,
+            "La Keycard no tiene altura util en la lista vertical.", failures);
+        Check(button != null && button.sizeDelta.x >= 200f &&
+            button.sizeDelta.y >= 68f,
+            "La Keycard no conserva un boton tactil legible.", failures);
+        Check(keycard.transform.Find("KeycardInnerFrame") != null &&
+            keycard.transform.Find("KeycardAccent") != null,
+            "La Keycard no usa el modulo visual vertical.", failures);
+        Check(keycard.costText != null && keycard.costText.fontSize >= 22f &&
+            keycard.costText.fontSizeMin >= 17f,
+            "El coste de la Keycard es demasiado pequeno para movil.", failures);
+        Check(keycard.buyButton != null &&
+            keycard.buyButton.onClick.GetPersistentEventCount() == 1 &&
+            keycard.buyButton.onClick.GetPersistentTarget(0) == keycard &&
+            keycard.buyButton.onClick.GetPersistentMethodName(0) ==
+                nameof(KeycardPurchaseUI.OnClickBuyKeycard),
+            "El boton de Keycard perdio su accion funcional.", failures);
     }
 
     private static void ValidateAssets(List<string> failures)
@@ -196,6 +253,8 @@ public static class VerticalUpgradesVisualPolishValidation
                 "La capa visual duplico la mejora " + id + ".", failures);
         Check(FindAll<F2UpgradeManager>(scene).Length <= 1,
             "La capa visual duplico F2UpgradeManager.", failures);
+        Check(FindAll<KeycardPurchaseUI>(scene).Length == 1,
+            "La Keycard falta o fue duplicada.", failures);
     }
 
     private static T[] FindAll<T>(Scene scene) where T : Component
@@ -252,7 +311,7 @@ public static class VerticalUpgradesVisualPolishValidation
         if (failures.Count == 0)
         {
             Debug.Log("[Upgrades Visual Polish] VALIDATION PASS | cabecera real | " +
-                "titulo mecanico | tres railes | siete modulos compactos | " +
+                "titulo mecanico | tres railes | ocho modulos compactos | " +
                 "iconos | tactil | sin logica duplicada");
             return;
         }

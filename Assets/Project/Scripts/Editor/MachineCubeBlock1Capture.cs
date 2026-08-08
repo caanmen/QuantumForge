@@ -73,6 +73,16 @@ public static class MachineCubeBlock1Capture
         RunInternal(2, false);
     }
 
+    public static void RunFace1InitialBatch()
+    {
+        RunInternal(0, false);
+    }
+
+    public static void RunFace1RepairedBatch()
+    {
+        RunInternal(0, true);
+    }
+
     public static void RunFace2InitialBatch()
     {
         RunInternal(1, false);
@@ -452,11 +462,47 @@ public static class MachineCubeBlock1Capture
                     FindObjectsInactive.Include);
             Require(initialVisualState != null && initialVisualState.RefreshNow(true),
                 "Los estados visuales 3D no respondieron al estado inicial.");
-            Require(CountActiveNamed("DamageDetails") > 0 &&
-                CountActiveNamed("RepairEmitter") == 0,
+            Require((CountActiveNamed("DamageDetails") +
+                    CountActiveStartingWith("DAMAGED_STATE_")) > 0 &&
+                CountActiveNamed("RepairEmitter") == 0 &&
+                CountActiveNamed("PhysicalBreach_1") == 4 &&
+                CountActiveNamed("RepairPatch_1") == 0,
                 "El cubo inicial no muestra dano operativo correctamente.");
+            MachineCube3DPrototypeDisplayUI displayInput =
+                UnityEngine.Object.FindFirstObjectByType<MachineCube3DPrototypeDisplayUI>(
+                    FindObjectsInactive.Include);
+            MachinePanelUI panel =
+                UnityEngine.Object.FindFirstObjectByType<MachinePanelUI>(
+                    FindObjectsInactive.Include);
+            Require(displayInput != null && panel != null,
+                "No se pudo sincronizar la seleccion fisica inicial.");
+            MachineCube3DNode[] physicalNodes = controller
+                .GetComponentsInChildren<MachineCube3DNode>(true);
+            Require(controller.AvailableFaceCount == 4 && physicalNodes.Length == 43 &&
+                physicalNodes.Count(node => node.gameObject.activeInHierarchy &&
+                    node.FaceIndex == 0) == 7 &&
+                physicalNodes.Count(node => node.gameObject.activeInHierarchy &&
+                    node.FaceIndex == 1) == 11 &&
+                physicalNodes.Count(node => node.gameObject.activeInHierarchy &&
+                    node.FaceIndex == 2) == 7 &&
+                physicalNodes.Count(node => node.gameObject.activeInHierarchy &&
+                    node.FaceIndex == 3) == 10,
+                "El cubo 3D no expuso 7 + 11 + 7 + 10 sockets publicos.");
+            ValidateAuthoredFaceClickTargets(controller, 0, 7,
+                "Machine Face1 V3");
+            ValidateAuthoredFaceClickTargets(controller, 1, 11,
+                "Machine Face2 V1");
+            ValidateAuthoredFaceClickTargets(controller, 2, 7,
+                "Machine Face3 V1");
+            ValidateAuthoredFaceClickTargets(controller, 3, 10,
+                "Machine Face4 V1");
+            controller.SetFaceImmediate(0);
+            displayInput.RefreshSelectedNode(true);
+            ValidatePhysicalSelection(controller, panel.SelectedNodeId);
             Require(controller.IsVisible && controller.CurrentFaceIndex == 0,
                 "El cubo 3D no se activÃ³ automÃ¡ticamente en el flujo normal.");
+            Require(CountRenderingFaces(controller) <= 2,
+                "El cubo renderiza caras traseras innecesarias en reposo.");
             SetSelectionGuideVisible(false);
             BeginCaptureRendering(1080, 1920);
             Advance(1);
@@ -466,7 +512,8 @@ public static class MachineCubeBlock1Capture
         Require(controller != null, "MachineCube3DPrototypeController no disponible.");
         if (stage == 1)
         {
-            controller.SetRotationDegrees(0f);
+            controller.SetFaceImmediate(0);
+            ValidateRestingOrientation(controller, 0);
             SetSelectionGuideVisible(false);
             Capture("true3d_01_face_1_rest.png");
             Advance(2);
@@ -474,7 +521,25 @@ public static class MachineCubeBlock1Capture
         }
         if (stage == 2)
         {
-            controller.SetRotationDegrees(-45f);
+            MachinePanelUI panel =
+                UnityEngine.Object.FindFirstObjectByType<MachinePanelUI>(
+                    FindObjectsInactive.Include);
+            MachineCube3DPrototypeDisplayUI displayInput =
+                UnityEngine.Object.FindFirstObjectByType<MachineCube3DPrototypeDisplayUI>(
+                    FindObjectsInactive.Include);
+            MachineNodeDef alternate = MachineManager.I
+                .GetDisplayNodesByZone(MachineZoneType.Room1Link)
+                .FirstOrDefault(node => node != null &&
+                    node.id != controller.SelectedNodeId);
+            Require(panel != null && displayInput != null && alternate != null,
+                "No se encontro un segundo nodo para validar seleccion.");
+            panel.SelectNodeFromCube(alternate.id);
+            displayInput.RefreshSelectedNode(true);
+            ValidatePhysicalSelection(controller, alternate.id);
+            controller.SetRotationDegrees((controller.GetFaceRotationDegrees(0) +
+                controller.GetFaceRotationDegrees(1)) * .5f);
+            Require(CountRenderingFaces(controller) == 2,
+                "El giro intermedio no conserva exactamente las dos caras visibles.");
             SetSelectionGuideVisible(false);
             Capture("true3d_02_connected_faces_45deg.png");
             Advance(3);
@@ -482,11 +547,65 @@ public static class MachineCubeBlock1Capture
         }
         if (stage == 3)
         {
-            controller.SetRotationDegrees(-90f);
+            controller.SetFaceImmediate(1);
+            ValidateRestingOrientation(controller, 1);
             ShowFace(1);
+            MachineCube3DPrototypeDisplayUI displayInput =
+                UnityEngine.Object.FindFirstObjectByType<MachineCube3DPrototypeDisplayUI>(
+                    FindObjectsInactive.Include);
+            MachinePanelUI selectedPanel =
+                UnityEngine.Object.FindFirstObjectByType<MachinePanelUI>(
+                    FindObjectsInactive.Include);
+            displayInput?.RefreshSelectedNode(true);
+            Require(selectedPanel != null,
+                "No se encontro el panel para validar seleccion en Cara 2.");
+            ValidatePhysicalSelection(controller, selectedPanel.SelectedNodeId);
             SetSelectionGuideVisible(false);
             controller.RenderNow();
             Capture("true3d_03_face_2_front_90deg.png");
+            Advance(4);
+            return;
+        }
+        if (stage == 4)
+        {
+            ShowFace(2);
+            controller.SetFaceImmediate(2);
+            ValidateRestingOrientation(controller, 2);
+            MachineCube3DPrototypeDisplayUI displayInput =
+                UnityEngine.Object.FindFirstObjectByType<MachineCube3DPrototypeDisplayUI>(
+                    FindObjectsInactive.Include);
+            MachinePanelUI panel = UnityEngine.Object.FindFirstObjectByType<MachinePanelUI>(
+                FindObjectsInactive.Include);
+            Require(panel != null && displayInput != null &&
+                panel.CurrentZone == MachineZoneType.InternalSupport,
+                "La Cara 3 modular no se sincronizo con Soporte Interno.");
+            displayInput.RefreshSelectedNode(true);
+            ValidatePhysicalSelection(controller, panel.SelectedNodeId);
+            SetSelectionGuideVisible(false);
+            controller.RenderNow();
+            Capture("true3d_04_face_3_front_180deg.png");
+            Advance(5);
+            return;
+        }
+        if (stage == 5)
+        {
+            ShowFace(3);
+            controller.SetFaceImmediate(3);
+            ValidateRestingOrientation(controller, 3);
+            MachineCube3DPrototypeDisplayUI displayInput =
+                UnityEngine.Object.FindFirstObjectByType<MachineCube3DPrototypeDisplayUI>(
+                    FindObjectsInactive.Include);
+            MachinePanelUI panel = UnityEngine.Object.FindFirstObjectByType<MachinePanelUI>(
+                FindObjectsInactive.Include);
+            Require(panel != null && displayInput != null &&
+                panel.CurrentZone == MachineZoneType.InstantChamber,
+                "La Cara 4 modular no se sincronizo con Camara de Anclajes.");
+            displayInput.RefreshSelectedNode(true);
+            ValidatePhysicalSelection(controller, panel.SelectedNodeId);
+            SetSelectionGuideVisible(false);
+            controller.RenderNow();
+            Capture("true3d_05_face_4_front_270deg.png");
+
             ShowFace(0);
             MachineCubeVisualUI visual = UnityEngine.Object.FindFirstObjectByType<MachineCubeVisualUI>(
                 FindObjectsInactive.Include);
@@ -496,10 +615,10 @@ public static class MachineCubeBlock1Capture
             visual.RotateBy(1);
             Require(visual.IsRotating && controller.IsRotating,
                 "La UI normal no iniciÃ³ el giro fÃ­sico Cara 1 a Cara 2.");
-            Advance(4);
+            Advance(6);
             return;
         }
-        if (stage == 4)
+        if (stage == 6)
         {
             MachineCubeVisualUI visual = UnityEngine.Object.FindFirstObjectByType<MachineCubeVisualUI>(
                 FindObjectsInactive.Include);
@@ -510,13 +629,14 @@ public static class MachineCubeBlock1Capture
             Require(visual != null && panel != null && controller.CurrentFaceIndex == 1 &&
                 panel.CurrentZone == MachineZoneType.FusionSector,
                 "La UI normal no terminÃ³ sincronizada en Cara 2.");
-            visual.RotateBy(-1);
+            ValidateRestingOrientation(controller, 1);
+            visual.RotateBy(1);
             Require(visual.IsRotating && controller.IsRotating,
-                "La UI normal no iniciÃ³ el giro fÃ­sico Cara 2 a Cara 1.");
-            Advance(5);
+                "La UI normal no iniciÃ³ el giro fÃ­sico Cara 2 a Cara 3.");
+            Advance(7);
             return;
         }
-        if (stage == 5)
+        if (stage == 7)
         {
             MachineCubeVisualUI visual = UnityEngine.Object.FindFirstObjectByType<MachineCubeVisualUI>(
                 FindObjectsInactive.Include);
@@ -524,27 +644,53 @@ public static class MachineCubeBlock1Capture
                 return;
             MachinePanelUI panel = UnityEngine.Object.FindFirstObjectByType<MachinePanelUI>(
                 FindObjectsInactive.Include);
-            Require(panel != null && controller.CurrentFaceIndex == 0 &&
-                panel.CurrentZone == MachineZoneType.Room1Link && controller.IsVisible,
-                "La UI normal no regresÃ³ sincronizada y visible a Cara 1.");
-            PrepareMachine(true);
-            ShowFace(0);
-            MachineCube3DVisualStateController repairedVisualState =
-                UnityEngine.Object.FindFirstObjectByType<MachineCube3DVisualStateController>(
-                    FindObjectsInactive.Include);
-            Require(repairedVisualState != null,
-                "Falta el controlador de estados visuales.");
-            repairedVisualState.RefreshNow(true);
-            controller.SetFaceImmediate(0);
-            SetSelectionGuideVisible(false);
-            Require(CountActiveNamed("DamageDetails") == 0 &&
-                CountActiveNamed("RepairEmitter") > 0,
-                "La reparacion completa no transforma los nodos 3D.");
-            Capture("true3d_04_face_1_repaired.png");
-            Advance(6);
+            Require(panel != null && controller.CurrentFaceIndex == 2 &&
+                panel.CurrentZone == MachineZoneType.InternalSupport,
+                "La UI normal no termino sincronizada en Cara 3.");
+            ValidateRestingOrientation(controller, 2);
+            visual.RotateBy(1);
+            Require(visual.IsRotating && controller.IsRotating,
+                "La UI normal no inicio el giro fisico Cara 3 a Cara 4.");
+            Advance(8);
             return;
         }
-        if (stage == 6)
+        if (stage == 8)
+        {
+            MachineCubeVisualUI visual = UnityEngine.Object.FindFirstObjectByType<MachineCubeVisualUI>(
+                FindObjectsInactive.Include);
+            if (controller.IsRotating || (visual != null && visual.IsRotating))
+                return;
+            MachinePanelUI panel = UnityEngine.Object.FindFirstObjectByType<MachinePanelUI>(
+                FindObjectsInactive.Include);
+            Require(panel != null && controller.CurrentFaceIndex == 3 &&
+                panel.CurrentZone == MachineZoneType.InstantChamber && controller.IsVisible,
+                "La UI normal no termino sincronizada y visible en Cara 4.");
+            ValidateRestingOrientation(controller, 3);
+            Require(visual != null,
+                "MachineCubeVisualUI no disponible para el giro inverso.");
+            visual.RotateBy(-1);
+            Require(visual.IsRotating && controller.IsRotating,
+                "La UI normal no inicio el giro inverso Cara 4 a Cara 3.");
+            Advance(13);
+            return;
+        }
+        if (stage == 13)
+        {
+            MachineCubeVisualUI visual = UnityEngine.Object.FindFirstObjectByType<MachineCubeVisualUI>(
+                FindObjectsInactive.Include);
+            if (controller.IsRotating || (visual != null && visual.IsRotating))
+                return;
+            MachinePanelUI panel = UnityEngine.Object.FindFirstObjectByType<MachinePanelUI>(
+                FindObjectsInactive.Include);
+            Require(panel != null && controller.CurrentFaceIndex == 2 &&
+                panel.CurrentZone == MachineZoneType.InternalSupport,
+                "El giro inverso no termino sincronizado en Cara 3.");
+            ValidateRestingOrientation(controller, 2);
+            PrepareAndCaptureRepairedFace1(controller);
+            Advance(9);
+            return;
+        }
+        if (stage == 9)
         {
             ShowFace(1);
             MachineCube3DVisualStateController repairedVisualState =
@@ -552,15 +698,61 @@ public static class MachineCubeBlock1Capture
                     FindObjectsInactive.Include);
             repairedVisualState?.RefreshNow(true);
             controller.SetFaceImmediate(1);
+            MachineCube3DPrototypeDisplayUI repairedDisplayInput =
+                UnityEngine.Object.FindFirstObjectByType<MachineCube3DPrototypeDisplayUI>(
+                    FindObjectsInactive.Include);
+            MachinePanelUI repairedPanel =
+                UnityEngine.Object.FindFirstObjectByType<MachinePanelUI>(
+                    FindObjectsInactive.Include);
+            Require(repairedDisplayInput != null && repairedPanel != null,
+                "No se pudo sincronizar la seleccion reparada de Cara 2.");
+            repairedDisplayInput.RefreshSelectedNode(true);
+            ValidatePhysicalSelection(controller, repairedPanel.SelectedNodeId);
             SetSelectionGuideVisible(false);
-            Capture("true3d_05_face_2_repaired.png");
+            Capture("true3d_07_face_2_repaired.png");
+            Advance(10);
+            return;
+        }
+        if (stage == 10)
+        {
+            ShowFace(2);
+            controller.SetFaceImmediate(2);
+            MachineCube3DPrototypeDisplayUI displayInput =
+                UnityEngine.Object.FindFirstObjectByType<MachineCube3DPrototypeDisplayUI>(
+                    FindObjectsInactive.Include);
+            MachinePanelUI panel = UnityEngine.Object.FindFirstObjectByType<MachinePanelUI>(
+                FindObjectsInactive.Include);
+            Require(displayInput != null && panel != null,
+                "No se pudo sincronizar la seleccion reparada de Cara 3.");
+            displayInput.RefreshSelectedNode(true);
+            ValidatePhysicalSelection(controller, panel.SelectedNodeId);
+            SetSelectionGuideVisible(false);
+            Capture("true3d_08_face_3_repaired.png");
+            Advance(11);
+            return;
+        }
+        if (stage == 11)
+        {
+            ShowFace(3);
+            controller.SetFaceImmediate(3);
+            MachineCube3DPrototypeDisplayUI displayInput =
+                UnityEngine.Object.FindFirstObjectByType<MachineCube3DPrototypeDisplayUI>(
+                    FindObjectsInactive.Include);
+            MachinePanelUI panel = UnityEngine.Object.FindFirstObjectByType<MachinePanelUI>(
+                FindObjectsInactive.Include);
+            Require(displayInput != null && panel != null,
+                "No se pudo sincronizar la seleccion reparada de Cara 4.");
+            displayInput.RefreshSelectedNode(true);
+            ValidatePhysicalSelection(controller, panel.SelectedNodeId);
+            SetSelectionGuideVisible(false);
+            Capture("true3d_09_face_4_repaired.png");
             Require(TabsUI.Instance != null, "TabsUI no disponible para Ajustes.");
             TabsUI.Instance.ShowAjustes();
             Canvas.ForceUpdateCanvases();
-            Advance(7);
+            Advance(12);
             return;
         }
-        if (stage == 7)
+        if (stage == 12)
         {
             VerticalSettingsPanelUI settings =
                 UnityEngine.Object.FindFirstObjectByType<VerticalSettingsPanelUI>(
@@ -568,7 +760,7 @@ public static class MachineCubeBlock1Capture
             Require(settings != null && settings.gameObject.activeInHierarchy,
                 "El panel de Ajustes no se abrio para validar calidad 3D.");
             settings.RefreshQualityState();
-            Capture("true3d_06_graphics_settings.png");
+            Capture("true3d_10_graphics_settings.png");
             EditorApplication.update -= Tick;
             EndCaptureRendering();
             SessionState.SetBool(CompletedKey, true);
@@ -576,10 +768,71 @@ public static class MachineCubeBlock1Capture
         }
     }
 
+    private static void PrepareAndCaptureRepairedFace1(
+        MachineCube3DPrototypeController controller)
+    {
+        PrepareMachine(true);
+        ShowFace(0);
+        MachineCube3DVisualStateController repairedVisualState =
+            UnityEngine.Object.FindFirstObjectByType<MachineCube3DVisualStateController>(
+                FindObjectsInactive.Include);
+        Require(repairedVisualState != null,
+            "Falta el controlador de estados visuales.");
+        repairedVisualState.RefreshNow(true);
+        controller.SetFaceImmediate(0);
+        ValidateRestingOrientation(controller, 0);
+        MachineCube3DPrototypeDisplayUI repairedDisplayInput =
+            UnityEngine.Object.FindFirstObjectByType<MachineCube3DPrototypeDisplayUI>(
+                FindObjectsInactive.Include);
+        MachinePanelUI repairedPanel =
+            UnityEngine.Object.FindFirstObjectByType<MachinePanelUI>(
+                FindObjectsInactive.Include);
+        Require(repairedDisplayInput != null && repairedPanel != null,
+            "No se pudo sincronizar el tier reparado de Cara 1.");
+        repairedDisplayInput.RefreshSelectedNode(true);
+        ValidatePhysicalSelection(controller, repairedPanel.SelectedNodeId);
+        SetSelectionGuideVisible(false);
+        Require(CountActiveNamed("DamageDetails") == 0 &&
+            CountActiveStartingWith("DAMAGED_STATE_") == 0 &&
+            (CountActiveNamed("RepairEmitter") > 0 ||
+                CountActiveStartingWith("REPAIRED_STATE_") > 0) &&
+            CountActiveNamed("PhysicalBreach_1") == 0 &&
+            CountActiveNamed("RepairPatch_1") == 4,
+            "La reparacion completa no transforma los nodos 3D.");
+        Capture("true3d_06_face_1_repaired.png");
+    }
+
+    private static void ValidateRestingOrientation(
+        MachineCube3DPrototypeController controller, int faceIndex)
+    {
+        float expected = controller.GetFaceRotationDegrees(faceIndex);
+        float error = Mathf.Abs(Mathf.DeltaAngle(expected,
+            controller.CurrentYawDegrees));
+        Require(controller.CurrentFaceIndex == faceIndex && error < 0.05f,
+            $"Cara {faceIndex + 1} no termino con la orientacion derecha. " +
+            $"Esperado={expected:0.00} actual={controller.CurrentYawDegrees:0.00}.");
+    }
+
     private static void ValidateQualityProfiles(
         MachineCube3DPrototypeController controller)
     {
         MachineCube3DQualityLevel previous = MachineCube3DQuality.Current;
+        int expectedProceduralNodeDetails = controller
+            .GetComponentsInChildren<MachineCube3DNode>(true)
+            .Count(node => node != null && node.gameObject.activeInHierarchy &&
+                !HasAncestorNamed(node.transform, "NODE_ANCHORS"));
+        int expectedBalancedModules = controller
+            .GetComponentsInChildren<MachineCube3DModule>(true)
+            .Count(module => module != null && module.MinimumQuality ==
+                MachineCube3DQualityLevel.Balanced &&
+                HasActiveAncestors(module.transform.parent));
+        int expectedHighModules = controller
+            .GetComponentsInChildren<MachineCube3DModule>(true)
+            .Count(module => module != null && module.MinimumQuality ==
+                MachineCube3DQualityLevel.High &&
+                HasActiveAncestors(module.transform.parent));
+        Require(expectedBalancedModules > 0 && expectedHighModules > 0,
+            "El cubo no contiene detalle escalable para Media y Alta.");
         VerticalSettingsPanelUI settings =
             UnityEngine.Object.FindFirstObjectByType<VerticalSettingsPanelUI>(
                 FindObjectsInactive.Include);
@@ -589,18 +842,154 @@ public static class MachineCubeBlock1Capture
             "Los controles de calidad 3D no estan conectados.");
 
         settings.SetLow();
+        controller.RenderNow();
         Require(controller.CurrentRenderSize == 512 &&
-            !HasActiveCubeShadows(controller),
-            "El perfil BAJA no aplico 512px y sombras desactivadas.");
+            !HasActiveCubeShadows(controller) &&
+            CountActiveNamed("OptionalDetailGeometry") == 0 &&
+            CountActiveNamed("OptionalNodeDetailGeometry") == 0 &&
+            CountActiveQualityModules(controller,
+                MachineCube3DQualityLevel.Balanced) == 0 &&
+            CountActiveQualityModules(controller,
+                MachineCube3DQualityLevel.High) == 0,
+            "El perfil BAJA no redujo resolucion, sombras y detalle opcional.");
+        int lowNodeLights = CountVisibleLitNodes(controller);
+        Require(lowNodeLights > 0,
+            "El perfil BAJA oculto las luces de identidad de los nodos.");
+        Capture("true3d_quality_low.png");
         settings.SetBalanced();
+        controller.RenderNow();
         Require(controller.CurrentRenderSize == 768 &&
-            !HasActiveCubeShadows(controller),
-            "El perfil EQUILIBRADA no aplico 768px y sombras desactivadas.");
+            !HasActiveCubeShadows(controller) &&
+            CountActiveNamed("OptionalDetailGeometry") == 4 &&
+            CountActiveNamed("OptionalNodeDetailGeometry") ==
+                expectedProceduralNodeDetails &&
+            CountActiveQualityModules(controller,
+                MachineCube3DQualityLevel.Balanced) == expectedBalancedModules &&
+            CountActiveQualityModules(controller,
+                MachineCube3DQualityLevel.High) == 0,
+            "El perfil EQUILIBRADA no restauro el detalle mecanico.");
+        int balancedNodeLights = CountVisibleLitNodes(controller);
+        Require(balancedNodeLights == lowNodeLights,
+            "El perfil EQUILIBRADA cambio la cantidad de luces de nodos.");
+        Capture("true3d_quality_balanced.png");
         settings.SetHigh();
+        controller.RenderNow();
         Require(controller.CurrentRenderSize == 1024 &&
-            HasActiveCubeShadows(controller),
+            HasActiveCubeShadows(controller) &&
+            CountActiveQualityModules(controller,
+                MachineCube3DQualityLevel.Balanced) == expectedBalancedModules &&
+            CountActiveQualityModules(controller,
+                MachineCube3DQualityLevel.High) == expectedHighModules,
             "El perfil ALTA no aplico 1024px y sombras activas.");
+        int highNodeLights = CountVisibleLitNodes(controller);
+        Require(highNodeLights == lowNodeLights,
+            "El perfil ALTA no conserva las mismas luces de nodos.");
+        Capture("true3d_quality_high.png");
         MachineCube3DQuality.Set(previous);
+    }
+
+    private static int CountVisibleLitNodes(
+        MachineCube3DPrototypeController controller)
+    {
+        return controller.GetComponentsInChildren<MachineCube3DNode>(true)
+            .Count(node => node != null && node.gameObject.activeInHierarchy &&
+                node.GetComponentsInChildren<Renderer>(true).Any(renderer =>
+                    renderer != null && renderer.enabled &&
+                    renderer.gameObject.activeInHierarchy &&
+                    renderer.sharedMaterials.Any(material => material != null &&
+                        material.name.IndexOf("Emission",
+                            StringComparison.OrdinalIgnoreCase) >= 0)));
+    }
+
+    private static int CountActiveQualityModules(
+        MachineCube3DPrototypeController controller,
+        MachineCube3DQualityLevel minimumQuality)
+    {
+        return controller.GetComponentsInChildren<MachineCube3DModule>(true)
+            .Count(module => module != null && module.MinimumQuality ==
+                minimumQuality && module.gameObject.activeInHierarchy);
+    }
+
+    private static bool HasActiveAncestors(Transform current)
+    {
+        while (current != null)
+        {
+            if (!current.gameObject.activeSelf)
+                return false;
+            current = current.parent;
+        }
+        return true;
+    }
+
+    private static void ValidatePhysicalSelection(
+        MachineCube3DPrototypeController controller, string expectedNodeId)
+    {
+        Require(!string.IsNullOrWhiteSpace(expectedNodeId) &&
+            controller.SelectedNodeId == expectedNodeId,
+            "La seleccion logica y el cubo 3D no estan sincronizados.");
+        MachineCube3DNode[] nodes =
+            controller.GetComponentsInChildren<MachineCube3DNode>(true);
+        Require(nodes.Count(node => node != null && node.IsSelected) == 1,
+            "Debe existir exactamente un nodo 3D seleccionado.");
+        MachineCube3DNode selected = nodes.First(node => node.IsSelected);
+        Transform feedback = selected.transform.Find("SelectionFeedback");
+        Require(selected.NodeId == expectedNodeId && feedback != null &&
+            feedback.gameObject.activeSelf &&
+            feedback.GetComponentsInChildren<Renderer>(true).Length == 1,
+            "La luz inferior no acompana al nodo seleccionado.");
+    }
+
+    private static void ValidateAuthoredFaceClickTargets(
+        MachineCube3DPrototypeController controller, int faceIndex,
+        int expectedCount, string logLabel)
+    {
+        Camera camera = controller.PrototypeCamera;
+        Require(camera != null, "La camara 3D no esta disponible para validar clics.");
+        controller.SetFaceImmediate(faceIndex);
+        Physics.SyncTransforms();
+
+        MachineCube3DNode[] nodes = controller
+            .GetComponentsInChildren<MachineCube3DNode>(true)
+            .Where(node => node != null && node.FaceIndex == faceIndex &&
+                node.gameObject.activeInHierarchy)
+            .OrderBy(node => node.SlotIndex)
+            .ToArray();
+        Require(nodes.Length == expectedCount,
+            $"La Cara {faceIndex + 1} debe exponer {expectedCount} nodos clicables.");
+
+        foreach (MachineCube3DNode node in nodes)
+        {
+            Vector3 viewport = camera.WorldToViewportPoint(
+                node.transform.position);
+            Require(viewport.z > 0f && viewport.x > 0f && viewport.x < 1f &&
+                viewport.y > 0f && viewport.y < 1f,
+                $"El centro visual de {node.NodeId} queda fuera de camara.");
+
+            Ray ray = camera.ViewportPointToRay(viewport);
+            int layerMask = 1 << node.gameObject.layer;
+            Require(Physics.Raycast(ray, out RaycastHit hit, 100f,
+                    layerMask, QueryTriggerInteraction.Ignore),
+                $"El centro visual de {node.NodeId} no tiene zona de clic.");
+            MachineCube3DNode hitNode = hit.collider
+                .GetComponentInParent<MachineCube3DNode>();
+            Require(hitNode == node,
+                $"El clic visual de {node.NodeId} seleccionaria " +
+                $"{(hitNode != null ? hitNode.NodeId : "otro objeto")}.");
+        }
+
+        Debug.Log($"[{logLabel} Click] PASS | {expectedCount}/{expectedCount} " +
+            "centros visuales alineados con sus colliders");
+    }
+
+    private static bool HasAncestorNamed(Transform current, string name)
+    {
+        while (current != null)
+        {
+            if (current.name == name)
+                return true;
+            current = current.parent;
+        }
+        return false;
     }
 
     private static bool HasActiveCubeShadows(
@@ -611,11 +1000,26 @@ public static class MachineCubeBlock1Capture
                 UnityEngine.Rendering.ShadowCastingMode.Off);
     }
 
+    private static int CountRenderingFaces(
+        MachineCube3DPrototypeController controller)
+    {
+        return controller.GetComponentsInChildren<MachineCube3DFace>(true)
+            .Count(face => face != null && face.IsRenderingVisible);
+    }
+
     private static int CountActiveNamed(string objectName)
     {
         return Resources.FindObjectsOfTypeAll<GameObject>()
             .Count(gameObject => gameObject.name == objectName &&
                 gameObject.scene.IsValid() && gameObject.activeInHierarchy);
+    }
+
+    private static int CountActiveStartingWith(string prefix)
+    {
+        return Resources.FindObjectsOfTypeAll<GameObject>()
+            .Count(gameObject => gameObject.name.StartsWith(prefix,
+                    StringComparison.Ordinal) && gameObject.scene.IsValid() &&
+                gameObject.activeInHierarchy);
     }
 
     private static void SetSelectionGuideVisible(bool visible)

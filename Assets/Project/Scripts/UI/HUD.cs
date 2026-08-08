@@ -6,6 +6,7 @@ public class HUD : MonoBehaviour
     [Header("Textos HUD")]
     public TextMeshProUGUI leText;        // LE y LE/s
     public TextMeshProUGUI tracesText;    // Trazas
+    public TextMeshProUGUI energyText;    // Energía del Triángulo
     public TextMeshProUGUI vpText;        // VP
     public TextMeshProUGUI emText;        // EM
     public TextMeshProUGUI adpText;       // ADP
@@ -40,6 +41,13 @@ public class HUD : MonoBehaviour
             string tracesLabel = Localize("hud.traces", "TRAZAS");
             tracesText.SetText(
                 $"{tracesLabel} {(float)gs.Traces:0}\n+{(float)tracesPs:0.00}/s");
+        }
+
+        if (energyText != null)
+        {
+            string energyLabel = Localize("hud.triangle_energy", "ENERGÍA");
+            energyText.SetText(
+                $"{energyLabel} {gs.triangleEnergy:0}\n+{gs.CalculateTriangleEnergyPerSecond():0.00}/s");
         }
 
         // VP

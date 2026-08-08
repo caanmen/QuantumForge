@@ -51,8 +51,6 @@ public class MachineManager : MonoBehaviour
         double analysisSeconds =
             QaRuntimeService.ScaleOnlineSeconds(
                 Mathf.Min(unscaledDeltaTime, MaxAcceptedFrameDeltaSeconds));
-        if (GameState.I != null)
-            analysisSeconds *= GameState.I.GetTrianglePhaseAnalysisSpeedMultiplier();
         AdvanceAnalysis(analysisSeconds);
     }
 
@@ -261,7 +259,11 @@ public class MachineManager : MonoBehaviour
 
         _machineIntroSeen = data.machineIntroSeen;
         _machineUnlocked = data.machineUnlocked;
-        _machineFusionPanelUnlocked = data.machineFusionPanelUnlocked;
+        // Las mezclas forman parte de la herramienta base del Cuarto 2.
+        // Mantener el valor antiguo permite migrar partidas previas, mientras
+        // que toda partida que ya alcanzó la Máquina obtiene acceso inmediato.
+        _machineFusionPanelUnlocked = data.machineFusionPanelUnlocked ||
+            data.machineUnlocked;
         _machineAllZonesUnlocked = data.machineAllZonesUnlocked || data.machineUnlocked;
         _selectedMachineFaceIndex = Mathf.Clamp(data.machineSelectedFaceIndex, 0, 3);
         _analysisNodeId = data.machineAnalysisNodeId ?? "";
@@ -1088,8 +1090,9 @@ public class MachineManager : MonoBehaviour
         _machineIntroSeen = true;
         _machineUnlocked = true;
         _machineAllZonesUnlocked = true;
+        _machineFusionPanelUnlocked = true;
 
-        Debug.Log("[MachineManager] Intro vista. Máquina desbloqueada con todas sus zonas visibles.");
+        Debug.Log("[MachineManager] Intro vista. Máquina y mezclas desbloqueadas con todas sus zonas visibles.");
 
         if (TabsUI.Instance != null)
             TabsUI.Instance.RefreshPrestigeButtonVisibility();

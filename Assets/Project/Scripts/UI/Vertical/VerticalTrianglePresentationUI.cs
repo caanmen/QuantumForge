@@ -19,12 +19,18 @@ public sealed class VerticalTrianglePresentationUI : MonoBehaviour
         TriangleCircuitType active = state != null
             ? state.triangleActiveCircuit
             : TriangleCircuitType.None;
-        SetLine(energyLine, active == TriangleCircuitType.Energy,
-            false, energyColor);
-        SetLine(experimentalLine, active == TriangleCircuitType.Experimental,
-            false, experimentalColor);
-        SetLine(phaseLine, active == TriangleCircuitType.Phase,
-            state == null || !state.IsTrianglePhaseUnlocked(), phaseColor);
+        // La presentacion vertical avanzada administra sus propias capas.
+        // Evita que este controlador legacy pinte el rectangulo completo y
+        // oculte el halo, los rieles y el nucleo luminoso.
+        if (GetComponent<VerticalGenerationPolishUI>() == null)
+        {
+            SetLine(energyLine, active == TriangleCircuitType.Energy,
+                false, energyColor);
+            SetLine(experimentalLine, active == TriangleCircuitType.Experimental,
+                false, experimentalColor);
+            SetLine(phaseLine, active == TriangleCircuitType.Phase,
+                false, phaseColor);
+        }
         if (centerGlow != null)
         {
             Color glow = active == TriangleCircuitType.Energy ? energyColor :

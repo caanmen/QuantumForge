@@ -14,10 +14,18 @@ public static class PresentationTextCatalog
     private static readonly Dictionary<string, Entry> Entries =
         new Dictionary<string, Entry>
         {
-            { "return.title", new Entry("MIENTRAS ESTABAS FUERA", "WHILE YOU WERE AWAY") },
-            { "return.applied", new Entry("Progreso aplicado: {0} / máximo 12 h donde corresponde.", "Progress applied: {0} / 12 h maximum where applicable.") },
-            { "return.d2", new Entry("Dimensión 2 avanzó durante tu ausencia.", "Dimension 2 progressed while you were away.") },
-            { "return.d3", new Entry("Dimensión 3 procesó trabajos y actividades permitidas.", "Dimension 3 processed eligible jobs and activities.") },
+            { "return.title", new Entry("REGISTRO DE AUSENCIA", "AWAY LOG") },
+            { "return.away_time", new Entry("ESTUVISTE FUERA  <size=48>{0}</size>", "YOU WERE AWAY  <size=48>{0}</size>") },
+            { "return.applied_time", new Entry("<size=27>PROGRESO APLICADO  {0}  ·  MÁXIMO 12 H</size>", "<size=27>PROGRESS APPLIED  {0}  ·  12 H MAXIMUM</size>") },
+            { "return.complete", new Entry("Simulación completada", "Simulation complete") },
+            { "return.time", new Entry("TIEMPO PROCESADO", "PROCESSED TIME") },
+            { "return.applied", new Entry("{0} / límite 12 h donde corresponde", "{0} / 12 h limit where applicable") },
+            { "return.d2.title", new Entry("DIMENSIÓN 2", "DIMENSION 2") },
+            { "return.d2", new Entry("Los sistemas avanzaron durante tu ausencia", "Systems progressed while you were away") },
+            { "return.d3.title", new Entry("DIMENSIÓN 3", "DIMENSION 3") },
+            { "return.d3", new Entry("Los procesos autorizados continuaron", "Authorized processes continued") },
+            { "return.balance", new Entry("RECURSOS OBTENIDOS", "RESOURCES RECEIVED") },
+            { "return.balance.none", new Entry("No se obtuvieron LE, Trazas ni Energía", "No LE, Traces, or Energy received") },
             { "return.new", new Entry("Nuevo sistema disponible: {0}.", "New system available: {0}.") },
             { "return.resume", new Entry("Siguiente acción: retoma el objetivo desde su estado real.", "Next action: resume the objective from its current state.") },
             { "return.continue", new Entry("CONTINUAR", "CONTINUE") },
@@ -130,8 +138,9 @@ public static class PresentationTextCatalog
 
     public static readonly string[] RequiredKeys =
     {
-        "return.title", "return.applied", "return.d2", "return.d3",
-        "return.new", "return.resume", "return.continue", "return.open",
+        "return.title", "return.complete", "return.time", "return.applied",
+        "return.d2.title", "return.d2", "return.d3.title", "return.d3",
+        "return.balance", "return.balance.none", "return.new", "return.continue",
         "help.review", "help.close", "help.d2.title", "help.d2.body",
         "help.d3.title", "help.d3.body", "feature.unknown"
     };

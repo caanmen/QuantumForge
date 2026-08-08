@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
@@ -62,9 +63,34 @@ public static class AndroidPauseResumeValidation
                     machine.AnalysisRemainingSeconds <= 100.0,
                 "La Maquina acredito como online el tiempo en segundo plano.");
 
+            // Reproduce el caso real reportado: arranque en frio, productores
+            // aun no creados por la UI y cinco minutos de ausencia.
+            var definition = new BuildingDef
+            {
+                id = "qa_offline_generator",
+                baseCost = 10.0,
+                costMult = 2.0,
+                lePerTickBase = 2.0,
+                tickInterval = 1.0
+            };
+            var savedLevels = new List<SavedBuildingLevel>
+            {
+                new SavedBuildingLevel { id = definition.id, level = 3 }
+            };
+            state.LE = 0.0;
+            state.baseLEps = 0.0;
+            state.PrepareBuildingLevelsForOffline(
+                savedLevels, new List<BuildingDef> { definition });
+            TriangleOfflineReport report = state.ApplyOfflineBaseProgress(300.0);
+            Require(state.GetBuildingLevel(definition.id) == 3,
+                "El arranque en frio no reconstruyo el nivel guardado.");
+            Require(report.appliedSeconds == 300.0 && report.leGained > 0.0 &&
+                    state.LE > 0.0,
+                "Cinco minutos fuera no entregaron recursos del productor guardado.");
+
             Debug.Log("[Android Pause Resume] PASS | delta de 1 h acotado | " +
                 "sin bucle masivo | acumulador limpio | Maquina acotada | " +
-                "progreso offline separado");
+                "300 s offline con niveles restaurados");
         }
         finally
         {

@@ -91,7 +91,8 @@ public sealed class VerticalNavigationUI : MonoBehaviour
             out bool dimension3,
             out bool prestige);
 
-        bool changed = SetActive(room2Button, room2) |
+        bool changed = SetActive(researchButton, false) |
+            SetActive(room2Button, room2) |
             SetActive(dimension1Button, dimension1) |
             SetActive(dimension2Button, dimension2) |
             SetActive(dimension3Button, dimension3) |

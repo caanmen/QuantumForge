@@ -229,7 +229,7 @@ public static class VerticalUiFinalValidation
         if (upgrades == null) return;
         Check(upgrades.content != null && upgrades.productionSection != null &&
             upgrades.tracesSection != null && upgrades.triangleSection != null &&
-            upgrades.rows != null && upgrades.rows.Length == 7 &&
+            upgrades.rows != null && upgrades.rows.Length == 8 &&
             upgrades.rows.All(row => row != null),
             "VerticalUpgradesScreenUI tiene referencias incompletas.", failures);
     }

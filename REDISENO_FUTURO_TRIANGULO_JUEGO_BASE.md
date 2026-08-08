@@ -2,10 +2,45 @@
 
 ## Estado de esta propuesta
 
-- Documento de continuidad para retomar después de terminar Dimensión 3.
-- No implementar todavía.
-- No modifica el funcionamiento actual del Triángulo, el guardado ni la escena.
-- Es una dirección de diseño acordada, pendiente de definición numérica, revisión técnica e implementación por bloques.
+- Implementación inicial aprobada y realizada el 3 de agosto de 2026.
+- Los tres circuitos, su sincronización y su progreso offline ya forman parte del juego base.
+- El primer bloque del Observatorio y los estudios de mejoras ya modifica lógica, guardado y escena.
+- El balance final continúa pendiente de test runs; los valores actuales son la primera versión aprobada.
+
+## Observatorio y descubrimiento de mejoras — decisión implementada
+
+La progresión inicial deja de consistir únicamente en acumular recursos y comprar una lista completamente visible. Los artefactos generan indicios; el jugador estudia un fenómeno y, al completar el tiempo, revela manualmente la mejora correspondiente. Revelar una conclusión no compra la mejora: descubre toda su fila y después se pagan sus niveles con los costes normales.
+
+Reglas canónicas:
+
+- Solo puede existir un estudio activo a la vez.
+- El progreso usa las mismas reglas online y offline, incluido el límite general de doce horas.
+- Cambiar a un circuito incompatible pausa el estudio sin borrar el progreso.
+- Al llegar al tiempo requerido aparece `Conclusión disponible`; el jugador debe pulsar `Revelar`.
+- Los estudios iniciales se gestionan desde `Mejoras`.
+- Después de Acople aparece también un Observatorio compacto bajo los selectores del Triángulo.
+- El Observatorio ofrece como máximo dos accesos rápidos; el catálogo completo permanece integrado en `Mejoras`.
+- La pestaña inferior vacía `Investigación` queda oculta, porque esta función ahora vive en `Mejoras` y en el Triángulo.
+- `Ocultar completadas` es una preferencia persistente de la pantalla de Mejoras.
+- Las partidas antiguas conservan mejoras compradas o que ya tenían visibles.
+
+Catálogo inicial aprobado:
+
+| Estudio | Requisito | Duración | Descubre |
+| --- | --- | ---: | --- |
+| Emisión calibrada | Poseer Higgs | 90 s | Emisión Calibrada |
+| Ciclo de contención | Poseer Higgs | 90 s | Ajuste de Contención |
+| Lectura Tetraquark | Poseer Tetraquark | 180 s | Estabilización Tetraquark |
+| Acople de vértices | Poseer los tres artefactos | 240 s | Acople de Vértices |
+| Amplificador de Energía | Energía sincronizada al 100% | 240 s | Amplificador de Energía |
+| Resonancia Experimental | Experimental sincronizado al 100% | 240 s | Resonancia Experimental |
+| Memoria de Sincronía | Haber cambiado de circuito y sincronizado el nuevo | 300 s | Memoria de Sincronía |
+| Captación Resonante | Energía del Triángulo sincronizada al 100% | 300 s | Captación Resonante |
+| Proyecto de acceso experimental | Haber concluido Energía y Experimental | 360 s | Proyecto de keycard |
+
+La keycard conserva su compra normal de `150000 LE + 250 Trazas`, pero solo después de revelar su proyecto. Resonancia Experimental mejora únicamente Trazas. El Circuito Experimental mantiene su bonus base de `+6%` a fragmentos solo después de abrir el Cuarto 2; antes de ese momento la interfaz no menciona fragmentos.
+
+Los costes actuales de las ocho mejoras se conservan durante esta primera versión. Se ajustarán únicamente después de test runs de progresión; no se añadió un bonus extra de producción ligado a completar estudios.
 
 ## Contexto
 
@@ -264,7 +299,7 @@ El rediseño fue retomado después de completar la mayor parte funcional de Dime
 
 - La progresión obligatoria es Higgs → Tetraquark → Modulador → Acople → elección de circuito → especialización.
 - Acople requiere los tres artefactos y no selecciona un circuito automáticamente. La primera elección parte de 0%; los cambios posteriores parten de 50%, 65% o 80% según Memoria de Sincronía.
-- El catálogo público F2 queda en siete mejoras: Emisión Calibrada, Ciclo de Contención, Lectura Tetraquark, Acople de Vértices, Amplificador de Energía, Resonancia Experimental y Memoria de Sincronía.
+- El catálogo público F2 queda en ocho mejoras: Emisión Calibrada, Ciclo de Contención, Lectura Tetraquark, Acople de Vértices, Amplificador de Energía, Resonancia Experimental, Memoria de Sincronía y Captación Resonante.
 - `residual_analysis` se retira visualmente y migra a `tetraquark_stabilization`; `pattern_mapping` se retira y migra a `emission_focus`.
 - `triangle_persistence_anchor` conserva su ID, pero sustituye definitivamente el concepto de reserva offline: ahora es Memoria de Sincronía y solo determina el porcentaje inicial de cambios entre circuitos ya activados.
 - El tema visual de Dimensión 1 pasa a una paleta oscura de alto contraste sin alterar layout, jerarquía, navegación ni geometría.

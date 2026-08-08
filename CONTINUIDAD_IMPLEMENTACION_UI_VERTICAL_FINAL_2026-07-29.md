@@ -335,7 +335,7 @@ Esas pantallas deben seguir funcionales y accesibles, pero recibirán sus redise
 - Fila: `Assets/Project/Scripts/UI/F2UpgradeRowUI.cs`.
 - Visibilidad: `Assets/Project/Scripts/UI/F2UpgradeVisibilityController.cs`.
 - Datos: `Assets/Project/Resources/Data/f2_upgrades.json`.
-- El gating central y la migración de siete mejoras ya están implementados.
+- El gating central y la migración de ocho mejoras ya están implementados, incluida Captación Resonante.
 - `F2Panel` vive actualmente dentro de Generación y debe moverse a su propia raíz/pantalla.
 - Separarlo visualmente no debe cambiar fórmulas, IDs ni guardado.
 
@@ -655,3 +655,21 @@ Todo resumen futuro debe incluir:
 ## 17. Mensaje recomendado para iniciar el nuevo chat
 
 > Lee completamente `CONTINUIDAD_IMPLEMENTACION_UI_VERTICAL_FINAL_2026-07-29.md` y revisa directamente los archivos actuales del proyecto y los cuatro mockups adjuntos. Implementa el rediseño vertical aprobado preservando lógica, guardados y progresión. Acople revela provisionalmente el Triángulo usando `triangleSystemUnlocked`. La barra fija es Generación, Mejoras, Investigación, Ajustes y QA; no existe botón Más. La barra secundaria aparece progresivamente con Cuarto 2, Dimensiones y Prestigio usando sus gates reales. Antes de modificar, explica brevemente archivos/sistemas, migración vertical, conexiones Editor y validaciones. Preserva el worktree, no uses Git, no edites manualmente `Main.unity` y no generes APK.
+
+## 18. Actualización posterior: Observatorio y estudios de mejoras — 2026-08-03
+
+Esta sección reemplaza cualquier instrucción anterior que todavía presente `Investigación` como pestaña principal visible o el rediseño del Triángulo como trabajo no iniciado.
+
+- Se implementó el catálogo de ocho estudios descrito en `REDISENO_FUTURO_TRIANGULO_JUEGO_BASE.md`.
+- `Mejoras` muestra indicio, estudio activo, conclusión disponible, mejora descubierta y mejora completada.
+- El Triángulo contiene un Observatorio compacto entre sus selectores de circuito y las tarjetas de artefactos.
+- Solo hay un estudio activo; se pausa con circuito incompatible y funciona online/offline.
+- La conclusión se revela manualmente y después se pagan los niveles normales.
+- La keycard requiere primero revelar su proyecto y luego cuesta `150000 LE + 250 Trazas`.
+- `Investigación` queda oculta en la navegación inferior. Los accesos visibles pasan a ser Generación, Mejoras, Ajustes y QA.
+- `Ocultar completadas` se guarda con la partida.
+- Las partidas antiguas migran conservando mejoras compradas o anteriormente visibles.
+- Resonancia Experimental ya no escala fragmentos. El `+6%` base solo existe tras abrir Cuarto 2.
+- Se corrigió la precisión visual de Trazas pequeñas y la fila de artefacto ya incluye el multiplicador global de Emisión.
+- Validación lógica ejecutada con resultado PASS para catálogo, simultaneidad, pausa/reanudación, revelado, guardado/carga, migración antigua, keycard y alcance de fragmentos.
+- Capturas verticales generadas en `Logs/VisualQA/UpgradeStudies`; no se generó APK.

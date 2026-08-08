@@ -203,10 +203,10 @@ Los textos de las parejas "Higgs + Modulador" y "Higgs + Tetra" solo deben mostr
 después de Acople. Antes de Acople podrían hacer creer que bastan dos artefactos.
 
 ======================================================================
-4. CATÁLOGO F2 NUEVO APROBADO: SIETE MEJORAS
+4. CATÁLOGO F2 NUEVO APROBADO: OCHO MEJORAS
 ======================================================================
 
-Eliminar la repetición visual y funcional. El catálogo público debe quedar en siete
+Eliminar la repetición visual y funcional. El catálogo público debe quedar en ocho
 mejoras. Conservar IDs internos siempre que se indica para proteger guardados.
 
 ------------------------------
@@ -316,13 +316,14 @@ Moneda: Trazas.
 Cantidad: 2 niveles.
 Efecto TOTAL del Circuito Experimental:
 
-- Base: +10% Trazas y +6% fragmentos.
-- Nivel 1: +13% Trazas y +8% fragmentos.
-- Nivel 2: +15% Trazas y +10% fragmentos.
+- Base: +10% Trazas y, después de abrir Cuarto 2, +6% fragmentos.
+- Nivel 1: +13% Trazas; el bonus de fragmentos permanece en +6%.
+- Nivel 2: +15% Trazas; el bonus de fragmentos permanece en +6%.
 
 Los fragmentos solo existen después de abrir Cuarto 2. Antes de ese momento, el texto
-debe decir: "+13% Trazas · fragmentos al abrir Cuarto 2" o su equivalente para el nivel.
-No prometer un recurso que el jugador todavía no puede producir.
+solo muestra el bonus de Trazas. Después debe mostrar `+6% fragmentos`, sin escalar ese
+porcentaje con los niveles de Resonancia. No prometer un recurso que el jugador todavía
+no puede producir.
 
 ------------------------------
 4.7. MEMORIA DE SINCRONÍA
@@ -350,7 +351,32 @@ Eliminar todos los textos sobre reserva de 4 horas, conversión offline y "carga
 rápida". No reactivar el sistema antiguo de reserva.
 
 ------------------------------
-4.8. MEJORA RETIRADA: MAPEO DE PATRONES
+4.8. CAPTACIÓN RESONANTE
+------------------------------
+
+ID: triangle_energy_efficiency
+Nombre público: Captación Resonante
+Visibilidad: solo después de Acople y de revelar su estudio.
+Moneda: Trazas.
+Cantidad: 3 niveles.
+Efecto TOTAL sobre toda la Energía producida por el Triángulo:
+
+- Nivel 1: +20% Energía.
+- Nivel 2: +40% Energía.
+- Nivel 3: +65% Energía.
+
+Costes:
+
+- Nivel 1: 180 Trazas.
+- Nivel 2: 360 Trazas.
+- Nivel 3: 700 Trazas.
+
+Los porcentajes son totales y no se suman entre niveles. Su estudio requiere haber
+sincronizado al 100% el circuito de Energía del Triángulo, dura 300 segundos y consume
+180 de Energía del Triángulo al iniciarse.
+
+------------------------------
+4.9. MEJORA RETIRADA: MAPEO DE PATRONES
 ------------------------------
 
 ID retirado visualmente: pattern_mapping

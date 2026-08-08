@@ -19,9 +19,6 @@ public class BuildingState
         {
             if (def == null) return int.MaxValue;
 
-            if (def.id == "fluctuation_antenna")
-                return 1;
-
             return int.MaxValue;
         }
 

@@ -134,13 +134,10 @@ public class QaFastForwardRunner : MonoBehaviour
         double step, GameState state, MachineManager machine,
         Room2PanelUI room2)
     {
-        double phaseAnalysisMultiplier =
-            state.GetTrianglePhaseAnalysisSpeedMultiplierForPeriod(step);
-
         // El paso ya representa segundos simulados exactos: no aplicar QA aquí.
         state.Tick(step);
         if (machine != null)
-            machine.AdvanceAnalysis(step * phaseAnalysisMultiplier);
+            machine.AdvanceAnalysis(step);
         if (room2 != null)
             room2.AdvanceQaFusionCooldown(step);
     }

@@ -20,6 +20,7 @@ public static class MachineCubeBlock1Validation
         ValidateCatalog(failures);
         ValidateProgressContract(failures);
         ValidateRequirementContract(failures);
+        ValidateFourFaceNavigationContract(failures);
         ValidateScene(failures);
 
         if (failures.Count > 0)
@@ -213,6 +214,29 @@ public static class MachineCubeBlock1Validation
             UnityEngine.Object.DestroyImmediate(host);
             ResetMachineSingleton();
         }
+    }
+
+    private static void ValidateFourFaceNavigationContract(List<string> failures)
+    {
+        Check(MachineCubeVisualUI.GetAdjacentFaceIndex(0, 1) == 1,
+            "La cara 1 no navega a la cara 2.", failures);
+        Check(MachineCubeVisualUI.GetAdjacentFaceIndex(1, 1) == 2,
+            "La frontera 3D no permite navegar de la cara 2 a la 3.", failures);
+        Check(MachineCubeVisualUI.GetAdjacentFaceIndex(2, 1) == 3,
+            "La cara 3 no navega a la cara 4.", failures);
+        Check(MachineCubeVisualUI.GetAdjacentFaceIndex(3, 1) == -1 &&
+              MachineCubeVisualUI.GetAdjacentFaceIndex(0, -1) == -1,
+            "La navegaciÃ³n de caras no respeta los extremos 1 y 4.", failures);
+
+        TextAsset json = Resources.Load<TextAsset>("Data/machine_nodes");
+        MachineNodeDefList data = json != null
+            ? JsonUtility.FromJson<MachineNodeDefList>(json.text)
+            : null;
+        MachineNodeDef diagnostics = data?.nodes?.FirstOrDefault(node =>
+            node != null && node.id == "z3_internal_diagnostics");
+        Check(diagnostics != null && diagnostics.zone == MachineZoneType.InternalSupport,
+            "El diagnÃ³stico que desbloquea el anÃ¡lisis no estÃ¡ en la cara 3 accesible.",
+            failures);
     }
 
     private static void ValidateScene(List<string> failures)

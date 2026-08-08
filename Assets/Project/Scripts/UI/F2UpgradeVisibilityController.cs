@@ -41,6 +41,12 @@ public class F2UpgradeVisibilityController : MonoBehaviour
         {
             if (row == null) continue;
             bool visible = F2UpgradeManager.I.ShouldBeVisible(row.UpgradeId);
+            UpgradeStudyState studyState = GameState.I != null
+                ? UpgradeStudySystem.EnsureState(GameState.I)
+                : null;
+            if (visible && studyState != null && studyState.hideCompletedUpgrades &&
+                F2UpgradeManager.I.IsMaxed(row.UpgradeId))
+                visible = false;
             if (row.gameObject.activeSelf != visible) row.gameObject.SetActive(visible);
             if (visible) row.RefreshNow();
         }

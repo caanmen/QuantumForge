@@ -61,9 +61,9 @@ public static class MachineCube3DQuality
         return level switch
         {
             MachineCube3DQualityLevel.Low =>
-                new MachineCube3DQualityProfile(512, 1, false, 0f),
+                new MachineCube3DQualityProfile(512, 1, false, 2f),
             MachineCube3DQualityLevel.Balanced =>
-                new MachineCube3DQualityProfile(768, 1, false, 3f),
+                new MachineCube3DQualityProfile(768, 1, false, 4f),
             _ => new MachineCube3DQualityProfile(1024, 2, true, 8f)
         };
     }

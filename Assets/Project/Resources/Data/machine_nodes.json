@@ -3,7 +3,7 @@
     {
       "id": "z1_energy_coupling_1",
       "name": "Acople Energético I",
-      "description": "Repara un acople básico de energía. Aumenta levemente la producción de LE del Cuarto 1.",
+      "description": "Repara un acople básico de energía. Aumenta un 6 % la producción global de LE.",
       "zone": 1,
       "effectType": 1,
       "effectValue": 0.06,
@@ -24,7 +24,7 @@
     {
       "id": "z1_energy_coupling_2",
       "name": "Acople Energético II",
-      "description": "Refuerza el acople energético. Aumenta la mejora total de LE del Cuarto 1.",
+      "description": "Refuerza el acople energético. Aumenta un 4 % adicional la producción global de LE.",
       "zone": 1,
       "effectType": 1,
       "effectValue": 0.04,
@@ -47,7 +47,7 @@
     {
       "id": "z1_energy_coupling_3",
       "name": "Acople Energético III",
-      "description": "Completa la primera línea de acople energético. Mejora la producción total de LE del Cuarto 1.",
+      "description": "Completa la primera línea de acople energético. Aumenta un 5 % adicional la producción global de LE.",
       "zone": 1,
       "effectType": 1,
       "effectValue": 0.05,
@@ -371,7 +371,7 @@
     {
       "id": "z2_fusion_slot_2",
       "name": "Ranura de Fusión II",
-      "description": "Permite mantener 2 fusiones paralelas.",
+      "description": "Desbloquea la segunda etapa del panel y habilita la rama de estabilización de mezclas.",
       "zone": 2,
       "effectType": 20,
       "effectValue": 2.0,
@@ -486,7 +486,7 @@
     {
       "id": "z2_fusion_slot_3",
       "name": "Ranura de Fusión III",
-      "description": "Permite mantener 3 fusiones paralelas.",
+      "description": "Desbloquea la tercera etapa del panel y completa el requisito de ranuras del Núcleo de Síntesis.",
       "zone": 2,
       "effectType": 20,
       "effectValue": 3.0,

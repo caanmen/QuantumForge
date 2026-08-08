@@ -18,12 +18,27 @@ public sealed class VerticalGenerationPolishUI : MonoBehaviour
     public TextMeshProUGUI effectText;
 
     [Header("Haces")]
+    public Image energyBeamRoot;
+    public Image experimentalBeamRoot;
+    public Image phaseBeamRoot;
+    public Image energyBeamGlow;
+    public Image experimentalBeamGlow;
+    public Image phaseBeamGlow;
     public Image energyBeamCore;
     public Image experimentalBeamCore;
     public Image phaseBeamCore;
-    public Image energyChevrons;
-    public Image experimentalChevrons;
-    public Image phaseChevrons;
+    public Image energyBeamHotCore;
+    public Image experimentalBeamHotCore;
+    public Image phaseBeamHotCore;
+    public RawImage energyChevrons;
+    public RawImage experimentalChevrons;
+    public RawImage phaseChevrons;
+    public Image energyStartConnector;
+    public Image energyEndConnector;
+    public Image experimentalStartConnector;
+    public Image experimentalEndConnector;
+    public Image phaseStartConnector;
+    public Image phaseEndConnector;
     public TextMeshProUGUI energyFlow;
     public TextMeshProUGUI experimentalFlow;
     public TextMeshProUGUI phaseFlow;
@@ -68,20 +83,28 @@ public sealed class VerticalGenerationPolishUI : MonoBehaviour
             : TriangleCircuitType.None;
         bool available = state != null && state.triangleSystemUnlocked &&
             state.AreTriangleVerticesAvailable();
-        bool phaseLocked = state == null || !state.IsTrianglePhaseUnlocked();
+        bool phaseLocked = false;
         float pulse = 0.84f + 0.16f * Mathf.Sin(Time.unscaledTime * 3.4f);
 
         Color accent = GetAccent(active);
         SetGauge(state, active, available, accent, pulse);
-        SetBeam(energyBeamCore, energyFlow, energyChevrons,
+        float synchronization = state != null
+            ? Mathf.Clamp01(state.triangleSynchronization)
+            : 0f;
+        SetBeam(energyBeamRoot, energyBeamGlow, energyBeamCore, energyBeamHotCore,
+            energyFlow, energyChevrons, energyStartConnector, energyEndConnector,
             available && active == TriangleCircuitType.Energy, false,
-            energyColor, pulse);
-        SetBeam(experimentalBeamCore, experimentalFlow, experimentalChevrons,
+            energyColor, pulse, synchronization);
+        SetBeam(experimentalBeamRoot, experimentalBeamGlow,
+            experimentalBeamCore, experimentalBeamHotCore,
+            experimentalFlow, experimentalChevrons,
+            experimentalStartConnector, experimentalEndConnector,
             available && active == TriangleCircuitType.Experimental, false,
-            experimentalColor, pulse);
-        SetBeam(phaseBeamCore, phaseFlow, phaseChevrons,
+            experimentalColor, pulse, synchronization);
+        SetBeam(phaseBeamRoot, phaseBeamGlow, phaseBeamCore, phaseBeamHotCore,
+            phaseFlow, phaseChevrons, phaseStartConnector, phaseEndConnector,
             available && active == TriangleCircuitType.Phase, phaseLocked,
-            phaseColor, pulse);
+            phaseColor, pulse, synchronization);
 
         SetBorder(energyCircuitBorder,
             available && active == TriangleCircuitType.Energy, !available,
@@ -164,38 +187,100 @@ public sealed class VerticalGenerationPolishUI : MonoBehaviour
     }
 
     private void SetBeam(
+        Image root,
+        Image glow,
         Image core,
+        Image hotCore,
         TextMeshProUGUI flow,
-        Image chevrons,
+        RawImage chevrons,
+        Image startConnector,
+        Image endConnector,
         bool active,
         bool locked,
         Color accent,
-        float pulse)
+        float pulse,
+        float synchronization)
     {
+        if (root != null)
+            root.color = locked
+                ? new Color(0.018f, 0.032f, 0.045f, 0.42f)
+                : new Color(0.018f, 0.050f, 0.068f, 0.96f);
+
+        float activeStrength = Mathf.Lerp(0.35f, 0.95f, synchronization);
+        activeStrength *= 0.92f + 0.08f * pulse;
+        if (glow != null)
+        {
+            Color glowColor = accent;
+            glowColor.a = locked ? 0.025f : active
+                ? Mathf.Lerp(0.12f, 0.24f, synchronization)
+                : 0.075f;
+            glow.color = glowColor;
+        }
         if (core != null)
         {
-            Color color = locked
-                ? new Color(0.05f, 0.08f, 0.11f, 0.28f)
-                : active
-                    ? Color.Lerp(Color.white, accent, 0.56f)
-                    : new Color(0.055f, 0.14f, 0.20f, 0.58f);
-            if (active) color.a = 0.72f + 0.28f * pulse;
+            Color color = accent;
+            color.a = locked ? 0.08f : active ? activeStrength : 0.28f;
             core.color = color;
         }
-        Color flowColor = Color.Lerp(Color.white, accent, 0.48f);
-        flowColor.a = 1f;
+        if (hotCore != null)
+        {
+            Color hot = Color.Lerp(Color.white, accent, 0.30f);
+            hot.a = locked ? 0f : active
+                ? Mathf.Lerp(0.25f, 0.82f, synchronization)
+                : 0.06f;
+            hotCore.color = hot;
+        }
+
         if (chevrons != null)
         {
             chevrons.gameObject.SetActive(active && !locked);
+            Color flowColor = Color.Lerp(Color.white, accent, 0.42f);
+            flowColor.a = Mathf.Lerp(0.55f, 0.78f, synchronization);
             chevrons.color = flowColor;
+            Rect uv = chevrons.uvRect;
+            uv.x = Mathf.Repeat(Time.unscaledTime *
+                Mathf.Lerp(0.20f, 0.48f, synchronization), 1f);
+            chevrons.uvRect = uv;
         }
-        if (flow == null) return;
-        flow.gameObject.SetActive(active && !locked && chevrons == null);
-        flow.color = flowColor;
-        if (!flow.gameObject.activeSelf) return;
-        RectTransform rect = flow.rectTransform;
-        rect.anchoredPosition = new Vector2(
-            Mathf.Repeat(Time.unscaledTime * 34f, 34f) - 17f, 0f);
+        if (flow != null)
+        {
+            flow.gameObject.SetActive(active && !locked);
+            Color flowTextColor = Color.Lerp(Color.white, accent, 0.34f);
+            flowTextColor.a = Mathf.Lerp(0.50f, 0.76f, synchronization);
+            flow.color = flowTextColor;
+            if (flow.gameObject.activeSelf)
+            {
+                RectTransform flowRect = flow.rectTransform;
+                flowRect.anchoredPosition = new Vector2(
+                    Mathf.Repeat(Time.unscaledTime *
+                        Mathf.Lerp(24f, 42f, synchronization), 36f) - 18f,
+                    0f);
+            }
+        }
+
+        SetConnector(startConnector, accent, active, locked,
+            activeStrength, pulse);
+        SetConnector(endConnector, accent, active, locked,
+            activeStrength, pulse);
+    }
+
+    private static void SetConnector(
+        Image connector,
+        Color accent,
+        bool active,
+        bool locked,
+        float activeStrength,
+        float pulse)
+    {
+        if (connector == null) return;
+        Color color = accent;
+        color.a = locked ? 0.10f : active
+            ? Mathf.Clamp01(0.60f + activeStrength * 0.36f)
+            : 0.28f;
+        connector.color = color;
+        connector.rectTransform.localScale = active
+            ? Vector3.one * (0.96f + 0.05f * pulse)
+            : Vector3.one;
     }
 
     private void SetBorder(
@@ -262,6 +347,9 @@ public sealed class VerticalGenerationPolishUI : MonoBehaviour
             styled = Regex.Replace(styled,
                 @"([+-][0-9.,]+%?\s*Trazas)", "<color=#D55CFF>$1</color>",
                 RegexOptions.IgnoreCase);
+            styled = Regex.Replace(styled,
+                @"([+-][0-9.,]+%?\s*Energ[ií]a)", "<color=#FF9A21>$1</color>",
+                RegexOptions.IgnoreCase);
             effectText.SetText(styled);
         }
     }
@@ -280,11 +368,11 @@ public sealed class VerticalGenerationPolishUI : MonoBehaviour
     {
         LocalizationManager localization = LocalizationManager.I;
         if (circuit == TriangleCircuitType.Energy)
-            return Localize(localization, "triangle.circuit.energy", "ENERGÍA");
+            return Localize(localization, "triangle.circuit.energy", "LE");
         if (circuit == TriangleCircuitType.Experimental)
-            return Localize(localization, "triangle.circuit.experimental", "EXPERIMENTAL");
+            return Localize(localization, "triangle.circuit.experimental", "TRAZAS");
         if (circuit == TriangleCircuitType.Phase)
-            return Localize(localization, "triangle.circuit.phase", "FASE");
+            return Localize(localization, "triangle.circuit.phase", "ENERGÍA");
         return "TRIÁNGULO";
     }
 

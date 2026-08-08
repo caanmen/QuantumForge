@@ -129,13 +129,11 @@ public class TrianglePanelUI : MonoBehaviour
         switch (circuit)
         {
             case TriangleCircuitType.Energy:
-                return lm != null ? lm.T("triangle.circuit.energy.button") : "ENERGÍA\nHiggs + Modulador";
+                return Localize(lm, "triangle.circuit.energy.button", "LE\nHiggs + Modulador");
             case TriangleCircuitType.Experimental:
-                return lm != null ? lm.T("triangle.circuit.experimental.button") : "EXPERIMENTAL\nHiggs + Tetra";
+                return Localize(lm, "triangle.circuit.experimental.button", "TRAZAS\nHiggs + Tetra");
             case TriangleCircuitType.Phase:
-                if (GameState.I != null && !GameState.I.IsTrianglePhaseUnlocked())
-                    return lm != null ? lm.T("triangle.circuit.phase.locked_button") : "FASE\nBloqueado: Máquina";
-                return lm != null ? lm.T("triangle.circuit.phase.button") : "FASE\nTetra + Modulador";
+                return Localize(lm, "triangle.circuit.phase.button", "ENERGÍA\nTetra + Modulador");
             default:
                 return "";
         }
@@ -166,9 +164,9 @@ public class TrianglePanelUI : MonoBehaviour
     private string GetCircuitName(TriangleCircuitType circuit)
     {
         var lm = LocalizationManager.I;
-        if (circuit == TriangleCircuitType.Energy) return lm != null ? lm.T("triangle.circuit.energy") : "Energía";
-        if (circuit == TriangleCircuitType.Experimental) return lm != null ? lm.T("triangle.circuit.experimental") : "Experimental";
-        if (circuit == TriangleCircuitType.Phase) return lm != null ? lm.T("triangle.circuit.phase") : "Fase";
+        if (circuit == TriangleCircuitType.Energy) return Localize(lm, "triangle.circuit.energy", "LE");
+        if (circuit == TriangleCircuitType.Experimental) return Localize(lm, "triangle.circuit.experimental", "Trazas");
+        if (circuit == TriangleCircuitType.Phase) return Localize(lm, "triangle.circuit.phase", "Energía");
         return string.Empty;
     }
 
@@ -268,20 +266,27 @@ public class TrianglePanelUI : MonoBehaviour
             case TriangleCircuitType.Experimental:
             {
                 double tracesBonus = (GameState.I.GetTriangleTracesMultiplier() - 1.0) * 100.0;
-                double fragmentsBonus = (GameState.I.GetTriangleFragmentMultiplier() - 1.0) * 100.0;
+                if (!GameState.I.experimentalChamberUnlocked)
+                {
+                    string earlyFormat = lm != null
+                        ? lm.T("triangle.circuit.experimental.effect_format_early")
+                        : "Efecto: +{0:0.#}% Trazas · -10% LE";
+                    return string.Format(earlyFormat, tracesBonus);
+                }
+                double fragmentBonus =
+                    (GameState.I.GetTriangleFragmentMultiplier() - 1.0) * 100.0;
                 string format = lm != null
                     ? lm.T("triangle.circuit.experimental.effect_format")
                     : "Efecto: +{0:0.#}% Trazas · +{1:0.#}% fragmentos · -10% LE";
-                return string.Format(format, tracesBonus, fragmentsBonus);
+                return string.Format(format, tracesBonus, fragmentBonus);
             }
             case TriangleCircuitType.Phase:
             {
-                double analysisBonus = (GameState.I.GetTrianglePhaseAnalysisSpeedMultiplier() - 1.0) * 100.0;
-                double routineBonus = (GameState.I.GetTriangleD3RoutineSpeedMultiplier() - 1.0) * 100.0;
+                double energyBonus = (GameState.I.GetTriangleEnergyFocusMultiplier() - 1.0) * 100.0;
                 string format = lm != null
                     ? lm.T("triangle.circuit.phase.effect_format")
-                    : "Efecto: +{0:0.#}% análisis · +{1:0.#}% rutinas N3 · -10% LE/Trazas";
-                return string.Format(format, analysisBonus, routineBonus);
+                    : "Efecto: +{0:0.#}% Energía · -10% LE/Trazas";
+                return string.Format(format, energyBonus);
             }
 
             default:
@@ -292,5 +297,12 @@ public class TrianglePanelUI : MonoBehaviour
                 return $"{label}: {inactive}";
             }
         }
+    }
+
+    private static string Localize(LocalizationManager manager, string key, string fallback)
+    {
+        if (manager == null) return fallback;
+        string value = manager.T(key);
+        return string.IsNullOrEmpty(value) || value == key ? fallback : value;
     }
 }

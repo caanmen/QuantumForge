@@ -76,9 +76,9 @@ public sealed class TriangleOfflineReportUI : MonoBehaviour
     private static string BuildReport(TriangleOfflineReport report)
     {
         string circuit = report.circuit == (int)TriangleCircuitType.Energy
-            ? "Energía" : report.circuit == (int)TriangleCircuitType.Experimental
-            ? "Experimental" : report.circuit == (int)TriangleCircuitType.Phase
-            ? "Fase" : "Sin circuito";
+            ? "LE" : report.circuit == (int)TriangleCircuitType.Experimental
+            ? "Trazas" : report.circuit == (int)TriangleCircuitType.Phase
+            ? "Energía" : "Sin enfoque";
         int hours = (int)(report.appliedSeconds / 3600.0);
         int minutes = (int)((report.appliedSeconds % 3600.0) / 60.0);
         int totalFragments = report.condensationGained + report.confinementGained +
@@ -88,13 +88,8 @@ public sealed class TriangleOfflineReportUI : MonoBehaviour
             "\nCircuito utilizado: " + circuit +
             "\n\nLE obtenida: " + report.leGained.ToString("N0") +
             "\nTrazas obtenidas: " + report.tracesGained.ToString("N1") +
+            "\nEnergía obtenida: " + report.triangleEnergyGained.ToString("N1") +
             "\nFragmentos obtenidos: " + totalFragments;
-        if (report.phaseAnalysisSecondsApplied > report.appliedSeconds + 0.01)
-        {
-            double extra = report.phaseAnalysisSecondsApplied - report.appliedSeconds;
-            value += "\nProgreso adicional de análisis por Fase: " +
-                extra.ToString("N0") + " s";
-        }
         return value;
     }
 

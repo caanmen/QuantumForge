@@ -29,7 +29,8 @@ public static class VerticalUpgradesVisualPolish
         "triangle_unlock_1",
         "triangle_impulse_tuning",
         "triangle_synergy_resonance",
-        "triangle_persistence_anchor"
+        "triangle_persistence_anchor",
+        "triangle_energy_efficiency"
     };
 
     [MenuItem("Tools/Quantum Forge/Vertical UI/Apply Upgrades Visual Polish")]
@@ -64,7 +65,7 @@ public static class VerticalUpgradesVisualPolish
             "La jerarquia independiente de Mejoras cambio inesperadamente.");
 
         VerticalUpgradesPolishUI polish = GetOrAdd<VerticalUpgradesPolishUI>(f2Panel);
-        BuildResourceHeader(panel.transform, hud, resourceLe, resourceTraces,
+        BuildResourceHeader(panel.transform, hud, resourceLe, resourceTraces, modulator,
             theme, moduleFrame, polish);
         StyleShell(shell, moduleFrame, buttonFrame, higgs, tetra, modulator,
             triangleSymbol, theme, polish);
@@ -105,6 +106,7 @@ public static class VerticalUpgradesVisualPolish
         HUD hud,
         Sprite leIcon,
         Sprite tracesIcon,
+        Sprite energyIcon,
         VerticalUiTheme theme,
         Sprite moduleFrame,
         VerticalUpgradesPolishUI polish)
@@ -119,14 +121,20 @@ public static class VerticalUpgradesVisualPolish
 
         TextMeshProUGUI leText = BuildResourcePanel(header.transform,
             "UpgradeResource_LE", leIcon, theme.energy,
-            new Vector2(0f, 0f), new Vector2(0.49f, 1f), theme, moduleFrame);
+            new Vector2(0f, 0f), new Vector2(0.32f, 1f), theme, moduleFrame);
         TextMeshProUGUI tracesText = BuildResourcePanel(header.transform,
             "UpgradeResource_Traces", tracesIcon, theme.traces,
-            new Vector2(0.51f, 0f), new Vector2(1f, 1f), theme, moduleFrame);
+            new Vector2(0.34f, 0f), new Vector2(0.66f, 1f), theme, moduleFrame);
+        TextMeshProUGUI energyText = BuildResourcePanel(header.transform,
+            "UpgradeResource_Energy", energyIcon, theme.triangle,
+            new Vector2(0.68f, 0f), new Vector2(1f, 1f), theme, moduleFrame);
+        energyText.SetText("ENERGÍA 0\n+0.00/s");
         polish.sourceLeText = hud.leText;
         polish.sourceTracesText = hud.tracesText;
+        polish.sourceEnergyText = hud.energyText;
         polish.leText = leText;
         polish.tracesText = tracesText;
+        polish.energyText = energyText;
         polish.theme = theme;
         header.transform.SetAsFirstSibling();
     }
@@ -170,8 +178,8 @@ public static class VerticalUpgradesVisualPolish
             name.EndsWith("LE", StringComparison.Ordinal)
                 ? "LE 0\n+0.00/s"
                 : "TRAZAS 0\n+0.00/s",
-            25f, TextAlignmentOptions.MidlineLeft, theme.primaryText, theme);
-        value.fontSizeMin = 18f;
+            29f, TextAlignmentOptions.MidlineLeft, theme.primaryText, theme);
+        value.fontSizeMin = 22f;
         value.characterSpacing = 0.5f;
         value.rectTransform.anchorMin = Vector2.zero;
         value.rectTransform.anchorMax = Vector2.one;
@@ -254,6 +262,23 @@ public static class VerticalUpgradesVisualPolish
                 moduleFrame, buttonFrame, theme));
         }
         polish.rows = rows.ToArray();
+
+        KeycardPurchaseUI keycard =
+            UnityEngine.Object.FindFirstObjectByType<KeycardPurchaseUI>(
+                FindObjectsInactive.Include);
+        Transform triangleSection = content.Find("Section_Triangle");
+        Require(keycard != null && triangleSection != null,
+            "La Keycard o la seccion activa del Triangulo no existe.");
+        keycard.transform.SetParent(triangleSection, false);
+        keycard.transform.SetAsLastSibling();
+        StyleKeycardRow(keycard, theme.energy, moduleFrame, buttonFrame, theme);
+
+        VerticalUpgradesScreenUI screen =
+            polish.GetComponent<VerticalUpgradesScreenUI>();
+        Require(screen != null,
+            "F2Panel perdio VerticalUpgradesScreenUI.");
+        screen.keycardRow = keycard;
+        EditorUtility.SetDirty(screen);
         ApplyFont(shell.transform, theme);
     }
 
@@ -441,15 +466,15 @@ public static class VerticalUpgradesVisualPolish
         row.TitleText.characterSpacing = 0.4f;
         ConfigureTopStretch(row.DescriptionText.rectTransform,
             156f, 224f, 58f, 52f);
-        row.DescriptionText.fontSize = 20f;
-        row.DescriptionText.fontSizeMax = 20f;
-        row.DescriptionText.fontSizeMin = 15f;
+        row.DescriptionText.fontSize = 21f;
+        row.DescriptionText.fontSizeMax = 21f;
+        row.DescriptionText.fontSizeMin = 17f;
         row.DescriptionText.overflowMode = TextOverflowModes.Ellipsis;
         ConfigureBottomStretch(row.CostText.rectTransform,
             156f, 224f, 16f, 34f);
-        row.CostText.fontSize = 20f;
-        row.CostText.fontSizeMax = 20f;
-        row.CostText.fontSizeMin = 15f;
+        row.CostText.fontSize = 23f;
+        row.CostText.fontSizeMax = 23f;
+        row.CostText.fontSizeMin = 18f;
 
         RectTransform tierRect = row.TierText.rectTransform;
         tierRect.anchorMin = new Vector2(1f, 1f);
@@ -457,9 +482,9 @@ public static class VerticalUpgradesVisualPolish
         tierRect.pivot = new Vector2(1f, 1f);
         tierRect.anchoredPosition = new Vector2(-18f, -16f);
         tierRect.sizeDelta = new Vector2(200f, 34f);
-        row.TierText.fontSize = 19f;
-        row.TierText.fontSizeMax = 19f;
-        row.TierText.fontSizeMin = 14f;
+        row.TierText.fontSize = 22f;
+        row.TierText.fontSizeMax = 22f;
+        row.TierText.fontSizeMin = 17f;
 
         Button button = row.BuyButton;
         Require(button != null, row.name + " perdio su boton real.");
@@ -482,9 +507,9 @@ public static class VerticalUpgradesVisualPolish
         TextMeshProUGUI buttonLabel = button.GetComponentInChildren<TextMeshProUGUI>(true);
         Require(buttonLabel != null, row.name + " perdio Label del boton.");
         buttonLabel.font = theme.primaryFont;
-        buttonLabel.fontSize = 21f;
-        buttonLabel.fontSizeMax = 21f;
-        buttonLabel.fontSizeMin = 15f;
+        buttonLabel.fontSize = 22f;
+        buttonLabel.fontSizeMax = 22f;
+        buttonLabel.fontSizeMin = 18f;
         buttonLabel.characterSpacing = 1f;
         buttonLabel.margin = new Vector4(8f, 4f, 8f, 4f);
 
@@ -499,6 +524,111 @@ public static class VerticalUpgradesVisualPolish
             buttonFrame = buttonAccentFrame,
             accent = accent
         };
+    }
+
+    private static void StyleKeycardRow(
+        KeycardPurchaseUI keycard,
+        Color accent,
+        Sprite moduleFrame,
+        Sprite buttonFrame,
+        VerticalUiTheme theme)
+    {
+        GameObject row = keycard.gameObject;
+        row.name = "VerticalKeycardRow";
+        row.SetActive(true);
+
+        RectTransform rect = (RectTransform)row.transform;
+        rect.localScale = Vector3.one;
+        LayoutElement layout = GetOrAdd<LayoutElement>(row);
+        layout.ignoreLayout = false;
+        layout.minHeight = 204f;
+        layout.preferredHeight = 204f;
+        layout.flexibleHeight = 0f;
+
+        HorizontalLayoutGroup legacyLayout = row.GetComponent<HorizontalLayoutGroup>();
+        if (legacyLayout != null)
+            legacyLayout.enabled = false;
+
+        Image frame = GetOrAdd<Image>(row);
+        frame.enabled = true;
+        frame.sprite = moduleFrame;
+        frame.type = Image.Type.Sliced;
+        frame.color = WithAlpha(accent, 0.82f);
+        frame.raycastTarget = false;
+
+        Image inner = CreateImage("KeycardInnerFrame", row.transform,
+            moduleFrame, WithAlpha(accent, 0.20f));
+        inner.type = Image.Type.Sliced;
+        Stretch(inner.rectTransform, 6f);
+        inner.transform.SetAsFirstSibling();
+
+        Image accentBar = CreateImage("KeycardAccent", row.transform,
+            null, WithAlpha(accent, 0.92f));
+        accentBar.rectTransform.anchorMin = new Vector2(0f, 0.12f);
+        accentBar.rectTransform.anchorMax = new Vector2(0f, 0.88f);
+        accentBar.rectTransform.pivot = new Vector2(0f, 0.5f);
+        accentBar.rectTransform.anchoredPosition = new Vector2(5f, 0f);
+        accentBar.rectTransform.sizeDelta = new Vector2(4f, 0f);
+
+        Require(keycard.nameText != null && keycard.descText != null &&
+            keycard.costText != null && keycard.buyButton != null &&
+            keycard.buttonText != null,
+            "La fila de Keycard tiene referencias incompletas.");
+
+        ConfigureTopStretch(keycard.nameText.rectTransform,
+            26f, 232f, 18f, 42f);
+        keycard.nameText.font = theme.primaryFont;
+        keycard.nameText.fontSize = 27f;
+        keycard.nameText.fontSizeMax = 27f;
+        keycard.nameText.fontSizeMin = 20f;
+        keycard.nameText.alignment = TextAlignmentOptions.MidlineLeft;
+        keycard.nameText.color = theme.primaryText;
+
+        ConfigureTopStretch(keycard.descText.rectTransform,
+            26f, 232f, 62f, 70f);
+        keycard.descText.font = theme.primaryFont;
+        keycard.descText.fontSize = 20f;
+        keycard.descText.fontSizeMax = 20f;
+        keycard.descText.fontSizeMin = 16f;
+        keycard.descText.alignment = TextAlignmentOptions.TopLeft;
+        keycard.descText.color = theme.secondaryText;
+
+        ConfigureBottomStretch(keycard.costText.rectTransform,
+            26f, 232f, 18f, 36f);
+        keycard.costText.font = theme.primaryFont;
+        keycard.costText.fontSize = 22f;
+        keycard.costText.fontSizeMax = 22f;
+        keycard.costText.fontSizeMin = 17f;
+        keycard.costText.alignment = TextAlignmentOptions.MidlineLeft;
+        keycard.costText.color = accent;
+
+        RectTransform buttonRect = (RectTransform)keycard.buyButton.transform;
+        buttonRect.anchorMin = new Vector2(1f, 0f);
+        buttonRect.anchorMax = new Vector2(1f, 0f);
+        buttonRect.pivot = new Vector2(1f, 0f);
+        buttonRect.anchoredPosition = new Vector2(-18f, 18f);
+        buttonRect.sizeDelta = new Vector2(206f, 72f);
+        Image buttonImage = GetOrAdd<Image>(keycard.buyButton.gameObject);
+        buttonImage.sprite = theme.buttonFrame;
+        buttonImage.type = Image.Type.Sliced;
+        buttonImage.color = Color.white;
+        keycard.buyButton.targetGraphic = buttonImage;
+
+        Image buttonAccent = CreateImage("AccentFrame",
+            keycard.buyButton.transform, buttonFrame, accent);
+        buttonAccent.type = Image.Type.Sliced;
+        Stretch(buttonAccent.rectTransform, 0f);
+        buttonAccent.transform.SetAsFirstSibling();
+
+        keycard.buttonText.font = theme.primaryFont;
+        keycard.buttonText.fontSize = 21f;
+        keycard.buttonText.fontSizeMax = 21f;
+        keycard.buttonText.fontSizeMin = 15f;
+        keycard.buttonText.alignment = TextAlignmentOptions.Center;
+        keycard.buttonText.color = accent;
+        Stretch(keycard.buttonText.rectTransform, 8f);
+
+        EditorUtility.SetDirty(keycard);
     }
 
     private static void GenerateNeutralFrames()

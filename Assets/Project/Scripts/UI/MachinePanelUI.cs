@@ -20,6 +20,7 @@ public class MachinePanelUI : MonoBehaviour
     [SerializeField] private GameObject legacyFusionPanel;
     [SerializeField] private Button btnBackToNodesFromFusion;
     [SerializeField] private Button btnFusionPanel;
+    [SerializeField] private Button btnNodesTab;
     
     [Header("Vistas")]
     [SerializeField] private GameObject machineRepairViewRoot;
@@ -62,6 +63,10 @@ public class MachinePanelUI : MonoBehaviour
     
     new Dictionary<MachineZoneType, int>();
 
+    private static readonly Color ActionReady = new Color(0.10f, 0.70f, 0.84f, 1f);
+    private static readonly Color ActionAnalyzing = new Color(1f, 0.72f, 0.22f, 1f);
+    private static readonly Color ActionDisabled = new Color(0.20f, 0.25f, 0.28f, 0.92f);
+
     private void Awake()
     {
         if (btnZone1 != null)
@@ -88,8 +93,13 @@ public class MachinePanelUI : MonoBehaviour
         if (btnAnalyzeNode != null)
             btnAnalyzeNode.onClick.AddListener(AnalyzeSelectedNode);
 
+        AlignNodeActionButtons();
+
         if (btnFusionPanel != null)
             btnFusionPanel.onClick.AddListener(OpenFusionPanel);
+
+        if (btnNodesTab != null)
+            btnNodesTab.onClick.AddListener(CloseFusionPanel);
 
         if (btnBackToNodesFromFusion != null)
             btnBackToNodesFromFusion.onClick.AddListener(CloseFusionPanel);
@@ -447,6 +457,7 @@ public class MachinePanelUI : MonoBehaviour
 
     public MachineZoneType CurrentZone => _currentZone;
     public string SelectedNodeId => GetSelectedNode()?.id ?? "";
+    public bool FusionPanelVisible => _fusionPanelVisible;
     public bool HasAuxiliaryViewOpen =>
         _fusionPanelVisible || (instantSeedsViewRoot != null && instantSeedsViewRoot.activeSelf);
 
@@ -615,7 +626,6 @@ public class MachinePanelUI : MonoBehaviour
         bool analyzed = MachineManager.I.IsNodeAnalyzed(selectedNode.id);
         bool damageResolved = MachineManager.I.IsNodeDamageResolved(selectedNode.id);
         bool damagedWithoutAnalysis = selectedNode.damaged && !repaired && !damageResolved && !analyzed;
-        bool canRepair = MachineManager.I.CanRepairNode(selectedNode.id, out string reason);
 
         if (damagedWithoutAnalysis)
         {
@@ -626,17 +636,8 @@ public class MachinePanelUI : MonoBehaviour
             SetText(selectedNodeText, BuildSelectedNodeInfoText(selectedNode));
         }
 
-        if (btnRepairNode != null)
-        {
-            btnRepairNode.interactable = !repaired && canRepair;
-
-            TextMeshProUGUI repairButtonText = btnRepairNode.GetComponentInChildren<TextMeshProUGUI>();
-
-            if (repairButtonText != null)
-            {
-                repairButtonText.text = repaired ? "REPARADO" : "REPARAR";
-            }
-        }
+        // RefreshNodeAnalysis owns both action buttons so ANALIZAR and REPARAR
+        // can never be presented as simultaneous next steps.
     }
 
     private string BuildSelectedNodeInfoText(MachineNodeDef node)
@@ -919,7 +920,8 @@ public class MachinePanelUI : MonoBehaviour
     private void RefreshNodeAnalysis()
     {
         bool unlocked = HasNodeAnalysisUnlocked();
-        bool showAnalysisUI = unlocked && !_fusionPanelVisible;
+        bool showActions = !_fusionPanelVisible &&
+            (instantSeedsViewRoot == null || !instantSeedsViewRoot.activeSelf);
 
         MachineNodeDef selectedNode = GetSelectedNode();
 
@@ -957,17 +959,43 @@ public class MachinePanelUI : MonoBehaviour
             && !selectedNodeAnalyzed
             && !isAnalyzingAnyNode;
 
+        bool requiresAnalysis = selectedNodeDamaged &&
+            !selectedNodeRepaired && !selectedNodeAnalyzed;
+
+        bool canRepairSelectedNode = selectedNode != null && MachineManager.I != null &&
+            MachineManager.I.CanRepairNode(selectedNode.id, out _);
+
         if (btnAnalyzeNode != null)
         {
-            btnAnalyzeNode.gameObject.SetActive(showAnalysisUI &&
-                !selectedNodeRepaired && selectedNodeDamaged);
-            btnAnalyzeNode.interactable = showAnalysisUI && canAnalyzeSelectedNode;
+            bool showAnalyze = showActions && requiresAnalysis;
+            string analyzeLabel = "ANALIZAR";
+            if (isSelectedNodeBeingAnalyzed)
+            {
+                int seconds = Mathf.Max(1,
+                    Mathf.CeilToInt((float)MachineManager.I.AnalysisRemainingSeconds));
+                analyzeLabel = "ANALIZANDO  " + seconds + " s";
+            }
+
+            SetNodeActionButton(btnAnalyzeNode, showAnalyze,
+                showAnalyze && unlocked && canAnalyzeSelectedNode,
+                analyzeLabel,
+                isSelectedNodeBeingAnalyzed ? ActionAnalyzing : ActionReady,
+                keepLitWhenDisabled: isSelectedNodeBeingAnalyzed);
+        }
+
+        if (btnRepairNode != null)
+        {
+            bool showRepair = showActions && selectedNode != null && !requiresAnalysis;
+            SetNodeActionButton(btnRepairNode, showRepair,
+                showRepair && !selectedNodeRepaired && canRepairSelectedNode,
+                selectedNodeRepaired ? "REPARADO" : "REPARAR",
+                ActionReady);
         }
 
         if (nodeAnalysisText == null)
             return;
 
-        if (!showAnalysisUI || selectedNode == null)
+        if (!showActions || selectedNode == null)
         {
             nodeAnalysisText.text = "";
             return;
@@ -981,6 +1009,55 @@ public class MachinePanelUI : MonoBehaviour
         }
 
         nodeAnalysisText.text = BuildSelectedNodeExtraInfoText(selectedNode);    }
+
+    private void AlignNodeActionButtons()
+    {
+        if (btnAnalyzeNode == null || btnRepairNode == null)
+            return;
+
+        RectTransform source = btnRepairNode.transform as RectTransform;
+        RectTransform target = btnAnalyzeNode.transform as RectTransform;
+        if (source == null || target == null || source.parent != target.parent)
+            return;
+
+        target.anchorMin = source.anchorMin;
+        target.anchorMax = source.anchorMax;
+        target.anchoredPosition = source.anchoredPosition;
+        target.sizeDelta = source.sizeDelta;
+        target.pivot = source.pivot;
+    }
+
+    private static void SetNodeActionButton(Button button, bool visible,
+        bool interactable, string label, Color activeColor,
+        bool keepLitWhenDisabled = false)
+    {
+        if (button == null)
+            return;
+
+        button.gameObject.SetActive(visible);
+        button.interactable = interactable;
+
+        TextMeshProUGUI labelText = button.GetComponentInChildren<TextMeshProUGUI>(true);
+        if (labelText != null)
+        {
+            labelText.text = label;
+            labelText.color = visible && (interactable || keepLitWhenDisabled)
+                ? Color.white
+                : new Color(0.56f, 0.62f, 0.66f, 1f);
+        }
+
+        ColorBlock colors = button.colors;
+        colors.normalColor = activeColor;
+        colors.highlightedColor = Color.Lerp(activeColor, Color.white, 0.38f);
+        // Al retirar el cursor (o después de pulsar), el botón debe volver
+        // a su brillo normal y no conservar el brillo de hover.
+        colors.selectedColor = activeColor;
+        colors.pressedColor = Color.Lerp(activeColor, Color.white, 0.16f);
+        colors.disabledColor = keepLitWhenDisabled ? activeColor : ActionDisabled;
+        colors.colorMultiplier = interactable || keepLitWhenDisabled ? 1.08f : 1f;
+        colors.fadeDuration = 0.08f;
+        button.colors = colors;
+    }
 
     private void AnalyzeSelectedNode()
     {
@@ -1110,7 +1187,11 @@ public class MachinePanelUI : MonoBehaviour
             _fusionPanelVisible = false;
 
         if (legacyFusionPanel != null)
+        {
             legacyFusionPanel.SetActive(fusionUnlocked && _fusionPanelVisible);
+            if (_fusionPanelVisible)
+                legacyFusionPanel.transform.SetAsLastSibling();
+        }
 
         if (machineRepairViewRoot != null)
             machineRepairViewRoot.SetActive(cubeVisual == null && !_fusionPanelVisible);
@@ -1120,27 +1201,69 @@ public class MachinePanelUI : MonoBehaviour
 
         bool seedsViewOpen = instantSeedsViewRoot != null && instantSeedsViewRoot.activeSelf;
 
+        bool showContextTabs = fusionUnlocked && !seedsViewOpen;
+
         if (btnFusionPanel != null)
         {
-            btnFusionPanel.gameObject.SetActive(
-                fusionUnlocked && _currentZone == MachineZoneType.FusionSector &&
-                !_fusionPanelVisible && !seedsViewOpen);
-            btnFusionPanel.interactable = fusionUnlocked;
+            btnFusionPanel.gameObject.SetActive(showContextTabs);
+            btnFusionPanel.interactable = showContextTabs && !_fusionPanelVisible;
 
             TextMeshProUGUI labelText = btnFusionPanel.GetComponentInChildren<TextMeshProUGUI>();
 
             if (labelText != null)
-                labelText.text = fusionUnlocked ? "PANEL DE FUSIÓN" : "???";
+                labelText.text = fusionUnlocked ? "MEZCLAS" : "???";
+
+            ApplyContextTabVisual(btnFusionPanel, _fusionPanelVisible,
+                new Color(0.71f, 0.36f, 1f, 1f));
+        }
+
+        if (btnNodesTab != null)
+        {
+            btnNodesTab.gameObject.SetActive(showContextTabs);
+            btnNodesTab.interactable = showContextTabs && _fusionPanelVisible;
+            ApplyContextTabVisual(btnNodesTab, !_fusionPanelVisible,
+                new Color(0f, 0.79f, 1f, 1f));
         }
 
         if (btnBackToNodesFromFusion != null)
         {
-            btnBackToNodesFromFusion.gameObject.SetActive(fusionUnlocked && _fusionPanelVisible);
+            btnBackToNodesFromFusion.gameObject.SetActive(false);
 
             TextMeshProUGUI labelText = btnBackToNodesFromFusion.GetComponentInChildren<TextMeshProUGUI>();
 
             if (labelText != null)
-                labelText.text = "Ver nodos";
+                labelText.text = "NODOS";
+        }
+    }
+
+    private static void ApplyContextTabVisual(Button button, bool selected,
+        Color accent)
+    {
+        if (button == null)
+            return;
+
+        ColorBlock colors = button.colors;
+        colors.normalColor = Color.white;
+        colors.highlightedColor = Color.white;
+        colors.selectedColor = Color.white;
+        colors.pressedColor = new Color(0.78f, 0.78f, 0.82f, 1f);
+        colors.disabledColor = Color.white;
+        button.colors = colors;
+
+        if (button.targetGraphic is Image image)
+        {
+            image.color = selected
+                ? accent
+                : new Color(accent.r * 0.42f, accent.g * 0.42f,
+                    accent.b * 0.42f, 0.88f);
+        }
+
+        TextMeshProUGUI label = button.GetComponentInChildren<TextMeshProUGUI>();
+        if (label != null)
+        {
+            label.color = selected
+                ? Color.white
+                : new Color(0.68f, 0.72f, 0.76f, 1f);
         }
     }
 

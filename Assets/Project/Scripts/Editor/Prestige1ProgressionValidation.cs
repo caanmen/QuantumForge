@@ -106,6 +106,9 @@ public static class Prestige1ProgressionValidation
                     failures
                 );
 
+                if (selectedDimension == 3 && !state.dimension01Unlocked)
+                    ValidateD3BootstrapBeforeD1(state, orderName, failures);
+
                 if (step < order.Length - 1)
                 {
                     Check(
@@ -141,6 +144,35 @@ public static class Prestige1ProgressionValidation
             UnityEngine.Object.DestroyImmediate(machineObject);
             UnityEngine.Object.DestroyImmediate(state.gameObject);
         }
+    }
+
+    private static void ValidateD3BootstrapBeforeD1(
+        GameState state,
+        string orderName,
+        List<string> failures)
+    {
+        state.LE = 50000000.0;
+        state.Traces = 50000.0;
+        Dimension3System.EnsureState(state);
+        D3InventorySystem.AddAssemblyCount(state.dimension3, 1, 5L);
+
+        bool queued = Dimension3System.TryQueueFacilityUpgrade(
+            state,
+            Dimension3Catalog.FacilityExpeditionPort,
+            out string reason);
+        Check(queued,
+            orderName + ": D3 queda bloqueada antes de D1 al construir Puerto N1: " +
+            reason,
+            failures);
+        if (!queued)
+            return;
+
+        Dimension3System.Tick(state, 1000.0);
+        Check(D3FacilitySystem.GetFacilityLevel(
+                state.dimension3,
+                Dimension3Catalog.FacilityExpeditionPort) == 1,
+            orderName + ": el Puerto N1 de arranque no se completa antes de D1.",
+            failures);
     }
 
     private static void ValidateUnlockedDimensions(

@@ -6,18 +6,23 @@ public static class BuildingPurchaseService
             return false;
         if (!BuildingUnlock.IsUnlocked(state.def))
             return false;
-        if (state.def.id == "fluctuation_antenna" && state.level > 0)
-            return false;
         if (state.IsAtMaxLevel())
             return false;
 
         double effectiveCost = gameState.GetEffectiveBuildingCost(state);
-        if (gameState.LE < effectiveCost)
+        bool energyGeneratorLevel = state.def.id == "fluctuation_antenna" &&
+            state.level > 0;
+        double tracesCost = energyGeneratorLevel
+            ? gameState.GetTriangleEnergyGeneratorTraceCost()
+            : 0.0;
+        if (gameState.LE < effectiveCost || gameState.Traces < tracesCost)
             return false;
 
         gameState.LE -= effectiveCost;
+        gameState.Traces -= tracesCost;
         state.OnPurchased();
-        D3ConsoleSystem.RecordManualBuildingPurchase(gameState, state.def.id);
+        if (state.def.id != "fluctuation_antenna")
+            D3ConsoleSystem.RecordManualBuildingPurchase(gameState, state.def.id);
         return true;
     }
 }

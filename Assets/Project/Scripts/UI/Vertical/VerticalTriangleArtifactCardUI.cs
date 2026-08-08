@@ -49,30 +49,30 @@ public sealed class VerticalTriangleArtifactCardUI : MonoBehaviour
         if (state == null || state.def == null || GameState.I == null)
             return;
 
+        bool energyGenerator = buildingId == "fluctuation_antenna" && state.level > 0;
         string displayName = buildingId == "vacuum_observer" ? "HIGGS" :
-            buildingId == "casimir_panel" ? "TETRAQUARK" : "MODULADOR";
-        string shownName = buildingId == "fluctuation_antenna" && state.level > 0
-            ? displayName + " · " + Localize(
-                "building.modulator.active", "Triangulo activo").ToUpperInvariant()
-            : displayName + " · NV. " + state.level;
+            buildingId == "casimir_panel" ? "TETRAQUARK" :
+            energyGenerator ? "CAPTADOR DE ENERGÍA" : "MODULADOR";
+        string shownName = displayName + " · NV. " + state.level;
         SetIfChanged(nameText, shownName);
 
-        bool modulatorOwned = buildingId == "fluctuation_antenna" && state.level > 0;
         double cost = GameState.I.GetEffectiveBuildingCost(state);
-        string status = modulatorOwned
-            ? Localize("building.modulator.active", "Triangulo activo")
-            : Localize("ui.cost_prefix", "Coste:") + " " + cost.ToString("0.##") + " LE";
+        double traceCost = energyGenerator
+            ? GameState.I.GetTriangleEnergyGeneratorTraceCost()
+            : 0.0;
+        string status = Localize("ui.cost_prefix", "Coste:") + " " +
+            cost.ToString("0.##") + " LE" +
+            (traceCost > 0.0 ? " + " + traceCost.ToString("0.##") + " Trazas" : "");
         SetIfChanged(stateText, status);
 
         if (buyButton != null)
         {
-            buyButton.interactable = !modulatorOwned && !state.IsAtMaxLevel() &&
-                BuildingUnlock.IsUnlocked(state.def) && GameState.I.LE >= cost;
+            buyButton.interactable = !state.IsAtMaxLevel() &&
+                BuildingUnlock.IsUnlocked(state.def) && GameState.I.LE >= cost &&
+                GameState.I.Traces >= traceCost;
             TextMeshProUGUI label = buyButton.GetComponentInChildren<TextMeshProUGUI>(true);
             if (label != null)
-                SetIfChanged(label, modulatorOwned
-                    ? "—"
-                    : Localize("ui.buy", "Comprar").ToUpperInvariant());
+                SetIfChanged(label, BuildPurchaseLabel(state));
         }
 
         if (icon != null && (force || icon.sprite == null))
@@ -87,6 +87,25 @@ public sealed class VerticalTriangleArtifactCardUI : MonoBehaviour
     private BuildingState GetState()
     {
         return GameState.I != null ? GameState.I.GetBuildingState(buildingId) : null;
+    }
+
+    private static string BuildPurchaseLabel(BuildingState state)
+    {
+        if (GameState.I == null || state == null) return "COMPRAR";
+        if (state.def.id == "fluctuation_antenna" && state.level == 0)
+            return "COMPRAR\nDESBLOQUEA TRIÁNGULO";
+
+        double le = GameState.I.GetBuildingNextLevelLEPerSecond(state);
+        double traces = GameState.I.GetBuildingNextLevelTracesPerSecond(state);
+        double energy = GameState.I.GetBuildingNextLevelTriangleEnergyPerSecond(state);
+        string gain = string.Empty;
+        if (le > 0.000001) gain = "+" + le.ToString("0.##") + " LE/s";
+        if (traces > 0.000001)
+            gain += (gain.Length > 0 ? " · " : "") + "+" + traces.ToString("0.###") + " T/s";
+        if (energy > 0.000001)
+            gain += (gain.Length > 0 ? " · " : "") + "+" + energy.ToString("0.##") + " E/s";
+        return Localize("ui.buy", "Comprar").ToUpperInvariant() +
+            (gain.Length > 0 ? "\n" + gain : string.Empty);
     }
 
     private static string Localize(string key, string fallback)

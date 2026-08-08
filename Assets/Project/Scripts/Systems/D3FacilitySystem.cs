@@ -433,6 +433,7 @@ public static class D3FacilitySystem
         if (facilityId == Dimension3Catalog.FacilityExpeditionPort)
         {
             if (targetLevel == 1 &&
+                gameState.dimension01Unlocked &&
                 gameState.dimension1ManualSimpleDestinationIds.Count < 1)
             {
                 reason = "El Puerto requiere una exploración simple manual completada.";

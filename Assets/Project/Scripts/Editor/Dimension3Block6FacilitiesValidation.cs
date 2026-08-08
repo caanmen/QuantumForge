@@ -24,15 +24,33 @@ public static class Dimension3Block6FacilitiesValidation
     private static void ValidateRequirements(List<string> failures)
     {
         GameState state = CreateState("D3 B6 Requirements");
+        GameState gatedState = null;
         try
         {
             state.LE = 50000000.0;
             state.Traces = 50000.0;
             D3InventorySystem.AddAssemblyCount(state.dimension3, 1, 5L);
-            Check(!Dimension3System.TryQueueFacilityUpgrade(state,
+            Check(Dimension3System.TryQueueFacilityUpgrade(state,
                     Dimension3Catalog.FacilityExpeditionPort,
-                    out string reason) && reason.Contains("manual"),
-                "El Puerto N1 no exige una ruta simple manual.", failures);
+                    out string reason),
+                "D3 elegida antes de D1 no puede iniciar el Puerto N1: " + reason,
+                failures);
+            Dimension3System.Tick(state, 1000.0);
+            Check(D3FacilitySystem.GetFacilityLevel(state.dimension3,
+                    Dimension3Catalog.FacilityExpeditionPort) == 1,
+                "El Puerto N1 de arranque no termina cuando D1 sigue bloqueada.",
+                failures);
+
+            gatedState = CreateState("D3 B6 D1 Gate");
+            gatedState.dimension01Unlocked = true;
+            gatedState.LE = 50000000.0;
+            gatedState.Traces = 50000.0;
+            D3InventorySystem.AddAssemblyCount(gatedState.dimension3, 1, 5L);
+            Check(!Dimension3System.TryQueueFacilityUpgrade(gatedState,
+                    Dimension3Catalog.FacilityExpeditionPort,
+                    out reason) && reason.Contains("manual"),
+                "El Puerto N1 no exige una ruta simple manual cuando D1 ya estÃ¡ disponible.",
+                failures);
 
             D3InventorySystem.AddAssemblyCount(state.dimension3, 2, 10L);
             Check(!Dimension3System.TryQueueFacilityUpgrade(state,
@@ -40,7 +58,12 @@ public static class Dimension3Block6FacilitiesValidation
                   reason.Contains("cuatro instalaciones"),
                 "El Nucleo N1 no exige las otras cuatro instalaciones.", failures);
         }
-        finally { Object.DestroyImmediate(state.gameObject); }
+        finally
+        {
+            if (gatedState != null)
+                Object.DestroyImmediate(gatedState.gameObject);
+            Object.DestroyImmediate(state.gameObject);
+        }
     }
 
     private static void ValidatePort(List<string> failures)

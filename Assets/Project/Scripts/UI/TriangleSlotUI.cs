@@ -26,6 +26,9 @@ public class TriangleSlotUI : MonoBehaviour,
     private void Awake()
     {
         backgroundImage = GetComponent<Image>();
+        Button selectorButton = GetComponent<Button>();
+        if (selectorButton != null)
+            selectorButton.transition = Selectable.Transition.None;
         VerticalUiSkinRoot skin = GetComponentInParent<VerticalUiSkinRoot>(true);
         if (skin != null && skin.theme != null)
         {
@@ -91,8 +94,7 @@ public class TriangleSlotUI : MonoBehaviour,
         if (backgroundImage == null) return;
         TriangleCircuitType circuit = GetCircuit();
         bool locked = GameState.I == null || !GameState.I.triangleSystemUnlocked ||
-            !GameState.I.AreTriangleVerticesAvailable() ||
-            (circuit == TriangleCircuitType.Phase && !GameState.I.IsTrianglePhaseUnlocked());
+            !GameState.I.AreTriangleVerticesAvailable();
         if (locked)
             backgroundImage.color = lockedColor;
         else if (GameState.I.triangleActiveCircuit == circuit)

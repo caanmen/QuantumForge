@@ -16,7 +16,7 @@ public static class F2ProgressionMigrationValidation
         ValidateCatalog(failures);
         ValidateRuntimeRules(failures);
         if (failures.Count > 0) throw new InvalidOperationException("F2 progression FAIL\n- " + string.Join("\n- ", failures));
-        Debug.Log("[F2ProgressionMigrationValidation] PASS · 7 mejoras · gating · 0/50/65/80 · migración idempotente.");
+        Debug.Log("[F2ProgressionMigrationValidation] PASS · 8 mejoras · estudios · gating · 0/50/65/80 · migración idempotente.");
     }
 
     private static void ValidateCatalog(List<string> failures)
@@ -25,13 +25,14 @@ public static class F2ProgressionMigrationValidation
         var list = json != null ? JsonUtility.FromJson<F2UpgradeDefList>(json.text) : null;
         Check(list?.upgrades != null, "No carga f2_upgrades.json.", failures);
         if (list?.upgrades == null) return;
-        Check(list.upgrades.Count(x => !x.retired) == 7, "El catálogo público no contiene siete mejoras.", failures);
+        Check(list.upgrades.Count(x => !x.retired) == 8, "El catálogo público no contiene ocho mejoras.", failures);
         Check(Find(list, "residual_analysis")?.retired == true && Find(list, "pattern_mapping")?.retired == true, "Residual/Patrones no están retiradas.", failures);
         Check(Find(list, "emission_focus")?.tiers?.Select(x => x.effectValue).SequenceEqual(new[] { 0.05, 0.15 }) == true, "Emisión no usa totales 5/15%.", failures);
         Check(Find(list, "containment_tuning")?.tiers?.Select(x => x.effectValue).SequenceEqual(new[] { 0.90, 0.80 }) == true, "Contención no usa ciclos 0.9/0.8 s.", failures);
         Check(Find(list, "tetraquark_stabilization")?.currency == F2UpgradeCurrency.LE, "Lectura Tetraquark no cuesta LE.", failures);
         Check(Find(list, "triangle_unlock_1")?.requiresAllTriangleVertices == true, "Acople no exige los tres vértices.", failures);
         Check(Find(list, "triangle_persistence_anchor")?.tiers?.Select(x => x.effectValue).SequenceEqual(new[] { 0.65, 0.80 }) == true, "Memoria no usa 65/80%.", failures);
+        Check(Find(list, "triangle_energy_efficiency")?.tiers?.Select(x => x.effectValue).SequenceEqual(new[] { 0.20, 0.40, 0.65 }) == true, "Captación no usa los totales 20/40/65%.", failures);
 
         string visibilitySource = File.ReadAllText(
             "Assets/Project/Scripts/UI/F2UpgradeVisibilityController.cs");
@@ -65,6 +66,7 @@ public static class F2ProgressionMigrationValidation
             tetra.level = 1;
             Check(manager.ShouldBeVisible("tetraquark_stabilization"), "Lectura no aparece con Tetraquark.", failures);
             mod.level = 1;
+            Discover(state, "triangle_unlock_1");
             Check(manager.ShouldBeVisible("triangle_unlock_1") && manager.TryBuy("triangle_unlock_1"), "Acople no se activa con los tres vértices.", failures);
             Check(state.triangleActiveCircuit == TriangleCircuitType.None && Mathf.Approximately(state.triangleSynchronization, 0f), "Acople selecciona o sincroniza un circuito oculto.", failures);
             Check(state.SetTriangleCircuit(TriangleCircuitType.Energy, false) && Mathf.Approximately(state.triangleSynchronization, 0f), "Primera elección no parte de 0%.", failures);
@@ -74,6 +76,7 @@ public static class F2ProgressionMigrationValidation
             Check(Math.Abs(state.GetTriangleSynchronizationRemainingSeconds() - 90.0) < 0.001,
                 "El cambio base no informa 90 s restantes reales.", failures);
 
+            Discover(state, "triangle_persistence_anchor");
             Check(manager.TryBuy("triangle_persistence_anchor"),
                 "No se pudo comprar Memoria nivel 1 tras Acople.", failures);
             state.triangleSynchronization = 1f;
@@ -124,6 +127,13 @@ public static class F2ProgressionMigrationValidation
         building.level = level;
         state.RegisterBuildingState(building);
         return building;
+    }
+
+    private static void Discover(GameState state, string upgradeId)
+    {
+        UpgradeStudyState studies = UpgradeStudySystem.EnsureState(state);
+        if (!studies.discoveredIds.Contains(upgradeId))
+            studies.discoveredIds.Add(upgradeId);
     }
 
     private static void Check(bool condition, string message, List<string> failures) { if (!condition) failures.Add(message); }

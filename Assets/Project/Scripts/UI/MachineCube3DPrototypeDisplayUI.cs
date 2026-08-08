@@ -7,10 +7,37 @@ public sealed class MachineCube3DPrototypeDisplayUI : MonoBehaviour,
 {
     [SerializeField] private MachineCube3DPrototypeController controller;
     [SerializeField] private MachineCubeVisualUI machineVisual;
+    [SerializeField] private MachinePanelUI machinePanel;
     [SerializeField] private LayerMask nodeLayer;
     [SerializeField] private float swipeThresholdPixels = 64f;
+    [SerializeField, Min(0.08f)] private float selectionSyncInterval = 0.15f;
 
     private Vector2 _dragStart;
+    private float _nextSelectionSyncTime;
+    private string _lastSyncedSelection = "";
+
+    private void Awake()
+    {
+        if (machinePanel == null)
+            machinePanel = GetComponentInParent<MachinePanelUI>(true);
+        if (machinePanel == null)
+            machinePanel = FindFirstObjectByType<MachinePanelUI>(
+                FindObjectsInactive.Include);
+    }
+
+    private void OnEnable()
+    {
+        _nextSelectionSyncTime = 0f;
+        RefreshSelectedNode(true);
+    }
+
+    private void Update()
+    {
+        if (Time.unscaledTime < _nextSelectionSyncTime)
+            return;
+        _nextSelectionSyncTime = Time.unscaledTime + selectionSyncInterval;
+        RefreshSelectedNode();
+    }
 
     public void OnPointerClick(PointerEventData eventData)
     {
@@ -33,7 +60,29 @@ public sealed class MachineCube3DPrototypeDisplayUI : MonoBehaviour,
 
         MachineCube3DNode node = hit.collider.GetComponentInParent<MachineCube3DNode>();
         if (node != null && !string.IsNullOrWhiteSpace(node.NodeId))
+        {
             machineVisual?.SelectNode(node.NodeId);
+            string selectedId = machinePanel != null
+                ? machinePanel.SelectedNodeId
+                : node.NodeId;
+            _lastSyncedSelection = selectedId ?? "";
+            controller.SetSelectedNode(_lastSyncedSelection);
+        }
+    }
+
+    /// <summary>
+    /// Keeps physical selection synchronized with arrows, repaired-tier
+    /// auto-advance and restored panel state, not only pointer clicks.
+    /// </summary>
+    public void RefreshSelectedNode(bool force = false)
+    {
+        if (controller == null || machinePanel == null)
+            return;
+        string selectedId = machinePanel.SelectedNodeId ?? "";
+        if (!force && selectedId == _lastSyncedSelection)
+            return;
+        _lastSyncedSelection = selectedId;
+        controller.SetSelectedNode(selectedId);
     }
 
     public void OnBeginDrag(PointerEventData eventData)

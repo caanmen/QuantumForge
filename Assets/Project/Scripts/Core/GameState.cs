@@ -13,9 +13,13 @@ using System.Collections.Generic;
     public enum TriangleCircuitType
     {
         None = 0,
-        Energy = 1,
-        Experimental = 2,
-        Phase = 3
+        // Los alias heredados conservan los valores de las partidas existentes.
+        LE = 1,
+        Energy = LE,
+        Traces = 2,
+        Experimental = Traces,
+        TriangleEnergy = 3,
+        Phase = TriangleEnergy
     }
 
     public enum ExperimentalFragmentType
@@ -97,6 +101,7 @@ using System.Collections.Generic;
         public int circuit;
         public double leGained;
         public double tracesGained;
+        public double triangleEnergyGained;
         public int condensationGained;
         public int confinementGained;
         public int residualInterferenceGained;
@@ -423,6 +428,9 @@ public class GameState : MonoBehaviour
     [Tooltip("Velocidad base de recuperación de la rampa activa.")]
     public double triangleSynchronizationBaseRatePerSecond = 0.0;
 
+    [Tooltip("Energía acumulada por el Triángulo para iniciar estudios.")]
+    public double triangleEnergy = 0.0;
+
     public const float TriangleInitialSynchronization = 0f;
     public const float TriangleSwitchSynchronization = 0.50f;
     public const double TriangleSynchronizationRecoverySeconds = 90.0;
@@ -431,9 +439,14 @@ public class GameState : MonoBehaviour
     public const double TriangleExperimentalTraceBonus = 0.10;
     public const double TriangleExperimentalFragmentBonus = 0.06;
     public const double TriangleExperimentalLEPenalty = 0.10;
-    public const double TrianglePhaseProductionPenalty = 0.10;
-    public const double TrianglePhaseAnalysisSpeedBonus = 0.15;
-    public const double TrianglePhaseD3RoutineSpeedBonus = 0.10;
+    public const double TriangleEnergyProductionPenalty = 0.10;
+    public const double TriangleEnergyFocusBonus = 0.30;
+    public const double TriangleEnergyBasePerSecond = 1.0;
+    public const double TriangleEnergyPerGeneratorLevel = 0.10;
+    public const double TriangleEnergyGeneratorLEBaseCost = 120.0;
+    public const double TriangleEnergyGeneratorTraceBaseCost = 3.0;
+    public const double TriangleEnergyGeneratorLECostGrowth = 1.16;
+    public const double TriangleEnergyGeneratorTraceCostGrowth = 1.14;
 
     [System.NonSerialized]
     public TriangleOfflineReport lastTriangleOfflineReport = new TriangleOfflineReport();
@@ -455,6 +468,9 @@ public class GameState : MonoBehaviour
     public double trianglePersistenceOfflineSecondsPerReserveHour = 14400.0; // 4h offline = 1h reserva
     public double trianglePersistenceBuffHiggsMultiplier = 1.15;
     public double trianglePersistenceBuffTetraMultiplier = 1.15;
+
+    [Header("Observatorio - Estudios de mejoras")]
+    public UpgradeStudyState upgradeStudies = new UpgradeStudyState();
 
     public double baseLEps = 0.0;
   
@@ -513,6 +529,59 @@ public class GameState : MonoBehaviour
 
             // Si más adelante tienes un recalculo específico, lo puedes llamar aquí.
             // De momento, CalculateTotalLEps() ya usa buildingStates.
+    }
+
+    /// <summary>
+    /// Reconstruye los productores guardados antes de calcular una ausencia.
+    /// En un arranque en frio la UI todavia no ha registrado sus BuildingState,
+    /// por lo que aplicar el progreso offline antes de este paso produciria cero.
+    /// </summary>
+    public void PrepareBuildingLevelsForOffline(
+        List<SavedBuildingLevel> saved,
+        IList<BuildingDef> definitions)
+    {
+        if (saved == null || saved.Count == 0)
+            return;
+
+        if (buildingStates == null)
+            buildingStates = new List<BuildingState>();
+
+        foreach (SavedBuildingLevel savedLevel in saved)
+        {
+            if (savedLevel == null || string.IsNullOrEmpty(savedLevel.id))
+                continue;
+
+            BuildingState current = GetBuildingState(savedLevel.id);
+            if (current != null)
+                continue;
+
+            BuildingDef definition = null;
+            if (definitions != null)
+            {
+                for (int i = 0; i < definitions.Count; i++)
+                {
+                    BuildingDef candidate = definitions[i];
+                    if (candidate != null && candidate.id == savedLevel.id)
+                    {
+                        definition = candidate;
+                        break;
+                    }
+                }
+            }
+
+            if (definition == null)
+                continue;
+
+            var restored = new BuildingState
+            {
+                level = System.Math.Max(0, savedLevel.level),
+                currentCost = 0.0
+            };
+            restored.InitFromDef(definition);
+            buildingStates.Add(restored);
+        }
+
+        ApplyBuildingLevelsFromSave(saved);
     }
 
         public int GetFragmentCount(ExperimentalFragmentType type)
@@ -1220,6 +1289,9 @@ public class GameState : MonoBehaviour
     public bool CanBuyExperimentalChamberKeycard()
     {
         if (!HasExperimentalChamberKeycardRequirements())
+            return false;
+
+        if (!UpgradeStudySystem.IsKeycardProjectDiscovered(this))
             return false;
 
         return LE >= experimentalChamberKeycardLeCost
@@ -6756,7 +6828,13 @@ public class GameState : MonoBehaviour
     Dimension3System.Tick(this, dt);
 
     // Sincronización del circuito activo del Triángulo.
+    GenerateTriangleEnergy(dt);
     UpdateTriangleSynchronization(dt);
+    if (triangleSynchronization >= 0.999999f)
+        UpgradeStudySystem.RecordCircuitSynchronized(this, triangleActiveCircuit);
+
+    // El estudio activo usa el mismo reloj online del juego base.
+    UpgradeStudySystem.Advance(this, dt);
 
     // F6.1: registrar el máximo LE alcanzado
     ActualizarMaxLE();
@@ -6818,6 +6896,9 @@ public class GameState : MonoBehaviour
     {
         if (building == null || building.def == null)
             return 0.0;
+
+        if (building.def.id == "fluctuation_antenna" && building.level > 0)
+            return GetTriangleEnergyGeneratorLECost();
 
         double effectiveCost = building.currentCost;
 
@@ -6930,14 +7011,14 @@ public class GameState : MonoBehaviour
 
     public bool IsTrianglePhaseUnlocked()
     {
-        return MachineManager.I != null && MachineManager.I.MachineUnlocked;
+        return CanUseTriangleCircuits();
     }
 
     public bool IsTriangleSystemActive()
     {
         if (!CanUseTriangleCircuits()) return false;
         if (triangleActiveCircuit == TriangleCircuitType.None) return false;
-        return triangleActiveCircuit != TriangleCircuitType.Phase || IsTrianglePhaseUnlocked();
+        return true;
     }
 
     public bool IsTriangleFullyConfiguredWithBaseArtifacts()
@@ -6949,14 +7030,12 @@ public class GameState : MonoBehaviour
     {
         if (!CanUseTriangleCircuits()) return false;
         if (circuit == TriangleCircuitType.None) return false;
-        if (circuit == TriangleCircuitType.Phase && !IsTrianglePhaseUnlocked()) return false;
         if (triangleActiveCircuit == circuit)
         {
-            if (recordManual)
-                D3ConsoleSystem.RecordManualTriangleCircuit(this, circuit);
             return true;
         }
 
+        TriangleCircuitType previousCircuit = triangleActiveCircuit;
         bool firstActivation = triangleActiveCircuit == TriangleCircuitType.None;
         triangleActiveCircuit = circuit;
         float switchStart = F2UpgradeManager.I != null
@@ -6964,8 +7043,7 @@ public class GameState : MonoBehaviour
             : TriangleSwitchSynchronization;
         BeginTriangleSynchronization(firstActivation ? TriangleInitialSynchronization : switchStart);
         SyncLegacyTriangleDisplayFields();
-        if (recordManual)
-            D3ConsoleSystem.RecordManualTriangleCircuit(this, circuit);
+        UpgradeStudySystem.RecordCircuitSwitch(this, previousCircuit, circuit);
         return true;
     }
 
@@ -6977,9 +7055,6 @@ public class GameState : MonoBehaviour
 
         if (!valid && migrateLegacy)
             triangleActiveCircuit = GetCircuitFromLegacyState();
-
-        if (triangleActiveCircuit == TriangleCircuitType.Phase && !IsTrianglePhaseUnlocked())
-            triangleActiveCircuit = TriangleCircuitType.None;
 
         if (!triangleSystemUnlocked)
             triangleActiveCircuit = TriangleCircuitType.None;
@@ -7011,14 +7086,14 @@ public class GameState : MonoBehaviour
     private TriangleCircuitType GetCircuitFromLegacyState()
     {
         TriangleSlotRole legacyPosition = GetLegacyPhaseModulatorTrianglePosition();
-        if (legacyPosition == TriangleSlotRole.Primary) return TriangleCircuitType.Energy;
-        if (legacyPosition == TriangleSlotRole.Reinforcement) return TriangleCircuitType.Experimental;
-        if (legacyPosition == TriangleSlotRole.Alteration) return TriangleCircuitType.Phase;
+        if (legacyPosition == TriangleSlotRole.Primary) return TriangleCircuitType.LE;
+        if (legacyPosition == TriangleSlotRole.Reinforcement) return TriangleCircuitType.Traces;
+        if (legacyPosition == TriangleSlotRole.Alteration) return TriangleCircuitType.TriangleEnergy;
 
-        if (phaseModulatorMode == PhaseModulatorMode.Expansion) return TriangleCircuitType.Energy;
-        if (phaseModulatorMode == PhaseModulatorMode.Conservation) return TriangleCircuitType.Experimental;
-        if (phaseModulatorMode == PhaseModulatorMode.Attunement) return TriangleCircuitType.Phase;
-        return triangleSystemUnlocked ? TriangleCircuitType.Energy : TriangleCircuitType.None;
+        if (phaseModulatorMode == PhaseModulatorMode.Expansion) return TriangleCircuitType.LE;
+        if (phaseModulatorMode == PhaseModulatorMode.Conservation) return TriangleCircuitType.Traces;
+        if (phaseModulatorMode == PhaseModulatorMode.Attunement) return TriangleCircuitType.TriangleEnergy;
+        return triangleSystemUnlocked ? TriangleCircuitType.LE : TriangleCircuitType.None;
     }
 
     private TriangleSlotRole GetLegacyPhaseModulatorTrianglePosition()
@@ -7036,25 +7111,25 @@ public class GameState : MonoBehaviour
 
     public TriangleProtocolType GetActiveTriangleProtocol()
     {
-        if (triangleActiveCircuit == TriangleCircuitType.Energy) return TriangleProtocolType.Impulso;
-        if (triangleActiveCircuit == TriangleCircuitType.Experimental) return TriangleProtocolType.Sinergia;
-        if (triangleActiveCircuit == TriangleCircuitType.Phase) return TriangleProtocolType.Persistencia;
+        if (triangleActiveCircuit == TriangleCircuitType.LE) return TriangleProtocolType.Impulso;
+        if (triangleActiveCircuit == TriangleCircuitType.Traces) return TriangleProtocolType.Sinergia;
+        if (triangleActiveCircuit == TriangleCircuitType.TriangleEnergy) return TriangleProtocolType.Persistencia;
         return TriangleProtocolType.None;
     }
 
     public string GetActiveTriangleProtocolId()
     {
-        if (triangleActiveCircuit == TriangleCircuitType.Energy) return "energy";
-        if (triangleActiveCircuit == TriangleCircuitType.Experimental) return "experimental";
-        if (triangleActiveCircuit == TriangleCircuitType.Phase) return "phase";
+        if (triangleActiveCircuit == TriangleCircuitType.LE) return "le";
+        if (triangleActiveCircuit == TriangleCircuitType.Traces) return "traces";
+        if (triangleActiveCircuit == TriangleCircuitType.TriangleEnergy) return "energy";
         return "none";
     }
 
     public double GetTriangleProtocolBaseMultiplier()
     {
-        if (triangleActiveCircuit == TriangleCircuitType.Energy) return 1.0 + TriangleEnergyLEBonus;
-        if (triangleActiveCircuit == TriangleCircuitType.Experimental) return 1.0 + TriangleExperimentalTraceBonus;
-        if (triangleActiveCircuit == TriangleCircuitType.Phase) return 1.0 + TrianglePhaseAnalysisSpeedBonus;
+        if (triangleActiveCircuit == TriangleCircuitType.LE) return 1.0 + TriangleEnergyLEBonus;
+        if (triangleActiveCircuit == TriangleCircuitType.Traces) return 1.0 + TriangleExperimentalTraceBonus;
+        if (triangleActiveCircuit == TriangleCircuitType.TriangleEnergy) return 1.0 + TriangleEnergyFocusBonus;
         return 1.0;
     }
 
@@ -7066,91 +7141,135 @@ public class GameState : MonoBehaviour
 
     private double GetEnergyBonus()
     {
-        int tier = F2UpgradeManager.I != null
-            ? F2UpgradeManager.I.GetTriangleImpulseTuningTier() : 0;
-        if (tier >= 2) return 0.20;
-        if (tier == 1) return 0.16;
-        return TriangleEnergyLEBonus;
+        return F2UpgradeManager.I != null
+            ? F2UpgradeManager.I.GetTriangleEnergyLEBonus(TriangleEnergyLEBonus)
+            : TriangleEnergyLEBonus;
     }
 
     private double GetExperimentalTraceBonus()
     {
-        int tier = F2UpgradeManager.I != null
-            ? F2UpgradeManager.I.GetTriangleSynergyResonanceTier() : 0;
-        if (tier >= 2) return 0.15;
-        if (tier == 1) return 0.13;
-        return TriangleExperimentalTraceBonus;
+        return F2UpgradeManager.I != null
+            ? F2UpgradeManager.I.GetTriangleExperimentalTraceBonus(
+                TriangleExperimentalTraceBonus)
+            : TriangleExperimentalTraceBonus;
     }
 
     private double GetExperimentalFragmentBonus()
     {
-        int tier = F2UpgradeManager.I != null
-            ? F2UpgradeManager.I.GetTriangleSynergyResonanceTier() : 0;
-        if (tier >= 2) return 0.10;
-        if (tier == 1) return 0.08;
         return TriangleExperimentalFragmentBonus;
     }
 
     public double GetTriangleLEMultiplier()
     {
         if (!IsTriangleSystemActive()) return 1.0;
-        if (triangleActiveCircuit == TriangleCircuitType.Energy)
+        if (triangleActiveCircuit == TriangleCircuitType.LE)
             return 1.0 + GetEnergyBonus() * GetTrianglePositiveEffectScale();
-        if (triangleActiveCircuit == TriangleCircuitType.Experimental)
+        if (triangleActiveCircuit == TriangleCircuitType.Traces)
             return 1.0 - TriangleExperimentalLEPenalty;
-        if (triangleActiveCircuit == TriangleCircuitType.Phase)
-            return 1.0 - TrianglePhaseProductionPenalty;
+        if (triangleActiveCircuit == TriangleCircuitType.TriangleEnergy)
+            return 1.0 - TriangleEnergyProductionPenalty;
         return 1.0;
     }
 
     public double GetTriangleTracesMultiplier()
     {
         if (!IsTriangleSystemActive()) return 1.0;
-        if (triangleActiveCircuit == TriangleCircuitType.Experimental)
+        if (triangleActiveCircuit == TriangleCircuitType.Traces)
             return 1.0 + GetExperimentalTraceBonus() * GetTrianglePositiveEffectScale();
-        if (triangleActiveCircuit == TriangleCircuitType.Energy)
+        if (triangleActiveCircuit == TriangleCircuitType.LE)
             return 1.0 - TriangleEnergyTracePenalty;
-        if (triangleActiveCircuit == TriangleCircuitType.Phase)
-            return 1.0 - TrianglePhaseProductionPenalty;
+        if (triangleActiveCircuit == TriangleCircuitType.TriangleEnergy)
+            return 1.0 - TriangleEnergyProductionPenalty;
         return 1.0;
+    }
+
+    public double GetTriangleEnergyFocusMultiplier()
+    {
+        if (!IsTriangleSystemActive() ||
+            triangleActiveCircuit != TriangleCircuitType.TriangleEnergy)
+            return 1.0;
+        return 1.0 + TriangleEnergyFocusBonus * GetTrianglePositiveEffectScale();
+    }
+
+    public double CalculateTriangleEnergyPerSecond()
+    {
+        if (!triangleSystemUnlocked || GetBuildingLevel("fluctuation_antenna") < 1)
+            return 0.0;
+
+        int generatorLevels = System.Math.Max(
+            0, GetBuildingLevel("fluctuation_antenna") - 1);
+        double rate = TriangleEnergyBasePerSecond +
+            generatorLevels * TriangleEnergyPerGeneratorLevel;
+        if (F2UpgradeManager.I != null)
+            rate *= 1.0 + F2UpgradeManager.I.GetTriangleEnergyProductionBonus();
+        rate *= GetTriangleEnergyFocusMultiplier();
+        return System.Math.Max(0.0, rate);
+    }
+
+    public double GetTriangleEnergyGeneratorLECost()
+    {
+        int paidLevels = System.Math.Max(
+            0, GetBuildingLevel("fluctuation_antenna") - 1);
+        return TriangleEnergyGeneratorLEBaseCost * System.Math.Pow(
+            TriangleEnergyGeneratorLECostGrowth, paidLevels);
+    }
+
+    public double GetTriangleEnergyGeneratorTraceCost()
+    {
+        int paidLevels = System.Math.Max(
+            0, GetBuildingLevel("fluctuation_antenna") - 1);
+        return TriangleEnergyGeneratorTraceBaseCost * System.Math.Pow(
+            TriangleEnergyGeneratorTraceCostGrowth, paidLevels);
+    }
+
+    public bool TrySpendTriangleEnergy(double amount)
+    {
+        if (amount < 0.0 || double.IsNaN(amount) || double.IsInfinity(amount))
+            return false;
+        if (triangleEnergy + 0.0000001 < amount)
+            return false;
+        triangleEnergy = System.Math.Max(0.0, triangleEnergy - amount);
+        return true;
+    }
+
+    private void GenerateTriangleEnergy(double seconds)
+    {
+        if (seconds <= 0.0 || double.IsNaN(seconds) || double.IsInfinity(seconds))
+            return;
+        double gain = CalculateTriangleEnergyPerSecond() * seconds;
+        if (gain <= 0.0 || double.IsNaN(gain) || double.IsInfinity(gain))
+            return;
+        triangleEnergy = System.Math.Max(0.0, triangleEnergy) + gain;
     }
 
     public double GetTriangleFragmentMultiplier()
     {
-        if (!IsTriangleSystemActive() || !experimentalChamberUnlocked ||
-            triangleActiveCircuit != TriangleCircuitType.Experimental) return 1.0;
-        return 1.0 + GetExperimentalFragmentBonus() * GetTrianglePositiveEffectScale();
+        if (!experimentalChamberUnlocked || !IsTriangleSystemActive() ||
+            triangleActiveCircuit != TriangleCircuitType.Traces)
+            return 1.0;
+
+        return 1.0 + GetExperimentalFragmentBonus() *
+            GetTrianglePositiveEffectScale();
     }
 
     public double GetTrianglePhaseAnalysisSpeedMultiplier()
     {
-        if (!IsTriangleSystemActive() || triangleActiveCircuit != TriangleCircuitType.Phase)
-            return 1.0;
-        return 1.0 + TrianglePhaseAnalysisSpeedBonus * GetTrianglePositiveEffectScale();
+        return 1.0;
     }
 
     public double GetTriangleD3RoutineSpeedMultiplier()
     {
-        if (!IsTriangleSystemActive() || triangleActiveCircuit != TriangleCircuitType.Phase)
-            return 1.0;
-        return 1.0 + TrianglePhaseD3RoutineSpeedBonus * GetTrianglePositiveEffectScale();
+        return 1.0;
     }
 
     public double GetTrianglePhaseAnalysisSpeedMultiplierForPeriod(double seconds)
     {
-        if (!IsTriangleSystemActive() || triangleActiveCircuit != TriangleCircuitType.Phase ||
-            seconds <= 0.0) return 1.0;
-
-        double scale = GetTrianglePositiveEffectScaleForPeriod(seconds);
-        return 1.0 + TrianglePhaseAnalysisSpeedBonus * scale;
+        return 1.0;
     }
 
     public double GetTriangleD3RoutineSpeedMultiplierForPeriod(double seconds)
     {
-        if (!IsTriangleSystemActive() || triangleActiveCircuit != TriangleCircuitType.Phase ||
-            seconds <= 0.0) return 1.0;
-        return 1.0 + TrianglePhaseD3RoutineSpeedBonus *
-            GetTrianglePositiveEffectScaleForPeriod(seconds);
+        return 1.0;
     }
 
     private double GetTrianglePositiveEffectScaleForPeriod(double seconds)
@@ -7865,6 +7984,79 @@ private double CalculateEMMultiplier()
         return tracesPerSecond;
     }
 
+    public double GetBuildingNextLevelLEPerSecond(BuildingState building)
+    {
+        if (building?.def == null || building.def.id == "fluctuation_antenna")
+            return 0.0;
+
+        BuildingDef def = building.def;
+        double perSecond = def.tickInterval > 0.0
+            ? def.lePerTickBase / GetEffectiveBuildingTickInterval(
+                def.id, def.tickInterval)
+            : def.baseLEps;
+        if (perSecond <= 0.0) return 0.0;
+
+        perSecond *= GetTriangleSynergyBuildingMultiplier(def.id);
+        perSecond *= GetTrianglePersistenceReserveBuildingMultiplier(def.id);
+        perSecond *= GetMachineArtifactProductionMultiplier(def.id);
+        perSecond *= GetDimension2ArtifactProductionMultiplier(def.id);
+        perSecond *= GetRoom1EchoArtifactLEMultiplier(def.id);
+
+        if (F2UpgradeManager.I != null)
+        {
+            if (def.id == "vacuum_observer")
+                perSecond *= 1.0 + F2UpgradeManager.I.GetContainmentTuningBonus();
+            if (def.id == "casimir_panel")
+                perSecond *= 1.0 + F2UpgradeManager.I.GetTetraquarkStabilizationBonus();
+        }
+
+        double world = GetTriangleImpulseLEMultiplier() * researchGlobalLEMult;
+        if (AchievementManager.I != null)
+            world *= AchievementManager.I.GetGlobalLEFactor();
+        if (F2UpgradeManager.I != null)
+            world *= 1.0 + F2UpgradeManager.I.GetTotalGlobalLEMultBonus();
+        if (MachineManager.I != null)
+            world *= 1.0 + MachineManager.I.GetTotalEffectValue(
+                MachineNodeEffectType.GlobalLEBonus);
+        world *= GetDimension2SanctuaryLEMultiplier();
+        world *= GetConvergenceBaseLEProductionMultiplier();
+        world *= GetMachineRoom1GlobalMultiplier();
+        world *= GetRoom1EchoGlobalLEMultiplier();
+        return System.Math.Max(0.0, perSecond * world);
+    }
+
+    public double GetBuildingNextLevelTracesPerSecond(BuildingState building)
+    {
+        if (building?.def == null || building.def.id != "casimir_panel")
+            return 0.0;
+
+        double perSecond = 0.03;
+        perSecond *= GetMachineArtifactProductionMultiplier("casimir_panel");
+        perSecond *= GetDimension2ArtifactProductionMultiplier("casimir_panel");
+        if (F2UpgradeManager.I != null)
+            perSecond *= 1.0 + F2UpgradeManager.I.GetResidualAnalysisBonus();
+        if (MachineManager.I != null)
+            perSecond *= 1.0 + MachineManager.I.GetTotalEffectValue(
+                MachineNodeEffectType.TracesBonus);
+        perSecond *= GetMachineRoom1GlobalMultiplier();
+        perSecond *= GetDimension2TraceMultiplier();
+        perSecond *= GetTriangleTracesMultiplier();
+        perSecond *= ConvergenceCircuitSystem.GetBaseTracesProductionMultiplier(this);
+        return System.Math.Max(0.0, perSecond);
+    }
+
+    public double GetBuildingNextLevelTriangleEnergyPerSecond(BuildingState building)
+    {
+        if (building?.def == null || building.def.id != "fluctuation_antenna" ||
+            building.level < 1)
+            return 0.0;
+        double gain = TriangleEnergyPerGeneratorLevel;
+        if (F2UpgradeManager.I != null)
+            gain *= 1.0 + F2UpgradeManager.I.GetTriangleEnergyProductionBonus();
+        gain *= GetTriangleEnergyFocusMultiplier();
+        return System.Math.Max(0.0, gain);
+    }
+
     public TriangleOfflineReport ApplyOfflineBaseProgress(double offlineSeconds)
     {
         EM = 0.0;
@@ -7889,6 +8081,7 @@ private double CalculateEMMultiplier()
 
         double leBefore = LE;
         double tracesBefore = Traces;
+        double triangleEnergyBefore = triangleEnergy;
         int condensationBefore = fragmentCondensation;
         int confinementBefore = fragmentConfinement;
         int residualBefore = fragmentResidualInterference;
@@ -7901,8 +8094,9 @@ private double CalculateEMMultiplier()
         // reanudar una ausencia de hasta 12 horas.
         bool hasSynchronizationRamp = IsTriangleSystemActive() &&
             triangleSynchronization < 1f &&
-            (triangleActiveCircuit == TriangleCircuitType.Energy ||
-             triangleActiveCircuit == TriangleCircuitType.Experimental);
+            (triangleActiveCircuit == TriangleCircuitType.LE ||
+             triangleActiveCircuit == TriangleCircuitType.Traces ||
+             triangleActiveCircuit == TriangleCircuitType.TriangleEnergy);
         if (hasSynchronizationRamp)
         {
             double rate = GetTriangleSynchronizationRatePerSecond();
@@ -7917,6 +8111,7 @@ private double CalculateEMMultiplier()
                     simulationStepSeconds, rampRemaining);
                 GenerateLEFromBaseAndBuildings(step);
                 GenerateExperimentalFragments(step);
+                GenerateTriangleEnergy(step);
                 UpdateTriangleSynchronization(step);
                 rampRemaining -= step;
                 remaining -= step;
@@ -7929,16 +8124,24 @@ private double CalculateEMMultiplier()
         {
             GenerateLEFromBaseAndBuildings(remaining);
             GenerateExperimentalFragments(remaining);
+            GenerateTriangleEnergy(remaining);
             UpdateTriangleSynchronization(remaining);
         }
 
+        if (triangleSynchronization >= 0.999999f)
+            UpgradeStudySystem.RecordCircuitSynchronized(this, triangleActiveCircuit);
+        UpgradeStudySystem.Advance(this, offlineSeconds);
+
         report.leGained = System.Math.Max(0.0, LE - leBefore);
         report.tracesGained = System.Math.Max(0.0, Traces - tracesBefore);
+        report.triangleEnergyGained = System.Math.Max(
+            0.0, triangleEnergy - triangleEnergyBefore);
         report.condensationGained = System.Math.Max(0, fragmentCondensation - condensationBefore);
         report.confinementGained = System.Math.Max(0, fragmentConfinement - confinementBefore);
         report.residualInterferenceGained = System.Math.Max(
             0, fragmentResidualInterference - residualBefore);
         report.hasResults = report.leGained > 0.0 || report.tracesGained > 0.0 ||
+            report.triangleEnergyGained > 0.0 ||
             report.condensationGained > 0 || report.confinementGained > 0 ||
             report.residualInterferenceGained > 0;
         lastTriangleOfflineReport = report;
@@ -8108,6 +8311,7 @@ private double CalculateEMMultiplier()
         triangleActiveCircuit = TriangleCircuitType.None;
         triangleSynchronization = 0f;
         triangleSynchronizationBaseRatePerSecond = 0.0;
+        triangleEnergy = 0.0;
         trianglePrimaryBuildingId = "";
         triangleReinforcementBuildingId = "";
         triangleAlterationBuildingId = "";
@@ -8170,6 +8374,7 @@ private double CalculateEMMultiplier()
         {
             F2UpgradeManager.I.DebugResetAllPurchases();
         }
+        UpgradeStudySystem.ResetForNewRun(this);
 
         // Investigación/base vieja del run
         SaveService.LastLoadedResearchIds = new List<string>();
