@@ -9,10 +9,10 @@ using UnityEngine;
 public static class QuantumForgeAndroidDemoBuild
 {
     private const string OutputPath =
-        "Builds/Android/QuantumForge-QA-0.1.1-MixesFix-Universal.apk";
+        "Builds/Android/QuantumForge-QA-0.1.2-Recovery-Development-ARM64.apk";
     private const string AndroidIdentifier = "com.nedfla.quantumforge";
-    private const string QaBundleVersion = "0.1.1-qa";
-    private const int QaVersionCode = 2;
+    private const string QaBundleVersion = "0.1.2-qa-recovery";
+    private const int QaVersionCode = 3;
 
     [MenuItem("Tools/Quantum Forge/Build/Build Android Demo APK")]
     public static void BuildAndroidDemo()
@@ -49,11 +49,11 @@ public static class QuantumForgeAndroidDemoBuild
             PlayerSettings.bundleVersion = QaBundleVersion;
             PlayerSettings.Android.bundleVersionCode = QaVersionCode;
             EditorUserBuildSettings.buildAppBundle = false;
-            // APK universal local: incluye ARMv7 y ARM64 sin retirar contenido.
+            // APK de recuperacion para el dispositivo conectado (ARM64).
             PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android,
                 ScriptingImplementation.IL2CPP);
             PlayerSettings.Android.targetArchitectures =
-                AndroidArchitecture.ARMv7 | AndroidArchitecture.ARM64;
+                AndroidArchitecture.ARM64;
             // Reduce el consumo de clang; todas las opciones se restauran al terminar.
             PlayerSettings.SetIl2CppCompilerConfiguration(BuildTargetGroup.Android,
                 Il2CppCompilerConfiguration.Debug);
@@ -111,7 +111,10 @@ public static class QuantumForgeAndroidDemoBuild
             scenes = scenes,
             locationPathName = OutputPath,
             target = BuildTarget.Android,
-            options = BuildOptions.None
+            // QaRuntimeService habilita las herramientas solo cuando
+            // Debug.isDebugBuild es verdadero. AllowDebugging permite además
+            // respaldar save.json con adb antes de iniciar la aplicación.
+            options = BuildOptions.Development | BuildOptions.AllowDebugging
         });
 
         BuildSummary summary = report.summary;
