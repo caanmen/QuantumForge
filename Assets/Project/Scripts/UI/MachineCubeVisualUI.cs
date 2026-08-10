@@ -112,6 +112,11 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
         previousFaceButton?.onClick.AddListener(() => RotateBy(-1));
         nextFaceButton?.onClick.AddListener(() => RotateBy(1));
 
+        ConfigureSelectedCardText(selectedNameText, 14f, false);
+        ConfigureSelectedCardText(selectedEffectText, 12f, false);
+        ConfigureSelectedCardText(selectedCostText, 12f, false);
+        ConfigureSelectedCardText(selectedRequirementsText, 12f, true);
+
         if (faces != null)
         {
             foreach (MachineCubeFaceViewUI face in faces)
@@ -708,7 +713,7 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
             (MachineManager.I.AnalysisNodeId == node.id ||
              (!string.IsNullOrWhiteSpace(node.tierGroup) &&
               MachineManager.I.AnalysisNodeId == "tierGroup:" + node.tierGroup));
-        MachineManager.I.CanRepairNode(node.id, out string reason);
+        bool canRepair = MachineManager.I.CanRepairNode(node.id, out string reason);
 
         SetText(selectedIconText, GetEffectGlyph(node));
         if (selectedIconImage != null)
@@ -723,11 +728,16 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
             GetStateLabel(node, repaired, analyzed, analyzing));
         SetText(selectedDescriptionText, node.description);
         SetText(selectedEffectText, "EFECTO  " + FormatEffect(node));
-        SetText(selectedCostText, "COSTE  " + FormatCost(MachineManager.I.GetEffectiveNodeCost(node)));
-        SetText(selectedRequirementsText, "REQUISITOS  " + FormatRequirements(node));
 
-        bool blockedByRequirement = !repaired && IsRequirementBlock(reason);
-        bool blockedByResources = !repaired && IsResourceBlock(reason);
+        bool blockedByRequirement = !repaired && !canRepair && IsRequirementBlock(reason);
+        bool blockedByResources = !repaired && !canRepair && IsResourceBlock(reason);
+        SetText(selectedCostText, blockedByResources
+            ? reason.ToUpperInvariant()
+            : "COSTE  " + FormatCost(MachineManager.I.GetEffectiveNodeCost(node)));
+        SetText(selectedRequirementsText, blockedByRequirement
+            ? FormatRequirementBlock(reason)
+            : "REQUISITOS  " + FormatRequirements(node));
+
         ApplyBlockerEmphasis(selectedRequirementsText, blockedByRequirement,
             RequirementText);
         ApplyBlockerEmphasis(selectedCostText, blockedByResources, CardText);
@@ -798,8 +808,29 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
 
     private static bool IsResourceBlock(string reason) =>
         !string.IsNullOrWhiteSpace(reason) &&
-        (reason.StartsWith("Falta LE", System.StringComparison.Ordinal) ||
-         reason.StartsWith("Faltan", System.StringComparison.Ordinal));
+        !IsRequirementBlock(reason) &&
+        (reason.StartsWith("Falta ", System.StringComparison.Ordinal) ||
+         reason.StartsWith("Faltan ", System.StringComparison.Ordinal));
+
+    private static string FormatRequirementBlock(string reason)
+    {
+        const string prefix = "Falta reparar nodo requerido: ";
+        if (reason.StartsWith(prefix, System.StringComparison.Ordinal))
+            return "FALTA REPARAR  " + reason.Substring(prefix.Length).ToUpperInvariant();
+        return reason.ToUpperInvariant();
+    }
+
+    private static void ConfigureSelectedCardText(
+        TextMeshProUGUI text, float minimumSize, bool allowWrapping)
+    {
+        if (text == null)
+            return;
+        text.enableAutoSizing = true;
+        text.fontSizeMin = Mathf.Min(text.fontSizeMin, minimumSize);
+        text.textWrappingMode = allowWrapping
+            ? TextWrappingModes.Normal
+            : TextWrappingModes.NoWrap;
+    }
 
     private static void ApplyBlockerEmphasis(TextMeshProUGUI text, bool emphasize,
         Color normalColor)
@@ -842,25 +873,31 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
         if (cost == null)
             return "—";
         StringBuilder builder = new StringBuilder();
-        AppendCost(builder, cost.le, "LE");
-        AppendCost(builder, cost.traces, "TRAZAS");
-        AppendCost(builder, cost.hallazgo, "HALLAZGOS");
-        AppendCost(builder, cost.muestra, "MUESTRAS");
-        AppendCost(builder, cost.lecturaIncompleta, "LECTURAS");
-        AppendCost(builder, cost.compuestoUtil, "COMPUESTOS");
-        AppendCost(builder, cost.pureInstant, "PUROS");
-        AppendCost(builder, cost.stableInstant, "ESTABLES");
-        AppendCost(builder, cost.forcedInstant, "FORZADOS");
+        AppendCost(builder, cost.le, "LE", "LE");
+        AppendCost(builder, cost.traces, "TRAZA", "TRAZAS");
+        AppendCost(builder, cost.hallazgo, "HALLAZGO", "HALLAZGOS");
+        AppendCost(builder, cost.muestra, "MUESTRA", "MUESTRAS");
+        AppendCost(builder, cost.lecturaIncompleta,
+            "LECTURA INCOMPLETA", "LECTURAS INCOMPLETAS");
+        AppendCost(builder, cost.compuestoUtil,
+            "COMPUESTO ÚTIL", "COMPUESTOS ÚTILES");
+        AppendCost(builder, cost.pureInstant, "ANCLAJE PURO", "ANCLAJES PUROS");
+        AppendCost(builder, cost.stableInstant,
+            "ANCLAJE ESTABLE", "ANCLAJES ESTABLES");
+        AppendCost(builder, cost.forcedInstant,
+            "ANCLAJE FORZADO", "ANCLAJES FORZADOS");
         return builder.Length == 0 ? "SIN COSTE" : builder.ToString();
     }
 
-    private static void AppendCost(StringBuilder builder, double value, string label)
+    private static void AppendCost(
+        StringBuilder builder, double value, string singular, string plural)
     {
         if (value <= 0.0)
             return;
         if (builder.Length > 0)
             builder.Append("  ·  ");
-        builder.Append(FormatNumber(value)).Append(' ').Append(label);
+        builder.Append(FormatNumber(value)).Append(' ')
+            .Append(System.Math.Abs(value - 1.0) < 0.000001 ? singular : plural);
     }
 
     private static string FormatNumber(double value)
@@ -877,22 +914,43 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
         string percentValue = node.effectValue > 0.0
             ? "  +" + (node.effectValue * 100.0).ToString("0.##") + "%"
             : "";
+        string reducedPercentValue = node.effectValue > 0.0
+            ? "  -" + (node.effectValue * 100.0).ToString("0.##") + "%"
+            : "";
         return node.effectType switch
         {
             MachineNodeEffectType.GlobalLEBonus => "PRODUCCIÓN GLOBAL DE LE" + percentValue,
-            MachineNodeEffectType.TracesBonus => "GENERACIÓN DE TRAZAS" + value,
-            MachineNodeEffectType.TriangleBonus => "SINCRONIZACIÓN TRIANGULAR" + value,
-            MachineNodeEffectType.ArtifactBonus => "CALIBRACIÓN DE ARTEFACTOS" + value,
-            MachineNodeEffectType.Room1GlobalBonus => "SINCRONIZACIÓN DEL CUARTO 1" + value,
-            MachineNodeEffectType.UnlockFusionSlot => "RANURA DE FUSIÓN" + value,
-            MachineNodeEffectType.FusionFailureReduction => "REDUCCIÓN DE RIESGO" + value,
-            MachineNodeEffectType.FusionUsefulResultBonus => "RESULTADO ÚTIL" + value,
-            MachineNodeEffectType.FusionTimeReduction => "TIEMPO DE FUSIÓN" + value,
+            MachineNodeEffectType.TracesBonus => "GENERACIÓN DE TRAZAS" + percentValue,
+            MachineNodeEffectType.TriangleBonus => "SINCRONIZACIÓN TRIANGULAR" + percentValue,
+            MachineNodeEffectType.ArtifactBonus => "CALIBRACIÓN DE ARTEFACTOS" + percentValue,
+            MachineNodeEffectType.Room1GlobalBonus => "SINCRONIZACIÓN DEL CUARTO 1" + percentValue,
+            MachineNodeEffectType.UnlockFusionSlot => "RANURAS DE FUSIÓN  " + node.effectValue.ToString("0"),
+            MachineNodeEffectType.FusionFailureReduction => "RIESGO DE FALLO" + reducedPercentValue,
+            MachineNodeEffectType.FusionUsefulResultBonus => "PROBABILIDAD DE RESULTADO ÚTIL" + percentValue,
+            MachineNodeEffectType.FusionTimeReduction => "DURACIÓN DE FUSIÓN" + reducedPercentValue,
             MachineNodeEffectType.RevealFusionProbabilities => "LECTURA DE COMPOSICIÓN",
+            MachineNodeEffectType.CatalystTuning => "AFINACIÓN DE CATALIZADORES",
+            MachineNodeEffectType.StableReactionChamber => "CÁMARA DE REACCIÓN ESTABLE",
+            MachineNodeEffectType.GuidedSynthesis => "SÍNTESIS GUIADA",
+            MachineNodeEffectType.SynthesisCore => "NÚCLEO DE SÍNTESIS",
             MachineNodeEffectType.UnlockDiagnostics => "DIAGNÓSTICO INTERNO",
             MachineNodeEffectType.RevealHiddenSubnodes => "REVELAR NODOS SECRETOS",
+            MachineNodeEffectType.CompensationCircuit => "CIRCUITO DE COMPENSACIÓN",
+            MachineNodeEffectType.UnlockMachineMemory => "MEMORIA DE LA MÁQUINA",
+            MachineNodeEffectType.ZoneProgressSyncBonus => "SINCRONIZACIÓN POR SECTOR",
+            MachineNodeEffectType.StructuralSupportBonus => "REFUERZO ESTRUCTURAL",
             MachineNodeEffectType.EnablePrestige1 => "CANAL DE CONVERGENCIA",
+            MachineNodeEffectType.DiagnosticReasonMarker => "DIAGNÓSTICO DE FALLAS",
+            MachineNodeEffectType.InternalSupportBonus => "SOPORTE INTERNO" + percentValue,
             MachineNodeEffectType.UnlockInstantChamber => "CÁMARA DE ANCLAJES",
+            MachineNodeEffectType.SeedReadingBonus => "LECTURA DE MADURACIÓN",
+            MachineNodeEffectType.ArchiveSlotBonus => "ESPACIOS DE ARCHIVO" + value,
+            MachineNodeEffectType.InstantInitialStabilityBonus => "ESTABILIDAD INICIAL" + percentValue,
+            MachineNodeEffectType.SynchronizeStabilityBonus => "ESTABILIDAD POR SINCRONIZACIÓN" + value,
+            MachineNodeEffectType.TensionContainmentBonus => "TENSIÓN POR ESTABILIZACIÓN  -" + node.effectValue.ToString("0.##"),
+            MachineNodeEffectType.SafeRewindBonus => "PÉRDIDA AL COMPENSAR  -" + node.effectValue.ToString("0.##"),
+            MachineNodeEffectType.SeedSlotBonus => "ESPACIOS DE SEMILLA" + value,
+            MachineNodeEffectType.PureMaterialThresholdReduction => "UMBRAL DE ANCLAJE PURO" + reducedPercentValue,
             _ => node.effectType.ToString().ToUpperInvariant().Replace('_', ' ') + value
         };
     }

@@ -393,7 +393,7 @@ public class MachinePanelUI : MonoBehaviour
             sb.AppendLine("Costo: " + FormatCost(effectiveCost));
 
             if (!canRepair)
-                sb.AppendLine("Falta: " + reason);
+                sb.AppendLine(reason);
         }
 
             sb.AppendLine();
@@ -952,15 +952,24 @@ public class MachinePanelUI : MonoBehaviour
             selectedNode != null
             && MachineManager.I.AnalysisNodeId == selectedNode.id;
 
+        bool requiresAnalysis = selectedNodeDamaged &&
+            !selectedNodeRepaired && !selectedNodeAnalyzed;
+
+        string analyzeBlockedReason = "";
         bool canAnalyzeSelectedNode =
             selectedNode != null
             && selectedNodeDamaged
             && !selectedNodeRepaired
             && !selectedNodeAnalyzed
-            && !isAnalyzingAnyNode;
+            && !isAnalyzingAnyNode
+            && MachineManager.I.CanAnalyzeNode(
+                selectedNode.id, false, out analyzeBlockedReason);
 
-        bool requiresAnalysis = selectedNodeDamaged &&
-            !selectedNodeRepaired && !selectedNodeAnalyzed;
+        if (requiresAnalysis && !unlocked)
+        {
+            analyzeBlockedReason =
+                "Repara Diagnóstico Interno en Soporte Interno para analizar nodos dañados.";
+        }
 
         bool canRepairSelectedNode = selectedNode != null && MachineManager.I != null &&
             MachineManager.I.CanRepairNode(selectedNode.id, out _);
@@ -1008,7 +1017,16 @@ public class MachinePanelUI : MonoBehaviour
             return;
         }
 
-        nodeAnalysisText.text = BuildSelectedNodeExtraInfoText(selectedNode);    }
+        if (requiresAnalysis)
+        {
+            nodeAnalysisText.text = canAnalyzeSelectedNode
+                ? "Nodo dañado. Pulsa ANALIZAR para revelar sus requisitos de reparación."
+                : analyzeBlockedReason;
+            return;
+        }
+
+        nodeAnalysisText.text = BuildSelectedNodeExtraInfoText(selectedNode);
+    }
 
     private void AlignNodeActionButtons()
     {
@@ -1163,15 +1181,17 @@ public class MachinePanelUI : MonoBehaviour
             return;
         }
 
-        if (MachineManager.I.MachineAllZonesUnlocked)
+        if (MachineManager.I.MachineFusionPanelUnlocked)
         {
-            machineNoticeText.text = "La Máquina ha estabilizado nuevas secciones.";
+            machineNoticeText.text = MachineManager.I.GetUnlockedFusionSlotCount() > 0
+                ? "Mezclas operativas: combina fragmentos para obtener Hallazgos, Muestras, Lecturas Incompletas y Compuestos Útiles."
+                : "Panel de Mezclas detectado. Repara la Mesa de Fusión para producir materiales experimentales.";
             return;
         }
 
-        if (MachineManager.I.MachineFusionPanelUnlocked)
+        if (MachineManager.I.MachineAllZonesUnlocked)
         {
-            machineNoticeText.text = "Señal detectada: el Panel de Fusión está disponible. Usa fusiones para obtener materiales experimentales.";
+            machineNoticeText.text = "La Máquina ha estabilizado nuevas secciones.";
             return;
         }
 
@@ -1308,28 +1328,39 @@ public class MachinePanelUI : MonoBehaviour
             parts.Add(cost.le.ToString("0") + " LE");
 
         if (cost.traces > 0)
-            parts.Add(cost.traces.ToString("0") + " Trazas");
+            parts.Add(cost.traces.ToString("0") +
+                (System.Math.Abs(cost.traces - 1.0) < 0.000001 ? " Traza" : " Trazas"));
 
         if (cost.hallazgo > 0)
-            parts.Add(cost.hallazgo + " Hallazgo");
+            parts.Add(cost.hallazgo + (cost.hallazgo == 1 ? " Hallazgo" : " Hallazgos"));
 
         if (cost.muestra > 0)
-            parts.Add(cost.muestra + " Muestra");
+            parts.Add(cost.muestra + (cost.muestra == 1 ? " Muestra" : " Muestras"));
 
         if (cost.lecturaIncompleta > 0)
-            parts.Add(cost.lecturaIncompleta + " Lectura Incompleta");
+            parts.Add(cost.lecturaIncompleta + (cost.lecturaIncompleta == 1
+                ? " Lectura Incompleta"
+                : " Lecturas Incompletas"));
 
         if (cost.compuestoUtil > 0)
-            parts.Add(cost.compuestoUtil + " Compuesto Útil");
+            parts.Add(cost.compuestoUtil + (cost.compuestoUtil == 1
+                ? " Compuesto Útil"
+                : " Compuestos Útiles"));
 
         if (cost.pureInstant > 0)
-            parts.Add(cost.pureInstant + " Anclaje Puro");
+            parts.Add(cost.pureInstant + (cost.pureInstant == 1
+                ? " Anclaje Puro"
+                : " Anclajes Puros"));
 
         if (cost.stableInstant > 0)
-            parts.Add(cost.stableInstant + " Anclaje Estable");
+            parts.Add(cost.stableInstant + (cost.stableInstant == 1
+                ? " Anclaje Estable"
+                : " Anclajes Estables"));
 
         if (cost.forcedInstant > 0)
-            parts.Add(cost.forcedInstant + " Anclaje Forzado");
+            parts.Add(cost.forcedInstant + (cost.forcedInstant == 1
+                ? " Anclaje Forzado"
+                : " Anclajes Forzados"));
 
         if (parts.Count == 0)
             return "sin costo";

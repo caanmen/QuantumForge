@@ -152,6 +152,10 @@ public class GameState : MonoBehaviour
     [Header("F3 / Cuarto 2 - Núcleo de Síntesis")]
     public int synthesisCoreFusionCounter = 0;
 
+    [Header("F3 / Cuarto 2 - Estado de Mezclas")]
+    public int fusionInstability = 0;
+    public double fusionCooldownRemainingSeconds = 0.0;
+
     [Header("Zona 4 - Semillas Dimensionales")]
     public double chronalSeedDurationSeconds = 5.0; // prueba temporal
     public List<ChronalSeedSlotState> chronalSeedSlots = new List<ChronalSeedSlotState>();
@@ -8336,6 +8340,8 @@ private double CalculateEMMultiplier()
 
         synthesisCoreFusionCounter = 0;
         guidedSynthesisIntent = 0;
+        fusionInstability = 0;
+        fusionCooldownRemainingSeconds = 0.0;
 
         // Zona 4 actual: Semillas Dimensionales / Anclajes.
         // Aunque internamente aún se llamen chronal, los reseteamos como sistema activo del run.

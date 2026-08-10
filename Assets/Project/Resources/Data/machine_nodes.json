@@ -107,7 +107,7 @@
         "z1_traces_channel_1"
       ],
       "hidden": false,
-      "damaged": false,
+      "damaged": true,
       "tierGroup": "z1_traces_channel",
       "tierIndex": 2
     },
@@ -247,7 +247,7 @@
         "z1_traces_channel_3"
       ],
       "hidden": false,
-      "damaged": false,
+      "damaged": true,
       "tierGroup": "",
       "tierIndex": 0
     },
@@ -601,7 +601,7 @@
     {
       "id": "z2_fusion_time_control_2",
       "name": "Control de Flujo de Fusión II",
-      "description": "Mejora la reducción total de la duracion de fusión.",
+      "description": "Mejora la reducción total de la duración de fusión.",
       "zone": 2,
       "effectType": 23,
       "effectValue": 0.05,
@@ -647,7 +647,7 @@
     {
       "id": "z2_catalyst_tuning",
       "name": "Afinación de Catalizadores",
-      "description": "Alpha obtiene +5% al resultado principal. Beta reduce -5% el fallo.",
+      "description": "Alpha aumenta un 5 % la probabilidad de recompensa adicional. Beta reduce un 5 % el riesgo de fallo.",
       "zone": 2,
       "effectType": 25,
       "effectValue": 1.0,
@@ -1317,7 +1317,7 @@
     },
     {
       "id": "z4_safe_rewind_2",
-      "name": "Compensación Seguro II",
+      "name": "Compensación Segura II",
       "description": "Compensar pierde 1 punto menos de estabilidad adicional.",
       "zone": 4,
       "effectType": 66,

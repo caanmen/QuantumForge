@@ -125,6 +125,9 @@ public class Room2PanelUI : MonoBehaviour
         : 0;
     public string InstabilityStateDisplayName => GetInstabilityStateName();
     public string LastFusionResultDisplayName => GetResultDisplayName(lastFusionResult);
+    public string LastFusionRewardDisplayText =>
+        BuildRewardDisplayText(lastFusionResult, lastRewardAmount);
+    public bool IsEnglishUi => IsEnglishLanguage();
     public int ExperimentalLogEntryCount
     {
         get
@@ -178,6 +181,7 @@ public class Room2PanelUI : MonoBehaviour
             guidedIntentButton.onClick.AddListener(OnClickGuidedIntentButton);
 
         LoadGuidedIntentFromGameState();
+        PullFusionRuntimeStateFromGameState();
 
         RefreshInstabilityUI();
         RefreshTrialModeUI();
@@ -190,7 +194,31 @@ public class Room2PanelUI : MonoBehaviour
     private void OnEnable()
     {
         LoadGuidedIntentFromGameState();
+        PullFusionRuntimeStateFromGameState();
         RefreshGuidedSynthesisUI();
+    }
+
+    private void PullFusionRuntimeStateFromGameState()
+    {
+        if (GameState.I == null)
+            return;
+
+        currentInstability = System.Math.Max(0, GameState.I.fusionInstability);
+        double savedCooldown = GameState.I.fusionCooldownRemainingSeconds;
+        currentFusionCooldownSeconds =
+            double.IsNaN(savedCooldown) || double.IsInfinity(savedCooldown)
+                ? 0.0
+                : System.Math.Max(0.0, savedCooldown);
+    }
+
+    private void PushFusionRuntimeStateToGameState()
+    {
+        if (GameState.I == null)
+            return;
+
+        GameState.I.fusionInstability = System.Math.Max(0, currentInstability);
+        GameState.I.fusionCooldownRemainingSeconds = System.Math.Max(
+            0.0, currentFusionCooldownSeconds);
     }
 
     private int GetUnlockedFusionSlotCount()
@@ -427,6 +455,8 @@ public class Room2PanelUI : MonoBehaviour
         if (GameState.I == null)
             return;
 
+        PullFusionRuntimeStateFromGameState();
+
         if (currentInstability <= 0)
             return;
 
@@ -439,6 +469,8 @@ public class Room2PanelUI : MonoBehaviour
 
         if (currentInstability < 0)
             currentInstability = 0;
+
+        PushFusionRuntimeStateToGameState();
 
         RefreshInstabilityUI();
         RefreshCoolButtonUI();
@@ -921,6 +953,8 @@ public class Room2PanelUI : MonoBehaviour
 
     private void Update()
     {
+        PullFusionRuntimeStateFromGameState();
+
         if (currentFusionCooldownSeconds > 0.0)
         {
             double elapsed = QaRuntimeService.ScaleOnlineSeconds(
@@ -940,6 +974,7 @@ public class Room2PanelUI : MonoBehaviour
 
         currentFusionCooldownSeconds = System.Math.Max(
             0.0, currentFusionCooldownSeconds - simulatedSeconds);
+        PushFusionRuntimeStateToGameState();
     }
 
     private void RefreshUI()
@@ -1060,19 +1095,27 @@ public class Room2PanelUI : MonoBehaviour
         {
             int available = GameState.I.GetFragmentCount(selectedFragmentA);
             string name = GetFragmentDisplayName(selectedFragmentA);
+            int missingCount = System.Math.Max(0, 2 - available);
             return english
-                ? "This recipe needs 2 " + name + " fragments; you have " + available + "."
-                : "Esta receta necesita 2 fragmentos de " + name + "; tienes " + available + ".";
+                ? "Missing " + missingCount + " fragment" + (missingCount == 1 ? ": " : "s: ") + name + "."
+                : "Falta" + (missingCount == 1 ? " " : "n ") + missingCount +
+                  " fragmento" + (missingCount == 1 ? ": " : "s: ") + name + ".";
         }
 
-        ExperimentalFragmentType missing =
-            GameState.I.GetFragmentCount(selectedFragmentA) <= 0
-                ? selectedFragmentA
-                : selectedFragmentB;
-        string missingName = GetFragmentDisplayName(missing);
+        bool missingA = GameState.I.GetFragmentCount(selectedFragmentA) <= 0;
+        bool missingB = GameState.I.GetFragmentCount(selectedFragmentB) <= 0;
+        string nameA = GetFragmentDisplayName(selectedFragmentA);
+        string nameB = GetFragmentDisplayName(selectedFragmentB);
+
+        if (missingA && missingB)
+            return english
+                ? "Missing: 1 " + nameA + " + 1 " + nameB + "."
+                : "Faltan: 1 " + nameA + " + 1 " + nameB + ".";
+
+        string missingName = missingA ? nameA : nameB;
         return english
-            ? "You need 1 " + missingName + " fragment for this recipe."
-            : "Necesitas 1 fragmento de " + missingName + " para esta receta.";
+            ? "Missing 1 fragment: " + missingName + "."
+            : "Falta 1 fragmento: " + missingName + ".";
     }
 
     private static bool IsEnglishLanguage()
@@ -1263,6 +1306,7 @@ public class Room2PanelUI : MonoBehaviour
     private void OnClickMixButton()
     {
         isShowingLogPreview = false;
+        PullFusionRuntimeStateFromGameState();
 
         if (!CanExecuteFusion)
         {
@@ -1335,6 +1379,7 @@ public class Room2PanelUI : MonoBehaviour
 
         currentInstability += GetTrialModeInstabilityGain();
         currentFusionCooldownSeconds = GetFusionCooldownDuration();
+        PushFusionRuntimeStateToGameState();
         RefreshInstabilityUI();
         RefreshCoolButtonUI();
         RefreshFusionSlotsUI();
@@ -1345,14 +1390,21 @@ public class Room2PanelUI : MonoBehaviour
 
             if (failureConverted)
             {
-                statusText.text += "\nFallo fuerte estabilizado por la Cámara de Reacción.";
+                statusText.text += IsEnglishLanguage()
+                    ? "\nSevere failure stabilized by the Reaction Chamber."
+                    : "\nFallo fuerte estabilizado por la Cámara de Reacción.";
             }
 
             if (synthesisCoreWasCharged)
             {
-                statusText.text += "\nNúcleo de Síntesis descargado: fusión reforzada.";
+                statusText.text += IsEnglishLanguage()
+                    ? "\nSynthesis Core discharged: fusion reinforced."
+                    : "\nNúcleo de Síntesis descargado: fusión reforzada.";
             }
         }
+
+        if (SaveService.I != null)
+            SaveService.I.Save();
     }
 
     private void OnClickLogButton()
@@ -1515,13 +1567,9 @@ public class Room2PanelUI : MonoBehaviour
             ? LocalizationManager.I.T("room2.result.label")
             : "Resultado del ensayo:";
 
-        string noneText = LocalizationManager.I != null
-            ? LocalizationManager.I.T("room2.result.none")
-            : "Sin resultado";
-
         string rewardLabel = LocalizationManager.I != null
             ? LocalizationManager.I.T("room2.result.reward")
-            : "Reward:";
+            : "Recompensa:";
 
         if (result == ExperimentalResultType.None)
         {
@@ -1534,8 +1582,9 @@ public class Room2PanelUI : MonoBehaviour
 
             int rewardAmount = lastRewardAmount > 0 ? lastRewardAmount : GetTrialModeRewardAmount();
             string resultName = GetResultDisplayName(result);
+            string rewardName = GetResultDisplayName(result, rewardAmount != 1);
 
-            return resultLabel + " " + resultName + " | " + rewardLabel + " +" + rewardAmount + " " + resultName;
+            return resultLabel + " " + resultName + " | " + rewardLabel + " +" + rewardAmount + " " + rewardName;
     }
 
     
@@ -1582,19 +1631,20 @@ public class Room2PanelUI : MonoBehaviour
 
     private string GetFragmentDisplayName(ExperimentalFragmentType fragment)
     {
+        bool english = IsEnglishLanguage();
         switch (fragment)
         {
             case ExperimentalFragmentType.Condensation:
-                return "Condensación";
+                return english ? "Condensation" : "Condensación";
 
             case ExperimentalFragmentType.Confinement:
-                return "Confinamiento";
+                return english ? "Confinement" : "Confinamiento";
 
             case ExperimentalFragmentType.ResidualInterference:
-                return "Residual";
+                return english ? "Residual" : "Residual";
 
             default:
-                return "Ninguno";
+                return english ? "None" : "Ninguno";
         }
     }
 
@@ -1613,25 +1663,42 @@ public class Room2PanelUI : MonoBehaviour
         }
     }
 
-    private string GetResultDisplayName(ExperimentalResultType result)
+    private string GetResultDisplayName(ExperimentalResultType result, bool plural = false)
     {
+        bool english = IsEnglishLanguage();
         switch (result)
         {
             case ExperimentalResultType.Hallazgo:
-                return "Hallazgo";
+                return english
+                    ? plural ? "Findings" : "Finding"
+                    : plural ? "Hallazgos" : "Hallazgo";
 
             case ExperimentalResultType.Muestra:
-                return "Muestra";
+                return english
+                    ? plural ? "Samples" : "Sample"
+                    : plural ? "Muestras" : "Muestra";
 
             case ExperimentalResultType.LecturaIncompleta:
-                return "Lectura incompleta";
+                return english
+                    ? plural ? "Incomplete readings" : "Incomplete reading"
+                    : plural ? "Lecturas incompletas" : "Lectura incompleta";
 
             case ExperimentalResultType.CompuestoUtil:
-                return "Compuesto útil";
+                return english
+                    ? plural ? "Useful compounds" : "Useful compound"
+                    : plural ? "Compuestos útiles" : "Compuesto útil";
 
             default:
                 return "???";
         }
+    }
+
+    private string BuildRewardDisplayText(ExperimentalResultType result, int amount)
+    {
+        if (result == ExperimentalResultType.None || amount <= 0)
+            return IsEnglishLanguage() ? "No recoverable result" : "Sin resultado recuperable";
+
+        return "+" + amount + " " + GetResultDisplayName(result, amount != 1);
     }
 
     private string BuildRecipeLogLine(
@@ -1656,7 +1723,7 @@ public class Room2PanelUI : MonoBehaviour
 
         return left + " + " + right + " + " + catalystName +
             " = " + resultText +
-            " | Reward: " + rewardText;
+            (IsEnglishLanguage() ? " | Reward: " : " | Recompensa: ") + rewardText;
     }
 
     private string BuildRecipeLogText()

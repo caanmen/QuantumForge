@@ -108,21 +108,22 @@ public sealed class MachineFusionPanelVisualUI : MonoBehaviour
     private void RefreshButtons()
     {
         bool cooling = roomPanel.FusionCoolingDown;
+        bool english = roomPanel.IsEnglishUi;
         if (mixButton != null)
             mixButton.interactable = roomPanel.CanExecuteFusion;
         if (mixButtonText != null)
         {
             if (!roomPanel.HasUnlockedFusionSlot)
-                mixButtonText.text = "REPARA MESA DE FUSIÓN";
+                mixButtonText.text = english ? "REPAIR FUSION TABLE" : "REPARA MESA DE FUSIÓN";
             else if (cooling)
-                mixButtonText.text = "ESTABILIZANDO " +
+                mixButtonText.text = (english ? "STABILIZING " : "ESTABILIZANDO ") +
                     roomPanel.FusionCooldownRemaining.ToString("0.0") + " S";
             else if (!roomPanel.FusionSelectionComplete)
-                mixButtonText.text = "SELECCIONA COMPONENTES";
+                mixButtonText.text = english ? "SELECT COMPONENTS" : "SELECCIONA COMPONENTES";
             else if (!roomPanel.HasRequiredFragmentsForSelection)
-                mixButtonText.text = "FRAGMENTOS INSUFICIENTES";
+                mixButtonText.text = english ? "MISSING FRAGMENTS" : "FALTAN FRAGMENTOS";
             else
-                mixButtonText.text = "FUSIONAR";
+                mixButtonText.text = english ? "FUSE" : "FUSIONAR";
             mixButtonText.color = roomPanel.CanExecuteFusion ? Color.white : Muted;
         }
 
@@ -131,11 +132,11 @@ public sealed class MachineFusionPanelVisualUI : MonoBehaviour
         if (coolButtonText != null)
         {
             if (roomPanel.CanCoolCurrentInstability)
-                coolButtonText.text = "ENFRIAR · 30 TRAZAS";
+                coolButtonText.text = english ? "COOL · 30 TRACES" : "ENFRIAR · 30 TRAZAS";
             else if (roomPanel.CurrentInstability <= 0)
-                coolButtonText.text = "ENFRIAR · SISTEMA ESTABLE";
+                coolButtonText.text = english ? "COOL · SYSTEM STABLE" : "ENFRIAR · SISTEMA ESTABLE";
             else
-                coolButtonText.text = "ENFRIAR · FALTAN TRAZAS";
+                coolButtonText.text = english ? "COOL · MISSING TRACES" : "ENFRIAR · FALTAN TRAZAS";
             coolButtonText.color = roomPanel.CanCoolCurrentInstability
                 ? Color.white
                 : Muted;
@@ -156,6 +157,7 @@ public sealed class MachineFusionPanelVisualUI : MonoBehaviour
         bool completed = roomPanel.HasCompletedFusion;
         ExperimentalResultType result = roomPanel.LastFusionResult;
         bool success = completed && result != ExperimentalResultType.None;
+        bool english = roomPanel.IsEnglishUi;
 
         if (resultIcon != null)
             resultIcon.color = success ? Violet : completed ? Red : Muted;
@@ -174,14 +176,15 @@ public sealed class MachineFusionPanelVisualUI : MonoBehaviour
             }
             else if (!success)
             {
-                resultTitle.text = "RESULTADO: FUSIÓN INESTABLE";
+                resultTitle.text = english
+                    ? "RESULT: UNSTABLE FUSION"
+                    : "RESULTADO: FUSIÓN INESTABLE";
                 resultTitle.color = Red;
             }
             else
             {
-                resultTitle.text = "RESULTADO: " +
-                    roomPanel.LastFusionResultDisplayName.ToUpperInvariant() +
-                    " CATALOGADO";
+                resultTitle.text = (english ? "RESULT: " : "RESULTADO: ") +
+                    roomPanel.LastFusionResultDisplayName.ToUpperInvariant();
                 resultTitle.color = Green;
             }
         }
@@ -191,17 +194,20 @@ public sealed class MachineFusionPanelVisualUI : MonoBehaviour
             resultDetail.text = !completed
                 ? roomPanel.FusionGuidanceMessage
                 : success
-                    ? "MUESTRA EXPERIMENTAL  +" + roomPanel.LastFusionRewardAmount
-                    : "SIN MUESTRA RECUPERABLE";
+                    ? roomPanel.LastFusionRewardDisplayText.ToUpperInvariant()
+                    : english ? "NO RECOVERABLE RESULT" : "SIN RESULTADO RECUPERABLE";
             resultDetail.color = completed ? Color.white : Muted;
         }
 
         if (resultMeta != null)
         {
             resultMeta.text = completed
-                ? "+" + roomPanel.LastFusionInstabilityGain + " INESTABILIDAD" +
-                  "     ·     NÚCLEO " + roomPanel.SynthesisCoreCounter + "/10"
-                : "RIESGO Y RECOMPENSA SE ACTUALIZAN EN TIEMPO REAL";
+                ? "+" + roomPanel.LastFusionInstabilityGain +
+                  (english ? " INSTABILITY     ·     CORE " : " INESTABILIDAD     ·     NÚCLEO ") +
+                  roomPanel.SynthesisCoreCounter + "/10"
+                : english
+                    ? "RISK AND REWARD UPDATE IN REAL TIME"
+                    : "RIESGO Y RECOMPENSA SE ACTUALIZAN EN TIEMPO REAL";
             resultMeta.color = completed ? Violet : Muted;
         }
     }
@@ -212,15 +218,16 @@ public sealed class MachineFusionPanelVisualUI : MonoBehaviour
             return;
 
         int risk = Mathf.RoundToInt(roomPanel.CurrentFusionRisk01 * 100f);
+        bool english = roomPanel.IsEnglishUi;
         string flow = roomPanel.FusionCoolingDown
-            ? "CONVERGENCIA EN ESTABILIZACIÓN"
+            ? english ? "CONVERGENCE STABILIZING" : "CONVERGENCIA EN ESTABILIZACIÓN"
             : roomPanel.FusionSelectionComplete
-                ? "CONVERGENCIA DE FLUJOS: ÓPTIMA"
-                : "CONVERGENCIA DE FLUJOS: EN ESPERA";
+                ? english ? "FLOW CONVERGENCE: OPTIMAL" : "CONVERGENCIA DE FLUJOS: ÓPTIMA"
+                : english ? "FLOW CONVERGENCE: WAITING" : "CONVERGENCIA DE FLUJOS: EN ESPERA";
         diagnosticText.text =
-            "DIAGNÓSTICO DEL NÚCLEO     ·     RIESGO " + risk + "%" +
+            (english ? "CORE DIAGNOSTIC     ·     RISK " : "DIAGNÓSTICO DEL NÚCLEO     ·     RIESGO ") + risk + "%" +
             "     ·     " + roomPanel.InstabilityStateDisplayName.ToUpperInvariant() +
-            "\n" + flow + "     ·     NÚCLEO " +
+            "\n" + flow + (english ? "     ·     CORE " : "     ·     NÚCLEO ") +
             roomPanel.SynthesisCoreCounter + "/10";
     }
 

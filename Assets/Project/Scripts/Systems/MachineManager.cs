@@ -248,12 +248,24 @@ public class MachineManager : MonoBehaviour
 
         if (data.machineAnalyzedNodeIds != null)
         {
-            foreach (string nodeId in data.machineAnalyzedNodeIds)
+            foreach (string analysisKey in data.machineAnalyzedNodeIds)
             {
-                if (string.IsNullOrWhiteSpace(nodeId))
+                if (string.IsNullOrWhiteSpace(analysisKey))
                     continue;
 
-                _analyzedNodeIds.Add(nodeId);
+                if (analysisKey.StartsWith("tierGroup:",
+                        System.StringComparison.Ordinal))
+                {
+                    MigrateLegacyTierGroupAnalysis(analysisKey);
+                    continue;
+                }
+
+                MachineNodeDef analyzedDef = GetDef(analysisKey);
+                if (analyzedDef != null && analyzedDef.damaged &&
+                    !IsNodeRepaired(analyzedDef.id))
+                {
+                    _analyzedNodeIds.Add(analyzedDef.id);
+                }
             }
         }
 
@@ -319,11 +331,7 @@ public class MachineManager : MonoBehaviour
         if (def == null)
             return false;
 
-        string analysisKey = GetNodeAnalysisKey(def);
-
-        return
-            _analyzedNodeIds.Contains(analysisKey) ||
-            _analyzedNodeIds.Contains(nodeId);
+        return _analyzedNodeIds.Contains(def.id);
     }
 
     public void MarkNodeAnalyzed(string nodeId)
@@ -342,8 +350,7 @@ public class MachineManager : MonoBehaviour
         if (_repairedNodeIds.Contains(nodeId))
             return;
 
-        string analysisKey = GetNodeAnalysisKey(def);
-        _analyzedNodeIds.Add(analysisKey);
+        _analyzedNodeIds.Add(def.id);
 
         if (SaveService.I != null)
         {
@@ -403,6 +410,11 @@ public class MachineManager : MonoBehaviour
             reason = "Nodo ya analizado.";
             return false;
         }
+        if (!NodeAnalysisUnlocked)
+        {
+            reason = "Repara Diagnóstico Interno en la cara Soporte Interno para habilitar el análisis.";
+            return false;
+        }
         if (requireAutomatable && (def.hidden || string.IsNullOrWhiteSpace(def.tierGroup)))
         {
             reason = "El nodo no es una acción repetible automatizable.";
@@ -444,15 +456,36 @@ public class MachineManager : MonoBehaviour
         AdvanceAnalysis(offlineSeconds);
     }
 
-    private string GetNodeAnalysisKey(MachineNodeDef def)
+    private void MigrateLegacyTierGroupAnalysis(string legacyAnalysisKey)
     {
-        if (def == null)
-            return "";
+        const string prefix = "tierGroup:";
+        string tierGroup = legacyAnalysisKey.Substring(prefix.Length);
+        if (string.IsNullOrWhiteSpace(tierGroup))
+            return;
 
-        if (!string.IsNullOrWhiteSpace(def.tierGroup))
-            return "tierGroup:" + def.tierGroup;
+        MachineNodeDef pendingDamagedTier = null;
+        foreach (MachineNodeDef def in _allNodes)
+        {
+            if (def == null || !def.damaged ||
+                def.tierGroup != tierGroup || IsNodeRepaired(def.id))
+            {
+                continue;
+            }
 
-        return def.id;
+            if (pendingDamagedTier == null ||
+                def.tierIndex < pendingDamagedTier.tierIndex)
+            {
+                pendingDamagedTier = def;
+            }
+        }
+
+        if (pendingDamagedTier == null)
+            return;
+
+        _analyzedNodeIds.Add(pendingDamagedTier.id);
+        Debug.Log(
+            "[MachineManager] Análisis legado migrado: " + legacyAnalysisKey +
+            " -> " + pendingDamagedTier.id);
     }
     private bool IsRequirementSatisfiedForNode(MachineNodeDef currentDef, string requiredId)
     {
@@ -750,68 +783,86 @@ public class MachineManager : MonoBehaviour
 
         if (GameState.I.LE < cost.le)
         {
-            reason = "Falta LE: " + (cost.le - GameState.I.LE).ToString("0.##");
+            reason = FormatMissingAmount(
+                cost.le - GameState.I.LE, "LE", "LE");
             return false;
         }
 
         if (GameState.I.Traces < cost.traces)
         {
-            reason = "Faltan Trazas: " +
-                (cost.traces - GameState.I.Traces).ToString("0.##");
+            reason = FormatMissingAmount(
+                cost.traces - GameState.I.Traces, "Traza", "Trazas");
             return false;
         }
 
         if (GameState.I.experimentalHallazgos < cost.hallazgo)
         {
-            reason = "Faltan Hallazgos: " +
-                (cost.hallazgo - GameState.I.experimentalHallazgos);
+            reason = FormatMissingAmount(
+                cost.hallazgo - GameState.I.experimentalHallazgos,
+                "Hallazgo", "Hallazgos");
             return false;
         }
 
         if (GameState.I.experimentalMuestras < cost.muestra)
         {
-            reason = "Faltan Muestras: " +
-                (cost.muestra - GameState.I.experimentalMuestras);
+            reason = FormatMissingAmount(
+                cost.muestra - GameState.I.experimentalMuestras,
+                "Muestra", "Muestras");
             return false;
         }
 
         if (GameState.I.experimentalLecturasIncompletas < cost.lecturaIncompleta)
         {
-            reason = "Faltan Lecturas Incompletas: " +
-                (cost.lecturaIncompleta - GameState.I.experimentalLecturasIncompletas);
+            reason = FormatMissingAmount(
+                cost.lecturaIncompleta - GameState.I.experimentalLecturasIncompletas,
+                "Lectura Incompleta", "Lecturas Incompletas");
             return false;
         }
 
         if (GameState.I.experimentalCompuestosUtiles < cost.compuestoUtil)
         {
-            reason = "Faltan Compuestos Útiles: " +
-                (cost.compuestoUtil - GameState.I.experimentalCompuestosUtiles);
+            reason = FormatMissingAmount(
+                cost.compuestoUtil - GameState.I.experimentalCompuestosUtiles,
+                "Compuesto Útil", "Compuestos Útiles");
             return false;
         }
 
         if (GameState.I.chronalPureInstants < cost.pureInstant)
         {
-            reason = "Faltan Anclajes Puros: " +
-                (cost.pureInstant - GameState.I.chronalPureInstants);
+            reason = FormatMissingAmount(
+                cost.pureInstant - GameState.I.chronalPureInstants,
+                "Anclaje Puro", "Anclajes Puros");
             return false;
         }
 
         if (GameState.I.chronalStableInstants < cost.stableInstant)
         {
-            reason = "Faltan Anclajes Estables: " +
-                (cost.stableInstant - GameState.I.chronalStableInstants);
+            reason = FormatMissingAmount(
+                cost.stableInstant - GameState.I.chronalStableInstants,
+                "Anclaje Estable", "Anclajes Estables");
             return false;
         }
 
         if (GameState.I.chronalForcedInstants < cost.forcedInstant)
         {
-            reason = "Faltan Anclajes Forzados: " +
-                (cost.forcedInstant - GameState.I.chronalForcedInstants);
+            reason = FormatMissingAmount(
+                cost.forcedInstant - GameState.I.chronalForcedInstants,
+                "Anclaje Forzado", "Anclajes Forzados");
             return false;
         }
 
         reason = "Disponible.";
         return true;
+    }
+
+    private static string FormatMissingAmount(
+        double amount, string singularName, string pluralName)
+    {
+        double normalizedAmount = System.Math.Max(0.0, amount);
+        bool singular = System.Math.Abs(normalizedAmount - 1.0) < 0.000001;
+        return (singular ? "Falta " : "Faltan ") +
+            normalizedAmount.ToString("0.##") + " " +
+            (singular ? singularName : pluralName) + ".";
     }
 
     public bool TryRepairNode(string nodeId)

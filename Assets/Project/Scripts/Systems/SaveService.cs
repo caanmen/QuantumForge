@@ -32,6 +32,8 @@ public class SaveData
     public int experimentalLecturasIncompletas;
     public int experimentalCompuestosUtiles;
     public int synthesisCoreFusionCounter;
+    public int fusionInstability;
+    public double fusionCooldownRemainingSeconds;
     public List<ChronalSeedSlotState> chronalSeedSlots;
     public int chronalMatureSeedsStored;
     public ChronalInstantState chronalInstant;
@@ -409,6 +411,8 @@ public class SaveService : MonoBehaviour
         experimentalLecturasIncompletas = GameState.I.experimentalLecturasIncompletas,
         experimentalCompuestosUtiles = GameState.I.experimentalCompuestosUtiles,
         synthesisCoreFusionCounter = GameState.I.synthesisCoreFusionCounter,
+        fusionInstability = GameState.I.fusionInstability,
+        fusionCooldownRemainingSeconds = GameState.I.fusionCooldownRemainingSeconds,
         chronalSeedSlots = GameState.I.chronalSeedSlots,
         chronalMatureSeedsStored = GameState.I.chronalMatureSeedsStored,
         chronalInstant = GameState.I.chronalInstant,
@@ -637,6 +641,12 @@ public class SaveService : MonoBehaviour
         GameState.I.experimentalLecturasIncompletas = data.experimentalLecturasIncompletas;
         GameState.I.experimentalCompuestosUtiles = data.experimentalCompuestosUtiles;
         GameState.I.synthesisCoreFusionCounter = data.synthesisCoreFusionCounter;
+        GameState.I.fusionInstability = System.Math.Max(0, data.fusionInstability);
+        GameState.I.fusionCooldownRemainingSeconds =
+            double.IsNaN(data.fusionCooldownRemainingSeconds) ||
+            double.IsInfinity(data.fusionCooldownRemainingSeconds)
+                ? 0.0
+                : System.Math.Max(0.0, data.fusionCooldownRemainingSeconds);
         GameState.I.chronalSeedSlots = data.chronalSeedSlots ?? new List<ChronalSeedSlotState>();
         GameState.I.chronalMatureSeedsStored = data.chronalMatureSeedsStored;
         GameState.I.EnsureChronalSeedSlots();
@@ -688,6 +698,8 @@ public class SaveService : MonoBehaviour
             PresentationReturnReportService.Capture(GameState.I);
         long nowUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         double offlineSeconds = Math.Max(0.0, nowUnix - data.lastUnix);
+        GameState.I.fusionCooldownRemainingSeconds = Math.Max(
+            0.0, GameState.I.fusionCooldownRemainingSeconds - offlineSeconds);
         ConvergenceTelemetrySystem.RecordOfflineElapsed(GameState.I, offlineSeconds);
         double baseOfflineApplied = Math.Min(
             offlineSeconds, Dimension1System.DefaultOfflineCapSeconds);
@@ -1038,6 +1050,8 @@ public class SaveService : MonoBehaviour
         GameState.I.experimentalLecturasIncompletas = 0;
         GameState.I.experimentalCompuestosUtiles = 0;
         GameState.I.synthesisCoreFusionCounter = 0;
+        GameState.I.fusionInstability = 0;
+        GameState.I.fusionCooldownRemainingSeconds = 0.0;
         GameState.I.chronalArchivedInstants = 0;
 
         GameState.I.experimentalMixLog = new List<ExperimentalMixLogEntry>();
@@ -1113,6 +1127,8 @@ public class SaveService : MonoBehaviour
             GameState.I.experimentalMuestras = 0;
             GameState.I.experimentalLecturasIncompletas = 0;
             GameState.I.experimentalCompuestosUtiles = 0;
+            GameState.I.fusionInstability = 0;
+            GameState.I.fusionCooldownRemainingSeconds = 0.0;
             GameState.I.chronalArchivedInstants = 0;
 
             GameState.I.experimentalMixLog = new List<ExperimentalMixLogEntry>();
@@ -1201,6 +1217,8 @@ public class SaveService : MonoBehaviour
                 GameState.I.experimentalMuestras = 0;
                 GameState.I.experimentalLecturasIncompletas = 0;
                 GameState.I.experimentalCompuestosUtiles = 0;
+                GameState.I.fusionInstability = 0;
+                GameState.I.fusionCooldownRemainingSeconds = 0.0;
                 GameState.I.chronalArchivedInstants = 0;
 
                 GameState.I.experimentalMixLog = new List<ExperimentalMixLogEntry>();
