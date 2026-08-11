@@ -94,9 +94,19 @@ public class Dimension1DarkThemeRuntime : MonoBehaviour
         {
             if (current.name == "Dimension2Panel" || current.name == "Dimension3Panel")
                 return true;
+            if (current.GetComponent<Dimension1VisualSkinRoot>() != null)
+                return true;
             if (current.GetComponent<VerticalUiSkinRoot>() != null)
                 return true;
         }
         return false;
     }
+}
+
+/// <summary>
+/// Marca una jerarquía con dirección visual propia de Dimensión 1.
+/// El recoloreado provisional global no debe atravesar esta raíz.
+/// </summary>
+public sealed class Dimension1VisualSkinRoot : MonoBehaviour
+{
 }

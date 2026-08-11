@@ -611,29 +611,33 @@ public static class MachineCubeBlock1Setup
         cardRailImage.raycastTarget = false;
 
         TextMeshProUGUI name = CreateText("NodeName", card.transform, "SELECCIONA UN NODO",
-            new Vector2(0.205f, 0.75f), new Vector2(0.73f, 0.96f), font, 32f,
+            new Vector2(0.205f, 0.78f), new Vector2(0.73f, 0.96f), font, 32f,
             TextPrimary, TextAlignmentOptions.Left);
         name.fontStyle = FontStyles.Bold;
         TextMeshProUGUI state = CreateText("NodeState", card.transform,
-            "ESTADO: DESCONOCIDO", new Vector2(0.205f, 0.59f), new Vector2(0.73f, 0.77f),
+            "ESTADO: DESCONOCIDO", new Vector2(0.205f, 0.63f), new Vector2(0.73f, 0.79f),
             font, 22f, Selection, TextAlignmentOptions.Left);
         state.fontSizeMin = 18f;
         TextMeshProUGUI description = CreateText("NodeDescription", card.transform,
-            "Explora los circuitos de la cara actual.", new Vector2(0.205f, 0.37f),
-            new Vector2(0.73f, 0.61f), font, 21f, TextSecondary,
+            "Explora los circuitos de la cara actual.", new Vector2(0.205f, 0.42f),
+            new Vector2(0.73f, 0.64f), font, 21f, TextSecondary,
             TextAlignmentOptions.TopLeft);
         description.textWrappingMode = TextWrappingModes.Normal;
+        description.maxVisibleLines = 2;
         TextMeshProUGUI effect = CreateText("NodeEffect", card.transform, "EFECTO  —",
-            new Vector2(0.205f, 0.25f), new Vector2(0.73f, 0.39f), font, 22f,
+            new Vector2(0.205f, 0.29f), new Vector2(0.73f, 0.42f), font, 22f,
             TextPrimary, TextAlignmentOptions.Left);
         effect.fontSizeMin = 17f;
+        effect.textWrappingMode = TextWrappingModes.Normal;
+        effect.maxVisibleLines = 2;
         TextMeshProUGUI requirements = CreateText("NodeRequirements", card.transform,
-            "REQUISITOS  —", new Vector2(0.205f, 0.12f), new Vector2(0.73f, 0.27f),
+            "REQUISITOS  —", new Vector2(0.205f, 0.16f), new Vector2(0.73f, 0.29f),
             font, 21f, Hex("CDA15B"), TextAlignmentOptions.Left);
         requirements.fontSizeMin = 17f;
         requirements.textWrappingMode = TextWrappingModes.Normal;
+        requirements.maxVisibleLines = 2;
         TextMeshProUGUI cost = CreateText("NodeCost", card.transform, "COSTE  —",
-            new Vector2(0.205f, 0.02f), new Vector2(0.73f, 0.14f), font, 22f,
+            new Vector2(0.205f, 0.03f), new Vector2(0.73f, 0.16f), font, 22f,
             Hex("9BB7C4"), TextAlignmentOptions.Left);
         cost.fontSizeMin = 18f;
 

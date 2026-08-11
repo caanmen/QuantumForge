@@ -7204,6 +7204,11 @@ public class GameState : MonoBehaviour
             0, GetBuildingLevel("fluctuation_antenna") - 1);
         double rate = TriangleEnergyBasePerSecond +
             generatorLevels * TriangleEnergyPerGeneratorLevel;
+        if (MachineManager.I != null)
+        {
+            rate += MachineManager.I.GetTotalEffectValue(
+                MachineNodeEffectType.TriangleEnergyBaseBonus);
+        }
         if (F2UpgradeManager.I != null)
             rate *= 1.0 + F2UpgradeManager.I.GetTriangleEnergyProductionBonus();
         rate *= GetTriangleEnergyFocusMultiplier();

@@ -1069,8 +1069,8 @@ public class Room2PanelUI : MonoBehaviour
                 : "Obtén la keycard del Cuarto 2 para acceder a la cámara experimental.";
         if (!HasUnlockedFusionSlot)
             return english
-                ? "Repair Fusion Table on the cube's Mixes face (60K LE and 60 Traces)."
-                : "Repara Mesa de Fusión en la cara Mezclas del cubo (60K LE y 60 Trazas).";
+                ? "Uncover the Machine in the experimental chamber to activate the first Mixes slot."
+                : "Destapa la Máquina en la cámara experimental para activar la primera ranura de Mezclas.";
         if (FusionCoolingDown)
             return (english ? "Wait for stabilization. Remaining time: " :
                 "Espera a que termine la estabilización. Tiempo restante: ") +

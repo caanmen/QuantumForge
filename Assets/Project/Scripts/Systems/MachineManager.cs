@@ -1045,7 +1045,9 @@ public class MachineManager : MonoBehaviour
 
     public int GetUnlockedFusionSlotCount()
     {
-        int maxSlots = 0;
+        // La primera ranura forma parte de la herramienta base de la Máquina.
+        // Los nodos de la cara 2 amplían el sistema, pero ya no lo desbloquean.
+        int maxSlots = MachineUnlocked ? 1 : 0;
 
         foreach (string nodeId in _repairedNodeIds)
         {

@@ -112,10 +112,7 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
         previousFaceButton?.onClick.AddListener(() => RotateBy(-1));
         nextFaceButton?.onClick.AddListener(() => RotateBy(1));
 
-        ConfigureSelectedCardText(selectedNameText, 14f, false);
-        ConfigureSelectedCardText(selectedEffectText, 12f, false);
-        ConfigureSelectedCardText(selectedCostText, 12f, false);
-        ConfigureSelectedCardText(selectedRequirementsText, 12f, true);
+        ConfigureSelectedCardLayout();
 
         if (faces != null)
         {
@@ -166,21 +163,23 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
 
     public void RefreshNow()
     {
-        // Fusion is presented as an overlay over the machine shell. Keep the shell
-        // alive so its shared title, resources and NODOS / MEZCLAS tabs remain visible.
+        // Los paneles operativos viven sobre la carcasa de la Máquina. La cabecera,
+        // los recursos y NODOS / MEZCLAS deben permanecer visibles en ambos.
         bool fusionOverlayOpen = machinePanel != null && machinePanel.FusionPanelVisible;
+        bool seedsOverlayOpen = machinePanel != null && machinePanel.SeedsPanelVisible;
+        bool sharedOverlayOpen = fusionOverlayOpen || seedsOverlayOpen;
         bool showVisualContent = machinePanel == null ||
-            !machinePanel.HasAuxiliaryViewOpen || fusionOverlayOpen;
+            !machinePanel.HasAuxiliaryViewOpen || sharedOverlayOpen;
         if (visualContentRoot != null && machinePanel != null)
             visualContentRoot.SetActive(showVisualContent);
 
         if (showVisualContent)
-            SetNodeContentVisible(!fusionOverlayOpen);
+            SetNodeContentVisible(!sharedOverlayOpen);
 
-        if (!showVisualContent || fusionOverlayOpen)
+        if (!showVisualContent || sharedOverlayOpen)
         {
             true3DController?.ShowPrototype(false);
-            if (fusionOverlayOpen)
+            if (sharedOverlayOpen)
                 RefreshHeader();
             return;
         }
@@ -832,6 +831,45 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
             : TextWrappingModes.NoWrap;
     }
 
+    private void ConfigureSelectedCardLayout()
+    {
+        // Bandas separadas y contenidas: la cara de Anclajes usa descripciones y
+        // costes más largos que el resto, por lo que no deben invadir la línea
+        // de efecto ni los requisitos en pantallas verticales.
+        ConfigureSelectedCardText(selectedNameText, 14f, false);
+        ConfigureSelectedCardText(selectedStateText, 14f, false);
+        ConfigureSelectedCardText(selectedDescriptionText, 13f, true);
+        ConfigureSelectedCardText(selectedEffectText, 12f, true);
+        ConfigureSelectedCardText(selectedCostText, 12f, false);
+        ConfigureSelectedCardText(selectedRequirementsText, 12f, true);
+
+        SetCardTextBand(selectedNameText, 0.78f, 0.96f, 1);
+        SetCardTextBand(selectedStateText, 0.63f, 0.79f, 1);
+        SetCardTextBand(selectedDescriptionText, 0.42f, 0.64f, 2);
+        SetCardTextBand(selectedEffectText, 0.29f, 0.42f, 2);
+        SetCardTextBand(selectedRequirementsText, 0.16f, 0.29f, 2);
+        SetCardTextBand(selectedCostText, 0.03f, 0.16f, 1);
+    }
+
+    private static void SetCardTextBand(
+        TextMeshProUGUI text, float anchorMinY, float anchorMaxY, int maxLines)
+    {
+        if (text == null)
+            return;
+
+        RectTransform rect = text.rectTransform;
+        Vector2 anchorMin = rect.anchorMin;
+        Vector2 anchorMax = rect.anchorMax;
+        anchorMin.y = anchorMinY;
+        anchorMax.y = anchorMaxY;
+        rect.anchorMin = anchorMin;
+        rect.anchorMax = anchorMax;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+        text.maxVisibleLines = maxLines;
+        text.overflowMode = TextOverflowModes.Ellipsis;
+    }
+
     private static void ApplyBlockerEmphasis(TextMeshProUGUI text, bool emphasize,
         Color normalColor)
     {
@@ -924,6 +962,8 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
             MachineNodeEffectType.TriangleBonus => "SINCRONIZACIÓN TRIANGULAR" + percentValue,
             MachineNodeEffectType.ArtifactBonus => "CALIBRACIÓN DE ARTEFACTOS" + percentValue,
             MachineNodeEffectType.Room1GlobalBonus => "SINCRONIZACIÓN DEL CUARTO 1" + percentValue,
+            MachineNodeEffectType.TriangleEnergyBaseBonus =>
+                "ENERGÍA BASE DEL TRIÁNGULO  +" + node.effectValue.ToString("0.##") + "/S",
             MachineNodeEffectType.UnlockFusionSlot => "RANURAS DE FUSIÓN  " + node.effectValue.ToString("0"),
             MachineNodeEffectType.FusionFailureReduction => "RIESGO DE FALLO" + reducedPercentValue,
             MachineNodeEffectType.FusionUsefulResultBonus => "PROBABILIDAD DE RESULTADO ÚTIL" + percentValue,
@@ -971,10 +1011,12 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
     {
         if (node == null)
             return "--";
+        if (node.effectType == MachineNodeEffectType.TriangleEnergyBaseBonus)
+            return "EN";
         string effect = node.effectType.ToString();
+        if (effect.Contains("Triangle", System.StringComparison.OrdinalIgnoreCase)) return "TI";
         if (effect.Contains("LE", System.StringComparison.OrdinalIgnoreCase)) return "LE";
         if (effect.Contains("Trace", System.StringComparison.OrdinalIgnoreCase)) return "TR";
-        if (effect.Contains("Triangle", System.StringComparison.OrdinalIgnoreCase)) return "TI";
         if (effect.Contains("Artifact", System.StringComparison.OrdinalIgnoreCase)) return "AR";
         if (effect.Contains("Fusion", System.StringComparison.OrdinalIgnoreCase) ||
             effect.Contains("Synthesis", System.StringComparison.OrdinalIgnoreCase) ||
@@ -1000,6 +1042,7 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
             "LE" => iconLe,
             "TR" => iconTraces,
             "TI" => iconTriangle,
+            "EN" => iconTriangle,
             "AR" => iconArtifact,
             "FU" => iconFusion,
             "DX" => iconDiagnostic,

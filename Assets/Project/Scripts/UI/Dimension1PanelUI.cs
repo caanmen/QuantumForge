@@ -161,6 +161,7 @@ public class Dimension1PanelUI : MonoBehaviour
     private string arkFeedbackMessage = "";
     private string galaxyPreviewSectorId =
         Dimension1System.Sector01OuterRim;
+    public string GalaxyPreviewSectorId => galaxyPreviewSectorId;
     private string galaxyFeedbackMessage = "";
     private int lastHandledExplorationResultId;
     private bool showingExplorationResultPanel;

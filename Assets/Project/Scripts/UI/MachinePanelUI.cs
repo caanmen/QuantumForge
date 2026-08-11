@@ -458,8 +458,10 @@ public class MachinePanelUI : MonoBehaviour
     public MachineZoneType CurrentZone => _currentZone;
     public string SelectedNodeId => GetSelectedNode()?.id ?? "";
     public bool FusionPanelVisible => _fusionPanelVisible;
+    public bool SeedsPanelVisible =>
+        instantSeedsViewRoot != null && instantSeedsViewRoot.activeSelf;
     public bool HasAuxiliaryViewOpen =>
-        _fusionPanelVisible || (instantSeedsViewRoot != null && instantSeedsViewRoot.activeSelf);
+        _fusionPanelVisible || SeedsPanelVisible;
 
     public void SelectZoneFromCube(MachineZoneType zone)
     {
@@ -575,8 +577,8 @@ public class MachinePanelUI : MonoBehaviour
         if (repairedNode.id == "z2_fusion_table")
         {
             AchievementPopupUI.I.ShowPopup(
-                "Fusiones",
-                "Aquí puedes combinar fragmentos experimentales para obtener resultados inestables."
+                "Núcleo de Captación",
+                "La Máquina recupera energía residual del Triángulo y aumenta su producción base."
             );
             return;
         }
@@ -1183,9 +1185,8 @@ public class MachinePanelUI : MonoBehaviour
 
         if (MachineManager.I.MachineFusionPanelUnlocked)
         {
-            machineNoticeText.text = MachineManager.I.GetUnlockedFusionSlotCount() > 0
-                ? "Mezclas operativas: combina fragmentos para obtener Hallazgos, Muestras, Lecturas Incompletas y Compuestos Útiles."
-                : "Panel de Mezclas detectado. Repara la Mesa de Fusión para producir materiales experimentales.";
+            machineNoticeText.text =
+                "Mezclas operativas: combina fragmentos para obtener Hallazgos, Muestras, Lecturas Incompletas y Compuestos Útiles.";
             return;
         }
 
@@ -1200,15 +1201,18 @@ public class MachinePanelUI : MonoBehaviour
 
     private void RefreshFusionPanelVisibility()
     {
-        bool fusionUnlocked = MachineManager.I != null
-            && MachineManager.I.MachineFusionPanelUnlocked;
+        // MEZCLAS es navegación base de la Máquina, no una recompensa de nodo.
+        // Aparece en cuanto el jugador destapa el cubo y permanece contenida
+        // dentro de esta pantalla mediante MachineContextTabs.
+        bool machineAvailable = MachineManager.I != null
+            && MachineManager.I.MachineUnlocked;
 
-        if (!fusionUnlocked)
+        if (!machineAvailable)
             _fusionPanelVisible = false;
 
         if (legacyFusionPanel != null)
         {
-            legacyFusionPanel.SetActive(fusionUnlocked && _fusionPanelVisible);
+            legacyFusionPanel.SetActive(machineAvailable && _fusionPanelVisible);
             if (_fusionPanelVisible)
                 legacyFusionPanel.transform.SetAsLastSibling();
         }
@@ -1221,7 +1225,10 @@ public class MachinePanelUI : MonoBehaviour
 
         bool seedsViewOpen = instantSeedsViewRoot != null && instantSeedsViewRoot.activeSelf;
 
-        bool showContextTabs = fusionUnlocked && !seedsViewOpen;
+        // Semillas funciona como el segundo overlay operativo de la Máquina.
+        // Conservamos la misma cabecera y las mismas pestaÃ±as compartidas que
+        // usa el panel de fusión para no romper el lenguaje visual aprobado.
+        bool showContextTabs = machineAvailable;
 
         if (btnFusionPanel != null)
         {
@@ -1231,7 +1238,7 @@ public class MachinePanelUI : MonoBehaviour
             TextMeshProUGUI labelText = btnFusionPanel.GetComponentInChildren<TextMeshProUGUI>();
 
             if (labelText != null)
-                labelText.text = fusionUnlocked ? "MEZCLAS" : "???";
+                labelText.text = "MEZCLAS";
 
             ApplyContextTabVisual(btnFusionPanel, _fusionPanelVisible,
                 new Color(0.71f, 0.36f, 1f, 1f));
@@ -1240,8 +1247,10 @@ public class MachinePanelUI : MonoBehaviour
         if (btnNodesTab != null)
         {
             btnNodesTab.gameObject.SetActive(showContextTabs);
-            btnNodesTab.interactable = showContextTabs && _fusionPanelVisible;
-            ApplyContextTabVisual(btnNodesTab, !_fusionPanelVisible,
+            btnNodesTab.interactable = showContextTabs &&
+                (_fusionPanelVisible || seedsViewOpen);
+            ApplyContextTabVisual(btnNodesTab,
+                !_fusionPanelVisible && !seedsViewOpen,
                 new Color(0f, 0.79f, 1f, 1f));
         }
 
@@ -1296,7 +1305,7 @@ public class MachinePanelUI : MonoBehaviour
         if (MachineManager.I == null)
             return;
 
-        if (!MachineManager.I.MachineFusionPanelUnlocked)
+        if (!MachineManager.I.MachineUnlocked)
         {
             _fusionPanelVisible = false;
             Refresh();
@@ -1314,6 +1323,10 @@ public class MachinePanelUI : MonoBehaviour
     private void CloseFusionPanel()
     {
         _fusionPanelVisible = false;
+
+        if (instantSeedsViewRoot != null)
+            instantSeedsViewRoot.SetActive(false);
+
         Refresh();
     }
 
@@ -1639,16 +1652,10 @@ public class MachinePanelUI : MonoBehaviour
         if (legacyFusionPanel != null)
             legacyFusionPanel.SetActive(false);
 
-        if (machineRepairViewRoot != null)
-            machineRepairViewRoot.SetActive(false);
-
         if (instantSeedsViewRoot != null)
             instantSeedsViewRoot.SetActive(true);
 
         RefreshContextHelpButton();
-
-        if (btnFusionPanel != null)
-            btnFusionPanel.gameObject.SetActive(false);
 
         if (btnBackToNodesFromFusion != null)
             btnBackToNodesFromFusion.gameObject.SetActive(false);
@@ -1666,6 +1673,7 @@ public class MachinePanelUI : MonoBehaviour
             GameState.I.EnsureChronalSeedSlots();
 
         RefreshSeedsView();
+        Refresh();
     }
 
     private void CloseSeedsView()

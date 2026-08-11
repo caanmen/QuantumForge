@@ -85,6 +85,20 @@ public static class MachineCubeBlock1Validation
                     node.id + " referencia requisito inexistente " + requirement + ".",
                     failures);
         }
+
+        MachineNodeDef captureCore = data.nodes.FirstOrDefault(node =>
+            node != null && node.id == "z2_fusion_table");
+        Check(captureCore != null &&
+            captureCore.effectType == MachineNodeEffectType.TriangleEnergyBaseBonus &&
+            Math.Abs(captureCore.effectValue - 0.25) < 0.000001,
+            "El antiguo nodo de Mezclas no fue reemplazado por Núcleo de Captación.",
+            failures);
+        MachineNodeDef secondSlot = data.nodes.FirstOrDefault(node =>
+            node != null && node.id == "z2_fusion_slot_2");
+        Check(secondSlot != null && (secondSlot.requiredNodeIds == null ||
+            !secondSlot.requiredNodeIds.Contains("z2_fusion_table")),
+            "Ranura de Fusión II todavía depende del antiguo nodo de Mezclas.",
+            failures);
     }
 
     private static void ValidateProgressContract(List<string> failures)
@@ -93,6 +107,16 @@ public static class MachineCubeBlock1Validation
         MachineManager manager = host.AddComponent<MachineManager>();
         try
         {
+            manager.LoadProgressFromSave(new SaveData
+            {
+                machineUnlocked = true,
+                machineAllZonesUnlocked = true,
+                machineRepairedNodeIds = new List<string>()
+            });
+            Check(manager.GetUnlockedFusionSlotCount() == 1,
+                "La Máquina descubierta no entrega la ranura base de Mezclas.",
+                failures);
+
             List<string> publicIds = manager.GetAllNodes(true)
                 .Where(node => node != null && !node.hidden)
                 .Select(node => node.id).ToList();

@@ -349,11 +349,11 @@
     },
     {
       "id": "z2_fusion_table",
-      "name": "Mesa de Fusión",
-      "description": "Desbloquea la primera ranura base de fusión.",
+      "name": "Núcleo de Captación",
+      "description": "Recupera energía residual del enlace con el Cuarto 1. Aumenta en 0,25 por segundo la producción base de Energía del Triángulo.",
       "zone": 2,
-      "effectType": 20,
-      "effectValue": 1.0,
+      "effectType": 6,
+      "effectValue": 0.25,
       "cost": {
         "le": 60000.0,
         "traces": 60.0,
@@ -383,9 +383,7 @@
         "lecturaIncompleta": 0,
         "compuestoUtil": 0
       },
-      "requiredNodeIds": [
-        "z2_fusion_table"
-      ],
+      "requiredNodeIds": [],
       "hidden": false,
       "damaged": false,
       "tierGroup": "",

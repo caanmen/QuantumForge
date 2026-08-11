@@ -20,6 +20,7 @@ public enum MachineNodeEffectType
     TriangleBonus = 3,
     ArtifactBonus = 4,
     Room1GlobalBonus = 5,
+    TriangleEnergyBaseBonus = 6,
 
     // Zona 2
     UnlockFusionSlot = 20,
