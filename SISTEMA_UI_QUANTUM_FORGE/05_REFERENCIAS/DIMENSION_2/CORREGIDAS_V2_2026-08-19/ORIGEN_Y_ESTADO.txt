@@ -1,0 +1,21 @@
+ORIGEN Y ESTADO — CORREGIDAS V2 DE DIMENSIÓN 2
+================================================
+
+Clasificación: CONCEPTOS / REFERENCIAS CANDIDATAS V2.
+Estado: candidatas; no aprobadas y no canónicas.
+Fecha: 19 de agosto de 2026.
+
+ARCHIVOS
+- 01_Mapa_De_Los_Pactos_Corregido_V2.png — 941 x 1671 píxeles.
+- 04_Peregrinaciones_Corregidas_V2.png — 941 x 1672 píxeles.
+
+Estas imágenes son revisiones posteriores de las referencias 01 y 04 guardadas en
+`../CANDIDATAS_2026-08-19`. No son capturas de Unity ni assets finales. Debe confirmarse
+con el usuario qué correcciones concretas aprueba y si cada V2 sustituye a su versión
+anterior antes de actualizar contratos, perfil o implementación.
+
+La diferencia de un píxel de altura en la referencia 01 V2 debe resolverse o aceptarse
+explícitamente antes de exigir uniformidad de 941 x 1672 a toda la familia.
+
+No utilizar ninguna imagen completa como textura de interfaz. Tras la aprobación se
+descompondrá en fondos, marcos, iconos, textos y capas construibles.

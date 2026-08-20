@@ -1,0 +1,39 @@
+CONTRATO DE APROBACIÓN: INVENTARIO DE METALES
+=============================================
+
+Referencia permanente: registrada.
+Resolución principal: 1080 x 1920 vertical.
+Meta visual: 95 % de parecido percibido con la referencia suministrada.
+
+PUERTA 1 — CONTRATO
+[x] Función y condición de subpantalla definidas.
+[x] Datos y desbloqueos verificados en código real.
+[x] Referencia permanente archivada.
+[x] Assets base y faltantes identificados.
+
+PUERTA 2 — COMPOSICIÓN ESTÁTICA
+[x] Jerarquía, márgenes y compensación D1 estables.
+[x] Diez tarjetas y cinco filas completas.
+[x] Estados desbloqueado y bloqueado diferenciados.
+[x] Recursos detallados comprobados a tamaño final.
+[x] Diez siluetas centradas por límites visibles y sin deformación.
+[x] Fondo completo sin navegación mezclada.
+
+PUERTA 3 — DATOS E INTERACCIÓN
+[x] Datos reales conectados.
+[x] Apertura desde tarjeta real probada.
+[x] Filtros Todos, Produciendo y Bloqueados probados.
+[x] Regreso y reapertura probados.
+[x] Escritura del guardado suprimida durante QA.
+
+PUERTA 4 — ANIMACIÓN
+[x] No requerida para esta primera versión funcional.
+
+PUERTA 5 — CIERRE
+[x] Capturas candidatas nuevas 1080 x 1920 y 720 x 1280.
+[x] Instalador reproducible PASS.
+[x] Sin errores de compilación ni excepciones relacionadas.
+[ ] Similitud mínima del 95 % aprobada por el usuario.
+[ ] Capturas movidas a 06_CAPTURAS_APROBADAS.
+
+Resultado: CANDIDATA; PENDIENTE DE APROBACIÓN DEL USUARIO

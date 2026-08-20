@@ -18,6 +18,7 @@ public sealed class MachineFusionPanelVisualUI : MonoBehaviour
 
     [Header("Estado")]
     [SerializeField] private Room2PanelUI roomPanel;
+    [SerializeField] private TextMeshProUGUI inventoryText;
     [SerializeField] private Outline fragmentAOutline;
     [SerializeField] private Outline fragmentBOutline;
     [SerializeField] private Outline catalystOutline;
@@ -55,11 +56,13 @@ public sealed class MachineFusionPanelVisualUI : MonoBehaviour
 
     private void Awake()
     {
+        EnsureInventoryUi();
         CacheBaseColors();
     }
 
     private void OnEnable()
     {
+        EnsureInventoryUi();
         CacheBaseColors();
         ApplyPulse(0f);
         RefreshState();
@@ -99,10 +102,114 @@ public sealed class MachineFusionPanelVisualUI : MonoBehaviour
             roomPanel.CurrentInstability > 12 ? Red : Violet,
             Amber);
 
+        RefreshInventory();
         RefreshButtons();
         RefreshLogBadge();
         RefreshResult();
         RefreshDiagnostics();
+    }
+
+    private void RefreshInventory()
+    {
+        if (inventoryText == null || GameState.I == null)
+            return;
+
+        bool english = roomPanel.IsEnglishUi;
+        inventoryText.text = english
+            ? "FINDINGS  <b>" + GameState.I.experimentalHallazgos +
+              "</b>     ·     SAMPLES  <b>" + GameState.I.experimentalMuestras +
+              "</b>     ·     READINGS  <b>" + GameState.I.experimentalLecturasIncompletas +
+              "</b>     ·     COMPOUNDS  <b>" + GameState.I.experimentalCompuestosUtiles + "</b>"
+            : "HALLAZGOS  <b>" + GameState.I.experimentalHallazgos +
+              "</b>     ·     MUESTRAS  <b>" + GameState.I.experimentalMuestras +
+              "</b>     ·     LECTURAS  <b>" + GameState.I.experimentalLecturasIncompletas +
+              "</b>     ·     COMPUESTOS  <b>" + GameState.I.experimentalCompuestosUtiles + "</b>";
+    }
+
+    private void EnsureInventoryUi()
+    {
+        Transform shell = transform.Find("FusionVisualShell");
+        if (shell == null)
+            return;
+
+        ApplyInventoryLayout(shell);
+
+        if (inventoryText != null)
+            return;
+
+        Transform existing = shell.Find("FusionInventoryStrip/InventoryText");
+        if (existing != null)
+        {
+            inventoryText = existing.GetComponent<TextMeshProUGUI>();
+            if (inventoryText != null)
+                return;
+        }
+
+        GameObject stripObject = new GameObject("FusionInventoryStrip",
+            typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        stripObject.layer = shell.gameObject.layer;
+        RectTransform stripRect = stripObject.GetComponent<RectTransform>();
+        stripRect.SetParent(shell, false);
+        SetAnchors(stripRect, 0.025f, 0.895f, 0.975f, 0.932f);
+
+        Image stripImage = stripObject.GetComponent<Image>();
+        Image statusImage = shell.Find("FusionStatusStrip")?.GetComponent<Image>();
+        if (statusImage != null)
+        {
+            stripImage.sprite = statusImage.sprite;
+            stripImage.type = statusImage.type;
+        }
+        stripImage.color = Hex("0A1118");
+        stripImage.raycastTarget = false;
+
+        GameObject textObject = new GameObject("InventoryText",
+            typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+        textObject.layer = shell.gameObject.layer;
+        RectTransform textRect = textObject.GetComponent<RectTransform>();
+        textRect.SetParent(stripRect, false);
+        SetAnchors(textRect, 0.025f, 0.08f, 0.975f, 0.92f);
+
+        inventoryText = textObject.GetComponent<TextMeshProUGUI>();
+        TextMeshProUGUI statusText = shell.Find(
+            "FusionStatusStrip/FusionStatus")?.GetComponent<TextMeshProUGUI>();
+        if (statusText != null)
+            inventoryText.font = statusText.font;
+        inventoryText.fontSize = 18f;
+        inventoryText.fontSizeMin = 13f;
+        inventoryText.fontSizeMax = 18f;
+        inventoryText.enableAutoSizing = true;
+        inventoryText.textWrappingMode = TextWrappingModes.NoWrap;
+        inventoryText.overflowMode = TextOverflowModes.Ellipsis;
+        inventoryText.alignment = TextAlignmentOptions.Center;
+        inventoryText.color = Color.white;
+        inventoryText.raycastTarget = false;
+    }
+
+    private static void ApplyInventoryLayout(Transform shell)
+    {
+        SetAnchors(shell.Find("FusionTitle") as RectTransform,
+            0.10f, 0.962f, 0.90f, 0.998f);
+        SetAnchors(shell.Find("FusionSubtitle") as RectTransform,
+            0.10f, 0.934f, 0.90f, 0.964f);
+        SetAnchors(shell.Find("FusionStatusStrip") as RectTransform,
+            0.025f, 0.852f, 0.975f, 0.890f);
+        SetAnchors(shell.Find("FragmentA") as RectTransform,
+            0.025f, 0.535f, 0.325f, 0.847f);
+        SetAnchors(shell.Find("FragmentB") as RectTransform,
+            0.345f, 0.535f, 0.655f, 0.847f);
+        SetAnchors(shell.Find("Catalyst") as RectTransform,
+            0.675f, 0.535f, 0.975f, 0.847f);
+    }
+
+    private static void SetAnchors(RectTransform rect,
+        float minX, float minY, float maxX, float maxY)
+    {
+        if (rect == null)
+            return;
+        rect.anchorMin = new Vector2(minX, minY);
+        rect.anchorMax = new Vector2(maxX, maxY);
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
     }
 
     private void RefreshButtons()
@@ -114,7 +221,7 @@ public sealed class MachineFusionPanelVisualUI : MonoBehaviour
         if (mixButtonText != null)
         {
             if (!roomPanel.HasUnlockedFusionSlot)
-                mixButtonText.text = english ? "REPAIR FUSION TABLE" : "REPARA MESA DE FUSIÓN";
+                mixButtonText.text = english ? "DISCOVER THE MACHINE" : "DESTAPA LA MÁQUINA";
             else if (cooling)
                 mixButtonText.text = (english ? "STABILIZING " : "ESTABILIZANDO ") +
                     roomPanel.FusionCooldownRemaining.ToString("0.0") + " S";

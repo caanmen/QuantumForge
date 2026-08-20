@@ -1,0 +1,20 @@
+CARPETAS DE TRABAJO POR PANTALLA
+================================
+
+Cada pantalla nueva debe tener aquí su propia carpeta. Esta carpeta reúne el
+contrato, la ficha de trabajo y las decisiones específicas de esa pantalla.
+
+Las decisiones guardadas aquí no son reglas generales. Si una experiencia produce un
+aprendizaje transferible, se registra en la bitácora y se redacta por separado como
+regla general, conservando esta carpeta como evidencia histórica.
+
+Las imágenes originales permanecen en 05_REFERENCIAS y las capturas aceptadas
+en 06_CAPTURAS_APROBADAS. No se duplican aquí.
+
+Flujo recomendado:
+1. Crear la carpeta con la herramienta de Unity:
+   Quantum Forge > UI Production > Nueva carpeta de pantalla.
+2. Completar FICHA_PANTALLA.txt antes de construir.
+3. Completar CONTRATO_APROBACION.txt antes de valorar el parecido.
+4. Registrar las decisiones confirmadas en DECISIONES.txt.
+5. Actualizar 07_REGISTROS/PANTALLAS_UI.csv.

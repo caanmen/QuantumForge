@@ -1,0 +1,20 @@
+REFERENCIA VISUAL: HANGAR — DIMENSIÓN 1
+=======================================
+
+Archivo: referencia_hangar.png
+Origen: imagen entregada por el usuario en el chat el 19 de agosto de 2026.
+Resolución original: 665 x 1160 píxeles.
+Tipo: referencia visual aprobada para iniciar implementación; no es captura de Unity
+ni asset final reutilizable.
+
+AUTORIDAD
+- Define composición, jerarquía, proporciones, lenguaje visual y estado de ejemplo.
+- Los valores numéricos visibles se usan sólo para la captura visual determinista.
+- La partida normal debe mostrar datos y costes reales del sistema existente.
+- Los cuatro vehículos se representan como planos técnicos porque así lo exige esta
+  referencia; esta decisión no debe trasladarse a pantallas que pidan volumen sólido.
+
+ESTADO
+- Referencia permanente archivada.
+- Implementación y comparación visual: en curso.
+- Aprobación perceptual mínima del 95 %: pendiente del usuario.

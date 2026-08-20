@@ -101,8 +101,18 @@ public static class MachineFusionPanelVisualSetup
 
         BuildHeading(shell.transform, font);
 
+        GameObject inventoryPanel = CreatePanel("FusionInventoryStrip", shell.transform,
+            new Vector2(0.025f, 0.895f), new Vector2(0.975f, 0.932f),
+            selectorSprite, PanelRaised, false);
+        TextMeshProUGUI inventoryText = CreateText("InventoryText",
+            inventoryPanel.transform,
+            "HALLAZGOS  0     ·     MUESTRAS  0     ·     LECTURAS  0     ·     COMPUESTOS  0",
+            new Vector2(0.025f, 0.08f), new Vector2(0.975f, 0.92f),
+            font, 18f, TextPrimary, TextAlignmentOptions.Center);
+        inventoryText.fontSizeMin = 13f;
+
         GameObject statusPanel = CreatePanel("FusionStatusStrip", shell.transform,
-            new Vector2(0.025f, 0.875f), new Vector2(0.975f, 0.918f),
+            new Vector2(0.025f, 0.852f), new Vector2(0.975f, 0.890f),
             selectorSprite, new Color(0.34f, 0.23f, 0.42f, 0.72f), false);
         TextMeshProUGUI fusionSlotsText = CreateText("FusionStatus",
             statusPanel.transform,
@@ -232,6 +242,7 @@ public static class MachineFusionPanelVisualSetup
             visual = rootObject.AddComponent<MachineFusionPanelVisualUI>();
         SerializedObject visualSo = new SerializedObject(visual);
         SetObject(visualSo, "roomPanel", room);
+        SetObject(visualSo, "inventoryText", inventoryText);
         SetObject(visualSo, "fragmentAOutline", slotA.outline);
         SetObject(visualSo, "fragmentBOutline", slotB.outline);
         SetObject(visualSo, "catalystOutline", catalyst.outline);
@@ -321,12 +332,12 @@ public static class MachineFusionPanelVisualSetup
     private static void BuildHeading(Transform parent, TMP_FontAsset font)
     {
         TextMeshProUGUI title = CreateText("FusionTitle", parent, "PANEL DE FUSIÓN",
-            new Vector2(0.10f, 0.952f), new Vector2(0.90f, 0.995f), font, 32f,
+            new Vector2(0.10f, 0.962f), new Vector2(0.90f, 0.998f), font, 32f,
             TextPrimary, TextAlignmentOptions.Center);
         title.fontStyle = FontStyles.Bold;
         title.characterSpacing = 2f;
         CreateText("FusionSubtitle", parent, "CARA 2 / 4 · SISTEMA OPERATIVO",
-            new Vector2(0.10f, 0.925f), new Vector2(0.90f, 0.958f), font, 20f,
+            new Vector2(0.10f, 0.934f), new Vector2(0.90f, 0.964f), font, 20f,
             Violet, TextAlignmentOptions.Center);
     }
 
@@ -335,7 +346,7 @@ public static class MachineFusionPanelVisualSetup
         Sprite panelSprite, Sprite selectorSprite, Sprite iconSprite)
     {
         GameObject card = CreatePanel(name, parent,
-            new Vector2(minX, 0.545f), new Vector2(maxX, 0.885f), panelSprite,
+            new Vector2(minX, 0.535f), new Vector2(maxX, 0.847f), panelSprite,
             Panel, false);
         Outline outline = card.AddComponent<Outline>();
         outline.effectColor = new Color(Violet.r, Violet.g, Violet.b, 0f);
@@ -639,8 +650,15 @@ public static class MachineFusionPanelVisualSetup
     {
         Require(root.transform.Find("FusionVisualShell") != null,
             "Falta FusionVisualShell.");
+        Require(root.transform.Find(
+                "FusionVisualShell/FusionInventoryStrip/InventoryText") != null,
+            "Falta el inventario visible de resultados de Mezclas.");
         Require(root.GetComponent<MachineFusionPanelVisualUI>() != null,
             "Falta MachineFusionPanelVisualUI.");
+        SerializedObject visualSo = new SerializedObject(
+            root.GetComponent<MachineFusionPanelVisualUI>());
+        Require(visualSo.FindProperty("inventoryText")?.objectReferenceValue != null,
+            "MachineFusionPanelVisualUI no tiene enlazado el inventario.");
         SerializedObject roomSo = new SerializedObject(room);
         string[] required =
         {

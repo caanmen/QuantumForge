@@ -1,0 +1,16 @@
+REFERENCIA: PLANTA DE PRODUCCIÓN — DIMENSIÓN 3
+================================================
+
+Archivo: referencia_planta_produccion_original.png
+Origen: paquete Dimension3_Continuidad_2026-08-19 entregado por el usuario.
+Fecha de incorporación: 19 de agosto de 2026.
+Resolución original: 941 x 1672.
+Tipo: concepto visual candidato; no es captura de Unity ni asset final.
+Estado: autoridad visual de partida para corregir la pantalla Planta de Producción.
+
+La dirección artística industrial, la máquina central, la jerarquía general y la
+navegación inferior deben conservarse. Los textos, controles, cifras e iconos que no
+coinciden con los sistemas reales se corrigen antes de presentar una candidata.
+
+La imagen corregida no pasa a 06_CAPTURAS_APROBADAS hasta recibir aprobación visual
+explícita del usuario y ser implementada y capturada desde Unity.

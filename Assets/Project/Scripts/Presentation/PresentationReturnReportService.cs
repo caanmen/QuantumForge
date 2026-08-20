@@ -34,6 +34,7 @@ public static class PresentationReturnReportService
     public const int MaxNewsItems = 3;
     public static PresentationReturnReport PendingReport { get; private set; }
     public static bool UnifiedReportPreparedThisLoad { get; private set; }
+    public static event Action ReportPrepared;
 
     public static PresentationReturnSnapshot Capture(GameState gameState)
     {
@@ -64,6 +65,10 @@ public static class PresentationReturnReportService
         // Esta capa decide si corresponde mostrar algo. Incluso una ausencia corta
         // debe suprimir reportes legacy para evitar un modal obligatorio.
         UnifiedReportPreparedThisLoad = true;
+        // La UI ya existe antes de GameState.Start. Avisarla aqui permite mostrar
+        // el resultado en el mismo arranque, sin depender de que un Update futuro
+        // descubra el informe pendiente.
+        ReportPrepared?.Invoke();
         return PendingReport;
     }
 

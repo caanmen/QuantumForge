@@ -387,6 +387,86 @@ public static class MachineSeedsPanelVisualSetup
 
     public static void ConfigureBatch() => Configure();
 
+    [MenuItem("Tools/Quantum Forge/Machine/Configure Seeds Context Tab Only")]
+    public static void ConfigureSeedsContextTabOnly()
+    {
+        Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        MachinePanelUI machine = UnityEngine.Object.FindFirstObjectByType<MachinePanelUI>(
+            FindObjectsInactive.Include);
+        Require(machine != null, "No se encontró MachinePanelUI.");
+
+        Transform tabs = machine.transform.Find(
+            "MachineCubeVisualRoot/MachineContextTabs");
+        Require(tabs != null, "No se encontró MachineContextTabs.");
+
+        VerticalUiTheme theme = AssetDatabase.LoadAssetAtPath<VerticalUiTheme>(ThemePath);
+        TMP_FontAsset font = theme != null && theme.primaryFont != null
+            ? theme.primaryFont
+            : AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
+        Sprite buttonSprite = AssetDatabase.LoadAssetAtPath<Sprite>(ButtonFramePath);
+        if (buttonSprite == null && theme != null)
+            buttonSprite = theme.buttonFrame;
+        Require(font != null && buttonSprite != null,
+            "Faltan fuente o marco para la pestaña Semillas.");
+
+        RectTransform tabsRect = tabs as RectTransform;
+        Require(tabsRect != null, "MachineContextTabs no tiene RectTransform.");
+        SetRect(tabsRect, new Vector2(0.18f, 0.840f),
+            new Vector2(0.82f, 0.880f));
+
+        Button nodes = tabs.Find("NodesTab")?.GetComponent<Button>();
+        Button mixes = tabs.Find("MixesTab")?.GetComponent<Button>();
+        Require(nodes != null && mixes != null,
+            "Faltan las pestañas NODOS o MEZCLAS.");
+        SetRect(nodes.transform as RectTransform, new Vector2(0f, 0.04f),
+            new Vector2(0.32f, 0.96f));
+        SetRect(mixes.transform as RectTransform, new Vector2(0.34f, 0.04f),
+            new Vector2(0.66f, 0.96f));
+
+        Transform oldSeeds = tabs.Find("SeedsTab");
+        if (oldSeeds != null)
+            UnityEngine.Object.DestroyImmediate(oldSeeds.gameObject);
+        Button seeds = CreateButton("SeedsTab", tabs,
+            new Vector2(0.68f, 0.04f), new Vector2(1f, 0.96f),
+            buttonSprite, new Color(0f, 0.40f, 0.36f, 0.92f), font,
+            "SEMILLAS", 20f, TextPrimary, out _);
+        seeds.gameObject.SetActive(false);
+
+        SerializedObject machineSo = new SerializedObject(machine);
+        SetObject(machineSo, "btnSeedsTab", seeds);
+        machineSo.ApplyModifiedPropertiesWithoutUndo();
+
+        EditorUtility.SetDirty(machine);
+        EditorUtility.SetDirty(tabs.gameObject);
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        AssetDatabase.SaveAssets();
+
+        SerializedObject validationSo = new SerializedObject(machine);
+        SerializedProperty seedsProperty = validationSo.FindProperty("btnSeedsTab");
+        Require(seedsProperty != null && seedsProperty.objectReferenceValue == seeds,
+            "La pestaña SEMILLAS no quedó conectada a MachinePanelUI.");
+        Require(!seeds.gameObject.activeSelf,
+            "SEMILLAS debe permanecer oculta antes de evaluar el desbloqueo.");
+        Debug.Log("[Machine Seeds Tab] CONFIGURED | hidden until cube unlock | " +
+            "NODOS + MEZCLAS + SEMILLAS");
+    }
+
+    public static void ConfigureSeedsContextTabOnlyBatch()
+    {
+        try
+        {
+            ConfigureSeedsContextTabOnly();
+            Debug.Log("[Machine Seeds Tab] PASS");
+            EditorApplication.Exit(0);
+        }
+        catch (Exception exception)
+        {
+            Debug.LogException(exception);
+            EditorApplication.Exit(1);
+        }
+    }
+
     private static void CreateSectionTitle(Transform parent, string value,
         TMP_FontAsset font, Sprite icon, Color accent)
     {

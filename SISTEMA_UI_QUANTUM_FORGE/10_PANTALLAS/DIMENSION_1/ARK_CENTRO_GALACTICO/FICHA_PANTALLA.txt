@@ -1,0 +1,65 @@
+FICHA DE PANTALLA: ARK — CENTRO GALÁCTICO
+=========================================
+
+IDENTIDAD
+Nombre visible: ARK — CENTRO GALÁCTICO
+Nombre interno estable: D1_ARK_CENTRO_GALACTICO
+Dimensión: 1
+Tipo: subpantalla del Sector 5 dentro de Carta Galáctica
+Estado: CANDIDATA FUNCIONAL VALIDADA; PENDIENTE DE APROBACIÓN VISUAL
+
+FUNCIÓN
+Objetivo: investigar el ARK, ejecutar las cuatro sincronías centrales y acceder a la
+misión final que concede el Ancla Galáctica.
+Entrada: Centro Galáctico seleccionado y desbloqueado en Carta Galáctica.
+Salida: flecha superior de regreso.
+Acciones: investigar, iniciar cada sincronía real de 60 minutos y entrar al ARK durante
+90 minutos cuando se cumplen los doce requisitos existentes.
+
+REFERENCIA
+Ruta: 05_REFERENCIAS/DIMENSION_1/ARK_CENTRO_GALACTICO/referencia_ark_centro_galactico_v1.png
+Tipo: REFERENCIA VISUAL.
+Resolución: 663 x 1186.
+
+PUERTA 0 — AUDITORÍA Y REUTILIZACIÓN
+Concepto | origen | estado | decisión
+Marco, relleno y estrellas | assets canónicos D1 | canónico | reutilizar
+Metales | Inventario V5 | candidato vigente del conjunto D1 | reutilizar
+Cuatro naves | blueprints V2 de Hangar | canónico D1 | reutilizar sin recrear; centrar por silueta visible
+Icono de señal | Galaxia premium + material black key D1 | canónico D1 | reutilizar con marco técnico y estado desconocido
+Ecos | geometría técnica de la referencia | composición de pantalla | reconstruir con anillos, ejes, marcas y espaciado medido
+Escena central del ARK | faltante real de esta referencia | candidato nuevo | integrar y validar
+Lógica de misiones | Dimension1PanelUI y Dimension1System | existente | conservar como único propietario
+
+ASSET CANDIDATO NUEVO
+Ruta: Assets/Project/UI/Dimension1/Generated/Candidates/ArkCenter/d1_ark_center_hero_candidate_v1.png
+Contenido: ARK monumental sobre agujero negro azul-blanco, sin interfaz ni texto.
+Estado: candidato integrado; no promover hasta aprobación visual del usuario.
+
+DATOS REALES
+- Investigación: GameState.dimension1ArkInvestigated.
+- Sincronías: GameState.dimension1CentralSyncMissions y Dimension1System.
+- Duración de sincronía: 3600 segundos reales.
+- Clave central: dimension1CentralAccessKeyObtained.
+- Requisitos: Dimension1System.GetD1ArkRequirements.
+- Misión final: 5400 segundos reales y dimension1GalacticAnchorDiscovered.
+- Recursos: saldos y producción reales de Hierro, Aluminio y Níquel.
+
+COMPOSICIÓN
+Resolución base: 1080 x 1920 vertical.
+Zonas: encabezado y recursos; hero del ARK; estado de investigación; cuatro tarjetas de
+sincronía de 244×376; cuatro ecos con centros a x=231/434/637/840 en el lienzo; acceso
+final bloqueado/activo/completado.
+No incluye navegación inferior porque es una subpantalla con regreso explícito.
+
+PROPIETARIOS
+Layout y reconstrucción idempotente: Dimension1ArkUISetup.
+Datos visuales: Dimension1ArkVisualUI.
+Visibilidad y acciones: Dimension1PanelUI.
+Reglas y temporizadores: Dimension1System / GameState.
+
+PRUEBAS
+- Instalación idempotente: PASS.
+- Regreso, inventario de metales y sincronía real: PASS.
+- Capturas candidatas 1080 x 1920 y 720 x 1280: PASS.
+- Similitud visual mínima del 95 %: pendiente del usuario.

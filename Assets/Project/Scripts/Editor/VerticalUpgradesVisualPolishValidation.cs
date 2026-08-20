@@ -14,6 +14,8 @@ public static class VerticalUpgradesVisualPolishValidation
     private const string ScenePath = "Assets/Project/Scenes/Main.unity";
     private const string PolishFolder =
         "Assets/Project/UI/Vertical/UpgradesPolish";
+    private const string GenerationPolishFolder =
+        "Assets/Project/UI/Vertical/GenerationPolish";
 
     private static readonly string[] CanonicalIds =
     {
@@ -59,9 +61,9 @@ public static class VerticalUpgradesVisualPolishValidation
         if (header != null)
         {
             RectTransform rect = (RectTransform)header.transform;
-            Check(Near(rect.anchoredPosition.y, -34f, 0.1f) &&
-                Near(rect.sizeDelta.y, 92f, 0.1f) &&
-                Near(rect.sizeDelta.x, -250f, 0.1f),
+            Check(Near(rect.anchoredPosition.y, -28f, 0.1f) &&
+                Near(rect.sizeDelta.y, 98f, 0.1f) &&
+                Near(rect.sizeDelta.x, -132f, 0.1f),
                 "La cabecera de Mejoras no coincide con la de Generacion.", failures);
             Check(header.transform.Find("UpgradeResource_LE/Icon") != null &&
                 header.transform.Find("UpgradeResource_LE/Value") != null &&
@@ -102,13 +104,20 @@ public static class VerticalUpgradesVisualPolishValidation
         if (shell != null)
         {
             RectTransform rect = (RectTransform)shell.transform;
-            Check(Near(rect.offsetMin.x, 96f, 0.1f) &&
-                Near(rect.offsetMax.x, -96f, 0.1f) &&
-                Near(rect.offsetMax.y, -148f, 0.1f),
+            Check(Near(rect.offsetMin.x, 28f, 0.1f) &&
+                Near(rect.offsetMax.x, -28f, 0.1f) &&
+                Near(rect.offsetMax.y, -138f, 0.1f),
                 "El shell no reserva cabecera ni margenes como Generacion.", failures);
             Check(shell.transform.Find("UpgradesTitleFrame/AccentLeft") != null &&
                 shell.transform.Find("UpgradesTitleFrame/AccentRight") != null,
                 "Falta la barra mecanica del titulo MEJORAS.", failures);
+            Transform console = FindDescendant(shell.transform, "UpgradeStudyConsole");
+            Check(console != null &&
+                console.Find("UpgradesLabBackground") != null &&
+                console.Find("ResearchReceptacle") != null &&
+                console.Find("ResearchReadout") != null &&
+                console.Find("ConsoleTitlePlate") != null,
+                "La consola de estudios no usa el banco de laboratorio aprobado.", failures);
             ValidateSections(shell.transform, failures);
             ValidateRows(shell.transform, failures);
             ValidateKeycard(shell.transform, keycard, failures);
@@ -139,7 +148,7 @@ public static class VerticalUpgradesVisualPolishValidation
             LayoutElement layout = header != null
                 ? header.GetComponent<LayoutElement>()
                 : null;
-            Check(layout != null && layout.preferredHeight >= 104f,
+            Check(layout != null && layout.preferredHeight >= 94f,
                 name + " tiene un encabezado demasiado pequeno.", failures);
             Check(CountDescendants(section, "MechanicalIcon") >= 1 &&
                 CountDescendants(section, "RailCore") == 1,
@@ -241,6 +250,19 @@ public static class VerticalUpgradesVisualPolishValidation
             Check(importer != null && android.overridden &&
                 android.format == TextureImporterFormat.ASTC_4x4,
                 path + " no conserva compresion Android ASTC.", failures);
+        }
+
+        foreach (string file in new[]
+        {
+            "qf_lab_accident_background_v3.png",
+            "qf_selector_metal_plate_v2.png",
+            "qf_module_card_metal_v2.png",
+            "qf_resource_counter_metal_v2.png"
+        })
+        {
+            string path = GenerationPolishFolder + "/" + file;
+            Check(AssetDatabase.LoadAssetAtPath<Sprite>(path) != null,
+                path + " no esta disponible para Mejoras.", failures);
         }
     }
 

@@ -1,0 +1,7 @@
+PERFIL DE ESTILO — DIMENSIÓN 4
+Estado: PENDIENTE DE DISEÑO APROBADO
+
+Este archivo reserva el lugar del futuro perfil. No contiene autorización para
+inventar la identidad visual de Dimensión 4.
+Cuando exista evidencia, completar `02_PLANTILLAS/PERFIL_ESTILO_DIMENSION.txt` sin
+heredar automáticamente el perfil de una dimensión anterior.

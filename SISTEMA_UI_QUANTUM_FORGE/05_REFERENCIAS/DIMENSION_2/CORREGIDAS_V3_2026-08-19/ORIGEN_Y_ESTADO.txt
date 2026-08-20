@@ -1,0 +1,40 @@
+ORIGEN Y ESTADO — REFERENCIAS CORREGIDAS V3 DE DIMENSIÓN 2
+
+Estado: COLECCIÓN COMPLETA; PENDIENTE DE APROBACIÓN DEL USUARIO.
+Fecha de inicio: 19 de agosto de 2026.
+
+Fuente:
+05_REFERENCIAS/DIMENSION_2/CANDIDATAS_2026-08-19
+
+Estas imágenes son correcciones no destructivas de los conceptos entregados por
+el usuario. No son capturas reales de Unity ni assets finales de interfaz.
+
+Reglas aplicadas:
+- Veinte vistas conservadas dentro de cuatro pantallas base.
+- Resolución maestra de referencia: 941 x 1672.
+- Contenido contrastado con el estado técnico real antes de corregirlo.
+- Cada PNG representa un estado estático de reposo.
+- Las animaciones se planifican desde esta fase, pero se implementan y validan en
+  Unity mediante capas separadas; no se hornean como movimiento dentro del PNG.
+
+Archivos completados:
+- 01_Mapa_De_Los_Pactos_Corregido.png
+  - Confianza corregida a 280 / 500.
+  - Requisito de localización conservado en 300 de Confianza.
+  - Eliminadas las líneas amarillas y los nodos de unión entre territorios por
+    decisión explícita del usuario.
+- 02 a 08 — Santuario:
+  - Familia de siete iconos unificada.
+  - Ritos utiliza cuenco ritual y Pactos utiliza apretón de manos.
+  - La vista 08 muestra PACTO en el estado PACTO ESTABLECIDO.
+- 09 a 15 — Resistencia:
+  - Familia de seis iconos unificada.
+  - Añadido botón de regreso en las vistas 11 y 13.
+  - La vista 14 conserva CONTENCIÓN y la vista 15 muestra PACTO MAYOR.
+- 16 a 20 — Arqueología y Ente:
+  - Se utiliza ENTE en lugar de ENTIDAD.
+  - La vista 20 muestra PACTO OPCIONAL en el estado establecido.
+- Las veinte imágenes miden 941 x 1672 píxeles y conservan su numeración.
+
+Los archivos se promoverán a referencia canónica únicamente después de que el
+usuario apruebe explícitamente la familia visual completa.

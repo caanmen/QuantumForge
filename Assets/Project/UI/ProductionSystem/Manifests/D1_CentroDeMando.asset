@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1976eba7ff36c64a9a7b31018fc30f7, type: 3}
+  m_Name: D1_CentroDeMando
+  m_EditorClassIdentifier: Assembly-CSharp::UIProductionScreenManifest
+  screenId: D1_CENTRO_DE_MANDO
+  displayName: Centro de Mando
+  dimension: 1
+  approvalStage: 2
+  baseResolution: {x: 1080, y: 1920}
+  perceivedSimilarityTarget: 0.95
+  referenceRelativePath: SISTEMA_UI_QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_1/CENTRO_DE_MANDO/referencia_centro_de_mando.png
+  approvedCaptureRelativePaths: []
+  sharedTheme: {fileID: 11400000, guid: 3ed269241773c0d42accabf95ed69cef, type: 2}
+  setupMethod: Dimension1CommandCenterSetup
+  validationMethod: Dimension1CommandCenterDrawerRuntimeValidation
+  requiredCaptureStates:
+  - Neutral
+  - "Drawer/Navegaci\xF3n"
+  documentationFolder: SISTEMA_UI_QUANTUM_FORGE/10_PANTALLAS/DIMENSION_1/CENTRO_DE_MANDO
+  notes: "La captura final a\xFAn debe consolidarse en el sistema central."

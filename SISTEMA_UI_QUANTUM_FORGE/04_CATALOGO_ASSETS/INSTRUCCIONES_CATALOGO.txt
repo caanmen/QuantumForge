@@ -1,0 +1,47 @@
+CATÁLOGO DE ASSETS
+
+CONSULTA OBLIGATORIA ANTES DE CREAR
+- Consultar este catálogo y `MAPA_REUTILIZACION_Y_ORIGEN_UI.md` antes de dibujar,
+  generar, importar o programar un recurso visual nuevo.
+- Buscar también en el proyecto real. El catálogo puede estar incompleto y nunca es
+  prueba suficiente de que un recurso no exista.
+- Registrar la primera aparición y la ruta exacta de cualquier concepto repetible.
+- Si existe un asset o componente aprobado dentro de su alcance, reutilizarlo. No crear
+  un sustituto aproximado, simplificado o con otro medio gráfico.
+- Si sólo existe un candidato, conservar ese estado hasta aprobación explícita.
+- Si el recurso falta realmente, registrar primero el faltante y después crear una
+  versión candidata. Crear desde cero es la última opción, no el punto de partida.
+
+Registrar un elemento cuando:
+- Aparece por primera vez en el juego.
+- Se aprueba una variante.
+- Cambia su ruta definitiva.
+- Un concepto debe reutilizar exactamente el mismo icono.
+
+ESTADOS PERMITIDOS
+- pendiente
+- candidato
+- provisional_autorizado
+- canónico
+- aprobada (sólo cuando la fila representa una pantalla o familia aprobada)
+- sustituido
+- obsoleto
+
+La columna dimensión define el alcance: COMUN sólo para recursos realmente compartidos;
+D1, D2, D3, D4 o futuras dimensiones para recursos exclusivos. Que un asset sea canónico
+en una dimensión no lo vuelve canónico para las demás.
+
+No convertir un recurso en COMUN únicamente porque resulte técnicamente reutilizable.
+Su lenguaje visual también debe haber sido aprobado como compartido.
+
+No registrar una imagen conceptual como asset canónico.
+La columna fuente_aprobacion debe permitir rastrear por qué el recurso es válido.
+La ruta debe señalar el archivo exacto; una carpeta sólo puede usarse temporalmente y
+debe quedar marcada como ruta pendiente de consolidación.
+
+El alcance se interpreta así:
+- COMUN: reutilizable en todo el juego porque fue aprobado expresamente como compartido.
+- D1, D2, D3, D4...: reutilizable sólo dentro de esa dimensión y según su perfil.
+- PANTALLA: exclusivo de una pantalla salvo decisión posterior registrada.
+
+La coincidencia de nombre o función no autoriza a copiar el estilo de otra dimensión.

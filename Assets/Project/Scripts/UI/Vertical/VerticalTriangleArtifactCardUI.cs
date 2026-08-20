@@ -7,6 +7,7 @@ public sealed class VerticalTriangleArtifactCardUI : MonoBehaviour
     public string buildingId;
     public TextMeshProUGUI nameText;
     public TextMeshProUGUI stateText;
+    public TextMeshProUGUI roleText;
     public Image icon;
     public Button buyButton;
     public Sprite higgsIcon;
@@ -51,10 +52,17 @@ public sealed class VerticalTriangleArtifactCardUI : MonoBehaviour
 
         bool energyGenerator = buildingId == "fluctuation_antenna" && state.level > 0;
         string displayName = buildingId == "vacuum_observer" ? "HIGGS" :
-            buildingId == "casimir_panel" ? "TETRAQUARK" :
-            energyGenerator ? "CAPTADOR DE ENERGÍA" : "MODULADOR";
-        string shownName = displayName + " · NV. " + state.level;
-        SetIfChanged(nameText, shownName);
+            buildingId == "casimir_panel" ? "TETRAQUARK" : "MODULADOR";
+        SetIfChanged(nameText, displayName + " \u00b7 NV. " + state.level);
+
+        string role = buildingId == "vacuum_observer"
+            ? "FLUCTUADOR\nDE CAMPO"
+            : buildingId == "casimir_panel"
+                ? "CONFINADOR\nCU\u00c1NTICO"
+                : energyGenerator
+                    ? "CAPTADOR\nDE ENERG\u00cdA"
+                    : "MODULADOR\nDE FASE";
+        SetIfChanged(roleText, role);
 
         double cost = GameState.I.GetEffectiveBuildingCost(state);
         double traceCost = energyGenerator
@@ -93,7 +101,7 @@ public sealed class VerticalTriangleArtifactCardUI : MonoBehaviour
     {
         if (GameState.I == null || state == null) return "COMPRAR";
         if (state.def.id == "fluctuation_antenna" && state.level == 0)
-            return "COMPRAR\nDESBLOQUEA TRIÁNGULO";
+            return "COMPRAR\nDESBLOQUEA TRI\u00c1NGULO";
 
         double le = GameState.I.GetBuildingNextLevelLEPerSecond(state);
         double traces = GameState.I.GetBuildingNextLevelTracesPerSecond(state);
@@ -101,9 +109,9 @@ public sealed class VerticalTriangleArtifactCardUI : MonoBehaviour
         string gain = string.Empty;
         if (le > 0.000001) gain = "+" + le.ToString("0.##") + " LE/s";
         if (traces > 0.000001)
-            gain += (gain.Length > 0 ? " · " : "") + "+" + traces.ToString("0.###") + " T/s";
+            gain += (gain.Length > 0 ? " \u00b7 " : "") + "+" + traces.ToString("0.###") + " T/s";
         if (energy > 0.000001)
-            gain += (gain.Length > 0 ? " · " : "") + "+" + energy.ToString("0.##") + " E/s";
+            gain += (gain.Length > 0 ? " \u00b7 " : "") + "+" + energy.ToString("0.##") + " E/s";
         return Localize("ui.buy", "Comprar").ToUpperInvariant() +
             (gain.Length > 0 ? "\n" + gain : string.Empty);
     }

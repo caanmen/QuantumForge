@@ -1,0 +1,5 @@
+Esta guía fue centralizada en:
+SISTEMA_UI_QUANTUM_FORGE/01_GUIAS/GUIA_PREVENCION_ERRORES_PANTALLAS.txt
+
+No mantengas dos copias. Actualiza únicamente el archivo central.
+

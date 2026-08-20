@@ -1,0 +1,14 @@
+PAQUETE VISUAL CANDIDATO — DIMENSIÓN 3
+=======================================
+
+Origen: Dimension3_Continuidad_2026-08-19 entregado por el usuario.
+Fecha de incorporación: 19 de agosto de 2026.
+Contenido: once conceptos visuales; no son capturas de Unity ni assets finales.
+
+Estado:
+- 00 Planta de Producción: composición corregida V2 aprobada por el usuario.
+- 01 a 10: referencias candidatas en corrección funcional y de coherencia.
+
+Las originales se conservan sin modificaciones. Las candidatas corregidas viven en
+10_PANTALLAS/DIMENSION_3 y no pasan a 06_CAPTURAS_APROBADAS antes de su implementación
+y captura real desde Unity.

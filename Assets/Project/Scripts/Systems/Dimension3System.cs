@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public static class Dimension3System
 {
-    public const int ProgressVersion = 10;
+    public const int ProgressVersion = 11;
 
     public static Dimension3State CreateInitialState()
     {
@@ -388,7 +388,12 @@ public static class Dimension3System
                 0, routine.executionsCompleted);
             routine.evaluationRemainingSeconds = Math.Max(
                 0.0, routine.evaluationRemainingSeconds);
+            state.successfulAutomationExecutions = Math.Max(
+                state.successfulAutomationExecutions,
+                routine.executionsCompleted);
         }
+        state.successfulAutomationExecutions = Math.Max(
+            0L, state.successfulAutomationExecutions);
         for (int i = state.automationProfiles.Count - 1; i >= 0; i--)
         {
             D3AutomationProfileState profile = state.automationProfiles[i];

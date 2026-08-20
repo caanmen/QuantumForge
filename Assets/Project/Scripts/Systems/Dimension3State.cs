@@ -262,6 +262,7 @@ public class Dimension3State
     public bool firstEntrySeen;
     // Hito único manual de D3. No consume al MK6 ni se ejecuta por automatización.
     public bool autonomyCoreIntegrated;
+    public long successfulAutomationExecutions;
     public string selectedInstallationId = Dimension3Catalog.FacilityProcessBank;
     public long nextJobSequence = 1;
     public long nextAutomationSequence = 1;

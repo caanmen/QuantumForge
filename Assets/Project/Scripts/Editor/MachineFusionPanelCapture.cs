@@ -17,6 +17,8 @@ public static class MachineFusionPanelCapture
     private const string CompletedKey = "QF.MachineFusionCapture.Completed";
     private const string SaveExistedKey = "QF.MachineFusionCapture.SaveExisted";
     private const string BackupExistedKey = "QF.MachineFusionCapture.BackupExisted";
+    private const string ExitWhenCompleteKey =
+        "QF.MachineFusionCapture.ExitWhenComplete";
 
     private static Camera _camera;
     private static RenderTexture _target;
@@ -59,6 +61,8 @@ public static class MachineFusionPanelCapture
         Directory.CreateDirectory(OutputDirectory);
         BackupUserSave();
         MachineFusionPanelVisualSetup.Configure();
+        MachineFusionApprovedStyleSetup.Configure();
+        MachineFusionApprovedStyleSetup.Validate();
         EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
         SessionState.SetBool(ActiveKey, true);
         SessionState.SetBool(FailedKey, false);
@@ -72,6 +76,21 @@ public static class MachineFusionPanelCapture
     public static void RunBatch()
     {
         Run();
+    }
+
+    public static void RunNormalAndExit()
+    {
+        SessionState.SetBool(ExitWhenCompleteKey, true);
+        try
+        {
+            Run();
+        }
+        catch (Exception exception)
+        {
+            SessionState.SetBool(ExitWhenCompleteKey, false);
+            Debug.LogException(exception);
+            EditorApplication.Exit(1);
+        }
     }
 
     private static void OnPlayModeChanged(PlayModeStateChange change)
@@ -103,7 +122,9 @@ public static class MachineFusionPanelCapture
         SessionState.SetBool(FailedKey, false);
         if (!failed)
             Debug.Log("[Machine Fusion Capture] PASS | functional panel | 1080x1920");
-        if (Application.isBatchMode)
+        bool exitWhenComplete = SessionState.GetBool(ExitWhenCompleteKey, false);
+        SessionState.SetBool(ExitWhenCompleteKey, false);
+        if (Application.isBatchMode || exitWhenComplete)
             EditorApplication.Exit(failed ? 1 : 0);
     }
 

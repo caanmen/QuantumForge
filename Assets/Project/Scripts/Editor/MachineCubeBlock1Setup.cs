@@ -222,6 +222,7 @@ public static class MachineCubeBlock1Setup
         SetObject(panelSo, "btnAnalyzeNode", card.analyze);
         SetObject(panelSo, "btnFusionPanel", modeTabs.mixes);
         SetObject(panelSo, "btnNodesTab", modeTabs.nodes);
+        SetObject(panelSo, "btnSeedsTab", modeTabs.seeds);
         SetObject(panelSo, "btnOpenSeedsPanel", card.seeds);
         SetObject(panelSo, "btnZone1", null);
         SetObject(panelSo, "btnZone2", null);
@@ -372,22 +373,28 @@ public static class MachineCubeBlock1Setup
         Sprite buttonSprite, Sprite selectedSprite)
     {
         GameObject tabs = CreateRect("MachineContextTabs", parent,
-            new Vector2(0.245f, 0.840f), new Vector2(0.755f, 0.880f),
+            new Vector2(0.18f, 0.840f), new Vector2(0.82f, 0.880f),
             Vector2.zero, Vector2.zero);
 
         Button nodes = BuildCardButton(tabs.transform, "NodesTab", "NODOS",
-            new Vector2(0.00f, 0.04f), new Vector2(0.49f, 0.96f), font,
+            new Vector2(0.00f, 0.04f), new Vector2(0.32f, 0.96f), font,
             selectedSprite != null ? selectedSprite : buttonSprite, 20f);
         Button mixes = BuildCardButton(tabs.transform, "MixesTab", "MEZCLAS",
-            new Vector2(0.51f, 0.04f), new Vector2(1.00f, 0.96f), font,
+            new Vector2(0.34f, 0.04f), new Vector2(0.66f, 0.96f), font,
+            buttonSprite, 20f);
+        Button seeds = BuildCardButton(tabs.transform, "SeedsTab", "SEMILLAS",
+            new Vector2(0.68f, 0.04f), new Vector2(1.00f, 0.96f), font,
             buttonSprite, 20f);
 
         if (nodes.targetGraphic is Image nodesImage)
             nodesImage.color = new Color(0.10f, 0.70f, 0.84f, 0.98f);
         if (mixes.targetGraphic is Image mixesImage)
             mixesImage.color = new Color(0.42f, 0.28f, 0.55f, 0.96f);
+        if (seeds.targetGraphic is Image seedsImage)
+            seedsImage.color = new Color(0f, 0.40f, 0.36f, 0.92f);
+        seeds.gameObject.SetActive(false);
 
-        return new ModeTabParts { nodes = nodes, mixes = mixes };
+        return new ModeTabParts { nodes = nodes, mixes = mixes, seeds = seeds };
     }
 
     private static MachineCubeFaceViewUI BuildFace(RectTransform parent, int index,
@@ -883,6 +890,7 @@ public static class MachineCubeBlock1Setup
     {
         public Button nodes;
         public Button mixes;
+        public Button seeds;
     }
 
     private sealed class CardParts

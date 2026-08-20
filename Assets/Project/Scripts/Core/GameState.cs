@@ -7036,6 +7036,8 @@ public class GameState : MonoBehaviour
         if (circuit == TriangleCircuitType.None) return false;
         if (triangleActiveCircuit == circuit)
         {
+            if (recordManual)
+                D3ConsoleSystem.RecordManualTriangleCircuit(this, circuit);
             return true;
         }
 
@@ -7048,6 +7050,8 @@ public class GameState : MonoBehaviour
         BeginTriangleSynchronization(firstActivation ? TriangleInitialSynchronization : switchStart);
         SyncLegacyTriangleDisplayFields();
         UpgradeStudySystem.RecordCircuitSwitch(this, previousCircuit, circuit);
+        if (recordManual)
+            D3ConsoleSystem.RecordManualTriangleCircuit(this, circuit);
         return true;
     }
 

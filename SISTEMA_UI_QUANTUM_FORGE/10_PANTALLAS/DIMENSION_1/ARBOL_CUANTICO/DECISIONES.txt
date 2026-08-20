@@ -1,0 +1,64 @@
+DECISIONES ESPECÍFICAS: ÁRBOL CUÁNTICO
+======================================
+
+- El usuario eligió la variante 3, Constelación orbital, el 19 de agosto de 2026.
+- La referencia orbital sustituye a la primera imagen únicamente como autoridad para
+  la nueva composición; la primera imagen conserva valor histórico de origen.
+- Los cuatro anillos representan agrupación por sectores, no dependencias entre nodos.
+- Los máximos visibles son los del código: seis nodos 1/1 y cuatro nodos 1/3.
+- Cartografía Avanzada tiene máximo 1 y coste real de 3 puntos.
+- En el escenario visual elegido, Sector 4 está disponible; Optimización, Cartografía
+  y Estabilización no muestran candado. Cartografía es la selección ámbar.
+- El cristal central es decorativo y no recibe interacción.
+- Los números 1 a 10 son identificadores visuales estables del orden ya existente en
+  Dimension1TreeNodeIds; no representan niveles ni fuerzan orden de compra.
+- El PNG completo no se utilizará como fondo de runtime. La pantalla se reconstruirá
+  con componentes, textos, marcos, gráficos y capas reales de Unity.
+- Se reutiliza el sistema visual D1 existente y VerticalUiTheme cuando corresponda.
+- La composición estática debe aprobarse antes de conectar compra, navegación interna
+  o animación.
+- La futura animación se limitará a pulso del cristal, flujo orbital y acento de selección;
+  no moverá tarjetas, textos, encabezado, panel contextual ni navegación.
+- La composición estática se instaló en Main.unity mediante
+  Dimension1TreeReferenceSetup.Install y conserva los controles provisionales bajo
+  D1_TreeLegacyFunctionalRoot desactivado, sin borrarlos ni romper sus referencias.
+- Las capturas candidatas 1080×1920 y 720×1280 finalizaron con PASS el 19 de agosto de
+  2026. Permanecen como candidatas hasta que el usuario apruebe la Puerta 2.
+- El usuario rechazó esas capturas el 19 de agosto de 2026: no alcanzan el 95 % y los
+  iconos procedurales repiten conceptos ya resueltos con un acabado demasiado simple.
+  Se archivaron como `CAPTURA_RECHAZADA_FIDELIDAD_E_ICONOS_*` y no son autoridad visual.
+- La reconstrucción debe auditar primero las pantallas D1 anteriores y reutilizar sus
+  assets e iconos reales antes de producir cualquier faltante nuevo.
+- La segunda candidata reutiliza marco, relleno, estrellas, brillo, anillo orbital,
+  navegación, cristal analítico, blueprint de Hangar, registro de navegación y símbolos
+  canónicos D1 según la matriz registrada.
+- Cartografía Avanzada era el único faltante real. Su candidato
+  `d1_tree_advanced_cartography_v2.png` tiene alfa real validado y no se promueve a
+  canónico antes de aprobar la pantalla completa.
+- La segunda candidata obtuvo `INSTALL_PASS` y `D1 Tree Capture PASS` en 1080×1920 y
+  720×1280. Sigue pendiente de aprobación visual del usuario y no se declara 95 %.
+- Tras la revisión del usuario, la navegación inferior deja de usar los PNG simples
+  `d1_nav_*_v3.png` y llama directamente al constructor técnico ya utilizado por
+  Explorar/Hangar. La misma fuente corrige Lectura de Reliquias, Coordinación de Flota
+  y Estabilización sin generar iconos nuevos.
+- En una segunda revisión, el usuario aprobó el lenguaje de cinco iconos premium con
+  volumen mecánico y emisión cyan. Se archivaron en `Generated/NavigationPremium`, se
+  aplican a las seis pantallas D1 mediante `Dimension1PremiumNavigationApply` y los
+  pictogramas `d1_nav_*_v3.png` quedan sustituidos para navegación nueva.
+- Los PNG premium conservan fondo negro para un recorte reproducible en Unity. Deben
+  usarse junto a `d1_nav_premium_black_key.mat` o su variante seleccionada; no deben
+  mostrarse como PNG sin tratamiento ni reutilizarse fuera de D1.
+- El PASS anterior de navegación queda invalidado como evidencia física: despachaba
+  ExecuteEvents directamente sobre el destino y evitaba GraphicRaycaster. Los botones
+  del Árbol asignaban un Fill con raycastTarget=false como targetGraphic.
+- El instalador y la escena migrada deben mantener raycastTarget=true únicamente en la
+  superficie táctil de Centro y de las cinco tarjetas; textos, iconos y bordes siguen
+  siendo decorativos y no reciben raycasts.
+- La exclusividad de navegación no se aplica dentro de OnEnable: queda pendiente hasta
+  el siguiente Update para no desactivar Selectable durante OnPointerClick. La supresión
+  es además propiedad de cada raíz D1 activa, de modo que cerrar una pantalla solapada
+  no puede liberar la navegación requerida por otra.
+- La prueba obligatoria fija 1080×1920, entra desde `Nav_ÁRBOL`, usa RaycastAll desde la
+  posición visible antes de despachar el clic, verifica todas las salidas y mide durante
+  diez segundos las esquinas de Safe Area, ContentSlot y pantalla. Sigue pendiente de
+  PASS nuevo por indisponibilidad temporal del servicio local de licencia de Unity.

@@ -1,0 +1,67 @@
+CONTRATO DE APROBACIÓN
+
+Pantalla:
+Dimensión:
+Versión o fecha:
+
+PUERTA 0 — AUDITORÍA Y REUTILIZACIÓN
+[ ] Proyecto real, catálogo y mapa de reutilización inspeccionados.
+[ ] Apariciones anteriores y capturas aprobadas comparadas.
+[ ] Matriz concepto-origen-ruta-estado-decisión completa.
+[ ] Assets y componentes existentes reutilizados antes de crear sustitutos.
+[ ] Cada asset nuevo está justificado como faltante real.
+[ ] No se heredó estética entre dimensiones sin autorización.
+[ ] Simplificaciones prohibidas y diferencias autorizadas registradas.
+[ ] El diseño aprobado conserva medio, volumen, proporción y nivel de detalle.
+
+PUERTA 1 — CONTRATO
+[ ] Función y flujo definidos.
+[ ] Datos y lore verificados.
+[ ] Referencia permanente disponible.
+[ ] Referencia clasificada como candidata o aprobada sin ambigüedad.
+[ ] Assets canónicos identificados.
+[ ] Ambigüedades resueltas por el usuario.
+[ ] Reglas generales separadas de las decisiones visuales de otras dimensiones.
+[ ] Perfil de la dimensión identificado o marcado explícitamente como pendiente.
+[ ] Intención de animación definida antes de producir los assets finales.
+[ ] Capas, pivotes, márgenes y elementos inmóviles previstos sin implementar movimiento.
+
+PUERTA 2 — COMPOSICIÓN ESTÁTICA
+[ ] Jerarquía estable.
+[ ] Medidas y zonas seguras correctas.
+[ ] Tipografía legible.
+[ ] Proporciones de assets conservadas.
+[ ] Comparación visual realizada.
+[ ] Comparación por bloques, ocupación y nivel de detalle realizada.
+[ ] Ningún placeholder o pictograma simple sustituye un asset de autoridad.
+[ ] Composición estática aprobada antes de implementar cualquier animación.
+
+PUERTA 3 — DATOS E INTERACCIÓN
+[ ] Datos reales conectados.
+[ ] Propietario único por propiedad.
+[ ] Todos los estados probados.
+[ ] Navegación y botón Atrás probados.
+[ ] Toques repetidos no producen carreras.
+
+PUERTA 4 — ANIMACIÓN
+[ ] La composición estática ya estaba aprobada al comenzar esta puerta.
+[ ] Las animaciones corresponden al contrato planificado; no se añadieron movimientos inventados.
+[ ] Pivotes centrados.
+[ ] Posiciones base estables.
+[ ] Animaciones renderizadas y revisadas.
+[ ] Layout y legibilidad permanecen estables.
+
+PUERTA 5 — CIERRE
+[ ] Capturas reales nuevas archivadas.
+[ ] 1080×1920 comprobado.
+[ ] 720×1280 comprobado cuando corresponde.
+[ ] Pruebas automáticas PASS.
+[ ] Sin errores o excepciones relacionadas.
+[ ] Similitud mínima del 95 % aprobada.
+[ ] Diferencias restantes registradas.
+[ ] No se heredó estética de otra dimensión sin una decisión aprobada y registrada.
+
+Resultado: APROBADA / PENDIENTE
+Aprobada por:
+Fecha:
+Notas:

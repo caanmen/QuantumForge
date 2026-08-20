@@ -117,13 +117,28 @@ public static class D3DiagnosticSystem
         D3DiagnosticSettingsState settings = gameState.dimension3.diagnosticSettings;
         if (settings.autoAnalyzeEnabled && D3FacilitySystem.IsFunctionActive(
                 gameState.dimension3, Dimension3Catalog.FacilityDiagnosticBank, 1) &&
-            TryStartNextAnalysis(gameState, out _)) return true;
+            TryStartNextAnalysis(gameState, out _))
+        {
+            D3AutonomyCoreSystem.RecordSuccessfulAutomationExecution(
+                gameState.dimension3);
+            return true;
+        }
         if (settings.autoRepairEnabled && D3FacilitySystem.IsFunctionActive(
                 gameState.dimension3, Dimension3Catalog.FacilityDiagnosticBank, 2) &&
-            TryRepairNextNode(gameState, out _)) return true;
+            TryRepairNextNode(gameState, out _))
+        {
+            D3AutonomyCoreSystem.RecordSuccessfulAutomationExecution(
+                gameState.dimension3);
+            return true;
+        }
         if (settings.autoFusionEnabled && D3FacilitySystem.IsFunctionActive(
                 gameState.dimension3, Dimension3Catalog.FacilityDiagnosticBank, 4) &&
-            TryRepeatNextMarkedFusion(gameState, out _)) return true;
+            TryRepeatNextMarkedFusion(gameState, out _))
+        {
+            D3AutonomyCoreSystem.RecordSuccessfulAutomationExecution(
+                gameState.dimension3);
+            return true;
+        }
         return false;
     }
 

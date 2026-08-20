@@ -1,0 +1,31 @@
+CONTRATO COMÚN — NO ES UN TEMA VISUAL
+
+Estas reglas se comparten entre dimensiones sin obligarlas a verse iguales:
+
+- Resolución vertical de referencia: 1080×1920, salvo contrato distinto.
+- Safe Area aplicada una sola vez por el sistema responsable.
+- Zonas estructurales separadas: encabezado, contenido, contexto y navegación.
+- Cada marco reutilizable documenta proporción, slicing y zona interior segura.
+- Cada categoría tipográfica define tamaño recomendado y mínimo legible.
+- Cada texto, RectTransform, color dinámico y visibilidad tiene un único propietario.
+- Estados funcionales definidos antes de animar.
+- Assets con proporción conservada y transparencia verificada.
+- Navegación externa suprimida/restaurada explícitamente.
+- Capturas y pruebas usan estados QA deterministas.
+- Escena/prefab y generador permanecen sincronizados.
+
+Los colores, marcos, iconos, fondos, brillos, tipografías artísticas y movimiento
+pertenecen al perfil de cada dimensión y no se heredan automáticamente.
+
+REGLA DE AISLAMIENTO VISUAL
+
+- Un componente técnicamente reutilizable no se considera visualmente común sólo
+  porque ya exista en una dimensión.
+- `VerticalUiTheme` y cualquier tema existente se reutilizan únicamente cuando el
+  perfil de la dimensión lo autorice; no imponen su paleta ni su arte.
+- Los ejemplos históricos explican problemas y soluciones, no sirven como catálogo
+  visual para otra dimensión.
+- Si una nueva dimensión aún no tiene perfil aprobado, se mantiene pendiente y se
+  deriva de su primera pantalla aprobada; no adopta provisionalmente el perfil D1.
+- Toda excepción compartida entre dimensiones debe registrarse como decisión explícita,
+  con evidencia de al menos las pantallas afectadas.

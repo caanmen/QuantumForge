@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -30,6 +31,7 @@ public class D3FacilitiesPanelUI : MonoBehaviour
     public D3DiagnosticPanelUI diagnosticPanel;
 
     private float _refreshRemaining;
+    private Coroutine _autonomyConfirmationRoutine;
     private readonly SafeDropdownOptionMap<string> _facilityOptions =
         new SafeDropdownOptionMap<string>(StringComparer.Ordinal);
     private readonly SafeDropdownOptionMap<string> _channelOptions =
@@ -124,6 +126,10 @@ public class D3FacilitiesPanelUI : MonoBehaviour
         Dimension3State state = GameState.I.dimension3;
         string facilityId = GetFacilityId();
         int level = D3FacilitySystem.GetFacilityLevel(state, facilityId);
+        bool expeditionPort = facilityId ==
+            Dimension3Catalog.FacilityExpeditionPort;
+        bool expeditionPortLinked = !expeditionPort ||
+            D3FacilitySystem.IsExpeditionPortLinked(GameState.I);
         int selectedMk = _mkOptions.ResolveOrDefault(
             mkDropdown == null ? 0 : mkDropdown.value, 1);
         _mkOptions.Rebuild(mkDropdown,
@@ -160,6 +166,9 @@ public class D3FacilitiesPanelUI : MonoBehaviour
             functionsText.text = level == 0
                 ? "DETALLE\nSe mostrará el control operativo cuando termine la construcción."
                 : "FUNCIÓN OPERATIVA\n" + GetCurrentFunction(facilityId, level);
+            if (level > 0 && expeditionPort && !expeditionPortLinked)
+                functionsText.text = "INFRAESTRUCTURA CONSTRUIDA · SIN ENLACE\n" +
+                    "Descubre Dimensión 1 y completa una acción manual compatible para registrar el primer patrón.";
             if (level > 0 && facilityId == Dimension3Catalog.FacilityAutomationCore)
                 functionsText.text += "\n\nCapacidad actual: " +
                     D3FacilitySystem.GetAutomationCoreRoutineLimit(state) +
@@ -167,7 +176,16 @@ public class D3FacilitiesPanelUI : MonoBehaviour
                     D3FacilitySystem.GetAutomationCoreProfileLimit(state) +
                     " perfiles | x" +
                     D3FacilitySystem.GetAutomationCoreEfficiencyMultiplier(state)
-                        .ToString("0.00");
+                        .ToString("0.00") +
+                    "\nPrueba de autonomía: " +
+                    (state.successfulAutomationExecutions > 0L
+                        ? "CONFIRMADA (" + state.successfulAutomationExecutions +
+                            " ejecuciones)"
+                        : "PENDIENTE · completa una acción automática real");
+            if (state.autonomyCoreIntegrated &&
+                facilityId == Dimension3Catalog.FacilityAutomationCore)
+                functionsText.text +=
+                    "\nESTADO FINAL: RED AUTÓNOMA ACTIVA · SEÑAL DIMENSIONAL EMITIDA";
         }
         bool built = level > 0;
         SetInteractable(addAssignmentButton, built &&
@@ -191,11 +209,12 @@ public class D3FacilitiesPanelUI : MonoBehaviour
             "AUTORREPARACIÓN: " + (settings.autoRepairEnabled ? "ON" : "OFF"));
         SetInteractable(toggleAutoAnalyzeButton, diagnostic && level >= 1);
         SetInteractable(toggleAutoRepairButton, diagnostic && level >= 2);
-        bool automation = facilityId == Dimension3Catalog.FacilityExpeditionPort ||
+        bool automation = expeditionPort ||
             facilityId == Dimension3Catalog.FacilityAutomationCore;
         if (openAutomationButton != null)
             openAutomationButton.gameObject.SetActive(automation);
-        SetInteractable(openAutomationButton, automation && level >= 1);
+        SetInteractable(openAutomationButton,
+            automation && level >= 1 && expeditionPortLinked);
         bool autonomyCore = facilityId == Dimension3Catalog.FacilityAutomationCore;
         if (integrateAutonomyCoreButton != null)
             integrateAutonomyCoreButton.gameObject.SetActive(autonomyCore);
@@ -207,7 +226,9 @@ public class D3FacilitiesPanelUI : MonoBehaviour
             SetLabel(integrateAutonomyCoreButton,
                 state.autonomyCoreIntegrated
                     ? "NÚCLEO DE AUTONOMÍA INTEGRADO"
-                    : "INTEGRAR NÚCLEO DE AUTONOMÍA");
+                    : state.successfulAutomationExecutions < 1L
+                        ? "PRUEBA DE AUTONOMÍA PENDIENTE"
+                        : "INTEGRAR NÚCLEO DE AUTONOMÍA");
             if (!state.autonomyCoreIntegrated && !canIntegrate && noticeText != null &&
                 string.IsNullOrEmpty(noticeText.text))
                 noticeText.text = integrationReason;
@@ -271,9 +292,27 @@ public class D3FacilitiesPanelUI : MonoBehaviour
 
     private void IntegrateAutonomyCore()
     {
-        D3AutonomyCoreSystem.TryIntegrate(GameState.I, out string reason);
-        SetNotice(reason);
+        bool integrated = D3AutonomyCoreSystem.TryIntegrate(
+            GameState.I, out string reason);
+        if (integrated)
+        {
+            if (_autonomyConfirmationRoutine != null)
+                StopCoroutine(_autonomyConfirmationRoutine);
+            _autonomyConfirmationRoutine = StartCoroutine(
+                PlayAutonomyConfirmation(reason));
+        }
+        else SetNotice(reason);
         Refresh();
+    }
+
+    private IEnumerator PlayAutonomyConfirmation(string finalMessage)
+    {
+        SetNotice("AUTONOMÍA CONFIRMADA\nSincronizando plantas de producción...");
+        yield return new WaitForSecondsRealtime(0.8f);
+        SetNotice("NÚCLEO INTEGRADO\nRutinas estables · Red de fábrica activa");
+        yield return new WaitForSecondsRealtime(0.8f);
+        SetNotice(finalMessage);
+        _autonomyConfirmationRoutine = null;
     }
 
     private void OpenConsole()

@@ -1,0 +1,17 @@
+DECISIONES ESPECÍFICAS: CARTA GALÁCTICA
+======================================
+
+- Inicio neutral: ningún sector se activa automáticamente.
+- El controlador visual es el único dueño de los títulos de sector.
+- El indicador de materiales no lleva línea o Marker blanco junto al icono.
+- No hay marcos completos alrededor del número de expediciones al seleccionar.
+- No se añaden círculos alrededor de planetas si no existen en la referencia.
+- Los pivotes visuales permanecen centrados y estables.
+- Las cuatro rutas tienen la misma longitud y grosor y usan pendientes espejo.
+- Coordenadas aprobadas en 1080 x 1920:
+  superior izquierda (432,610) a (367,550)
+  superior derecha   (648,610) a (713,550)
+  inferior izquierda (432,860) a (367,920)
+  inferior derecha   (648,860) a (713,920)
+- Longitud aproximada común: 88.46 px.
+

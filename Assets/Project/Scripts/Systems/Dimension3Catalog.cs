@@ -117,6 +117,8 @@ public static class Dimension3Catalog
     public const int MaxQueueEntries = 10;
     public const double AssignmentStabilizationSeconds = 30.0;
     public const double OfflineProgressCapSeconds = 12.0 * 60.0 * 60.0;
+    public const long RequiredMk1AssembliesForV2 = 15L;
+    public const long RequiredMk2AssembliesForV3 = 15L;
 
     public static readonly string[] PartIds =
     {

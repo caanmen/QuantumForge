@@ -12,6 +12,13 @@ public static class D3AutonomyCoreSystem
         return state != null && state.autonomyCoreIntegrated;
     }
 
+    public static void RecordSuccessfulAutomationExecution(Dimension3State state)
+    {
+        if (state == null || state.successfulAutomationExecutions == long.MaxValue)
+            return;
+        state.successfulAutomationExecutions++;
+    }
+
     public static bool CanIntegrate(GameState gameState, out string reason)
     {
         reason = "";
@@ -46,6 +53,12 @@ public static class D3AutonomyCoreSystem
             return false;
         }
 
+        if (state.successfulAutomationExecutions < 1L)
+        {
+            reason = "Completa al menos una acción automática real antes de integrar el Núcleo.";
+            return false;
+        }
+
         return true;
     }
 
@@ -56,8 +69,8 @@ public static class D3AutonomyCoreSystem
         gameState.dimension3.autonomyCoreIntegrated = true;
         SaveService.I?.Save();
         reason = gameState.IsPrestige1CycleComplete()
-            ? "Núcleo de Autonomía integrado. Las tres dimensiones están completas; la Convergencia puede prepararse en la Máquina."
-            : "Núcleo de Autonomía integrado. El próximo Prestigio 1 ya puede abrirse al completar la Máquina.";
+            ? "AUTONOMÍA CONFIRMADA. La Fábrica completó una operación real y ha integrado el Núcleo. Las tres dimensiones están completas; la Convergencia puede prepararse en la Máquina."
+            : "AUTONOMÍA CONFIRMADA. La Fábrica completó una operación real y ha integrado el Núcleo. El próximo Prestigio 1 ya puede abrirse al completar la Máquina.";
         return true;
     }
 }

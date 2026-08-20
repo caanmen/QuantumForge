@@ -1,0 +1,47 @@
+CONTRATO DE APROBACIÓN: CÁMARA DE RELIQUIAS
+===========================================
+
+Referencia permanente: registrada.
+Resolución principal: 1080 x 1920 vertical.
+Meta visual: 95 % de parecido percibido con la referencia aprobada.
+
+PUERTA 1 — CONTRATO
+[x] Función y flujo definidos.
+[x] Datos y lore verificados en el código real.
+[x] Referencia permanente disponible.
+[x] Assets base identificados.
+[x] La referencia permite comenzar sin ambigüedad bloqueante.
+
+PUERTA 2 — COMPOSICIÓN ESTÁTICA
+[x] Jerarquía estable.
+[x] Medidas y zonas seguras correctas.
+[x] Tipografía legible.
+[x] Cuadrícula y panel de detalle fieles.
+[x] Ocho ilustraciones comprobadas a tamaño final.
+[x] Doce ilustraciones adicionales comprobadas en las páginas 2 y 3.
+[x] Comparación visual interna completada.
+
+PUERTA 3 — DATOS E INTERACCIÓN
+[x] Datos reales conectados.
+[x] Recorrido 1 → 2 → 3 → 2 → 1 probado.
+[x] Selecciones de extremos entre páginas probadas.
+[ ] Selección repetida de las veinte reliquias probada.
+[ ] Estados descubierto, bloqueado y máximo probados.
+[ ] Mejora probada sin modificar el guardado personal.
+[x] Navegación de páginas y navegación global aislada probadas.
+[ ] Toques repetidos no producen carreras.
+
+PUERTA 4 — ANIMACIÓN
+[ ] Pendiente; no se añadirá antes de aprobar la composición estática.
+
+PUERTA 5 — CIERRE
+[x] Capturas candidatas nuevas archivadas junto a la ficha.
+[x] 1080 x 1920 comprobado.
+[x] 720 x 1280 comprobado.
+[x] Instalación y captura determinista PASS.
+[x] Sin errores o excepciones relacionadas.
+[ ] Similitud mínima del 95 % aprobada por el usuario.
+
+Resultado: PENDIENTE
+Aprobada por: —
+Fecha: —

@@ -46,10 +46,18 @@ public static class Dimension3Block6FacilitiesValidation
             gatedState.LE = 50000000.0;
             gatedState.Traces = 50000.0;
             D3InventorySystem.AddAssemblyCount(gatedState.dimension3, 1, 5L);
-            Check(!Dimension3System.TryQueueFacilityUpgrade(gatedState,
+            Check(Dimension3System.TryQueueFacilityUpgrade(gatedState,
                     Dimension3Catalog.FacilityExpeditionPort,
-                    out reason) && reason.Contains("manual"),
-                "El Puerto N1 no exige una ruta simple manual cuando D1 ya estÃ¡ disponible.",
+                    out reason),
+                "El Puerto no permite construir su infraestructura antes del enlace: " +
+                    reason,
+                failures);
+            Check(!D3FacilitySystem.IsExpeditionPortLinked(gatedState),
+                "El Puerto aparece enlazado sin una expedición manual de D1.",
+                failures);
+            gatedState.dimension1ManualSimpleDestinationIds.Add("mineral_belt");
+            Check(D3FacilitySystem.IsExpeditionPortLinked(gatedState),
+                "El Puerto no reconoce la primera expedición manual como enlace.",
                 failures);
 
             D3InventorySystem.AddAssemblyCount(state.dimension3, 2, 10L);
@@ -174,14 +182,17 @@ public static class Dimension3Block6FacilitiesValidation
                 Dimension3Catalog.FacilityExpeditionPort, 3);
             BuildDirect(state.dimension3,
                 Dimension3Catalog.FacilityAutomationCore, 4);
+            state.dimension3.successfulAutomationExecutions = 3L;
             Dimension3State loaded = JsonUtility.FromJson<Dimension3State>(
                 JsonUtility.ToJson(state.dimension3));
             Check(loaded != null &&
                   D3FacilitySystem.GetFacilityLevel(loaded,
                       Dimension3Catalog.FacilityExpeditionPort) == 3 &&
                   D3FacilitySystem.GetFacilityLevel(loaded,
-                      Dimension3Catalog.FacilityAutomationCore) == 4,
-                "Puerto o Nucleo no sobreviven JSON.", failures);
+                      Dimension3Catalog.FacilityAutomationCore) == 4 &&
+                  loaded.successfulAutomationExecutions == 3L,
+                "Puerto, Nucleo o prueba de autonomía no sobreviven JSON.",
+                failures);
         }
         finally { Object.DestroyImmediate(state.gameObject); }
     }

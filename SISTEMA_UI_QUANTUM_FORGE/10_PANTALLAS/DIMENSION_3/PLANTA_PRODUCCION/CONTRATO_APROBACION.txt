@@ -1,0 +1,56 @@
+CONTRATO DE APROBACIÓN
+
+Pantalla: Planta de Producción
+Dimensión: 3
+Versión o fecha: candidata V2 / 2026-08-19
+
+PUERTA 1 — CONTRATO
+[x] Función y flujo definidos.
+[x] Datos y lore verificados.
+[x] Referencia permanente disponible.
+[x] Referencia clasificada como candidata o aprobada sin ambigüedad.
+[ ] Assets canónicos identificados.
+[x] Ambigüedades funcionales resueltas con el código y la autorización del usuario.
+[x] Reglas generales separadas de las decisiones visuales de otras dimensiones.
+[x] Perfil de la dimensión marcado explícitamente como pendiente.
+[x] Intención de animación definida antes de producir los assets finales.
+[x] Capas, pivotes, márgenes y elementos inmóviles previstos sin implementar movimiento.
+
+PUERTA 2 — COMPOSICIÓN ESTÁTICA
+[x] Jerarquía estable en la candidata.
+[x] Medidas y zonas seguras correctas en 1080 x 1920 y 720 x 1280.
+[x] Tipografía legible en ambas candidatas.
+[x] Proporciones de assets conservadas.
+[x] Comparación visual realizada contra la referencia original y los datos del código.
+[x] Composición estática aprobada por el usuario antes de implementar cualquier animación.
+
+PUERTA 3 — DATOS E INTERACCIÓN
+[ ] Datos reales conectados.
+[ ] Propietario único por propiedad.
+[ ] Todos los estados probados.
+[ ] Navegación y botón Atrás probados.
+[ ] Toques repetidos no producen carreras.
+
+PUERTA 4 — ANIMACIÓN
+[ ] La composición estática ya estaba aprobada al comenzar esta puerta.
+[ ] Las animaciones corresponden al contrato planificado; no se añadieron movimientos inventados.
+[ ] Pivotes centrados.
+[ ] Posiciones base estables.
+[ ] Animaciones renderizadas y revisadas.
+[ ] Layout y legibilidad permanecen estables.
+
+PUERTA 5 — CIERRE
+[ ] Capturas reales nuevas archivadas.
+[x] 1080×1920 comprobado en la candidata estática.
+[x] 720×1280 comprobado en la candidata estática.
+[ ] Pruebas automáticas PASS.
+[ ] Sin errores o excepciones relacionadas.
+[ ] Similitud mínima del 95 % aprobada.
+[ ] Diferencias restantes registradas.
+[x] No se heredó estética de otra dimensión sin una decisión aprobada y registrada.
+
+Resultado: COMPOSICIÓN ESTÁTICA APROBADA; IMPLEMENTACIÓN Y CIERRE PENDIENTES.
+Aprobada por: usuario.
+Fecha: 19 de agosto de 2026.
+Notas: la candidata V2 define la base parcial del perfil D3. Las capturas reales de
+Unity, pruebas funcionales, animación y aprobación final siguen pendientes.

@@ -338,13 +338,24 @@ Siguiente acción exacta: revisar visualmente `CONTROL DE CONSOLA` y las nuevas 
 - Se mantiene la regla segura aprobada: una sola transacción externa máxima por evaluación global; ampliar simultaneidad requiere una decisión futura de diseño.
 - Capa de localización EN/ES añadida a toda la interfaz D3, incluidos textos dinámicos.
 - Migración tolerante para estados anteriores sin campos de Consola, Diagnóstico, perfiles o recetas.
-- Progreso D3 final del Bloque 7 actualizado a versión 10.
+- Progreso D3 final del Bloque 7 actualizado originalmente a versión 10.
 - Compilación: **0 errores**; escena: **VALIDACIÓN OK**; validadores 7C y 7D: **PASS**.
 - Regresión final Bloques 1–7D: **todos PASS** (`Logs/dimension3_full_through_7d_final.log`).
 
 Siguiente acción exacta: revisar visualmente `CONTROL DE DIAGNÓSTICO` y el cambio EN/ES. Después diseñar y ejecutar la reorganización progresiva de paneles del juego completo; luego pruebas de jugabilidad de recorrido completo y balance numérico.
 
 Corrección posterior a 7D: la capa EN/ES dejó de aplicar traducciones inversas sobre su propia salida. Cada texto conserva ahora una fuente española limpia, por lo que cambios repetidos ES→EN→ES no acumulan sufijos como `CANCELARARAR…`. También limpia ese patrón si ya apareció en la sesión. Compilación del Editor: correcta.
+
+## 8J. Revisión de progresión y culminación
+
+- V2 requiere Banco N2 y 15 MK1 ensamblados; V3 requiere Banco N3 y 15 MK2. Se redujeron las antiguas mesetas de 25 unidades.
+- El Puerto N1 puede construirse como infraestructura antes de disponer de D1, pero permanece `SIN ENLACE` y no permite rutinas hasta registrar una acción manual compatible de D1.
+- Las ejecuciones automáticas exitosas quedan registradas y persisten aunque se elimine la rutina que las produjo.
+- Integrar el Núcleo de Autonomía exige ahora Núcleo N5, un MK6 Coordinador estabilizado y al menos una acción automática real completada.
+- La culminación comunica `AUTONOMÍA CONFIRMADA` y conserva su conexión con Prestigio/Convergencia.
+- `SetTriangleCircuit` vuelve a registrar correctamente las selecciones manuales para que la Consola pueda aprenderlas sin confundirlas con cambios automáticos.
+- Progreso D3 actualizado a versión 11.
+- Regresión completa Bloques 1–7D: **todos PASS** (`Logs/dimension3_progression_revision_final3.log`).
 
 ---
 

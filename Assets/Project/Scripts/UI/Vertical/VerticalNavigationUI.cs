@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -39,6 +40,16 @@ public sealed class VerticalNavigationUI : MonoBehaviour
     private int lastLocalizationRevision = -1;
     private PrimarySection selectedPrimary = PrimarySection.Generation;
     private Button selectedSecondary;
+    private readonly HashSet<int> navigationSuppressionOwners = new HashSet<int>();
+    private bool legacyNavigationSuppressed;
+    private bool navigationVisibilityApplyPending;
+    private int navigationVisibilityApplyFrame;
+    private bool commandCenterDrawerMode;
+    private bool commandCenterDrawerExpanded;
+
+    public bool CommandCenterDrawerExpanded => commandCenterDrawerExpanded;
+    public bool NavigationSuppressed =>
+        legacyNavigationSuppressed || navigationSuppressionOwners.Count > 0;
 
     private void Awake()
     {
@@ -56,6 +67,13 @@ public sealed class VerticalNavigationUI : MonoBehaviour
 
     private void Update()
     {
+        if (navigationVisibilityApplyPending &&
+            Time.frameCount >= navigationVisibilityApplyFrame)
+        {
+            navigationVisibilityApplyPending = false;
+            RefreshAvailability();
+        }
+
         if (Time.unscaledTime < nextRefreshTime)
             return;
         nextRefreshTime = Time.unscaledTime + RefreshInterval;
@@ -84,6 +102,27 @@ public sealed class VerticalNavigationUI : MonoBehaviour
     [ContextMenu("Refresh vertical navigation")]
     public void RefreshAvailability()
     {
+        // Una solicitud iniciada por un Button se materializa como mínimo en el
+        // fotograma siguiente. Así UGUI termina primero su ciclo de PointerClick.
+        if (navigationVisibilityApplyPending &&
+            Time.frameCount < navigationVisibilityApplyFrame)
+        {
+            return;
+        }
+
+        // Full-screen feature panels own navigation while open. Without this
+        // guard the 0.35 s refresh reactivated SecondaryNavigationSlot, while
+        // the feature panel disabled it again on the next frame. Safe-area
+        // layout then alternated ContentSlot by 120 px and made the whole view jump.
+        if (NavigationSuppressed)
+        {
+            bool hiddenChanged = SetActive(primaryNavigationRoot, false) |
+                SetActive(secondaryNavigationRoot, false);
+            if (hiddenChanged && safeAreaLayout != null)
+                safeAreaLayout.ApplyLayout();
+            return;
+        }
+
         EvaluateVisibility(GameState.I, MachineManager.I,
             out bool room2,
             out bool dimension1,
@@ -91,7 +130,8 @@ public sealed class VerticalNavigationUI : MonoBehaviour
             out bool dimension3,
             out bool prestige);
 
-        bool changed = SetActive(researchButton, false) |
+        bool changed = SetActive(primaryNavigationRoot, !commandCenterDrawerMode) |
+            SetActive(researchButton, false) |
             SetActive(room2Button, room2) |
             SetActive(dimension1Button, dimension1) |
             SetActive(dimension2Button, dimension2) |
@@ -100,17 +140,83 @@ public sealed class VerticalNavigationUI : MonoBehaviour
 
         bool anySecondary = room2 || dimension1 || dimension2 ||
             dimension3 || prestige;
+        bool showSecondary = anySecondary &&
+            (!commandCenterDrawerMode || commandCenterDrawerExpanded);
         if (secondaryNavigationRoot != null &&
-            secondaryNavigationRoot.gameObject.activeSelf != anySecondary)
+            secondaryNavigationRoot.gameObject.activeSelf != showSecondary)
         {
-            secondaryNavigationRoot.gameObject.SetActive(anySecondary);
+            secondaryNavigationRoot.gameObject.SetActive(showSecondary);
             changed = true;
         }
 
         SetActive(qaButton, QaRuntimeService.IsAvailable);
         if (changed && safeAreaLayout != null)
             safeAreaLayout.ApplyLayout();
+        ApplyCommandCenterDrawerPosition();
         RefreshPrestigeLabel();
+    }
+
+    public void SetCommandCenterDrawerMode(bool active)
+    {
+        if (commandCenterDrawerMode == active)
+            return;
+
+        commandCenterDrawerMode = active;
+        commandCenterDrawerExpanded = false;
+        RefreshAvailability();
+        if (safeAreaLayout != null)
+            safeAreaLayout.ApplyLayout();
+        ApplyCommandCenterDrawerPosition();
+    }
+
+    public void SetCommandCenterDrawerExpanded(bool expanded)
+    {
+        if (!commandCenterDrawerMode || commandCenterDrawerExpanded == expanded)
+            return;
+
+        commandCenterDrawerExpanded = expanded;
+        RefreshAvailability();
+        if (safeAreaLayout != null)
+            safeAreaLayout.ApplyLayout();
+        ApplyCommandCenterDrawerPosition();
+    }
+
+    public void SetNavigationSuppressed(bool suppressed)
+    {
+        bool previous = NavigationSuppressed;
+        if (legacyNavigationSuppressed == suppressed)
+            return;
+
+        legacyNavigationSuppressed = suppressed;
+        ScheduleNavigationVisibilityApply(previous);
+    }
+
+    public void SetNavigationSuppressed(bool suppressed, Object owner)
+    {
+        if (owner == null)
+        {
+            SetNavigationSuppressed(suppressed);
+            return;
+        }
+
+        bool previous = NavigationSuppressed;
+        int ownerId = owner.GetInstanceID();
+        bool changed = suppressed
+            ? navigationSuppressionOwners.Add(ownerId)
+            : navigationSuppressionOwners.Remove(ownerId);
+        if (!changed)
+            return;
+
+        ScheduleNavigationVisibilityApply(previous);
+    }
+
+    private void ScheduleNavigationVisibilityApply(bool previous)
+    {
+        if (previous == NavigationSuppressed)
+            return;
+
+        navigationVisibilityApplyPending = true;
+        navigationVisibilityApplyFrame = Time.frameCount + 1;
     }
 
     public static void EvaluateVisibility(
@@ -233,5 +339,28 @@ public sealed class VerticalNavigationUI : MonoBehaviour
             return false;
         button.gameObject.SetActive(active);
         return true;
+    }
+
+    private static bool SetActive(RectTransform root, bool active)
+    {
+        if (root == null || root.gameObject.activeSelf == active)
+            return false;
+        root.gameObject.SetActive(active);
+        return true;
+    }
+
+    private void ApplyCommandCenterDrawerPosition()
+    {
+        if (!commandCenterDrawerMode || !commandCenterDrawerExpanded ||
+            secondaryNavigationRoot == null)
+        {
+            return;
+        }
+
+        float bottom = safeAreaLayout != null
+            ? safeAreaLayout.verticalGap
+            : 16f;
+        secondaryNavigationRoot.anchoredPosition = new Vector2(
+            secondaryNavigationRoot.anchoredPosition.x, bottom);
     }
 }

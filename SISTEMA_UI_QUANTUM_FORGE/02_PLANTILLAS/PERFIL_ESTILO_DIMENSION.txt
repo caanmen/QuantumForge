@@ -1,0 +1,69 @@
+PLANTILLA DE PERFIL DE ESTILO — DIMENSIÓN
+=========================================
+
+IDENTIDAD
+Dimensión:
+Estado: PENDIENTE / CANDIDATO / PARCIAL / APROBADO
+Responsable de aprobación:
+Fecha de última revisión:
+
+AUTORIDAD Y EVIDENCIA
+Diseño canónico:
+Pantallas aprobadas utilizadas como evidencia:
+Capturas reales aprobadas:
+Referencias candidatas todavía no vinculantes:
+Decisiones pendientes:
+
+ALCANCE
+Reglas generales heredadas del sistema:
+Rasgos exclusivos de esta dimensión:
+Componentes comunes autorizados explícitamente:
+Estéticas de otras dimensiones que NO deben heredarse:
+
+LENGUAJE VISUAL
+Sensación buscada:
+Elemento que debe destacar:
+Resultado que no debe parecer:
+Paleta y funciones de cada color:
+Materiales y superficies:
+Marcos y zonas interiores seguras:
+Tipografías y escala:
+Iconografía:
+Fondos y profundidad:
+Ilustraciones y medio gráfico:
+Iluminación y efectos:
+Movimiento y animación:
+Capas que las pantallas de esta dimensión deben prever antes de Unity:
+Elementos estructurales que deben permanecer inmóviles:
+
+ESTRUCTURA
+Encabezado:
+Contenido principal:
+Panel contextual:
+Navegación:
+Safe Area y márgenes:
+Comportamiento en 1080×1920:
+Comportamiento en 720×1280:
+
+ESTADOS
+Neutral:
+Seleccionado:
+Bloqueado o deshabilitado:
+Vacío:
+Completado:
+Error:
+
+ASSETS Y COMPONENTES
+Assets canónicos de la dimensión:
+Assets candidatos:
+Prefabs o temas autorizados:
+Variantes y excepciones:
+
+VALIDACIÓN DEL PERFIL
+[ ] Cada decisión visual tiene evidencia identificable.
+[ ] No se copiaron rasgos de otra dimensión por defecto.
+[ ] Las referencias candidatas están separadas de las aprobadas.
+[ ] Existe al menos una captura real aprobada antes de declarar el perfil definitivo.
+[ ] Los componentes comunes fueron aprobados como comunes, no sólo reutilizados por comodidad.
+
+Notas:

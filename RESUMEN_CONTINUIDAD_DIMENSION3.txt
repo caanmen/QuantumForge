@@ -441,10 +441,21 @@ BLOQUE 7D — NÚCLEO, PERFILES Y CIERRE TERMINADO
 - Repetir última ruta usa realmente el último destino manual.
 - Se mantiene una transacción externa máxima por evaluación global.
 - Localización funcional EN/ES para interfaz D3 estática y dinámica.
-- Migración de estados antiguos y progreso D3 versión 10.
+- Migración de estados antiguos y progreso D3 versión 10 al cierre original de 7D.
 - Compilación: 0 errores; Main.unity: VALIDACIÓN OK.
 - Validador 7D: PASS.
 - Regresión final Bloques 1–7D: TODOS PASS.
+
+REVISIÓN POSTERIOR DE PROGRESIÓN Y CULMINACIÓN
+
+- V2 y V3 pasan de 25 a 15 ensamblajes previos de MK1/MK2 respectivamente.
+- El Puerto puede construirse antes de D1, pero queda SIN ENLACE hasta registrar una acción manual compatible.
+- D3 conserva un contador persistente de ejecuciones automáticas exitosas.
+- El Núcleo de Autonomía exige N5, MK6 Coordinador estable y una automatización real completada.
+- La culminación comunica AUTONOMÍA CONFIRMADA.
+- Las selecciones manuales del Triángulo vuelven a registrarse para la Consola.
+- Progreso D3 actualizado a versión 11.
+- Regresión completa Bloques 1–7D: TODOS PASS en Logs/dimension3_progression_revision_final3.log.
 
 SIGUIENTE ACCIÓN EXACTA
 

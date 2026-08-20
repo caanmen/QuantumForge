@@ -295,6 +295,88 @@ public static class MachineCube3DPrototypeSetup
         ValidatePrototype();
     }
 
+    [MenuItem("Tools/Quantum Forge/Machine/Repair True 3D Display Binding")]
+    public static void RepairDisplayBinding()
+    {
+        Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        MachinePanelUI panel = UnityEngine.Object.FindFirstObjectByType<MachinePanelUI>(
+            FindObjectsInactive.Include);
+        Require(panel != null, "MachinePanelUI no disponible en Main.unity.");
+
+        Transform visualRoot = panel.transform.Find("MachineCubeVisualRoot");
+        Require(visualRoot != null, "Falta MachineCubeVisualRoot.");
+        Transform viewport = visualRoot.Find("FaceViewport");
+        Require(viewport != null, "Falta FaceViewport.");
+
+        GameObject prototypeRoot = FindSceneObject("MachineCube3DPrototypeRoot");
+        Require(prototypeRoot != null, "Falta MachineCube3DPrototypeRoot.");
+        MachineCube3DPrototypeController controller =
+            prototypeRoot.GetComponent<MachineCube3DPrototypeController>();
+        Require(controller != null, "Falta MachineCube3DPrototypeController.");
+
+        RenderTexture target = AssetDatabase.LoadAssetAtPath<RenderTexture>(
+            RenderTexturePath);
+        Require(target != null, "Falta el RenderTexture del prototipo 3D.");
+
+        Transform displayTransform = viewport.Find("MachineCube3DPrototypeDisplay");
+        GameObject displayObject = displayTransform != null
+            ? displayTransform.gameObject
+            : CreateRect("MachineCube3DPrototypeDisplay", viewport,
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        RawImage display = displayObject.GetComponent<RawImage>();
+        if (display == null)
+            display = displayObject.AddComponent<RawImage>();
+        display.texture = target;
+        display.color = Color.white;
+        display.raycastTarget = true;
+
+        MachineCube3DPrototypeDisplayUI displayInput =
+            displayObject.GetComponent<MachineCube3DPrototypeDisplayUI>();
+        if (displayInput == null)
+            displayInput = displayObject.AddComponent<MachineCube3DPrototypeDisplayUI>();
+        MachineCubeVisualUI machineVisual = panel.GetComponent<MachineCubeVisualUI>();
+        Require(machineVisual != null, "Falta MachineCubeVisualUI.");
+
+        SerializedObject inputSo = new SerializedObject(displayInput);
+        SetObject(inputSo, "controller", controller);
+        SetObject(inputSo, "machineVisual", machineVisual);
+        SetObject(inputSo, "machinePanel", panel);
+        inputSo.FindProperty("nodeLayer").intValue = 1 << PrototypeLayer;
+        inputSo.FindProperty("swipeThresholdPixels").floatValue = 64f;
+        inputSo.ApplyModifiedPropertiesWithoutUndo();
+
+        SerializedObject controllerSo = new SerializedObject(controller);
+        SetObject(controllerSo, "targetTexture", target);
+        SetObject(controllerSo, "display", display);
+        controllerSo.ApplyModifiedPropertiesWithoutUndo();
+
+        displayObject.transform.SetAsLastSibling();
+        displayObject.SetActive(false);
+        EditorUtility.SetDirty(displayObject);
+        EditorUtility.SetDirty(prototypeRoot);
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        AssetDatabase.SaveAssets();
+        Debug.Log("[Machine Cube Modular 3D] DISPLAY REPAIRED | RawImage + " +
+            "RenderTexture + controller binding restored");
+    }
+
+    public static void RepairDisplayBindingBatch()
+    {
+        try
+        {
+            RepairDisplayBinding();
+            ValidatePrototype();
+            Debug.Log("[Machine Cube Modular 3D] DISPLAY REPAIR PASS");
+            EditorApplication.Exit(0);
+        }
+        catch (Exception exception)
+        {
+            Debug.LogException(exception);
+            EditorApplication.Exit(1);
+        }
+    }
+
     public static void ValidatePrototype()
     {
         GameObject root = FindSceneObject("MachineCube3DPrototypeRoot");
@@ -1919,16 +2001,20 @@ public static class MachineCube3DPrototypeSetup
         GameObject cameraObject = new GameObject("MachineCube3DPrototypeCamera");
         cameraObject.layer = PrototypeLayer;
         cameraObject.transform.SetParent(parent, false);
-        // The cube itself supplies the small concept-art yaw on every face. A
-        // centered camera keeps the same right-side perspective after rotation.
+        // The cube itself supplies the small concept-art yaw on every face. Aim
+        // slightly farther to the right than the physical pivot. The visible
+        // right-hand depth makes the silhouette heavier on that side; this optical
+        // correction centers the complete cube inside the UI chamber.
         cameraObject.transform.localPosition = new Vector3(0f, 0.35f, 20f);
-        Vector3 framingTarget = new Vector3(1.00f, 0f, 0f);
+        Vector3 framingTarget = new Vector3(0.72f, 0f, 0f);
         cameraObject.transform.localRotation = Quaternion.LookRotation(
             (framingTarget - cameraObject.transform.localPosition).normalized,
             Vector3.up);
         Camera camera = cameraObject.AddComponent<Camera>();
         camera.clearFlags = CameraClearFlags.SolidColor;
-        camera.backgroundColor = new Color(0.002f, 0.006f, 0.009f, 1f);
+        // Transparent clear lets the approved accident-lab chamber remain visible
+        // around the physical geometry in the RawImage.
+        camera.backgroundColor = new Color(0f, 0f, 0f, 0f);
         camera.orthographic = false;
         camera.fieldOfView = 34.5f;
         camera.nearClipPlane = 0.1f;
@@ -1941,7 +2027,9 @@ public static class MachineCube3DPrototypeSetup
         camera.enabled = false;
         UniversalAdditionalCameraData cameraData =
             cameraObject.AddComponent<UniversalAdditionalCameraData>();
-        cameraData.renderPostProcessing = true;
+        // Preserve the transparent clear color in the RenderTexture so the shared
+        // accident-lab background remains visible around the physical cube.
+        cameraData.renderPostProcessing = false;
         cameraData.volumeLayerMask = 1 << PrototypeLayer;
         return camera;
     }

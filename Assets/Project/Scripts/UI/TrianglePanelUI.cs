@@ -118,7 +118,28 @@ public class TrianglePanelUI : MonoBehaviour
             return;
 
         lastValue = displayText;
-        label.text = displayText;
+        label.text = ColorizeCircuitHeading(label, displayText);
+    }
+
+    private static string ColorizeCircuitHeading(
+        TextMeshProUGUI label,
+        string displayText)
+    {
+        if (label == null || string.IsNullOrEmpty(displayText))
+            return displayText;
+        int separator = displayText.IndexOf('\n');
+        if (separator <= 0)
+            return displayText;
+
+        string heading = displayText.Substring(0, separator);
+        string color = heading == "LE"
+            ? "#00D5FF"
+            : heading == "TRAZAS" || heading == "TRACES"
+                ? "#B950ED"
+                : "#FF9820";
+        return "<color=" + color + "><b>" +
+            heading + "</b></color>" +
+            displayText.Substring(separator);
     }
 
     private string GetCircuitButtonText(TriangleCircuitType circuit)
@@ -133,7 +154,7 @@ public class TrianglePanelUI : MonoBehaviour
             case TriangleCircuitType.Experimental:
                 return Localize(lm, "triangle.circuit.experimental.button", "TRAZAS\nHiggs + Tetra");
             case TriangleCircuitType.Phase:
-                return Localize(lm, "triangle.circuit.phase.button", "ENERGÍA\nTetra + Modulador");
+                return Localize(lm, "triangle.circuit.phase.button", "ENERG\u00cdA\nTetra + Modulador");
             default:
                 return "";
         }
@@ -166,7 +187,7 @@ public class TrianglePanelUI : MonoBehaviour
         var lm = LocalizationManager.I;
         if (circuit == TriangleCircuitType.Energy) return Localize(lm, "triangle.circuit.energy", "LE");
         if (circuit == TriangleCircuitType.Experimental) return Localize(lm, "triangle.circuit.experimental", "Trazas");
-        if (circuit == TriangleCircuitType.Phase) return Localize(lm, "triangle.circuit.phase", "Energía");
+        if (circuit == TriangleCircuitType.Phase) return Localize(lm, "triangle.circuit.phase", "Energ\u00eda");
         return string.Empty;
     }
 

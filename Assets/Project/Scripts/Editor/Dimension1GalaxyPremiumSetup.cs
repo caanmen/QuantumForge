@@ -11,11 +11,17 @@ using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public static class Dimension1GalaxyPremiumSetup
+public static partial class Dimension1GalaxyPremiumSetup
 {
     private const string ScenePath = "Assets/Project/Scenes/Main.unity";
     private const string ArtPath = "Assets/Project/UI/Dimension1/Generated";
     private const string RootName = "D1_GalaxyVisualRoot";
+    private const string LayeredGalaxyPath = ArtPath + "/GalaxyLayeredV10";
+    private const string GalaxyArtPath = LayeredGalaxyPath + "/d1_galaxy_v10_base.png";
+    private const string GalaxyArmsPath = LayeredGalaxyPath + "/d1_galaxy_v10_arms_open.png";
+    private const string GalaxyDustPath = LayeredGalaxyPath + "/d1_galaxy_v10_dust.png";
+    private const string GalaxyCorePath = LayeredGalaxyPath + "/d1_galaxy_v10_core.png";
+    private const string GalaxyMaterialPath = "Assets/Project/Materials/UI/D1GalaxyLayeredV10.mat";
 
     private static readonly Color Void = Hex("03070D");
     private static readonly Color Fill = Hex("07111A", 242);
@@ -26,10 +32,9 @@ public static class Dimension1GalaxyPremiumSetup
     private static readonly Color Primary = Hex("EFF8FC");
     private static readonly Color Secondary = Hex("94ADBC");
 
-    [MenuItem("Quantum Forge/Dimension 1/Configure Premium Galaxy V3")]
+    [MenuItem("Quantum Forge/Dimension 1/Configure Layered Galaxy V10")]
     public static void Configure()
     {
-        EnsureStructuralArt();
         ConfigureFinalArt();
 
         Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
@@ -41,15 +46,15 @@ public static class Dimension1GalaxyPremiumSetup
         Stretch((RectTransform)galaxyPanel);
         Transform old = FindDirectChild(galaxyPanel, RootName);
         if (old != null) UnityEngine.Object.DestroyImmediate(old.gameObject);
-        foreach (Transform child in galaxyPanel) child.gameObject.SetActive(false);
+        DisableLegacyGalaxyChildren(galaxyPanel);
 
-        Sprite frame = LoadSprite(ArtPath + "/d1_premium_frame_v3.png");
+        Sprite frame = LoadSprite(ArtPath + "/d1_premium_frame_v4.png");
         Sprite orbit = LoadSprite(ArtPath + "/d1_orbit_ring_v3.png");
         Sprite glow = LoadSprite(ArtPath + "/d1_glow_v3.png");
-        Sprite routeDash = LoadSprite(ArtPath + "/d1_route_dash_v3.png");
         Sprite lockSprite = LoadSprite(ArtPath + "/d1_lock_v3.png");
-        Sprite asteroid = LoadSprite(ArtPath + "/d1_asteroid.png");
-        Sprite nebula = LoadSprite(ArtPath + "/d1_nebula_bg_v3.png");
+        Sprite starfieldSprite = LoadSprite(ArtPath + "/d1_starfield.png");
+        Sprite galaxy = LoadSprite(GalaxyArtPath);
+        Material galaxyMaterial = GetOrCreateGalaxyMaterial();
         Dictionary<string, Sprite> bodies = LoadCelestialSprites();
         TMP_FontAsset font = FindFont(panel.transform);
 
@@ -65,14 +70,6 @@ public static class Dimension1GalaxyPremiumSetup
         Image baseVoid = CreateImage("VoidBase", root, null, Void);
         Stretch(baseVoid.rectTransform);
         baseVoid.raycastTarget = false;
-        Image starfield = CreateImage("StarfieldNebula", root, nebula, Color.white);
-        Stretch(starfield.rectTransform, new Vector2(-14f, -16f), new Vector2(14f, 16f));
-        starfield.preserveAspect = false;
-        starfield.raycastTarget = false;
-        Image nebulaGhost = CreateImage("NebulaParallax", root, nebula, Hex("B9DBFF", 35));
-        Stretch(nebulaGhost.rectTransform, new Vector2(-30f, -34f), new Vector2(30f, 34f));
-        nebulaGhost.preserveAspect = false;
-        nebulaGhost.raycastTarget = false;
         CreateVignette(root);
 
         RectTransform header = CreatePremiumPanel("Header", root, frame,
@@ -92,33 +89,41 @@ public static class Dimension1GalaxyPremiumSetup
         for (int i = 0; i < 3; i++)
             chips[i] = CreateMetalChip(header, frame, font, 558f + i * 164f);
 
-        // The map is intentionally full-bleed, matching the reference instead of sitting in a flat box.
+        // Background and motion live only inside the map viewport. RectMask2D
+        // keeps them away from the header and the lower information panel.
         RectTransform map = CreateRect("FullBleedGalaxyMap", root, new Vector2(0f, -128f), new Vector2(1080f, 1005f));
         SetTopLeft(map, new Vector2(0f, -128f), new Vector2(1080f, 1005f));
-        CreateDistantPlanetEdges(map, bodies);
-        RectTransform[] asteroids = CreateAsteroidField(map, asteroid);
+        map.gameObject.AddComponent<RectMask2D>();
+        Image mapVoid = CreateImage("MapVoid", map, null, Void);
+        Stretch(mapVoid.rectTransform);
+        mapVoid.raycastTarget = false;
+        Image starfield = CreateImage("StaticStarfield", map, starfieldSprite, Hex("B7DCE8", 92));
+        Stretch(starfield.rectTransform);
+        starfield.preserveAspect = false;
+        starfield.raycastTarget = false;
+        Image animatedGalaxy = CreateImage("GalaxyAnimated", map, galaxy, Hex("FFFFFF", 238));
+        CenterAt(animatedGalaxy.rectTransform, new Vector2(540f, -510f));
+        animatedGalaxy.rectTransform.sizeDelta = new Vector2(800f, 800f);
+        animatedGalaxy.preserveAspect = true;
+        animatedGalaxy.raycastTarget = false;
+        animatedGalaxy.material = galaxyMaterial;
 
-        Vector2 s1 = new Vector2(220f, -185f);
-        Vector2 s2 = new Vector2(810f, -195f);
-        Vector2 center = new Vector2(540f, -475f);
-        Vector2 s3 = new Vector2(230f, -735f);
-        Vector2 s4 = new Vector2(835f, -745f);
-        var allRoutes = new List<Image>();
-
-        Image[] r1 = CreateBentRoute("RouteS1", map, s1 + new Vector2(70f, -10f), new Vector2(430f, -310f), center + new Vector2(-70f, 5f), routeDash, Cyan, allRoutes);
-        Image[] r2 = CreateBentRoute("RouteS2", map, s2 + new Vector2(-70f, -5f), new Vector2(675f, -315f), center + new Vector2(70f, 5f), routeDash, Cyan, allRoutes);
-        Image[] r3 = CreateBentRoute("RouteS3", map, center + new Vector2(-65f, -45f), new Vector2(390f, -610f), s3 + new Vector2(70f, 0f), routeDash, Amber, allRoutes);
-        Image[] r4 = CreateBentRoute("RouteS4", map, center + new Vector2(65f, -45f), new Vector2(700f, -620f), s4 + new Vector2(-70f, 0f), routeDash, Hex("536272"), allRoutes);
+        Vector2 s1 = new Vector2(205f, -190f);
+        Vector2 s2 = new Vector2(870f, -193f);
+        Vector2 center = new Vector2(540f, -500f);
+        Vector2 s3 = new Vector2(220f, -790f);
+        Vector2 s4 = new Vector2(860f, -790f);
+        Image[] noRoutes = Array.Empty<Image>();
 
         var nodeViews = new Dimension1GalaxyVisualUI.SectorNodeView[5];
         nodeViews[0] = CreateSectorNode("Sector01", map, frame, orbit, glow, lockSprite, bodies["planet_blue"], font,
-            Dimension1System.Sector01OuterRim, s1, new Vector2(300f, 245f), r1, false);
+            Dimension1System.Sector01OuterRim, s1, new Vector2(300f, 245f), noRoutes, false);
         nodeViews[1] = CreateSectorNode("Sector02", map, frame, orbit, glow, lockSprite, bodies["debris_ring"], font,
-            Dimension1System.Sector02DebrisRing, s2, new Vector2(310f, 250f), r2, false);
+            Dimension1System.Sector02DebrisRing, s2, new Vector2(310f, 250f), noRoutes, false);
         nodeViews[2] = CreateSectorNode("Sector03", map, frame, orbit, glow, lockSprite, bodies["planet_ancient"], font,
-            Dimension1System.Sector03AncientOrbits, s3, new Vector2(330f, 260f), r3, false);
+            Dimension1System.Sector03AncientOrbits, s3, new Vector2(330f, 260f), noRoutes, false);
         nodeViews[3] = CreateSectorNode("Sector04", map, frame, orbit, glow, lockSprite, bodies["planet_silent"], font,
-            Dimension1System.Sector04SilentFrontier, s4, new Vector2(330f, 260f), r4, false);
+            Dimension1System.Sector04SilentFrontier, s4, new Vector2(330f, 260f), noRoutes, false);
         nodeViews[4] = CreateSectorNode("GalacticCenter", map, frame, orbit, glow, lockSprite, bodies["black_hole"], font,
             Dimension1System.Sector05GalacticCenter, center, new Vector2(330f, 280f), Array.Empty<Image>(), true);
 
@@ -129,16 +134,19 @@ public static class Dimension1GalaxyPremiumSetup
         AddPersistent(nodeViews[4].root.GetComponent<Button>().onClick, panel.OnClickPreviewGalaxyCenter);
 
         RectTransform details = CreatePremiumPanel("SectorDetails", root, frame,
-            new Vector2(20f, -1133f), new Vector2(1040f, 622f), Hex("050D15", 248), Amber);
+            new Vector2(28f, -1133f), new Vector2(1024f, 622f), Hex("050D15", 248), Amber);
+        SetCenteredParentTop(details, -1133f, new Vector2(1024f, 622f));
         BuildDetailsPanel(details, frame, font, bodies, panel,
             out TMP_Text summaryProxy, out Button enterButton,
             out TMP_Text selectedTitle, out TMP_Text selectedExplorations,
             out TMP_Text selectedStatus, out TMP_Text selectedDestinations,
             out TMP_Text selectedRequirements, out Image selectedPlanet,
-            out Image secondaryPlanet);
+            out Image secondaryPlanet, out TMP_Text neutralInstruction,
+            out GameObject[] selectedDetailRoots);
 
         RectTransform navigation = CreatePremiumPanel("D1BottomNavigation", root, frame,
-            new Vector2(8f, -1764f), new Vector2(1064f, 148f), Hex("040B12", 252), Cyan);
+            new Vector2(16f, -1764f), new Vector2(1048f, 148f), Hex("040B12", 252), Cyan);
+        SetCenteredParentTop(navigation, -1764f, new Vector2(1048f, 148f));
         CreateBottomNavigation(navigation, frame, font, panel);
 
         RectTransform closeProxyRect = CreateRect("CloseGalaxyProxy", root, Vector2.zero, Vector2.one);
@@ -167,8 +175,6 @@ public static class Dimension1GalaxyPremiumSetup
         Assign(serializedVisual, "panel", panel);
         Assign(serializedVisual, "currentSectorText", currentSector);
         Assign(serializedVisual, "unlockedSectorText", unlockedSectors);
-        Assign(serializedVisual, "starLayer", starfield.rectTransform);
-        Assign(serializedVisual, "nebulaLayer", nebulaGhost.rectTransform);
         Assign(serializedVisual, "selectedTitleText", selectedTitle);
         Assign(serializedVisual, "selectedExplorationsText", selectedExplorations);
         Assign(serializedVisual, "selectedStatusText", selectedStatus);
@@ -176,10 +182,15 @@ public static class Dimension1GalaxyPremiumSetup
         Assign(serializedVisual, "selectedRequirementsText", selectedRequirements);
         Assign(serializedVisual, "selectedPlanetPreview", selectedPlanet);
         Assign(serializedVisual, "secondaryPlanetPreview", secondaryPlanet);
+        Assign(serializedVisual, "animatedGalaxyImage", animatedGalaxy);
+        Assign(serializedVisual, "neutralInstructionText", neutralInstruction);
+        SetObjectArray(serializedVisual, "selectedDetailRoots", selectedDetailRoots);
         SetObjectArray(serializedVisual, "hideWhileOpen", FindNavigationRoots(scene));
-        SetObjectArray(serializedVisual, "routeLines", allRoutes.ToArray());
-        SetObjectArray(serializedVisual, "rotatingBodies", GetOrbitRects(nodeViews));
-        SetObjectArray(serializedVisual, "driftingAsteroids", asteroids);
+        SetObjectArray(serializedVisual, "routeLines", Array.Empty<Image>());
+        // The technical rings remain fixed. Motion belongs to the selected
+        // celestial body so the map frame never appears to wobble.
+        SetObjectArray(serializedVisual, "rotatingBodies", System.Array.Empty<RectTransform>());
+        SetObjectArray(serializedVisual, "driftingAsteroids", Array.Empty<RectTransform>());
         SetMetalChipArray(serializedVisual, chips);
         SetSectorNodeArray(serializedVisual, nodeViews);
         serializedVisual.ApplyModifiedPropertiesWithoutUndo();
@@ -190,7 +201,7 @@ public static class Dimension1GalaxyPremiumSetup
             throw new InvalidOperationException("No se pudo guardar Main.unity.");
 
         Validate(scene);
-        Debug.Log("[D1 Premium Galaxy V3] CONFIGURATION_PASS | arte raster real | mapa full-bleed | datos reales");
+        Debug.Log("[D1 Layered Galaxy V10] CONFIGURATION_PASS | brazos continuos | polvo contrario | sin particulas | panel centrado");
     }
 
     private static void BuildDetailsPanel(
@@ -200,10 +211,11 @@ public static class Dimension1GalaxyPremiumSetup
         out TMP_Text selectedTitle, out TMP_Text selectedExplorations,
         out TMP_Text selectedStatus, out TMP_Text selectedDestinations,
         out TMP_Text selectedRequirements, out Image selectedPlanet,
-        out Image secondaryPlanet)
+        out Image secondaryPlanet, out TMP_Text neutralInstruction,
+        out GameObject[] selectedDetailRoots)
     {
         selectedTitle = CreateText("SelectedSectorTitle", details, font, "BORDE EXTERIOR", 38f, FontStyles.Bold, Amber);
-        SetTopRect(selectedTitle.rectTransform, 325f, 22f, 520f, 55f);
+        SetCenteredTopRect(selectedTitle.rectTransform, 252f, 22f, 520f, 55f);
         selectedTitle.alignment = TextAlignmentOptions.Center;
 
         RectTransform imageWell = CreatePremiumPanel("SectorImage", details, frame,
@@ -241,13 +253,27 @@ public static class Dimension1GalaxyPremiumSetup
         TMP_Text destLabel = CreateText("DestinationsLabel", destinations, font, "DESTINOS DISPONIBLES", 19f, FontStyles.Bold, Secondary);
         SetTopRect(destLabel.rectTransform, 20f, 10f, 350f, 34f);
         selectedDestinations = CreateText("DestinationsText", destinations, font,
-            "◆ Cinturón Mineral\n◆ Cementerio de Naves", 20f, FontStyles.Normal, Primary);
+            "- Cinturón Mineral\n- Cementerio de Naves", 20f, FontStyles.Normal, Primary);
         SetTopRect(selectedDestinations.rectTransform, 20f, 48f, 660f, 150f);
         selectedDestinations.lineSpacing = 15f;
 
         enterButton = CreateButton("EnterGalaxySectorButtonV3", details, frame, font,
             "ENTRAR AL SECTOR", new Vector2(284f, -526f), new Vector2(472f, 78f), Amber);
         AddPersistent(enterButton.onClick, panel.OnClickEnterGalaxySector);
+
+        neutralInstruction = CreateText("NeutralInstruction", details, font,
+            "TOCA UN SECTOR PARA VER SUS DATOS", 21f, FontStyles.Bold, Secondary);
+        SetCenteredTopRect(neutralInstruction.rectTransform, 162f, 235f, 700f, 80f);
+        neutralInstruction.alignment = TextAlignmentOptions.Center;
+
+        selectedDetailRoots = new[]
+        {
+            imageWell.gameObject,
+            stats.gameObject,
+            planetColumn.gameObject,
+            destinations.gameObject,
+            enterButton.gameObject
+        };
 
         summaryProxy = CreateText("GalaxySectorSummaryTextV3", details, font, "", 1f, FontStyles.Normal, Color.clear);
         SetTopRect(summaryProxy.rectTransform, 1f, 1f, 1f, 1f);
@@ -269,21 +295,21 @@ public static class Dimension1GalaxyPremiumSetup
         Button button = root.gameObject.AddComponent<Button>();
         button.targetGraphic = hit;
 
-        Image glowImage = CreateImage("SelectionGlow", root, glow, Hex("55CFFF", 45));
-        SetTopRect(glowImage.rectTransform, (size.x - 236f) * 0.5f, 0f, 236f, 236f);
-        glowImage.raycastTarget = false;
-        Image orbitImage = CreateImage("TechnicalOrbit", root, orbit, Cyan);
-        float orbitSize = isCenter ? 226f : 196f;
-        SetTopRect(orbitImage.rectTransform, (size.x - orbitSize) * 0.5f, 10f, orbitSize, orbitSize);
-        orbitImage.raycastTarget = false;
+        // Selection is communicated by the premium label plate and the planet's
+        // rotation. No halo or technical ring is created around the body.
+        Image glowImage = null;
+        Image orbitImage = null;
         Image body = CreateImage("PlanetBody", root, planet, Color.white);
         float bodySize = isCenter ? 186f : 154f;
-        SetTopRect(body.rectTransform, (size.x - bodySize) * 0.5f, 30f, bodySize, bodySize);
+        // The planet itself rotates when selected. A centered pivot prevents the
+        // old floating-ring bug from reappearing on the planet.
+        SetCenteredTopRect(body.rectTransform, (size.x - bodySize) * 0.5f, 30f, bodySize, bodySize);
         body.raycastTarget = false;
 
         RectTransform plate = CreatePremiumPanel("LabelPlate", root, frame,
             new Vector2(10f, -176f), new Vector2(size.x - 20f, isCenter ? 92f : 82f), Hex("07111A", 242), Cyan);
         Image plateFill = FindChild(plate, "Fill").GetComponent<Image>();
+        Image plateBorder = FindChild(plate, "Border").GetComponent<Image>();
         TMP_Text label = CreateText("Title", plate, font, GetShortName(sectorId), 20f, FontStyles.Bold, Primary);
         SetTopRect(label.rectTransform, 10f, 7f, size.x - 40f, 34f);
         label.alignment = TextAlignmentOptions.Center;
@@ -306,6 +332,7 @@ public static class Dimension1GalaxyPremiumSetup
             orbitRing = orbitImage,
             glow = glowImage,
             labelPlate = plateFill,
+            labelBorder = plateBorder,
             routes = routes,
             lockBadge = lockImage.gameObject,
             titleText = label,
@@ -320,7 +347,6 @@ public static class Dimension1GalaxyPremiumSetup
         Image first = CreateRouteSegment(name + "A", parent, start, bend, dash, color);
         Image second = CreateRouteSegment(name + "B", parent, bend, end, dash, color);
         CreateConnector(name + "Joint", parent, bend, color);
-        CreateConnector(name + "End", parent, end, color);
         all.Add(first);
         all.Add(second);
         return new[] { first, second };
@@ -330,20 +356,13 @@ public static class Dimension1GalaxyPremiumSetup
     {
         Vector2 delta = b - a;
         Vector2 midpoint = (a + b) * 0.5f;
-        RectTransform glowRect = CreateRect(name + "Glow", parent, midpoint, new Vector2(delta.magnitude, 16f));
-        CenterAt(glowRect, midpoint);
-        glowRect.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
-        Image glow = glowRect.gameObject.AddComponent<Image>();
-        glow.color = new Color(color.r, color.g, color.b, 0.14f);
-        glow.raycastTarget = false;
-
-        RectTransform rect = CreateRect(name, parent, midpoint, new Vector2(delta.magnitude, 6f));
+        RectTransform rect = CreateRect(name, parent, midpoint, new Vector2(delta.magnitude, 14f));
         CenterAt(rect, midpoint);
-        rect.localRotation = glowRect.localRotation;
+        rect.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
         Image image = rect.gameObject.AddComponent<Image>();
         image.sprite = dash;
-        image.type = Image.Type.Tiled;
-        color.a = 0.70f;
+        image.type = Image.Type.Sliced;
+        color.a = 0.72f;
         image.color = color;
         image.raycastTarget = false;
         return image;
@@ -351,29 +370,27 @@ public static class Dimension1GalaxyPremiumSetup
 
     private static void CreateConnector(string name, Transform parent, Vector2 position, Color color)
     {
-        Image outer = CreateImage(name, parent, LoadSprite(ArtPath + "/d1_glow_v3.png"), color);
+        Image outer = CreateImage(name, parent, null, color);
         CenterAt(outer.rectTransform, position);
-        outer.rectTransform.sizeDelta = new Vector2(34f, 34f);
+        outer.rectTransform.sizeDelta = new Vector2(10f, 10f);
         outer.raycastTarget = false;
-        Image dot = CreateImage("Core", outer.rectTransform, null, Color.white);
-        SetCenterRect(dot.rectTransform, Vector2.zero, new Vector2(12f, 12f));
-        dot.raycastTarget = false;
     }
 
     private static void CreateBottomNavigation(RectTransform navigation, Sprite frame, TMP_FontAsset font, Dimension1PanelUI panel)
     {
         float width = 204f;
-        Button galaxy = CreateNavButton("GalaxyButton", navigation, frame, font, LoadSprite(ArtPath + "/d1_nav_galaxy_v3.png"), "GALAXIA", 12f, width, true);
+        float start = (navigation.rect.width - (width * 5f + 4f * 4f)) * 0.5f;
+        Button galaxy = CreateNavButton("GalaxyButton", navigation, frame, font, LoadSprite(ArtPath + "/d1_nav_galaxy_v3.png"), "GALAXIA", start, width, true);
         galaxy.interactable = false;
-        Button explore = CreateNavButton("ExploreButton", navigation, frame, font, LoadSprite(ArtPath + "/d1_nav_explore_v3.png"), "EXPLORAR", 220f, width, false);
+        Button explore = CreateNavButton("ExploreButton", navigation, frame, font, LoadSprite(ArtPath + "/d1_nav_explore_v3.png"), "EXPLORAR", start + 208f, width, false);
         AddPersistent(explore.onClick, panel.OnClickCloseGalaxyPanel);
-        Button hangar = CreateNavButton("HangarButton", navigation, frame, font, LoadSprite(ArtPath + "/d1_nav_hangar_v3.png"), "HANGAR", 428f, width, false);
+        Button hangar = CreateNavButton("HangarButton", navigation, frame, font, LoadSprite(ArtPath + "/d1_nav_hangar_v3.png"), "HANGAR", start + 416f, width, false);
         AddPersistent(hangar.onClick, panel.OnClickCloseGalaxyPanel);
         AddPersistent(hangar.onClick, panel.OnClickOpenHangarPanel);
-        Button relics = CreateNavButton("RelicsButton", navigation, frame, font, LoadSprite(ArtPath + "/d1_nav_relics_v3.png"), "RELIQUIAS", 636f, width, false);
+        Button relics = CreateNavButton("RelicsButton", navigation, frame, font, LoadSprite(ArtPath + "/d1_nav_relics_v3.png"), "RELIQUIAS", start + 624f, width, false);
         AddPersistent(relics.onClick, panel.OnClickCloseGalaxyPanel);
         AddPersistent(relics.onClick, panel.OnClickOpenRelicChamberPanel);
-        Button tree = CreateNavButton("TreeButton", navigation, frame, font, LoadSprite(ArtPath + "/d1_nav_tree_v3.png"), "ÁRBOL", 844f, width, false);
+        Button tree = CreateNavButton("TreeButton", navigation, frame, font, LoadSprite(ArtPath + "/d1_nav_tree_v3.png"), "ÁRBOL", start + 832f, width, false);
         AddPersistent(tree.onClick, panel.OnClickCloseGalaxyPanel);
         AddPersistent(tree.onClick, panel.OnClickOpenDimension1TreePanel);
     }
@@ -424,24 +441,39 @@ public static class Dimension1GalaxyPremiumSetup
     {
         RectTransform root = CreateRect(name, parent, topLeft, size);
         SetTopLeft(root, topLeft, size);
-        Image shadow = CreateImage("Shadow", root, frame, Hex("000000", 170));
+        Sprite panelFill = LoadSprite(ArtPath + "/d1_panel_fill_v4.png");
+        Image shadow = CreateImage("Shadow", root, panelFill, Hex("000000", 150));
         Stretch(shadow.rectTransform, new Vector2(5f, -5f), new Vector2(5f, -5f));
         shadow.type = Image.Type.Sliced;
         shadow.raycastTarget = false;
-        Image fill = CreateImage("Fill", root, null, fillColor);
-        Stretch(fill.rectTransform, new Vector2(5f, 5f), new Vector2(-5f, -5f));
+        Image fill = CreateImage("Fill", root, panelFill, fillColor);
+        Stretch(fill.rectTransform);
+        fill.type = Image.Type.Sliced;
         fill.raycastTarget = false;
-        Image border = CreateImage("Border", root, frame, Hex("86A7BA", 225));
+        float accentMix = size.x >= 500f ? 0.16f : 0.24f;
+        Image border = CreateImage("Border", root, frame, Color.Lerp(Hex("596A75"), accent, accentMix));
         Stretch(border.rectTransform);
         border.type = Image.Type.Sliced;
         border.raycastTarget = false;
-        Image accentTop = CreateImage("AccentTop", root, null, accent);
-        SetTopRect(accentTop.rectTransform, 24f, 4f, Mathf.Min(150f, size.x * 0.30f), 4f);
-        accentTop.raycastTarget = false;
-        Image accentCorner = CreateImage("AccentCorner", root, null, accent);
-        SetTopRect(accentCorner.rectTransform, size.x - 12f, 12f, 4f, Mathf.Min(54f, size.y - 24f));
-        accentCorner.raycastTarget = false;
+        if (size.x >= 500f && size.y >= 150f)
+        {
+            Image crown = CreateImage("TopCrown", root, LoadSprite(ArtPath + "/d1_panel_crown_v4.png"), accent);
+            SetCenteredTopRect(crown.rectTransform, (size.x - 156f) * 0.5f, -7f, 156f, 38f);
+            crown.raycastTarget = false;
+            CreatePanelBolt("BoltTL", root, new Vector2(16f, -18f), accent);
+            CreatePanelBolt("BoltTR", root, new Vector2(size.x - 16f, -18f), accent);
+            CreatePanelBolt("BoltBL", root, new Vector2(16f, -(size.y - 18f)), accent);
+            CreatePanelBolt("BoltBR", root, new Vector2(size.x - 16f, -(size.y - 18f)), accent);
+        }
         return root;
+    }
+
+    private static void CreatePanelBolt(string name, Transform parent, Vector2 position, Color color)
+    {
+        Image bolt = CreateImage(name, parent, LoadSprite(ArtPath + "/d1_glow_v3.png"), color);
+        CenterAt(bolt.rectTransform, position);
+        bolt.rectTransform.sizeDelta = new Vector2(10f, 10f);
+        bolt.raycastTarget = false;
     }
 
     private static Button CreateButton(string name, Transform parent, Sprite frame, TMP_FontAsset font,
@@ -449,12 +481,15 @@ public static class Dimension1GalaxyPremiumSetup
     {
         RectTransform rect = CreatePremiumPanel(name, parent, frame, topLeft, size, Hex("3A2708", 252), accent);
         Image target = FindChild(rect, "Fill").GetComponent<Image>();
+        Image buttonBorder = FindChild(rect, "Border").GetComponent<Image>();
+        if (buttonBorder != null)
+            buttonBorder.color = Color.Lerp(Hex("74591E"), accent, 0.62f);
         Button button = rect.gameObject.AddComponent<Button>();
         button.targetGraphic = target;
         ColorBlock colors = button.colors;
-        colors.normalColor = Hex("6C4308");
-        colors.highlightedColor = Hex("A4680B");
-        colors.pressedColor = Hex("4B2C05");
+        colors.normalColor = Hex("965B08");
+        colors.highlightedColor = Hex("D58B12");
+        colors.pressedColor = Hex("603605");
         colors.disabledColor = Hex("20272C", 210);
         button.colors = colors;
         TMP_Text text = CreateText("Label", rect, font, label, 25f, FontStyles.Bold, Hex("FFE5A3"));
@@ -492,6 +527,31 @@ public static class Dimension1GalaxyPremiumSetup
         return result;
     }
 
+    private static Image[] CreateGalaxyTwinkles(Transform parent, Sprite glowSprite)
+    {
+        Vector2[] positions =
+        {
+            new Vector2(154f, 292f),
+            new Vector2(794f, 385f),
+            new Vector2(88f, 1270f),
+            new Vector2(808f, 1360f),
+            new Vector2(620f, 230f)
+        };
+        float[] sizes = { 42f, 52f, 34f, 46f, 30f };
+        var result = new Image[positions.Length];
+        for (int i = 0; i < positions.Length; i++)
+        {
+            Image image = CreateImage("GalaxyTwinkle" + (i + 1), parent, glowSprite, Hex("BDEBFF", (byte)(72 + i * 5)));
+            SetCenteredTopRect(image.rectTransform,
+                positions[i].x - sizes[i] * 0.5f,
+                positions[i].y - sizes[i] * 0.5f,
+                sizes[i], sizes[i]);
+            image.raycastTarget = false;
+            result[i] = image;
+        }
+        return result;
+    }
+
     private static void CreateVignette(Transform root)
     {
         Image top = CreateImage("TopShade", root, null, Hex("01040A", 95));
@@ -516,6 +576,16 @@ public static class Dimension1GalaxyPremiumSetup
             throw new InvalidOperationException("Falta navegación D1.");
         if (FindChild(root, "FullBleedGalaxyMap") == null)
             throw new InvalidOperationException("Falta mapa full-bleed.");
+        Transform galaxy = FindChild(root, "GalaxyAnimated");
+        if (galaxy == null || galaxy.GetComponent<Image>() == null)
+            throw new InvalidOperationException("Falta la galaxia animada localizada.");
+        bool referenceLayout = FindChild(root, "MapTitle") != null;
+        if (!referenceLayout && (galaxy.parent == null || galaxy.parent.GetComponent<RectMask2D>() == null))
+            throw new InvalidOperationException("La galaxia animada no esta dentro de RectMask2D.");
+        if (galaxy.GetComponent<Image>().material == null ||
+            galaxy.GetComponent<Image>().material.shader == null ||
+            galaxy.GetComponent<Image>().material.shader.name != "UI/QuantumForge/GalaxyWarp")
+            throw new InvalidOperationException("La galaxia animada no usa GalaxyWarpUI.");
     }
 
     private static Dictionary<string, Sprite> LoadCelestialSprites()
@@ -568,7 +638,10 @@ public static class Dimension1GalaxyPremiumSetup
             item.FindPropertyRelative("orbitRing").objectReferenceValue = nodes[i].orbitRing;
             item.FindPropertyRelative("glow").objectReferenceValue = nodes[i].glow;
             item.FindPropertyRelative("labelPlate").objectReferenceValue = nodes[i].labelPlate;
+            item.FindPropertyRelative("labelBorder").objectReferenceValue = nodes[i].labelBorder;
             item.FindPropertyRelative("lockBadge").objectReferenceValue = nodes[i].lockBadge;
+            SerializedProperty currentBadge = item.FindPropertyRelative("currentBadge");
+            if (currentBadge != null) currentBadge.objectReferenceValue = nodes[i].currentBadge;
             item.FindPropertyRelative("titleText").objectReferenceValue = nodes[i].titleText;
             item.FindPropertyRelative("stateText").objectReferenceValue = nodes[i].stateText;
             SerializedProperty routes = item.FindPropertyRelative("routes");
@@ -664,6 +737,22 @@ public static class Dimension1GalaxyPremiumSetup
         SetTopLeft(rect, new Vector2(x, -y), new Vector2(w, h));
     }
 
+    private static void SetCenteredTopRect(RectTransform rect, float x, float y, float w, float h)
+    {
+        rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = new Vector2(x + w * 0.5f, -(y + h * 0.5f));
+        rect.sizeDelta = new Vector2(w, h);
+    }
+
+    private static void SetCenteredParentTop(RectTransform rect, float top, Vector2 size)
+    {
+        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 1f);
+        rect.pivot = new Vector2(0.5f, 1f);
+        rect.anchoredPosition = new Vector2(0f, top);
+        rect.sizeDelta = size;
+    }
+
     private static void SetCenterRect(RectTransform rect, Vector2 offset, Vector2 size)
     {
         rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0.5f);
@@ -733,13 +822,114 @@ public static class Dimension1GalaxyPremiumSetup
 
     private static void ConfigureFinalArt()
     {
-        ConfigureSingleSprite(ArtPath + "/d1_nebula_bg_v3.png", Vector4.zero, 2048, false);
-        ConfigureCelestialSheet();
-        ExtractCelestialSprites();
-        string[] names = { "planet_blue", "debris_ring", "planet_ancient", "planet_silent", "black_hole", "planet_habitable" };
-        foreach (string name in names)
-            ConfigureSingleSprite(ArtPath + "/d1_body_" + name + "_v3.png", Vector4.zero, 512, false);
+        ConfigureTransparentGalaxy(GalaxyArtPath);
+        ConfigureTransparentGalaxy(GalaxyArmsPath);
+        ConfigureTransparentGalaxy(GalaxyDustPath);
+        ConfigureTransparentGalaxy(GalaxyCorePath);
+        ConfigureBackgroundSprite(ArtPath + "/d1_starfield.png", 2048, true);
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+    }
+
+    private static void ConfigureTransparentGalaxy(string path)
+    {
+        TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+        if (importer == null) throw new InvalidOperationException("No se encontro la galaxia RGBA seleccionada.");
+        importer.textureType = TextureImporterType.Sprite;
+        importer.spriteImportMode = SpriteImportMode.Single;
+        var textureSettings = new TextureImporterSettings();
+        importer.ReadTextureSettings(textureSettings);
+        textureSettings.spriteMeshType = SpriteMeshType.FullRect;
+        importer.SetTextureSettings(textureSettings);
+        importer.alphaSource = TextureImporterAlphaSource.FromInput;
+        importer.alphaIsTransparency = true;
+        importer.mipmapEnabled = true;
+        importer.filterMode = FilterMode.Trilinear;
+        importer.wrapMode = TextureWrapMode.Clamp;
+        importer.maxTextureSize = 2048;
+        importer.isReadable = false;
+        importer.crunchedCompression = false;
+        importer.textureCompression = TextureImporterCompression.CompressedHQ;
+
+        TextureImporterPlatformSettings android = importer.GetPlatformTextureSettings("Android");
+        android.name = "Android";
+        android.overridden = true;
+        android.maxTextureSize = 2048;
+        android.format = TextureImporterFormat.ASTC_4x4;
+        android.compressionQuality = 100;
+        importer.SetPlatformTextureSettings(android);
+        importer.SaveAndReimport();
+    }
+
+    private static Material GetOrCreateGalaxyMaterial()
+    {
+        Shader shader = Shader.Find("UI/QuantumForge/GalaxyWarp");
+        if (shader == null)
+            throw new InvalidOperationException("No se encontro el shader UI/QuantumForge/GalaxyWarp.");
+
+        string directory = Path.GetDirectoryName(GalaxyMaterialPath).Replace('\\', '/');
+        if (!AssetDatabase.IsValidFolder(directory))
+        {
+            if (!AssetDatabase.IsValidFolder("Assets/Project/Materials"))
+                AssetDatabase.CreateFolder("Assets/Project", "Materials");
+            if (!AssetDatabase.IsValidFolder(directory))
+                AssetDatabase.CreateFolder("Assets/Project/Materials", "UI");
+        }
+
+        Material material = AssetDatabase.LoadAssetAtPath<Material>(GalaxyMaterialPath);
+        if (material == null)
+        {
+            material = new Material(shader) { name = "D1GalaxyLayeredV10" };
+            AssetDatabase.CreateAsset(material, GalaxyMaterialPath);
+        }
+        else
+        {
+            material.shader = shader;
+        }
+
+        Texture2D arms = AssetDatabase.LoadAssetAtPath<Texture2D>(GalaxyArmsPath);
+        Texture2D dust = AssetDatabase.LoadAssetAtPath<Texture2D>(GalaxyDustPath);
+        Texture2D core = AssetDatabase.LoadAssetAtPath<Texture2D>(GalaxyCorePath);
+        if (arms == null || dust == null || core == null)
+            throw new InvalidOperationException("Faltan capas de la galaxia V10.");
+        material.SetTexture("_ArmsTex", arms);
+        material.SetTexture("_DustTex", dust);
+        material.SetTexture("_CoreTex", core);
+        material.SetVector("_GalaxyCenter", new Vector4(0.5f, 0.5f, 0f, 0f));
+        material.SetFloat("_AxisAngleDeg", 0f);
+        material.SetFloat("_AxisRatio", 0.70f);
+        material.SetFloat("_ArmSpeedDeg", 2.0f);
+        material.SetFloat("_DustSpeedDeg", -0.65f);
+        material.SetFloat("_BaseVisibility", 0.30f);
+        material.SetFloat("_ArmIntensity", 1.45f);
+        material.SetFloat("_DustIntensity", 0.72f);
+        material.SetFloat("_CoreIntensity", 1.0f);
+        material.SetFloat("_CorePeriod", 4.8f);
+        material.SetFloat("_CoreBrightness", 0.055f);
+        EditorUtility.SetDirty(material);
+        AssetDatabase.SaveAssets();
+        return material;
+    }
+
+    private static void DisableLegacyGalaxyChildren(Transform galaxyPanel)
+    {
+        string[] legacyNames =
+        {
+            "GalaxyTitleText",
+            "GalaxySectorSummaryText",
+            "GalaxySector1Button",
+            "GalaxySector2Button",
+            "GalaxySector3Button",
+            "GalaxySector4Button",
+            "GalaxyCenterButton",
+            "EnterGalaxySectorButton",
+            "CloseGalaxyPanelButton"
+        };
+
+        foreach (string name in legacyNames)
+        {
+            Transform child = FindDirectChild(galaxyPanel, name);
+            if (child != null) child.gameObject.SetActive(false);
+        }
     }
 
     private static void ExtractCelestialSprites()
@@ -834,17 +1024,25 @@ public static class Dimension1GalaxyPremiumSetup
     private static void EnsureStructuralArt()
     {
         Directory.CreateDirectory(ArtPath);
-        GenerateFrame(ArtPath + "/d1_premium_frame_v3.png");
+        GenerateFrame(ArtPath + "/d1_premium_frame_v4.png");
+        GeneratePanelFill(ArtPath + "/d1_panel_fill_v4.png");
+        GeneratePanelCrown(ArtPath + "/d1_panel_crown_v4.png");
+        GenerateAmbientVeil(ArtPath + "/d1_ambient_veil_v4.png");
         GenerateOrbit(ArtPath + "/d1_orbit_ring_v3.png");
         GenerateGlow(ArtPath + "/d1_glow_v3.png");
         GenerateRouteDash(ArtPath + "/d1_route_dash_v3.png");
+        GenerateRouteCore(ArtPath + "/d1_route_core_v4.png");
         GenerateLock(ArtPath + "/d1_lock_v3.png");
         GenerateNavIcons();
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
-        ConfigureSingleSprite(ArtPath + "/d1_premium_frame_v3.png", new Vector4(28f, 28f, 28f, 28f), 256, false);
+        ConfigureSingleSprite(ArtPath + "/d1_premium_frame_v4.png", new Vector4(46f, 46f, 46f, 46f), 256, false);
+        ConfigureSingleSprite(ArtPath + "/d1_panel_fill_v4.png", new Vector4(46f, 46f, 46f, 46f), 256, false);
+        ConfigureSingleSprite(ArtPath + "/d1_panel_crown_v4.png", Vector4.zero, 256, false);
+        ConfigureSingleSprite(ArtPath + "/d1_ambient_veil_v4.png", Vector4.zero, 512, false);
         ConfigureSingleSprite(ArtPath + "/d1_orbit_ring_v3.png", Vector4.zero, 512, false);
         ConfigureSingleSprite(ArtPath + "/d1_glow_v3.png", Vector4.zero, 512, false);
         ConfigureSingleSprite(ArtPath + "/d1_route_dash_v3.png", new Vector4(8f, 0f, 8f, 0f), 128, true);
+        ConfigureSingleSprite(ArtPath + "/d1_route_core_v4.png", new Vector4(8f, 0f, 8f, 0f), 128, false);
         ConfigureSingleSprite(ArtPath + "/d1_lock_v3.png", Vector4.zero, 128, false);
         string[] navNames = { "galaxy", "explore", "hangar", "relics", "tree" };
         foreach (string navName in navNames)
@@ -867,18 +1065,104 @@ public static class Dimension1GalaxyPremiumSetup
         importer.SaveAndReimport();
     }
 
+    private static void ConfigureBackgroundSprite(string path, int maxSize, bool uncompressed = false)
+    {
+        TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+        if (importer == null) return;
+        importer.textureType = TextureImporterType.Sprite;
+        importer.spriteImportMode = SpriteImportMode.Single;
+        importer.alphaIsTransparency = true;
+        importer.mipmapEnabled = true;
+        importer.filterMode = FilterMode.Trilinear;
+        importer.wrapMode = TextureWrapMode.Clamp;
+        importer.maxTextureSize = maxSize;
+        importer.textureCompression = uncompressed
+            ? TextureImporterCompression.Uncompressed
+            : TextureImporterCompression.CompressedHQ;
+        importer.SaveAndReimport();
+    }
+
     private static void GenerateFrame(string path)
     {
-        const int size = 128;
+        const int size = 192;
         Texture2D texture = NewTexture(size, size);
         for (int y = 0; y < size; y++)
         for (int x = 0; x < size; x++)
         {
-            int edge = Mathf.Min(Mathf.Min(x, size - 1 - x), Mathf.Min(y, size - 1 - y));
-            bool cut = x + y < 24 || (size - 1 - x) + y < 24 || x + (size - 1 - y) < 24 || (size - 1 - x) + (size - 1 - y) < 24;
-            bool line = !cut && (edge <= 3 || (edge >= 10 && edge <= 12));
-            Color color = line ? (edge <= 3 ? Hex("9CB5C5") : Hex("263A48")) : Color.clear;
+            int dx = Mathf.Min(x, size - 1 - x);
+            int dy = Mathf.Min(y, size - 1 - y);
+            bool outerStraight = (dy >= 2 && dy <= 5 && dx >= 25) ||
+                                 (dx >= 2 && dx <= 5 && dy >= 25);
+            bool outerBevel = dx <= 25 && dy <= 25 && Mathf.Abs(dx + dy - 27) <= 2;
+            bool innerStraight = (dy >= 13 && dy <= 15 && dx >= 29) ||
+                                 (dx >= 13 && dx <= 15 && dy >= 29);
+            bool innerBevel = dx >= 13 && dy >= 13 && dx <= 30 && dy <= 30 &&
+                              Mathf.Abs(dx + dy - 43) <= 1;
+            bool cornerPlate = dx >= 7 && dx <= 11 && dy >= 24 && dy <= 32 ||
+                               dy >= 7 && dy <= 11 && dx >= 24 && dx <= 32;
+            Color color = outerStraight || outerBevel
+                ? Hex("D7E4EA")
+                : innerStraight || innerBevel
+                    ? Hex("557181")
+                    : cornerPlate ? Hex("91A9B6") : Color.clear;
             texture.SetPixel(x, y, color);
+        }
+        Save(texture, path);
+    }
+
+    private static void GeneratePanelFill(string path)
+    {
+        const int size = 192;
+        Texture2D texture = NewTexture(size, size);
+        for (int y = 0; y < size; y++)
+        for (int x = 0; x < size; x++)
+        {
+            int dx = Mathf.Min(x, size - 1 - x);
+            int dy = Mathf.Min(y, size - 1 - y);
+            bool outsideBevel = dx + dy < 27;
+            texture.SetPixel(x, y, outsideBevel ? Color.clear : Color.white);
+        }
+        Save(texture, path);
+    }
+
+    private static void GeneratePanelCrown(string path)
+    {
+        const int width = 192;
+        const int height = 48;
+        Texture2D texture = NewTexture(width, height);
+        for (int y = 0; y < height; y++)
+        for (int x = 0; x < width; x++)
+        {
+            int dx = Mathf.Min(x, width - 1 - x);
+            int dy = Mathf.Min(y, height - 1 - y);
+            bool plate = dx + dy >= 15 && y >= 5 && y <= 40;
+            bool edge = plate && (y <= 8 || y >= 37 || Mathf.Abs(dx + dy - 15) <= 2);
+            bool rail = y >= 20 && y <= 24 && x >= 60 && x <= 132;
+            texture.SetPixel(x, y, edge || rail ? Color.white : plate ? Hex("25323B") : Color.clear);
+        }
+        Save(texture, path);
+    }
+
+    private static void GenerateAmbientVeil(string path)
+    {
+        // Low-frequency translucent clouds only. There are deliberately no stars
+        // in this layer, so its slow drift cannot create high-frequency shimmer.
+        const int size = 512;
+        Texture2D texture = NewTexture(size, size);
+        for (int y = 0; y < size; y++)
+        for (int x = 0; x < size; x++)
+        {
+            float u = x / (float)(size - 1);
+            float v = y / (float)(size - 1);
+            float broad = Mathf.PerlinNoise(u * 2.05f + 11.7f, v * 1.75f + 4.3f);
+            float detail = Mathf.PerlinNoise(u * 4.1f + 3.2f, v * 3.6f + 17.1f);
+            float diagonalA = Mathf.Exp(-Mathf.Pow((v - (0.76f - u * 0.42f)) / 0.28f, 2f));
+            float diagonalB = Mathf.Exp(-Mathf.Pow((v - (0.16f + u * 0.30f)) / 0.22f, 2f));
+            float shape = Mathf.Max(diagonalA, diagonalB * 0.62f);
+            float alpha = Mathf.Clamp01((broad * 0.72f + detail * 0.28f - 0.38f) * 0.95f) * shape;
+            Color cyan = new Color(0.08f, 0.48f, 0.72f, alpha * 0.76f);
+            Color violet = new Color(0.32f, 0.12f, 0.48f, alpha * 0.68f);
+            texture.SetPixel(x, y, Color.Lerp(violet, cyan, Mathf.Clamp01(u * 0.72f + broad * 0.28f)));
         }
         Save(texture, path);
     }
@@ -925,6 +1209,24 @@ public static class Dimension1GalaxyPremiumSetup
             bool dash = (x % 24) < 14;
             float a = dash ? Mathf.Clamp01(1f - Mathf.Abs(y - 7.5f) / 6f) : 0f;
             texture.SetPixel(x, y, new Color(1f, 1f, 1f, a));
+        }
+        Save(texture, path);
+    }
+
+    private static void GenerateRouteCore(string path)
+    {
+        const int width = 64;
+        const int height = 16;
+        Texture2D texture = NewTexture(width, height);
+        for (int y = 0; y < height; y++)
+        for (int x = 0; x < width; x++)
+        {
+            float distance = Mathf.Abs(y - (height - 1) * 0.5f);
+            float alpha = distance <= 1.25f
+                ? 1f
+                : Mathf.Pow(Mathf.Clamp01(1f - distance / 8f), 2f) * 0.42f;
+            float endFade = Mathf.Clamp01(Mathf.Min(x + 1f, width - x) / 5f);
+            texture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha * endFade));
         }
         Save(texture, path);
     }

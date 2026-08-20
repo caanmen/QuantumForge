@@ -32,13 +32,19 @@ public class TriangleSlotUI : MonoBehaviour,
         VerticalUiSkinRoot skin = GetComponentInParent<VerticalUiSkinRoot>(true);
         if (skin != null && skin.theme != null)
         {
-            inactiveColor = skin.theme.deepSurface;
-            activeColor = useLayeredVisuals ? skin.theme.deepSurface : skin.theme.energy;
-            lockedColor = new Color(
-                skin.theme.deepSurface.r,
-                skin.theme.deepSurface.g,
-                skin.theme.deepSurface.b,
-                0.55f);
+            inactiveColor = useLayeredVisuals
+                ? Color.white
+                : skin.theme.deepSurface;
+            activeColor = useLayeredVisuals
+                ? new Color(0.90f, 0.96f, 1f, 1f)
+                : skin.theme.energy;
+            lockedColor = useLayeredVisuals
+                ? new Color(0.48f, 0.52f, 0.55f, 0.78f)
+                : new Color(
+                    skin.theme.deepSurface.r,
+                    skin.theme.deepSurface.g,
+                    skin.theme.deepSurface.b,
+                    0.55f);
         }
         else
         {

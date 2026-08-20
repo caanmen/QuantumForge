@@ -1,0 +1,24 @@
+DIMENSIÓN 3 — DISEÑOS CORREGIDOS V1
+====================================
+
+Fecha: 19 de agosto de 2026.
+
+Contenido:
+- 11 pantallas a 1080 x 1920.
+- 11 versiones de comprobación a 720 x 1280.
+- VISTA_GENERAL_DIMENSION_3_CORREGIDAS_V1.png.
+
+Autoridad:
+- 00 Planta de Producción: composición estática aprobada por el usuario.
+- 01 a 10: candidatas corregidas pendientes de revisión del usuario.
+
+Correcciones compartidas:
+- Encabezado común: 3.25M LE, 4.2K Trazas y 56 Autómatas.
+- Nombres y controles conectables a los sistemas reales.
+- Familia única de iconos para recursos, colas e instalaciones.
+- Estado QA coherente entre Investigación, Autómatas, Instalaciones y Núcleo.
+- Numeración documental retirada de los títulos.
+- Animación planificada por capas, todavía no implementada.
+
+Las imágenes son conceptos estáticos. No son capturas de Unity ni assets finales.
+Los originales permanecen intactos en la carpeta superior.

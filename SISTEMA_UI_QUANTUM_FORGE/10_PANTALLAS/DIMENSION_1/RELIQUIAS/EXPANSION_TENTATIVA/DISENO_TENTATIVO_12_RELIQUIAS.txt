@@ -1,0 +1,121 @@
+DISEÑO TENTATIVO — DOCE RELIQUIAS RESTANTES DE DIMENSIÓN 1
+==========================================================
+
+ESTADO
+------
+
+- Propuesta visual integrada en Unity por petición explícita del usuario.
+- Los nombres, sectores y tiers proceden de los datos reales de Dimension1System.
+- Las formas descritas y sus sprites permanecen como candidatos; todavía no son assets
+  canónicos y requieren aprobación visual de las capturas reales.
+- La paginación y la selección ya están conectadas. La animación continúa pendiente.
+
+ESTRUCTURA PROPUESTA DE LA MISMA PANTALLA
+----------------------------------------
+
+- Página 1 de 3: conserva las ocho reliquias ya recreadas desde la referencia.
+- Página 2 de 3: muestra las siguientes ocho reliquias en una cuadrícula 4 x 2.
+- Página 3 de 3: muestra las cuatro reliquias finales en una cuadrícula 2 x 2
+  centrada, manteniendo el tamaño de las tarjetas y evitando una fila vacía.
+- Las flechas y el indicador de página están implementados en la pantalla real.
+- Al seleccionar una reliquia, el panel inferior reutilizará sus datos reales.
+
+PÁGINA 2 DE 3
+-------------
+
+1. PLACA DE EXPLORADOR
+   Sector: Borde Exterior
+   Tier: 1
+   Concepto: fragmento asimétrico de blindaje de una nave exploradora, con capas
+   metálicas biseladas, remaches y una pequeña línea energética cian.
+
+2. MAPA ESTELAR INCOMPLETO
+   Sector: Borde Exterior
+   Tier: 2
+   Concepto: disco de astrolabio mecánico con un segmento ausente, anillos de
+   coordenadas y puntos estelares cian que dejan evidente su condición incompleta.
+
+3. ECO DEL CUARTO 1
+   Sector: Borde Exterior
+   Tier: 3
+   Concepto: cámara acústica circular con diafragmas concéntricos y un núcleo
+   luminoso, como un registro físico de una resonancia antigua.
+
+4. GANCHO DE EXTRACCIÓN
+   Sector: Anillo de Restos
+   Tier: 1
+   Concepto: gancho industrial pesado y articulado, con pivotes, placas reforzadas
+   y pequeños indicadores cian propios de una herramienta de recuperación.
+
+5. ARCHIVO DE MATRICES
+   Sector: Anillo de Restos
+   Tier: 2
+   Concepto: tres obleas hexagonales entrelazadas alrededor de un cubo de datos
+   luminoso, con volumen metálico y lectura clara incluso a tamaño reducido.
+
+6. RESONADOR DE TRAZAS
+   Sector: Anillo de Restos
+   Tier: 3
+   Concepto: huso vertical con tres anillos de sintonización y una cápsula energética
+   central, diferenciado de una antena común por su estructura concéntrica.
+
+7. ALEACIÓN RECORDADA
+   Sector: Órbitas Antiguas
+   Tier: 1
+   Concepto: lingote irregular formado por láminas de metales distintos, atravesado
+   por una fisura cian que sugiere memoria material sin introducir una mecánica nueva.
+
+8. NÚCLEO DE BODEGA ANTIGUA
+   Sector: Órbitas Antiguas
+   Tier: 2
+   Concepto: módulo octogonal de control de bodega con una cápsula vertical protegida,
+   cierres mecánicos y una construcción más robusta que el resto de los núcleos.
+
+PÁGINA 3 DE 3
+-------------
+
+9. FRAGMENTO DE CALIBRACIÓN
+   Sector: Órbitas Antiguas
+   Tier: 3
+   Concepto: fragmento instrumental en forma de prisma triangular, con una escala
+   de medición grabada y una arista energética cian.
+
+10. SENSOR DE FRECUENCIA RARA
+    Sector: Frontera Silenciosa
+    Tier: 2
+    Concepto: sensor esférico montado sobre soporte, rodeado por bucles de antena
+    inclinados que expresan búsqueda de frecuencias sin parecer un radar convencional.
+
+11. SELLO TRIANGULAR
+    Sector: Frontera Silenciosa
+    Tier: 3
+    Concepto: medallón mecánico triangular grueso, con carriles anidados, cierres
+    en sus vértices y un pequeño núcleo central.
+
+12. MEMORIA DE MÁQUINA
+    Sector: Frontera Silenciosa
+    Tier: 3
+    Concepto: cartucho de memoria antiguo y volumétrico, con esquinas redondeadas,
+    conectores físicos y una ventana de cristal cian que revela su núcleo.
+
+CRITERIOS VISUALES COMPARTIDOS
+------------------------------
+
+- Objetos sólidos y volumétricos; no esqueletos de alambre.
+- Metal oscuro tipo gunmetal, capas, biseles y profundidad real.
+- Luz cian contenida para mantener coherencia con Dimensión 1.
+- Siluetas inequívocas y distintas entre sí a escala de tarjeta.
+- Fondo transparente, sin marco, texto, sombra rectangular ni HUD horneado.
+- Estas piezas se revisan juntas antes de instalarse para evitar que una reliquia
+  cambie de lenguaje visual respecto a las demás.
+
+EVIDENCIA VISUAL
+----------------
+
+- CONTACTO_12_RELIQUIAS_TENTATIVAS.png
+- PAGINA_2_TENTATIVA.png
+- PAGINA_3_TENTATIVA.png
+- ../CAPTURA_CANDIDATA_PAGINA_2_1080x1920.png — captura real de Unity.
+- ../CAPTURA_CANDIDATA_PAGINA_2_720x1280.png — captura real de Unity.
+- ../CAPTURA_CANDIDATA_PAGINA_3_1080x1920.png — captura real de Unity.
+- ../CAPTURA_CANDIDATA_PAGINA_3_720x1280.png — captura real de Unity.

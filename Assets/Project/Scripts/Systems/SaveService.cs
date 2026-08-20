@@ -15,6 +15,7 @@ public enum SaveFailureInjectionPoint
 [Serializable]
 public class SaveData
 {
+    public int saveSchemaVersion;
     public int removedLegacyResourcesVersion;
     public int f2ProgressionMigrationVersion;
     public UpgradeStudyState upgradeStudies;
@@ -173,6 +174,8 @@ public class SaveData
 
 public class SaveService : MonoBehaviour
 {
+    public const int CurrentSaveSchemaVersion = 1;
+    public const int HistoricalBackupCount = 3;
     public const int RemovedLegacyResourcesVersion = 1;
     public static List<string> LastLoadedResearchIds;
     public static List<string> LastLoadedAchievementIds;
@@ -188,12 +191,14 @@ public class SaveService : MonoBehaviour
     public string CurrentSavePath => SavePath;
 
     public static SaveFailureInjectionPoint FailureInjectionPoint = SaveFailureInjectionPoint.None;
+    public static bool SuppressWritesForVisualQa { get; set; }
 
     [Tooltip("Autosave cada N segundos.")]
     public int autosaveSeconds = 30;
 
     private bool resumePending;
     private bool pauseSaveSucceeded;
+    private bool historyCapturedThisSession;
 
     private void Awake()
     {
@@ -226,13 +231,24 @@ public class SaveService : MonoBehaviour
     {
         TickSystem.I?.ResetAccumulator();
 
+        // Al salir de Play Mode el Editor puede enviar pause=true despues de
+        // haber destruido GameState. No es una ausencia real ni hay estado que
+        // guardar; tampoco debe dejar armada una reanudacion para mas tarde.
+        if (!Application.isPlaying || GameState.I == null)
+        {
+            resumePending = false;
+            pauseSaveSucceeded = false;
+            return;
+        }
+
         if (pause)
         {
 #if UNITY_EDITOR
             Debug.Log("[SaveService] OnApplicationPause(true) -> Save()");
 #endif
             resumePending = true;
-            pauseSaveSucceeded = TrySave(out string error);
+            string error = null;
+            pauseSaveSucceeded = SuppressWritesForVisualQa || TrySave(out error);
             if (!pauseSaveSucceeded)
                 Debug.LogError("[SaveService] No se pudo guardar al pausar: " + error);
             return;
@@ -270,6 +286,13 @@ public class SaveService : MonoBehaviour
 
     public void Save()
     {
+        if (SuppressWritesForVisualQa)
+        {
+#if UNITY_EDITOR
+            Debug.Log("[SaveService] Escritura suprimida durante QA visual.");
+#endif
+            return;
+        }
         if (!TrySave(out string error))
             Debug.LogError("[SaveService] No se pudo guardar: " + error);
     }
@@ -277,6 +300,13 @@ public class SaveService : MonoBehaviour
     public bool TrySave(out string error)
     {
         error = null;
+        if (SuppressWritesForVisualQa)
+        {
+#if UNITY_EDITOR
+            Debug.Log("[SaveService] TrySave suprimido durante QA visual.");
+#endif
+            return true;
+        }
         if (GameState.I == null)
         {
         #if UNITY_EDITOR
@@ -296,6 +326,7 @@ public class SaveService : MonoBehaviour
 
         var data = new SaveData
         {
+        saveSchemaVersion = CurrentSaveSchemaVersion,
         removedLegacyResourcesVersion = RemovedLegacyResourcesVersion,
         f2ProgressionMigrationVersion = F2UpgradeManager.ProgressionMigrationVersion,
         LE = GameState.I.LE,
@@ -465,23 +496,38 @@ public class SaveService : MonoBehaviour
 
         if (GameState.I == null) return;
 
-        if (!File.Exists(SavePath))
+        if (!TryFindRecoverableSave(SavePath, out SaveData data,
+                out string loadedPath, out string recoveryError))
         {
-            InitNewGame();
+            if (!HasAnySaveCandidate(SavePath))
+                InitNewGame();
+            else
+                Debug.LogError("[SaveService] No se modificara la partida: " +
+                    recoveryError);
             return;
         }
 
-        if (!TryReadSaveData(SavePath, out SaveData data))
+        int loadedSchemaVersion = data.saveSchemaVersion;
+        bool recoveredFromFallback = !PathsEqual(loadedPath, SavePath);
+        bool requiresImmediateSave = recoveredFromFallback ||
+            loadedSchemaVersion < CurrentSaveSchemaVersion;
+
+        if (!SuppressWritesForVisualQa && !historyCapturedThisSession)
         {
-            if (!TryReadSaveData(SaveBackupPath, out data))
+            if (!TryCreateHistoricalSnapshot(
+                    SavePath, loadedPath, out string historyError))
             {
-                Debug.LogError("[SaveService] El save y su backup no son legibles; se inicia una partida nueva.");
-                InitNewGame();
+                Debug.LogError("[SaveService] Carga cancelada: no se pudo " +
+                    "respaldar la partida. " + historyError);
                 return;
             }
-            Debug.LogWarning("[SaveService] Se recuperÃ³ la partida desde save.json.bak.");
+            historyCapturedThisSession = true;
         }
 
+        if (recoveredFromFallback)
+            Debug.LogWarning("[SaveService] Partida recuperada desde " + loadedPath);
+
+        MigrateSaveData(data);
         ApplyRemovedLegacyResourcesMigration(data, GameState.I);
 
         bool noBuildings = (data.buildingLevels == null || data.buildingLevels.Count == 0);
@@ -773,6 +819,10 @@ public class SaveService : MonoBehaviour
             AchievementManager.I.ApplyLoadedAchievements(LastLoadedAchievementIds);
         }
 
+        if (!SuppressWritesForVisualQa && requiresImmediateSave && !TrySave(out string recoverySaveError))
+            Debug.LogError("[SaveService] La partida se cargo, pero no se pudo " +
+                "confirmar la recuperacion: " + recoverySaveError);
+
 #if UNITY_EDITOR
         Debug.Log("[SaveService] Loaded.");
 #endif
@@ -931,6 +981,132 @@ public class SaveService : MonoBehaviour
             return data != null;
         }
         catch (Exception) { data = null; return false; }
+    }
+
+    public static string GetHistoricalSavePath(string savePath, int index)
+    {
+        if (index < 1 || index > HistoricalBackupCount)
+            throw new ArgumentOutOfRangeException(nameof(index));
+        return savePath + ".history." + index;
+    }
+
+    public static bool TryFindRecoverableSave(
+        string savePath,
+        out SaveData data,
+        out string sourcePath,
+        out string error)
+    {
+        data = null;
+        sourcePath = null;
+        error = null;
+
+        var candidates = new List<string>
+        {
+            savePath,
+            savePath + ".bak"
+        };
+        for (int index = 1; index <= HistoricalBackupCount; index++)
+            candidates.Add(GetHistoricalSavePath(savePath, index));
+
+        foreach (string candidatePath in candidates)
+        {
+            if (!TryReadSaveData(candidatePath, out SaveData candidate))
+                continue;
+
+            if (candidate.saveSchemaVersion > CurrentSaveSchemaVersion)
+            {
+                error = "El archivo " + candidatePath +
+                    " pertenece a un schema futuro (" +
+                    candidate.saveSchemaVersion + ").";
+                return false;
+            }
+
+            if (!IsPlausibleSaveData(candidate))
+                continue;
+
+            data = candidate;
+            sourcePath = candidatePath;
+            return true;
+        }
+
+        error = "save.json, save.json.bak y los tres historicos no son legibles.";
+        return false;
+    }
+
+    public static bool TryCreateHistoricalSnapshot(
+        string savePath,
+        string sourcePath,
+        out string error)
+    {
+        error = null;
+        try
+        {
+            if (!TryReadSaveData(sourcePath, out SaveData source) ||
+                !IsPlausibleSaveData(source))
+                throw new InvalidDataException(
+                    "La fuente del respaldo no contiene una partida valida.");
+
+            string directory = Path.GetDirectoryName(savePath);
+            if (!string.IsNullOrEmpty(directory))
+                Directory.CreateDirectory(directory);
+
+            for (int index = HistoricalBackupCount; index >= 2; index--)
+            {
+                string previous = GetHistoricalSavePath(savePath, index - 1);
+                string destination = GetHistoricalSavePath(savePath, index);
+                if (File.Exists(previous))
+                    File.Copy(previous, destination, true);
+            }
+
+            string newest = GetHistoricalSavePath(savePath, 1);
+            if (!PathsEqual(sourcePath, newest))
+                File.Copy(sourcePath, newest, true);
+
+            if (!TryReadSaveData(newest, out SaveData confirmed) ||
+                !IsPlausibleSaveData(confirmed))
+                throw new InvalidDataException(
+                    "El respaldo historico no supero la validacion final.");
+
+            return true;
+        }
+        catch (Exception exception)
+        {
+            error = exception.Message;
+            return false;
+        }
+    }
+
+    private static bool HasAnySaveCandidate(string savePath)
+    {
+        if (File.Exists(savePath) || File.Exists(savePath + ".bak"))
+            return true;
+        for (int index = 1; index <= HistoricalBackupCount; index++)
+            if (File.Exists(GetHistoricalSavePath(savePath, index))) return true;
+        return false;
+    }
+
+    private static bool IsPlausibleSaveData(SaveData data)
+    {
+        return data != null && data.lastUnix > 0L &&
+            !double.IsNaN(data.LE) && !double.IsInfinity(data.LE) &&
+            !double.IsNaN(data.Traces) && !double.IsInfinity(data.Traces);
+    }
+
+    private static bool PathsEqual(string left, string right)
+    {
+        if (string.IsNullOrEmpty(left) || string.IsNullOrEmpty(right))
+            return false;
+        return string.Equals(
+            Path.GetFullPath(left).TrimEnd(Path.DirectorySeparatorChar),
+            Path.GetFullPath(right).TrimEnd(Path.DirectorySeparatorChar),
+            StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void MigrateSaveData(SaveData data)
+    {
+        if (data == null) return;
+        if (data.saveSchemaVersion < 1)
+            data.saveSchemaVersion = 1;
     }
 
     public static void ApplyRemovedLegacyResourcesMigration(
@@ -1107,6 +1283,13 @@ public class SaveService : MonoBehaviour
     public void ResetSave()
     {
         if (File.Exists(SavePath)) File.Delete(SavePath);
+        if (File.Exists(SaveBackupPath)) File.Delete(SaveBackupPath);
+        for (int index = 1; index <= HistoricalBackupCount; index++)
+        {
+            string historyPath = GetHistoricalSavePath(SavePath, index);
+            if (File.Exists(historyPath)) File.Delete(historyPath);
+        }
+        historyCapturedThisSession = false;
         if (GameState.I != null)
         {
             GameState.I.DebugResetRunState();

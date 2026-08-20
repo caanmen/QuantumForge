@@ -104,6 +104,7 @@ public class Dimension1PanelUI : MonoBehaviour
 
     [Header("Galaxia")]
     [SerializeField] private GameObject galaxyPanel;
+    [SerializeField] private Dimension1AncientOrbitsUI ancientOrbitsUI;
     [SerializeField] private Button openGalaxyPanelButton;
     [SerializeField] private Button closeGalaxyPanelButton;
 
@@ -159,8 +160,7 @@ public class Dimension1PanelUI : MonoBehaviour
     private bool galaxyPanelOpen;
     private bool arkPanelOpen;
     private string arkFeedbackMessage = "";
-    private string galaxyPreviewSectorId =
-        Dimension1System.Sector01OuterRim;
+    private string galaxyPreviewSectorId = "";
     public string GalaxyPreviewSectorId => galaxyPreviewSectorId;
     private string galaxyFeedbackMessage = "";
     private int lastHandledExplorationResultId;
@@ -201,14 +201,26 @@ public class Dimension1PanelUI : MonoBehaviour
     private void BindArkListeners()
     {
         UnbindArkListeners();
-        AddGalaxyButtonListener(openArkPanelButton, OnClickOpenArkPanel);
-        AddGalaxyButtonListener(closeArkPanelButton, OnClickCloseArkPanel);
-        AddGalaxyButtonListener(investigateArkButton, OnClickInvestigateArk);
-        AddGalaxyButtonListener(startOuterSyncButton, OnClickStartOuterSync);
-        AddGalaxyButtonListener(startDebrisSyncButton, OnClickStartDebrisSync);
-        AddGalaxyButtonListener(startAncientSyncButton, OnClickStartAncientSync);
-        AddGalaxyButtonListener(startSilentSyncButton, OnClickStartSilentSync);
-        AddGalaxyButtonListener(enterArkButton, OnClickEnterArk);
+        AddArkButtonListener(openArkPanelButton, OnClickOpenArkPanel);
+        AddArkButtonListener(closeArkPanelButton, OnClickCloseArkPanel);
+        AddArkButtonListener(investigateArkButton, OnClickInvestigateArk);
+        AddArkButtonListener(startOuterSyncButton, OnClickStartOuterSync);
+        AddArkButtonListener(startDebrisSyncButton, OnClickStartDebrisSync);
+        AddArkButtonListener(startAncientSyncButton, OnClickStartAncientSync);
+        AddArkButtonListener(startSilentSyncButton, OnClickStartSilentSync);
+        AddArkButtonListener(enterArkButton, OnClickEnterArk);
+    }
+
+    private static void AddArkButtonListener(
+        Button button,
+        UnityEngine.Events.UnityAction action
+    )
+    {
+        // Las pantallas reconstruidas por instalador conservan su ruta funcional
+        // como listener persistente. Evitar un segundo propietario impide ejecutar
+        // dos veces una misión al pulsar una sola tarjeta.
+        if (button != null && button.onClick.GetPersistentEventCount() == 0)
+            button.onClick.AddListener(action);
     }
 
     private void UnbindArkListeners()
@@ -3865,8 +3877,36 @@ public class Dimension1PanelUI : MonoBehaviour
 
         if (SaveService.I != null)
             SaveService.I.Save();
+        RefreshUI();
+    }
+
+    public void OnClickStartFirstAvailableExploration()
+    {
+        GameState gs = GameState.I;
+        if (gs == null)
+            return;
 
         RefreshUI();
+        if (destinationDropdown == null || destinationDropdown.options == null ||
+            destinationDropdown.options.Count <= 1 || shipDropdown == null ||
+            shipDropdown.options == null || shipDropdown.options.Count <= 1)
+            return;
+
+        coordinatedMode = false;
+        selectedDestinationIndex = 1;
+        selectedShipIndex = 1;
+        selectedSupportShipIndex = 0;
+        destinationDropdown.SetValueWithoutNotify(1);
+        destinationDropdown.RefreshShownValue();
+        shipDropdown.SetValueWithoutNotify(1);
+        shipDropdown.RefreshShownValue();
+        if (supportShipDropdown != null)
+        {
+            supportShipDropdown.SetValueWithoutNotify(0);
+            supportShipDropdown.RefreshShownValue();
+        }
+
+        OnClickStartLightProbeExploration();
     }
 
     public void OnClickCloseExplorationRewards()
@@ -5255,11 +5295,13 @@ public class Dimension1PanelUI : MonoBehaviour
         GameState gs = GameState.I;
 
         if (gs != null)
-        {
             gs.EnsureDimension1State();
-            galaxyPreviewSectorId = gs.dimension1SelectedSectorId;
-        }
 
+        // Carta Galactica opens in a neutral browsing state. The persisted
+        // current sector remains untouched and is still reported in the header.
+        galaxyPreviewSectorId = "";
+
+        ancientOrbitsUI?.CloseSilently();
         galaxyFeedbackMessage = "";
         galaxyPanelOpen = true;
         hangarPanelOpen = false;
@@ -5303,6 +5345,7 @@ public class Dimension1PanelUI : MonoBehaviour
 
     public void OnClickCloseGalaxyPanel()
     {
+        ancientOrbitsUI?.CloseSilently();
         galaxyPanelOpen = false;
         galaxyFeedbackMessage = "";
         RefreshUI();
@@ -5362,7 +5405,6 @@ public class Dimension1PanelUI : MonoBehaviour
             return;
         }
 
-        galaxyPanelOpen = false;
         galaxyFeedbackMessage = "";
         selectedDestinationIndex = 0;
         destinationDropdownSignature = "";
@@ -5371,6 +5413,22 @@ public class Dimension1PanelUI : MonoBehaviour
         if (SaveService.I != null)
             SaveService.I.Save();
 
+        if (galaxyPreviewSectorId == Dimension1System.Sector03AncientOrbits &&
+            ancientOrbitsUI == null)
+        {
+            ancientOrbitsUI = GetComponentInChildren<Dimension1AncientOrbitsUI>(true);
+        }
+
+        if (galaxyPreviewSectorId == Dimension1System.Sector03AncientOrbits &&
+            ancientOrbitsUI != null)
+        {
+            galaxyPanelOpen = true;
+            RefreshUI();
+            ancientOrbitsUI.OpenFromGalaxy();
+            return;
+        }
+
+        galaxyPanelOpen = false;
         RefreshUI();
     }
 
@@ -5427,7 +5485,10 @@ public class Dimension1PanelUI : MonoBehaviour
         if (closeGalaxyPanelButton != null)
         {
             closeGalaxyPanelButton.gameObject.SetActive(galaxyPanelOpen);
-            SetButtonText(closeGalaxyPanelButton, "Volver");
+            SetButtonText(closeGalaxyPanelButton,
+                closeGalaxyPanelButton.name == "CommandCenterBack"
+                    ? "CENTRO DE MANDO"
+                    : "Volver");
         }
 
         if (!galaxyPanelOpen)
@@ -5490,7 +5551,14 @@ public class Dimension1PanelUI : MonoBehaviour
         if (enterGalaxySectorButton == null)
             return;
 
-        enterGalaxySectorButton.gameObject.SetActive(galaxyPanelOpen);
+        bool hasPreview = Dimension1System.IsDimension1SectorId(galaxyPreviewSectorId);
+        enterGalaxySectorButton.gameObject.SetActive(galaxyPanelOpen && hasPreview);
+
+        if (!hasPreview)
+        {
+            enterGalaxySectorButton.interactable = false;
+            return;
+        }
 
         bool canEnter = CanEnterGalaxyPreviewSector(gs, out _);
         enterGalaxySectorButton.interactable = canEnter;
@@ -5547,7 +5615,7 @@ public class Dimension1PanelUI : MonoBehaviour
             return "Dimensión 1 no está disponible.";
 
         if (!Dimension1System.IsDimension1SectorId(galaxyPreviewSectorId))
-            galaxyPreviewSectorId = gs.dimension1SelectedSectorId;
+            return "Selecciona un sector para ver sus datos.";
 
         string sectorId = galaxyPreviewSectorId;
         string sectorName =
@@ -5825,6 +5893,29 @@ public class Dimension1PanelUI : MonoBehaviour
 
         selectedRelicIndex = index;
         RefreshUI();
+    }
+
+    public void SelectRelicChamberRelic(string relicId)
+    {
+        if (string.IsNullOrEmpty(relicId))
+            return;
+
+        int activeIndex = 1;
+        foreach (string candidate in Dimension1System.Dimension1RelicIds)
+        {
+            if (!Dimension1System.IsRelicActiveInDimension1Base(candidate))
+                continue;
+
+            if (candidate == relicId)
+            {
+                selectedRelicIndex = activeIndex;
+                if (relicChamberDropdown != null)
+                    relicChamberDropdown.SetValueWithoutNotify(activeIndex);
+                RefreshUI();
+                return;
+            }
+            activeIndex++;
+        }
     }
 
     public void OnClickUpgradeSelectedRelic()
@@ -7435,6 +7526,14 @@ public class Dimension1PanelUI : MonoBehaviour
     private void SetButtonText(Button button, string text)
     {
         if (button == null)
+            return;
+
+        // Reference galaxy sector nodes own dedicated Title/State labels.
+        // Detect them by those stable labels rather than by the optional
+        // expedition plate, otherwise the legacy refresh overwrites Title.
+        if (button.GetComponentInParent<Dimension1GalaxyVisualUI>() != null &&
+            button.transform.Find("Title") != null &&
+            button.transform.Find("State") != null)
             return;
 
         TextMeshProUGUI tmpLabel = button.GetComponentInChildren<TextMeshProUGUI>(true);

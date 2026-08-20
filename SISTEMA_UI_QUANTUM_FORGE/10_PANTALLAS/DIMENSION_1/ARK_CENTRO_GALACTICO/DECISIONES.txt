@@ -1,0 +1,28 @@
+DECISIONES ESPECÍFICAS: ARK — CENTRO GALÁCTICO
+==============================================
+
+- Es una subpantalla del Sector 5; no añade una sexta tarjeta a la navegación D1.
+- La referencia manda en composición y el sistema real manda en números y estados.
+- Se reutilizan exactamente los cuatro blueprints de Hangar para las sincronías.
+- El hero del ARK era el único faltante visual real y permanece como candidato.
+- Un eco activo cuenta en el indicador visual de sincronización, pero sólo una misión
+  completada satisface el progreso funcional definido por Dimension1System.
+- Las acciones conservan un único propietario: Dimension1PanelUI.
+- Sus listeners persistentes evitan que una reconstrucción deje botones sin ruta; el
+  enlace dinámico sólo se añade cuando no existe uno persistente.
+- No se añade animación antes de aprobar la composición estática.
+- Las capturas permanecen candidatas; no se copian a 06_CAPTURAS_APROBADAS.
+- Las cuatro tarjetas se centran por su caja envolvente completa: márgenes laterales
+  iguales de 31 px dentro del lienzo 1080.
+- Sólo la misión activa usa marco ámbar tenue; completada usa verde únicamente en su
+  estado y las demás conservan estructura cian oscura.
+- Los ecos no reutilizan sprites orbitales anidados: se construyen como tres anillos,
+  doce marcas y un núcleo circular con centro geométrico común.
+- Corrección solicitada el 19 de agosto de 2026: conservar exactamente las identidades
+  de las cuatro naves canónicas de Hangar; no producir sustitutos para ARK.
+- Cada nave se centra por su silueta visible dentro de un contenedor común y conserva
+  el material canónico de blueprint; el estado sólo modifica su tinte autorizado.
+- La pantalla usa superficies casi negras y estructura cian atenuada para aproximar el
+  contraste de la referencia; no se aclaran paneles completos para indicar estado.
+- Los cuatro ecos siguen la referencia en escala y espaciado: centros globales
+  x=231/434/637/840, cuatro anillos concéntricos, ejes, marcas cardinales y diagonales.

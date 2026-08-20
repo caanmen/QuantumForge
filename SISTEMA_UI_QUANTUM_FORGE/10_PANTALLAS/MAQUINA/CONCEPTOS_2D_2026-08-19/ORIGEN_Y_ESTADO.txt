@@ -1,0 +1,34 @@
+QUANTUM FORGE — MÁQUINA — EXPLORACIÓN 2D
+Fecha: 19 de agosto de 2026
+
+CLASIFICACIÓN
+
+Las tres imágenes de esta carpeta son CONCEPTOS para comparar direcciones visuales.
+No son assets finales, capturas reales de Unity ni diseños aprobados.
+
+FUENTES REVISADAS
+
+- Captura real actual: Logs/VisualQA/MachineBlock1/true3d_01_face_1_rest.png
+- Referencia aprobada: Assets/Project/UI/Vertical/References/Machine_Block1_Approved_Reference.png
+- Referencia de la cara 1: Assets/Project/UI/Vertical/Machine/machine_face_1_reference_v2.png
+- Código real de navegación, selección, estados, reparación y calidad del cubo 3D.
+
+CONTRATO FUNCIONAL CONSERVADO EN LAS PROPUESTAS
+
+- Cuatro sectores o caras navegables.
+- Nodos públicos y posiciones reservadas para secretos.
+- Selección táctil y tarjeta contextual inferior.
+- Estados dañado, analizado, reparado y seleccionado.
+- Progreso por sector y acciones ANALIZAR/REPARAR según corresponda.
+- Integración con la pantalla existente de Máquina y su navegación.
+
+PROPUESTAS
+
+1. Placa Frontal 2D: una cara ortográfica grande con nodos y conducciones legibles.
+2. Máquina Desplegada 2D: las cuatro caras visibles como un conjunto desplegado; la activa domina.
+3. Mapa Radial 2D: los cuatro sectores forman una rueda de diagnóstico con un núcleo común.
+
+ESTADO
+
+Pendiente de elección o combinación por el usuario. Ninguna propuesta debe pasar a
+implementación o convertirse en referencia canónica sin aprobación explícita.

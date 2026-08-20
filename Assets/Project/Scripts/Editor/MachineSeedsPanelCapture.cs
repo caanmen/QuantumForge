@@ -17,6 +17,8 @@ public static class MachineSeedsPanelCapture
     private const string CompletedKey = "QF.MachineSeedsCapture.Completed";
     private const string SaveExistedKey = "QF.MachineSeedsCapture.SaveExisted";
     private const string BackupExistedKey = "QF.MachineSeedsCapture.BackupExisted";
+    private const string ExitWhenCompleteKey =
+        "QF.MachineSeedsCapture.ExitWhenComplete";
 
     private static Camera _camera;
     private static RenderTexture _target;
@@ -60,6 +62,8 @@ public static class MachineSeedsPanelCapture
         BackupUserSave();
         if (!Application.isBatchMode)
             MachineSeedsPanelVisualSetup.Configure();
+        MachineSeedsApprovedStyleSetup.Configure();
+        MachineSeedsApprovedStyleSetup.Validate();
         EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
         SessionState.SetBool(ActiveKey, true);
         SessionState.SetBool(FailedKey, false);
@@ -71,6 +75,21 @@ public static class MachineSeedsPanelCapture
     }
 
     public static void RunBatch() => Run();
+
+    public static void RunNormalAndExit()
+    {
+        SessionState.SetBool(ExitWhenCompleteKey, true);
+        try
+        {
+            Run();
+        }
+        catch (Exception exception)
+        {
+            SessionState.SetBool(ExitWhenCompleteKey, false);
+            Debug.LogException(exception);
+            EditorApplication.Exit(1);
+        }
+    }
 
     private static void OnPlayModeChanged(PlayModeStateChange change)
     {
@@ -101,7 +120,9 @@ public static class MachineSeedsPanelCapture
         SessionState.SetBool(FailedKey, false);
         if (!failed)
             Debug.Log("[Machine Seeds Capture] PASS | functional panel | 1080x1920");
-        if (Application.isBatchMode)
+        bool exitWhenComplete = SessionState.GetBool(ExitWhenCompleteKey, false);
+        SessionState.SetBool(ExitWhenCompleteKey, false);
+        if (Application.isBatchMode || exitWhenComplete)
             EditorApplication.Exit(failed ? 1 : 0);
     }
 
@@ -194,8 +215,15 @@ public static class MachineSeedsPanelCapture
         ActivateAncestors(panel.transform);
         panel.SelectZoneFromCube(MachineZoneType.InstantChamber);
         panel.Refresh();
-        Button seeds = panel.GetComponentsInChildren<Button>(true)
-            .FirstOrDefault(button => button != null && button.name == "OpenAnchors");
+        Button seeds = panel.transform.Find(
+            "MachineCubeVisualRoot/MachineContextTabs/SeedsTab")
+            ?.GetComponent<Button>();
+        if (seeds == null)
+        {
+            seeds = panel.GetComponentsInChildren<Button>(true)
+                .FirstOrDefault(button => button != null &&
+                    button.name == "OpenAnchors");
+        }
         Require(seeds != null, "No se encontró el acceso SEMILLAS.");
         seeds.onClick.Invoke();
         MachineSeedsPanelVisualUI visual =

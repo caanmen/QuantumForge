@@ -1,0 +1,35 @@
+CONTRATO DE APROBACIÓN: ÓRBITAS ANTIGUAS
+========================================
+
+Referencia permanente: registrada.
+Resolución principal: 1080 x 1920 vertical.
+Meta visual: 95 % de parecido percibido con la referencia suministrada.
+
+PUERTA 0 — AUDITORÍA Y REUTILIZACIÓN
+[x] Planetas, fondo, marcos, metales y navegación existentes localizados.
+[x] Cuatro iconos de destinos registrados como faltantes reales.
+[x] Datos oficiales del Sector 3 verificados.
+
+PUERTA 1 — CONTRATO
+[x] Función, entrada, salida, datos y propietarios definidos.
+[x] Valores ilustrativos separados del estado real.
+[x] Animación declarada como no requerida para la composición inicial.
+
+PUERTA 2 — COMPOSICIÓN ESTÁTICA
+[x] Jerarquía y proporciones construidas.
+[x] Planetas canónicos y destinos candidatos integrados.
+[x] Comparación 1080 x 1920 y 720 x 1280.
+
+PUERTA 3 — DATOS E INTERACCIÓN
+[x] Entrada mediante la lógica real de Carta Galáctica.
+[x] Regreso superior e inferior.
+[x] Mejoras, desbloqueos, costes e inventario real.
+[x] Navegación vecina conectada.
+
+PUERTA 5 — CIERRE
+[x] Instalador y captura PASS.
+[x] Sin errores o excepciones relacionadas.
+[ ] Similitud mínima del 95 % aprobada por el usuario.
+[ ] Capturas aprobadas archivadas.
+
+Resultado: CANDIDATA FUNCIONAL LISTA PARA REVISIÓN; NO APROBADA AÚN

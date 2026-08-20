@@ -21,10 +21,12 @@ public static class D3ProductionSystem
         int bankLevel = D3FacilitySystem.GetProcessBankLevel(gameState.dimension3);
         if (version == 2)
             return bankLevel >= 2 &&
-                D3InventorySystem.GetAssemblyCount(gameState.dimension3, 1) >= 25L;
+                D3InventorySystem.GetAssemblyCount(gameState.dimension3, 1) >=
+                    Dimension3Catalog.RequiredMk1AssembliesForV2;
         if (version == 3)
             return bankLevel >= 3 &&
-                D3InventorySystem.GetAssemblyCount(gameState.dimension3, 2) >= 25L;
+                D3InventorySystem.GetAssemblyCount(gameState.dimension3, 2) >=
+                    Dimension3Catalog.RequiredMk2AssembliesForV3;
         if (version >= 4 && version <= 6)
             return D3ResearchSystem.IsCompleted(gameState.dimension3, partId, version);
         return false;

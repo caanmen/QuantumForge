@@ -5081,6 +5081,24 @@ public static class Dimension1System
         return 0.0;
     }
 
+    public static double GetPlanetMetalEffectiveProductionPerSecond(
+        GameState state,
+        D1PlanetState planet,
+        string metalId
+    )
+    {
+        double baseProduction = GetPlanetMetalProductionPerSecond(planet, metalId);
+
+        if (state == null || planet == null || baseProduction <= 0.0)
+            return baseProduction;
+
+        return baseProduction * GetRelicMiningProductionMultiplier(
+            state,
+            planet,
+            metalId
+        );
+    }
+
     public static double GetExtractorUpgradeCost(D1PlanetState planet)
     {
         if (planet == null)

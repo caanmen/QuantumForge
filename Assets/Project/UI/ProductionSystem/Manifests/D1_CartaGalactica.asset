@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1976eba7ff36c64a9a7b31018fc30f7, type: 3}
+  m_Name: D1_CartaGalactica
+  m_EditorClassIdentifier: Assembly-CSharp::UIProductionScreenManifest
+  screenId: D1_CARTA_GALACTICA
+  displayName: "Carta Gal\xE1ctica"
+  dimension: 1
+  approvalStage: 4
+  baseResolution: {x: 1080, y: 1920}
+  perceivedSimilarityTarget: 0.95
+  referenceRelativePath: SISTEMA_UI_QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_1/CARTA_GALACTICA/referencia_carta_galactica.png
+  approvedCaptureRelativePaths:
+  - SISTEMA_UI_QUANTUM_FORGE/06_CAPTURAS_APROBADAS/DIMENSION_1/CARTA_GALACTICA/carta_galactica_neutral_1080x1920.png
+  - SISTEMA_UI_QUANTUM_FORGE/06_CAPTURAS_APROBADAS/DIMENSION_1/CARTA_GALACTICA/carta_galactica_orbitas_seleccionada_1080x1920.png
+  sharedTheme: {fileID: 11400000, guid: 3ed269241773c0d42accabf95ed69cef, type: 2}
+  setupMethod: Dimension1GalaxyPremiumSetup.ConfigureReferenceV11
+  validationMethod: Dimension1GalaxyReferenceCapture.RunInteractionRegression
+  requiredCaptureStates:
+  - Neutral
+  - "\xD3rbitas Antiguas seleccionada"
+  documentationFolder: SISTEMA_UI_QUANTUM_FORGE/10_PANTALLAS/DIMENSION_1/CARTA_GALACTICA
+  notes: "Referencia V11 con rutas sim\xE9tricas e interacci\xF3n regresiva aprobada."

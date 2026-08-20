@@ -13,6 +13,7 @@ public static class Dimension3Block7DValidation
         ValidateCorePropagation(failures);
         ValidateCompleteProfiles(failures);
         ValidateCatalog(failures);
+        ValidateAutonomyProof(failures);
         ValidateLastRouteMigrationAndLocalization(failures);
         if (failures.Count == 0)
             Debug.Log("[D3 Block 7D] PASS | Núcleo | perfiles completos | " +
@@ -126,6 +127,38 @@ public static class Dimension3Block7DValidation
                 D3AutomationCatalog.ActionPortUpgradeScanner).status ==
               D3AutomationCatalogStatus.PendingDesign,
             "El Puerto no representa todas sus acciones maestras.", failures);
+    }
+
+    private static void ValidateAutonomyProof(List<string> failures)
+    {
+        GameState state = CreateState("D3 B7D Autonomy Proof");
+        try
+        {
+            D3FacilityState core = D3FacilitySystem.GetFacility(
+                state.dimension3, Dimension3Catalog.FacilityAutomationCore);
+            core.built = true;
+            core.level = D3AutonomyCoreSystem.RequiredCoreLevel;
+            state.dimension3.assignments.Add(new D3AssignmentState
+            {
+                installationId = Dimension3Catalog.FacilityAutomationCore,
+                channelId = Dimension3Catalog.ChannelCoreCoordination,
+                mk = D3AutonomyCoreSystem.RequiredMk,
+                traitId = Dimension3Catalog.TraitCoordinator,
+                amount = 1L,
+                stabilizedAmount = 1L
+            });
+            Check(!D3AutonomyCoreSystem.CanIntegrate(state, out string reason) &&
+                  reason.Contains("automática real"),
+                "El cierre no exige demostrar una automatización real.", failures);
+            D3AutonomyCoreSystem.RecordSuccessfulAutomationExecution(
+                state.dimension3);
+            Check(D3AutonomyCoreSystem.TryIntegrate(state, out reason) &&
+                  state.dimension3.autonomyCoreIntegrated &&
+                  reason.Contains("AUTONOMÍA CONFIRMADA"),
+                "La prueba real no habilita una culminación clara: " + reason,
+                failures);
+        }
+        finally { Object.DestroyImmediate(state.gameObject); }
     }
 
     private static void ValidateLastRouteMigrationAndLocalization(

@@ -1,0 +1,23 @@
+REFERENCIAS PERMANENTES
+
+Guardar aquí únicamente referencias necesarias para reconstruir una pantalla.
+"Permanente" describe su ubicación estable, no significa que esté aprobada.
+
+Cada carpeta de pantalla debe contener:
+- La imagen original sin modificaciones.
+- Un archivo ORIGEN_Y_ESTADO.txt.
+- Recortes aprobados, si existen.
+
+ORIGEN_Y_ESTADO debe indicar:
+- Referencia / concepto / captura real / asset final.
+- Estado: candidata / aprobada / sustituida / descartada.
+- Dimensión y pantalla a las que pertenece.
+- Fecha recibida.
+- Resolución.
+- Qué partes son obligatorias.
+- Qué partes todavía requieren decisión.
+
+No depender de AppData/Temp, Downloads ni adjuntos de un chat anterior.
+No guardar aquí capturas de errores o propuestas descartadas.
+Una referencia candidata puede vivir aquí si está claramente rotulada y separada de
+las referencias aprobadas. Nunca usar su estética como regla de otra dimensión.

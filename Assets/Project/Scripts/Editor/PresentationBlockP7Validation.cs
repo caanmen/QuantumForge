@@ -149,8 +149,10 @@ public static class PresentationBlockP7Validation
     private static void ValidateReturnModalStructure(List<string> failures)
     {
         GameObject root = new GameObject("Presentation P7 Modal Validation");
+        GameState state = null;
         try
         {
+            PresentationReturnReportService.Consume();
             PresentationReturnReportUI ui =
                 root.AddComponent<PresentationReturnReportUI>();
             MethodInfo build = typeof(PresentationReturnReportUI).GetMethod(
@@ -165,13 +167,31 @@ public static class PresentationBlockP7Validation
                 root.transform.Find("ReturnModal/ReturnPanel/TracesBalance") != null &&
                 root.transform.Find("ReturnModal/ReturnPanel/EnergyBalance") != null,
                 "El informe no contiene el balance visual de las tres monedas.", failures);
+
+            state = CreateState("Presentation P7 Immediate Delivery");
+            PresentationReturnReportService.Prepare(
+                new PresentationReturnSnapshot(), state,
+                600.0, 0.0, 0.0, 600.0);
+            Transform modal = root.transform.Find("ReturnModal");
+            Check(modal != null && modal.gameObject.activeSelf,
+                "El informe no aparece durante la carga que lo prepara.", failures);
+
+            if (buttons.Length == 1)
+                buttons[0].onClick.Invoke();
+            Check(modal != null && !modal.gameObject.activeSelf,
+                "CONTINUAR no cierra el informe con una pulsacion.", failures);
         }
         catch (System.Exception exception)
         {
             failures.Add("No se pudo construir el informe: " +
                 exception.GetBaseException().Message);
         }
-        finally { UnityEngine.Object.DestroyImmediate(root); }
+        finally
+        {
+            PresentationReturnReportService.Consume();
+            if (state != null) UnityEngine.Object.DestroyImmediate(state.gameObject);
+            UnityEngine.Object.DestroyImmediate(root);
+        }
     }
 
     private static void ValidateAdvancedResume(List<string> failures)

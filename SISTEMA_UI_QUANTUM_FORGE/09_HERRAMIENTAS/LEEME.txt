@@ -1,0 +1,41 @@
+HERRAMIENTAS UI
+
+Las herramientas importables por Unity viven en:
+Assets/Project/Scripts/Editor/UIProductionSystem
+
+SALIDAS RECOMENDADAS
+- Logs/VisualQA/<Dimension>/<Pantalla>
+- Logs/UIProductionSystem
+
+CAPACIDADES DISPONIBLES
+- Preflight general antes de automatizar Unity.
+- Creación de estructura de trabajo para una pantalla.
+- Manifiestos reutilizables con referencia, capturas, estado y métodos de prueba.
+- Comparación auxiliar de dos PNG con normalización de tamaño.
+- Informe permanente de archivos, referencias y configuración compartida.
+- Extracción auxiliar de fondos generados mediante `ExtraerFondoGenerado.ps1`.
+
+ALCANCE
+- Las herramientas son generales cuando reciben dimensión, pantalla y rutas como datos.
+- Un comando que nombra Carta Galáctica es una utilidad específica de regresión D1, no
+  el patrón visual para otras pantallas.
+- La comparación de PNG es auxiliar: normalizar el tamaño no demuestra por sí solo una
+  similitud perceptual del 95 %. Si las proporciones difieren, se debe detener o registrar
+  el recorte/ajuste utilizado antes de interpretar el resultado.
+- La extracción de fondo produce un candidato. Se debe revisar alfa, bordes, halos y
+  lectura a tamaño real antes de promover el resultado a asset canónico.
+
+MENÚ EN UNITY
+- Quantum Forge > UI Production > Ejecutar comprobación general
+- Quantum Forge > UI Production > Configurar manifiestos conocidos
+- Quantum Forge > UI Production > Comparar Carta Galáctica aprobada
+- Quantum Forge > UI Production > Nueva carpeta de pantalla
+
+COBERTURA REGISTRADA ACTUAL
+- Los manifiestos conocidos automatizados cubren Carta Galáctica y Centro de Mando D1.
+- Explorar y Hangar D1 están registrados documentalmente, pero todavía deben añadirse
+  a la configuración de manifiestos cuando se autorice modificar herramientas de Unity.
+- Una pantalla sin manifiesto no debe presentarse como cubierta por el preflight completo.
+
+Las herramientas no deciden estilo ni aprueban arte. Ayudan a medir y demostrar;
+la aprobación visual final pertenece al usuario.

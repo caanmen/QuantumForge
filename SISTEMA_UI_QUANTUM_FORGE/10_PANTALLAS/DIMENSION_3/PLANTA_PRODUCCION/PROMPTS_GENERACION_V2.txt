@@ -1,0 +1,39 @@
+PROMPTS DE GENERACIÓN — CANDIDATA V2
+=====================================
+
+La imagen se produjo mediante una edición base y dos correcciones localizadas.
+
+PROMPT BASE
+-----------
+Editar la referencia suministrada como una UI estática 9:16 de Planta de Producción.
+Conservar agresivamente la dirección industrial de acero ennegrecido, latón envejecido,
+ámbar y acentos cian; conservar la máquina central, cámara, profundidad, materiales,
+estructura vertical y navegación PLANTA / TALLER / CONTROL con PLANTA seleccionada.
+
+Corregir únicamente el contrato funcional:
+- Título: PLANTA DE PRODUCCIÓN, sin el prefijo documental 00.
+- Encabezado coherente para LE, TRAZAS y 56 AUTÓMATAS.
+- Pestañas exactas: CHASIS, SISTEMA MOTRIZ, HERRAMIENTA, MÓDULO DE CONTROL, REGULADOR.
+- Selector interactivo VERSIÓN V1 que representa V1–V6.
+- Producción: CHASIS V1; 100 LE + 1 TRAZA; 10 s; INVENTARIO 3; cantidad 1; FABRICAR.
+- Ensamblaje: ENSAMBLE MK1 NORMAL; cinco piezas V1 a 1/1; 2.000 LE + 5 TRAZAS;
+  30 s; selector CANTIDAD 1 que representa 1/5/10/25; ENSAMBLAR MK1 NORMAL.
+- Resumen pulsable con iconos únicos: PIEZAS 3/10 · 00:06; ENSAMBLE 1/10 · 00:24;
+  PLANOS 1/10 · 20:00; OBRAS LIBRE · 0/1.
+- Accesos secundarios AUTÓMATAS y BANCO DE PROCESOS N4.
+- No añadir ayuda, atrás, cierre, cancelación, menú, lore, monedas o controles inventados.
+- Mantener texto legible, márgenes seguros y calidad industrial detallada; sin marca de agua.
+
+CORRECCIÓN LOCALIZADA 1
+-----------------------
+Preservar toda la imagen. Mantener FABRICAR. Convertir ENSAMBLAR MK1 NORMAL al mismo
+estado activo ámbar, porque los requisitos muestran 1/1 y existen recursos suficientes.
+No cambiar ningún otro dato ni elemento.
+
+CORRECCIÓN LOCALIZADA FINAL
+---------------------------
+Preservar toda la imagen exactamente, incluida la acción activa de ensamblaje.
+Cambiar sólo los dos valores superiores para ajustarlos al FormatNumber real:
+- 3.25M LE
+- 4.2K TRAZAS
+Mantener 56 AUTÓMATAS. No mover, recortar, añadir ni regenerar otros elementos.

@@ -1,0 +1,1803 @@
+QUANTUM FORGE
+GUÍA PRÁCTICA PARA CONSTRUIR PANTALLAS CORRECTAMENTE DESDE EL INICIO
+Actualizado: 19 de agosto de 2026
+
+PROPÓSITO
+Este documento describe el método recomendado para crear una pantalla nueva de
+Quantum Forge. No es una lista de errores: es una secuencia positiva de trabajo
+para conseguir una interfaz fiel, estable, clara y fácil de ampliar.
+
+Debe utilizarse junto con:
+GUIA_PREVENCION_ERRORES_PANTALLAS.txt
+
+La guía de creación indica QUÉ HACER y EN QUÉ ORDEN.
+La guía de errores indica QUÉ REVISAR PARA NO REPETIR PROBLEMAS.
+
+ALCANCE DE ESTA GUÍA
+
+- Las instrucciones del MÉTODO GENERAL son reglas transferibles a cualquier dimensión
+  cuando correspondan a su tipo de pantalla y plataforma.
+- Los bloques identificados como EJEMPLO HISTÓRICO conservan el nombre de la pantalla
+  donde se aprendió el método, pero no autorizan a copiar su estética, contenido o
+  navegación en otra dimensión.
+- Los colores, marcos, iconos, fondos, metáforas visuales y movimientos concretos se
+  obtienen del perfil y la referencia de cada dimensión; no de los ejemplos de esta guía.
+- Si una recomendación general entra en conflicto con una referencia aprobada o con el
+  contrato de una pantalla, se resuelve la contradicción antes de diseñar.
+
+MANTENIMIENTO OBLIGATORIO
+Cuando el trabajo revele una técnica nueva que haga la creación más rápida,
+reproducible o fiel, incorporarla aquí antes de cerrar la pantalla. Debe escribirse
+como un paso o TIP accionable y actualizar la lista rápida cuando corresponda.
+Si amplía un método existente, mejorar esa sección en vez de repetirla. Registrar
+también el aprendizaje en 07_REGISTROS/BITACORA_APRENDIZAJES_UI.md.
+
+======================================================================
+MÉTODO GENERAL
+======================================================================
+
+ORDEN RECOMENDADO
+
+1. Entender la función de la pantalla.
+2. Reunir todas las referencias, datos reales y criterios de aprobación.
+3. Descomponer la referencia en elementos construibles y assets canónicos.
+4. Medir la composición y definir cuadrícula, Canvas y zonas seguras.
+5. Preparar la jerarquía, las responsabilidades y el sistema de diseño.
+6. Construir primero la versión estática.
+7. Comparar visualmente y corregir proporciones.
+8. Conectar estados, datos reales y localización.
+9. Añadir interacciones, navegación táctil y botón Atrás.
+10. Añadir animaciones.
+11. Probar resoluciones, estados, rendimiento, guardado y navegación.
+12. Capturar, comparar, instalar en dispositivo y aprobar.
+
+No conviene cambiar este orden. Una pantalla mal proporcionada no se arregla
+añadiendo animaciones, y una pantalla visualmente bonita no está terminada si sus
+estados no representan las reglas reales del juego.
+
+======================================================================
+1. DEFINIR LA FUNCIÓN ANTES DE DISEÑAR
+======================================================================
+
+Antes de crear objetos en Unity, responder por escrito:
+
+- ¿Para qué sirve esta pantalla?
+- ¿Cómo entra el jugador?
+- ¿Cómo sale o regresa?
+- ¿Qué acción principal debe realizar?
+- ¿Qué información necesita para decidir?
+- ¿Qué datos son permanentes y cuáles son una previsualización?
+- ¿Qué puede estar bloqueado, vacío, seleccionado o completado?
+- ¿Qué debe conservarse al cerrar la pantalla?
+
+TIP
+Resumir la pantalla en una frase. Ejemplo histórico — Dimensión 1 / Carta Galáctica:
+"La Carta Galáctica permite comparar sectores, previsualizar sus datos y entrar
+al sector elegido sin modificar el sector actual hasta confirmar la entrada".
+
+El formato de una frase es la regla general. El mapa, los sectores y su navegación
+pertenecen únicamente a ese ejemplo.
+
+Si la frase no está clara, la pantalla todavía no está lista para diseñarse.
+
+======================================================================
+2. CLASIFICAR TODAS LAS REFERENCIAS
+======================================================================
+
+Etiquetar cada material recibido como:
+
+- REFERENCIA VISUAL: indica cómo debe verse.
+- CAPTURA REAL: muestra lo que ya existe dentro de Unity.
+- CONCEPTO: propone una dirección, pero todavía debe demostrarse en Unity.
+- ASSET FINAL: recurso listo para incorporarse al juego.
+- REFERENCIA FUNCIONAL: explica reglas, textos, datos o comportamiento.
+
+TIP
+No tratar una imagen conceptual como si fuera un único fondo terminado. Primero
+descomponerla en marcos, iconos, textos, imágenes, rutas, efectos y estados.
+
+======================================================================
+3. CREAR UN INVENTARIO ANTES DE IMPLEMENTAR
+======================================================================
+
+Preparar una lista de todo lo necesario:
+
+- Marcos y paneles.
+- Fondos y viewports.
+- Iconos y sprites canónicos.
+- Tipografías y tamaños.
+- Botones y estados.
+- Textos fijos y dinámicos.
+- Recursos y valores reales.
+- Imágenes con transparencia.
+- Líneas, rutas y conectores.
+- Máscaras localizadas.
+- Shaders, partículas o RenderTextures.
+- Sonidos y respuesta táctil, si corresponden.
+- Animaciones solicitadas.
+
+Para cada elemento registrar:
+
+- Nombre visible.
+- Nombre interno estable.
+- Ruta del asset.
+- Propietario lógico.
+- Estado inicial.
+- Estados alternativos.
+- Si es funcional o solamente decorativo.
+
+TIP
+Buscar primero los assets ya aprobados del juego. Crear un recurso nuevo sólo
+cuando no exista uno canónico apropiado.
+
+======================================================================
+4. MEDIR LA REFERENCIA EN PORCENTAJES
+======================================================================
+
+Usar una resolución base, preferiblemente 1080 × 1920 para la interfaz vertical.
+Medir cada bloque como porcentaje del ancho y del alto de la pantalla:
+
+- Encabezado.
+- Zona principal.
+- Panel informativo.
+- Navegación inferior.
+- Márgenes laterales.
+- Separación entre tarjetas.
+- Altura de títulos y botones.
+
+TIP
+Primero medir los grandes bloques. Después medir sus componentes internos. No
+comenzar ajustando iconos pequeños cuando todavía no están bien las proporciones
+generales.
+
+ORDEN DE MEDICIÓN
+
+1. Bordes generales.
+2. Centros de los bloques principales.
+3. Ancho y alto de cada bloque.
+4. Separaciones.
+5. Contenido interior.
+6. Detalles decorativos.
+
+======================================================================
+5. DEFINIR UNA CUADRÍCULA Y ZONAS SEGURAS
+======================================================================
+
+Dividir la pantalla en zonas claras:
+
+- Zona del sistema o encabezado.
+- Zona principal interactiva.
+- Zona de información contextual.
+- Zona de navegación.
+- Márgenes seguros del dispositivo.
+
+Cada marco ornamental debe tener además una zona segura interior. El contenido
+debe colocarse dentro de esa superficie, no encima de biseles o esquinas.
+
+TIP
+Crear guías temporales para ejes, márgenes y centros. Quitarlas solamente después
+de validar la composición.
+
+======================================================================
+6. DISEÑAR LA JERARQUÍA ANTES DE CREAR OBJETOS
+======================================================================
+
+Una jerarquía recomendable es:
+
+ScreenRoot
+  BackgroundViewport
+    BackgroundArt
+  Header
+  MainContent
+    RoutesOrBackgroundEffects
+    InteractiveNodes
+    ForegroundEffects
+  ContextPanel
+  LocalNavigation
+  ModalLayer
+
+Dentro de un elemento interactivo:
+
+NodeRoot
+  Background
+  ArtworkContainer
+    Artwork
+    ArtworkEffect
+  Frame
+  Title
+  State
+  LockOrCurrentBadge
+  InteractionHitArea
+
+TIP
+Separar el contenedor estable del elemento que será animado. El botón no debe
+girar o escalar si sólo debe moverse su imagen interior.
+
+======================================================================
+7. ASIGNAR UN PROPIETARIO A CADA RESPONSABILIDAD
+======================================================================
+
+Definir quién controla cada cosa:
+
+- El layout controla posición y tamaño.
+- El controlador visual controla colores, textos visuales y estados gráficos.
+- El sistema de juego controla reglas, progreso y disponibilidad.
+- La navegación controla qué pantalla está visible.
+- La animación controla únicamente propiedades animables previamente acordadas.
+
+TIP
+Una propiedad debe tener un solo escritor. Si dos sistemas modifican el mismo
+texto, posición, escala, color o visibilidad, hay que reorganizar la arquitectura
+antes de continuar.
+
+======================================================================
+8. CONSTRUIR PRIMERO UNA VERSIÓN ESTÁTICA COMPLETA
+======================================================================
+
+Antes de conectar botones o animaciones, completar:
+
+- Tamaños.
+- Posiciones.
+- Marcos.
+- Fondos.
+- Iconos.
+- Textos de ejemplo reales.
+- Colores base.
+- Capas.
+- Rutas o conexiones.
+
+TIP
+La primera captura debe mostrar la composición completa, aunque todavía no sea
+interactiva. Esto permite corregir el 80 % de los problemas visuales sin mezclar
+comportamiento y diseño.
+
+No pasar a interacciones hasta que la versión estática sea claramente reconocible
+como la referencia.
+
+======================================================================
+9. CONSERVAR PROPORCIONES DE IMÁGENES Y MARCOS
+======================================================================
+
+- Activar Preserve Aspect cuando corresponda.
+- Usar un viewport dedicado si hace falta recortar.
+- Usar Image.Type.Sliced únicamente con sprites preparados para nueve cortes.
+- No estirar planetas, galaxias, iconos o marcos ornamentales.
+- Preparar un asset específico si el original no admite la proporción requerida.
+
+TIP
+Registrar la relación de aspecto original del asset y compararla con su resultado
+en pantalla antes de aprobarlo.
+
+======================================================================
+10. PREPARAR LOS ASSETS PARA SU USO REAL
+======================================================================
+
+Para cada imagen comprobar:
+
+- Transparencia limpia.
+- Resolución suficiente.
+- Bordes sin halos.
+- Compresión apropiada.
+- Filter Mode adecuado.
+- Mipmaps cuando el fondo pueda reducirse.
+- Wrap Mode correcto.
+- Píxeles por unidad coherentes.
+- Nivel de detalle compatible con los demás assets.
+
+TIP
+Probar iconos y cuerpos celestes sobre fondos claros y oscuros. Probar fondos
+espaciales a escala 1:1, no solamente dentro de una Game View reducida.
+
+======================================================================
+11. CREAR UNA ESCALA TIPOGRÁFICA FIJA
+======================================================================
+
+Definir categorías reutilizables:
+
+- Título principal.
+- Título de sección.
+- Título de tarjeta.
+- Valor principal.
+- Etiqueta.
+- Estado.
+- Descripción.
+- Texto auxiliar.
+- Botón.
+
+Para cada categoría registrar:
+
+- Fuente.
+- Peso.
+- Tamaño recomendado.
+- Tamaño mínimo.
+- Espaciado de caracteres.
+- Color.
+- Alineación.
+- Número máximo de líneas.
+
+TIP
+No resolver textos largos reduciendo indefinidamente la fuente. Primero ampliar
+el área, redistribuir el contenido o abreviar un texto secundario aprobado.
+
+======================================================================
+12. USAR DATOS REALES DESDE LAS PRIMERAS CAPTURAS
+======================================================================
+
+Los ejemplos deben corresponder al código y al lore:
+
+- Nombres oficiales.
+- Costes reales.
+- Porcentajes posibles.
+- Estados existentes.
+- Requisitos completos.
+- Recursos realmente desbloqueados.
+
+TIP
+Probar también el valor más largo posible. Una tarjeta que funciona con "3" puede
+romperse con "1.250.000" o con un nombre localizado más extenso.
+
+======================================================================
+13. DEFINIR UNA MATRIZ DE ESTADOS
+======================================================================
+
+Antes de programar, documentar para cada componente:
+
+ESTADO            VISUAL                  INTERACCIÓN
+Normal            Color base              Disponible
+Preseleccionado   Acento localizado       Muestra detalles
+Seleccionado      Acento confirmado       Acción activa
+Bloqueado         Menor contraste + causa No ejecuta
+Vacío             Mensaje neutral         Sin acción
+Completado        Resultado claro         Según diseño
+Deshabilitado     Motivo visible           No ejecuta
+
+TIP
+Definir exactamente qué cambia: borde, texto, icono, ruta o fondo. Evitar aplicar
+un mismo color de estado a todo el contenedor.
+
+======================================================================
+14. DISEÑAR LA NAVEGACIÓN COMO PARTE DE LA PANTALLA
+======================================================================
+
+- Definir qué barra permanece visible.
+- Ocultar navegaciones externas cuando la pantalla tenga una propia.
+- Mantener una ruta de regreso clara.
+- Reservar el espacio inferior desde el comienzo.
+- Asegurar que los botones ocultos no continúen recibiendo toques.
+- Restaurar el estado anterior al cerrar.
+
+TIP
+Probar la navegación desde una partida real, no solamente abriendo la escena
+directamente en el editor.
+
+======================================================================
+15. CONECTAR LOS DATOS SIN RECONSTRUIR EL LAYOUT
+======================================================================
+
+El refresco de datos puede modificar:
+
+- Texto.
+- Color.
+- Sprite de estado.
+- Visibilidad condicional.
+- Interactividad.
+- Progreso de barras o medidores.
+
+El refresco no debe modificar innecesariamente:
+
+- Posiciones.
+- Anclas.
+- Pivotes.
+- Tamaños estructurales.
+- Orden de capas.
+- Jerarquía.
+
+TIP
+La composición debe quedar fijada al construir la pantalla. Los datos sólo llenan
+y actualizan los espacios preparados.
+
+======================================================================
+16. AÑADIR INTERACCIONES DESPUÉS DE APROBAR LA COMPOSICIÓN
+======================================================================
+
+Para cada botón definir:
+
+- Acción al tocar.
+- Condiciones para estar habilitado.
+- Respuesta visual inmediata.
+- Información que cambia.
+- Datos que se guardan.
+- Datos que no deben cambiar todavía.
+- Resultado al tocar rápidamente varias veces.
+
+TIP
+Separar "previsualizar" de "confirmar" cuando la acción pueda modificar progreso,
+recursos o ubicación del jugador.
+
+======================================================================
+17. AÑADIR ANIMACIONES EN CAPAS CONTROLADAS
+======================================================================
+
+Orden recomendado:
+
+1. Confirmar pivote y anclas.
+2. Guardar la posición base.
+3. Animar un único parámetro.
+4. Probar selección y deselección.
+5. Añadir el siguiente parámetro.
+6. Comprobar rendimiento y legibilidad.
+
+Buenas animaciones para la interfaz:
+
+- Pulso leve de brillo.
+- Rotación lenta de un cuerpo centrado.
+- Flujo suave en una ruta.
+- Aparición corta de un panel.
+- Cambio de color localizado.
+
+TIP
+La animación debe reforzar la información. No debe mover textos, dificultar la
+lectura ni cambiar la composición aprobada.
+
+======================================================================
+18. VALIDAR EN VARIAS RESOLUCIONES Y ESTADOS
+======================================================================
+
+Resoluciones mínimas recomendadas:
+
+- 1080 × 1920 como referencia visual principal.
+- 720 × 1280 como verificación adicional.
+- Resolución real del dispositivo de prueba.
+
+Estados mínimos:
+
+- Apertura neutral.
+- Selección de cada opción.
+- Elementos bloqueados.
+- Valores mínimos.
+- Valores máximos o textos largos.
+- Apertura y cierre repetidos.
+- Cambio rápido entre opciones.
+
+TIP
+La captura principal debe hacerse a escala 1:1. Una grabación del monitor sirve
+para mostrar comportamiento, pero no para juzgar nitidez o moiré.
+
+======================================================================
+19. USAR UN CICLO DE COMPARACIÓN VISUAL
+======================================================================
+
+CICLO RECOMENDADO
+
+1. Generar una captura real de Unity.
+2. Colocarla junto a la referencia.
+3. Comparar grandes proporciones.
+4. Comparar alineación y separaciones.
+5. Comparar tipografía.
+6. Comparar colores y contraste.
+7. Comparar iconos y detalles.
+8. Corregir una categoría a la vez.
+9. Repetir con una captura nueva.
+
+TIP
+No afirmar que un cambio está aplicado usando una captura anterior. Cada revisión
+debe identificar claramente la ejecución y el estado que produjo la imagen.
+
+======================================================================
+20. PRIORIZAR LAS CORRECCIONES CORRECTAMENTE
+======================================================================
+
+Orden de prioridad:
+
+1. Función y datos correctos.
+2. Estructura y navegación.
+3. Proporciones generales.
+4. Posiciones y alineación.
+5. Legibilidad.
+6. Estados visuales.
+7. Assets y transparencia.
+8. Colores y contraste.
+9. Animaciones.
+10. Detalles decorativos finales.
+
+TIP
+No invertir tiempo perfeccionando un brillo si todavía cambia el tamaño del panel
+o si la acción principal no funciona.
+
+======================================================================
+21. CONSTRUIR PANTALLAS REPRODUCIBLES
+======================================================================
+
+Cuando se utilice una herramienta de configuración o reconstrucción:
+
+- Debe producir siempre la misma jerarquía.
+- Debe usar los assets finales.
+- Debe guardar la escena o prefab correctos.
+- Debe poder ejecutarse nuevamente sin duplicar objetos.
+- Debe incluir los últimos ajustes hechos en la escena.
+- Debe terminar con una validación identificable.
+
+TIP
+No realizar una corrección únicamente en la escena si una herramienta posterior
+puede reconstruirla y borrar el ajuste. Mantener ambas fuentes sincronizadas.
+
+======================================================================
+22. PREPARAR PRUEBAS AUTOMÁTICAS DESDE EL PRINCIPIO
+======================================================================
+
+Una pantalla importante debería poder verificar automáticamente:
+
+- Existencia de objetos esenciales.
+- Referencias no nulas.
+- Textos correctos.
+- Pivotes y posiciones estables.
+- Ausencia de superposiciones críticas.
+- Estados normal, seleccionado y bloqueado.
+- Navegación de entrada y salida.
+- Captura neutral y captura interactiva.
+- Ausencia de excepciones.
+
+TIP
+Comprobar los valores inmediatamente después del toque y también después de que
+terminen los refrescos y animaciones.
+
+======================================================================
+23. REVISAR EL PERFIL DE COMPILACIÓN
+======================================================================
+
+Antes de entregar una versión:
+
+- Confirmar si es QA o producción.
+- Verificar arquitectura Android.
+- Confirmar Min SDK y Target SDK.
+- Mantener identificador y firma si será una actualización.
+- Incrementar versionCode.
+- Conservar compatibilidad del guardado.
+- Confirmar las herramientas de prueba requeridas para QA.
+
+TIP
+Una compilación exitosa no basta: debe instalarse, abrirse y conservar el progreso
+en el dispositivo objetivo.
+
+======================================================================
+24. CREAR UN CONTRATO DE IMPLEMENTACIÓN Y APROBACIÓN
+======================================================================
+
+Antes de construir, dejar por escrito qué se entregará:
+
+- Alcance funcional incluido y excluido.
+- Referencia visual que tiene prioridad.
+- Elementos que deben ser idénticos y elementos que pueden adaptarse.
+- Datos, reglas y requisitos que deben mostrarse.
+- Estados obligatorios.
+- Resoluciones y dispositivos objetivo.
+- Perfil de compilación esperado: Editor, QA o producción.
+- Evidencias necesarias para aprobar.
+- Criterios medibles de fidelidad, legibilidad y funcionamiento.
+
+TIP
+Una frase como "que quede parecido" no es un criterio verificable. Convertirla en
+resultados observables: jerarquía, medidas, colores, estados, interacciones y capturas.
+Si cambia el alcance, actualizar este contrato antes de continuar.
+
+======================================================================
+25. USAR UN SISTEMA DE DISEÑO COMPARTIDO
+======================================================================
+
+Definir o reutilizar tokens comunes para:
+
+- Paleta por recurso y dimensión.
+- Tipografías, pesos y escala tipográfica.
+- Espaciados y márgenes.
+- Radios, biseles y grosores de borde.
+- Marcos de panel, tarjeta y botón.
+- Colores de normal, seleccionado, bloqueado, alerta y completado.
+- Duraciones y curvas de animación.
+- Iconos canónicos y reglas de iluminación.
+
+Los valores compartidos deben vivir en un tema, prefab, ScriptableObject o catálogo
+estable. Evitar copiar manualmente colores y tamaños distintos en cada pantalla.
+
+TIP
+Antes de crear un botón, tarjeta o título nuevo, buscar su equivalente aprobado.
+Una pantalla nueva debe sentirse parte del mismo juego incluso antes de añadir el fondo.
+
+======================================================================
+26. DEFINIR CANVAS, SAFE AREA Y COMPORTAMIENTO RESPONSIVO
+======================================================================
+
+Registrar antes de posicionar elementos:
+
+- Resolución de referencia del Canvas Scaler.
+- Valor Match Width Or Height.
+- Orientación permitida.
+- Tratamiento de notch, cámara y barra de gestos.
+- Altura reservada para encabezado y navegación.
+- Elementos que se estiran, conservan tamaño o cambian de distribución.
+- Proporciones mínimas y máximas soportadas.
+
+Las anclas deben expresar la intención del layout. Un elemento centrado debe depender
+del centro de su zona funcional, no del centro físico de toda la pantalla si existen
+encabezados, navegación o Safe Area asimétricos.
+
+TIP
+Probar también una Safe Area simulada extrema. Una pantalla que sólo funciona en
+1080 × 1920 todavía no tiene un comportamiento responsivo definido.
+
+======================================================================
+27. INTEGRAR LOCALIZACIÓN Y FORMATOS DESDE EL PRINCIPIO
+======================================================================
+
+Para cada texto definir:
+
+- Clave de localización estable.
+- Español e inglés, y otros idiomas previstos.
+- Longitud máxima razonable.
+- Número máximo de líneas.
+- Comportamiento ante salto de línea.
+- Formato de números, porcentajes, duración y recursos.
+- Singular, plural y género cuando corresponda.
+
+No construir la composición con abreviaturas temporales si la versión real mostrará
+frases más largas. Los textos de bloqueo, costes y acciones deben salir de la misma
+fuente funcional que decide el estado del botón.
+
+TIP
+Capturar al menos el idioma más largo disponible y probar valores como 0, 100 %,
+1.250.000, duraciones extensas y nombres que ocupen dos líneas.
+
+======================================================================
+28. DISEÑAR ENTRADA TÁCTIL, RETROALIMENTACIÓN Y BOTÓN ATRÁS
+======================================================================
+
+Cada control interactivo debe definir:
+
+- Área táctil suficiente, aunque el icono visible sea pequeño.
+- Separación respecto a otros controles.
+- Estado normal, presionado, seleccionado y deshabilitado.
+- Respuesta visual inmediata al toque.
+- Sonido o vibración, si el sistema los utiliza.
+- Comportamiento con toques repetidos o simultáneos.
+- Acción del botón Atrás de Android.
+- Prioridad de modales y bloqueo de controles situados detrás.
+
+Como referencia, procurar áreas táctiles cercanas a 48 × 48 dp y no depender sólo
+del tamaño visual del icono. Los elementos ocultos no deben conservar raycasts.
+
+TIP
+Probar con el dedo en el dispositivo, no únicamente con el ratón. Verificar bordes,
+esquinas, scroll, arrastre y controles cercanos.
+
+======================================================================
+29. PREPARAR ESCENARIOS QA DETERMINISTAS
+======================================================================
+
+Crear estados reproducibles para capturar y probar:
+
+- Primera apertura.
+- Contenido bloqueado.
+- Requisito parcialmente cumplido.
+- Acción disponible.
+- Proceso activo.
+- Conclusión o recompensa pendiente.
+- Contenido completado.
+- Valores mínimos, máximos y textos largos.
+- Regreso desde otra pantalla.
+- Carga de una partida anterior.
+
+Los escenarios deben inicializarse mediante fixtures, checkpoints o herramientas QA,
+sin depender de jugar manualmente durante horas ni contaminar el guardado personal.
+
+TIP
+Cada captura debe registrar escenario, idioma, resolución, versión y hora. Si no puede
+repetirse el mismo estado, la comparación visual pierde valor.
+
+======================================================================
+30. DEFINIR UN PRESUPUESTO DE RENDIMIENTO MÓVIL
+======================================================================
+
+Antes de aprobar efectos complejos, fijar límites para:
+
+- Tiempo de CPU y GPU de la pantalla.
+- Cantidad de Canvas y reconstrucciones de layout.
+- Draw calls y cambios de material.
+- Overdraw por transparencias, brillos y partículas.
+- Memoria y resolución de texturas.
+- Cantidad de objetos activos.
+- Frecuencia de refresco de datos.
+- RenderTextures, modelos 3D y shaders animados.
+
+Desactivar animaciones, partículas y refrescos cuando la pantalla no esté visible.
+Evitar asignaciones por fotograma y reconstrucciones periódicas del Canvas.
+
+TIP
+Perfilar en el dispositivo objetivo y con el estado visual más costoso. Una captura
+bonita en el Editor no demuestra que la pantalla mantenga una experiencia fluida.
+
+======================================================================
+31. DEFINIR EL CONTRATO DE INTEGRACIÓN Y PERSISTENCIA
+======================================================================
+
+Documentar cómo se relaciona la pantalla con el resto del juego:
+
+- Evento o condición que la desbloquea.
+- Punto exacto de entrada y destino al salir.
+- Barra global o local que debe permanecer visible.
+- Estado que debe recordar al cerrarse.
+- Datos que sólo se previsualizan.
+- Acciones que gastan recursos o modifican progreso.
+- Momento exacto en que se guarda.
+- Migración necesaria para partidas anteriores.
+- Eventos que obligan a refrescarla desde otras pantallas.
+
+TIP
+Probar la pantalla dentro de una partida completa. Abrir una escena aislada no detecta
+conflictos de navegación, desbloqueo, guardado, progreso offline o restauración de estado.
+
+======================================================================
+32. ENTREGAR UN PAQUETE DE EVIDENCIA IDENTIFICABLE
+======================================================================
+
+Una entrega de pantalla debe incluir:
+
+- Ruta de escena o prefab implementado.
+- Herramienta de configuración utilizada, si existe.
+- Validación automática ejecutada.
+- Registro con mensaje PASS específico.
+- Capturas reales con escenario, idioma y resolución.
+- Comparación lado a lado con la referencia aprobada.
+- Lista de partes funcionales y partes decorativas.
+- Perfil y versión del APK cuando corresponda.
+- Limitaciones conocidas o diferencias aprobadas.
+
+Etiquetar claramente CONCEPTO, REFERENCIA y CAPTURA REAL DE UNITY. No utilizar una
+imagen conceptual como prueba de implementación ni una captura anterior como evidencia
+de una corrección nueva.
+
+TIP
+La evidencia debe permitir que otra persona confirme el resultado sin depender de una
+explicación verbal ni de recordar qué versión produjo cada imagen.
+
+======================================================================
+33. DEFINIR LA AMBICIÓN ARTÍSTICA Y EL NIVEL DE ACABADO
+======================================================================
+
+Antes de producir un mockup, acordar:
+
+- Emoción principal que debe transmitir la pantalla.
+- Nivel de riqueza visual esperado: funcional, pulido o premium.
+- Referentes aprobados y aspectos concretos que se tomarán de ellos.
+- Densidad de detalle del fondo, elementos principales y paneles.
+- Tipo de iluminación, profundidad, materiales y movimiento ambiental.
+- Elementos que deliberadamente deben permanecer sobrios para conservar legibilidad.
+- Simplificaciones permitidas y simplificaciones prohibidas.
+
+"Viable en Unity" no significa escoger automáticamente la solución más plana o
+barata. Primero se define el resultado deseado; después se encuentra una construcción
+eficiente que conserve su impacto. Si una reducción de calidad es necesaria por
+rendimiento, debe mostrarse y aprobarse, no aplicarse silenciosamente.
+
+TIP
+Escribir tres frases: "debe sentirse como", "debe destacar" y "no debe parecer".
+Esto evita que una pantalla espacial premium termine usando fondos genéricos, marcos
+planos o efectos que no pertenecen al mismo nivel artístico.
+
+======================================================================
+34. TRABAJAR CON PUERTAS DE APROBACIÓN ENTRE ETAPAS
+======================================================================
+
+Dividir el trabajo en decisiones que deben aprobarse antes de continuar:
+
+PUERTA 1  Dirección artística y referentes.
+PUERTA 2  Una lámina comparativa de opciones claramente numeradas.
+PUERTA 3  Opción elegida como asset limpio, sin números ni interfaz falsa.
+PUERTA 4  Composición estática dentro de Unity.
+PUERTA 5  Estados y datos reales conectados.
+PUERTA 6  Interacciones y navegación.
+PUERTA 7  Animación real y rendimiento.
+PUERTA 8  Captura final, dispositivo y aceptación.
+
+No implementar varias opciones antes de que el usuario elija una. Una lámina de
+comparación sirve para decidir, pero nunca debe convertirse directamente en un asset
+del juego. Toda aprobación debe registrar exactamente qué imagen, captura o versión
+fue aceptada.
+
+TIP
+Al terminar cada puerta, detenerse si la siguiente etapa depende de una elección
+artística o funcional que pueda cambiar sustancialmente el resultado.
+
+======================================================================
+35. DISEÑAR LOS ASSETS SEGÚN LA ANIMACIÓN QUE NECESITARÁN
+======================================================================
+
+REGLA GENERAL
+La animación se planifica durante el diseño previo a Unity, pero se implementa sólo
+después de aprobar la composición estática. La planificación temprana prepara el arte;
+no permite saltarse el orden de las puertas de aprobación.
+
+Antes de generar o pintar el arte final, documentar qué partes deben permanecer
+estáticas y cuáles deben animarse. Por ejemplo, una galaxia puede necesitar:
+
+- Campo estelar inmóvil.
+- Galaxia aislada con transparencia.
+- Base tenue.
+- Brazos luminosos.
+- Polvo oscuro o nebuloso.
+- Núcleo y máscara de brillo.
+- Destellos y partículas internas.
+
+No hornear en una sola imagen elementos que necesitarán velocidades, deformaciones,
+colores o profundidades diferentes. Definir también:
+
+- Pivote visual de cada capa.
+- Margen transparente para deformaciones y rotaciones.
+- Resolución y relación de aspecto de producción.
+- Shader o material previsto.
+- Tipo de recorte y compatibilidad con RectMask2D.
+- Movimiento exacto que verá el jugador.
+
+TIP
+Si sólo se recibe una imagen aplanada, la animación posterior probablemente moverá
+todo rígidamente o deformará elementos que deberían permanecer fijos. La producción
+del asset y el diseño de movimiento deben planearse juntos.
+
+ORDEN OBLIGATORIO
+
+1. Definir la intención de movimiento junto con el diseño.
+2. Separar capas, reservar márgenes transparentes y registrar pivotes.
+3. Aprobar la composición completamente estática.
+4. Conectar los estados y datos que deban controlar el movimiento.
+5. Implementar únicamente las animaciones previstas en el contrato.
+6. Validar salida renderizada, estabilidad del layout y rendimiento móvil.
+
+======================================================================
+36. CREAR UN CONTRATO DE ANIMACIÓN VISIBLE Y MEDIBLE
+======================================================================
+
+Para cada animación registrar:
+
+- Capa exacta que se anima.
+- Propiedad animada: UV, vértices, rotación, alfa, escala, color o posición.
+- Duración, velocidad, amplitud y curva.
+- Estado que la inicia y la detiene.
+- Elementos que deben permanecer completamente inmóviles.
+- Umbral mínimo para que sea perceptible.
+- Umbral máximo para no producir saltos o distracción.
+- Comportamiento en calidad baja y alta.
+
+La validación debe observar la salida renderizada, no solamente variables internas.
+Capturar varios fotogramas separados entre 0,5 y 1 segundo y verificar:
+
+- Cambio de píxeles dentro de la región animada.
+- Cero desplazamiento en puntos de control estáticos.
+- Malla, textura, material y alfa realmente visibles.
+- Continuidad en varios pasos consecutivos.
+- Ausencia de asignaciones y reconstrucciones excesivas por fotograma.
+
+TIP
+Una partícula que se mueve alrededor de una imagen no demuestra que la imagen esté
+animada. El criterio debe nombrar exactamente qué parte visible cambiará.
+
+======================================================================
+37. SEPARAR PLACEHOLDERS GENERADOS DE ASSETS FINALES
+======================================================================
+
+Organizar los recursos en categorías inequívocas:
+
+- Generated/Placeholders: recursos regenerables y reemplazables.
+- Concepts: láminas para decisión, no utilizables en runtime.
+- Production: arte final aprobado y versionado.
+- Captures: evidencia producida por Unity.
+
+Una herramienta de configuración no debe sobrescribir archivos de Production ni
+reutilizar sus nombres para generar placeholders. El constructor visual debe cargar
+el asset final mediante una ruta estable y fallar claramente si falta, en lugar de
+crear silenciosamente una versión simple sobre él.
+
+TIP
+Antes de ejecutar cualquier generador, enumerar los archivos que escribirá. Después
+comprobar que ningún asset aprobado cambió inesperadamente de tamaño, hash o fecha.
+
+======================================================================
+38. DEFINIR EL CICLO DE VIDA Y LA SUPRESIÓN DE NAVEGACIÓN
+======================================================================
+
+Documentar qué ocurre en:
+
+- Awake y construcción inicial.
+- OnEnable al abrir la pantalla.
+- Update o refresco periódico.
+- OnDisable al cerrarla.
+- Pausa, reanudación y regreso desde otra pantalla.
+
+Cuando una pantalla oculte navegación externa, usar un estado explícito compartido,
+como navigationSuppressed o fullScreenOverride. Si varias raíces pueden solaparse,
+registrar la supresión por propietario en vez de usar un booleano único: una raíz sólo
+libera su propia solicitud y la barra reaparece cuando no queda ningún propietario.
+No permitir que un sistema reactive una barra mientras otro la oculta, ni utilizar el
+mismo activeSelf simultáneamente como visibilidad y como señal para recalcular el Safe Area.
+
+Al cerrar, restaurar exactamente los estados anteriores. Al abrir, evitar un reflow
+visible causado por activar primero la pantalla y corregir después su geometría.
+
+TIP
+Probar diez segundos sin interacción y registrar las esquinas en pantalla de ContentSlot,
+Safe Area, raíz, fondo y paneles. Una posición local estable no garantiza una posición
+visual estable si cambia un contenedor padre.
+
+======================================================================
+39. PROTEGER EL PROYECTO ANTES DE RECONSTRUIR O GENERAR
+======================================================================
+
+Antes de modificar una pantalla:
+
+- Revisar git status y distinguir cambios propios, cambios previos y archivos nuevos.
+- No descartar ni sobrescribir trabajo existente para obtener un árbol limpio.
+- Identificar escena, prefabs, scripts y assets que escribirá la herramienta.
+- Guardar Unity y cerrarlo antes de una reconstrucción por batch mode.
+- No usar reset --hard, clean, checkout destructivo ni borrados recursivos.
+- Crear un checkpoint recuperable cuando el usuario solicite guardar el avance.
+- Mantener escena, herramienta de configuración y assets finales sincronizados.
+
+Después de la ejecución, revisar el diff y confirmar que sólo cambiaron los objetivos
+previstos. Una escena generada puede producir un diff grande; esto aumenta, no reduce,
+la necesidad de revisar nombres, referencias y objetos eliminados.
+
+TIP
+La automatización debe ser repetible y segura. Poder reconstruir una pantalla no
+justifica poner en riesgo otras pantallas ni cambios todavía no confirmados.
+
+======================================================================
+40. REALIZAR REVISIONES ESPECIALIZADAS ANTES DE APROBAR
+======================================================================
+
+Una pantalla importante debe recibir al menos estas revisiones, realizadas por
+personas o agentes con objetivos separados:
+
+- REVISIÓN FUNCIONAL: datos, reglas, estados, desbloqueos y guardado.
+- DIRECCIÓN ARTÍSTICA: composición, jerarquía, riqueza, coherencia y fidelidad.
+- VIABILIDAD UNITY: jerarquía, shaders, máscaras, assets y reproducibilidad.
+- RENDIMIENTO MÓVIL: memoria, overdraw, draw calls, Canvas y frecuencia de actualización.
+- QA VISUAL: comparación de capturas, interacción, resoluciones y dispositivo.
+
+El responsable principal debe integrar las conclusiones y resolver contradicciones.
+No delegar la decisión final ni aceptar una revisión que sólo confirme que el código
+compila.
+
+TIP
+Entregar a cada revisor criterios concretos y pedir problemas accionables. Una segunda
+opinión aporta calidad cuando revisa un riesgo distinto, no cuando repite la misma tarea.
+
+======================================================================
+41. CREAR UN CONTRATO PARA CADA MARCO REUTILIZABLE
+======================================================================
+
+Antes de usar un marco, tarjeta o placa en una pantalla nueva, registrar:
+
+- Nombre y ruta del asset canónico.
+- Proporción original y proporciones permitidas.
+- Tipo de imagen: Simple o Sliced.
+- Grosor visual de biseles y esquinas.
+- Zona interior segura para contenido.
+- Márgenes mínimos a izquierda, derecha, arriba y abajo.
+- Elementos que pueden superponerse al marco.
+- Necesidad de una placa interior opaca.
+- Estados de color permitidos.
+
+Un marco ornamental no debe considerarse un rectángulo completamente utilizable. Sus
+esquinas, tornillos, biseles y adornos reducen la superficie real disponible. Si un
+recurso no admite la proporción requerida, preparar una variante específica en vez de
+deformarlo o colocar contenido sobre sus bordes.
+
+TIP
+Crear una vista de prueba del marco con guías visibles para la zona segura. Probar en
+ella un título largo, un botón, una barra y un icono antes de reutilizar el asset en
+varias pantallas.
+
+======================================================================
+42. DEFINIR UN PRESUPUESTO DE CONTENIDO POR PANEL
+======================================================================
+
+Para cada panel o tarjeta registrar antes de construir:
+
+- Cantidad máxima de filas.
+- Cantidad máxima de caracteres por texto.
+- Número máximo de líneas.
+- Tamaño tipográfico ideal y mínimo legible.
+- Valores numéricos más largos posibles.
+- Espacio reservado para iconos, barras y botones.
+- Elementos que pueden abreviarse.
+- Elementos que nunca pueden usar Ellipsis.
+- Estrategia cuando el contenido no cabe.
+
+El orden recomendado para resolver falta de espacio es:
+
+1. Corregir márgenes innecesarios.
+2. Redistribuir el contenido.
+3. Ampliar el área disponible.
+4. Abreviar únicamente texto secundario aprobado.
+5. Reducir la fuente sin superar el mínimo legible.
+
+No aceptar un panel solamente porque TextMeshPro consiguió hacer caber el texto. El
+resultado debe poder leerse a resolución real sin ampliar la captura.
+
+TIP
+Probar el panel con la combinación más difícil: idioma más largo, valor máximo, estado
+completo y todos los indicadores visibles al mismo tiempo.
+
+======================================================================
+43. DISEÑAR LAS TRANSICIONES DE DESBLOQUEO
+======================================================================
+
+Documentar cómo cambia la interfaz antes, durante y después de cada desbloqueo:
+
+- Control que inicia el desbloqueo.
+- Pantalla, nodo o tarjeta donde aparece inicialmente.
+- Requisitos y coste mostrados.
+- Estado visual durante el proceso.
+- Acción disponible al completarse.
+- Control temporal que debe desaparecer.
+- Navegación permanente que debe aparecer.
+- Estado que debe persistir al cerrar y volver a abrir.
+
+Ejemplo:
+
+ANTES DE REPARAR LA CÁMARA DE SEMILLAS
+El botón Semillas aparece únicamente dentro del nodo Cámara de Semillas.
+
+DESPUÉS DE REPARARLA
+La acción temporal desaparece del nodo y se habilita la pestaña permanente Semillas.
+
+La transición no debe dejar botones duplicados ni mostrar el control específico dentro
+de otros nodos que comparten el mismo panel informativo.
+
+TIP
+Probar el desbloqueo desde una partida anterior, completarlo, cambiar de nodo, cerrar la
+pantalla y volver a abrirla. La interfaz debe mostrar siempre una única ruta válida.
+
+======================================================================
+44. MEDIR Y REGISTRAR LA FIDELIDAD VISUAL
+======================================================================
+
+Un porcentaje de similitud no debe depender únicamente de una impresión general.
+Preparar una comparación medible que incluya:
+
+- Captura real de Unity y referencia con la misma proporción.
+- Superposición con transparencia.
+- Diferencias de tamaño y posición de los bloques principales.
+- Desviación de centros, márgenes y separaciones.
+- Comparación de tipografía, colores, brillo y contraste.
+- Revisión de iconos, fondos, bordes y detalles pequeños.
+- Captura completa y recortes de las zonas críticas.
+- Lista de diferencias detectadas.
+- Diferencias aceptadas explícitamente y su justificación.
+
+Evaluar por categorías antes de declarar un resultado global:
+
+1. Composición y proporciones.
+2. Posición y alineación.
+3. Tipografía y legibilidad.
+4. Color, brillo y contraste.
+5. Assets, iconos y detalles.
+6. Estados e interacción visible.
+
+TIP
+No declarar 95 % de fidelidad si todavía existen diferencias evidentes en marcos,
+fondos, botones o distribución. Registrar qué se comparó y qué desviaciones permanecen.
+
+======================================================================
+45. REALIZAR UN PREFLIGHT TÉCNICO ANTES DE AUTOMATIZAR UNITY
+======================================================================
+
+Antes de reconstruir, validar o capturar automáticamente:
+
+- Guardar y cerrar Unity.
+- Confirmar que no exista otra instancia usando el proyecto.
+- Verificar que el cliente de licencia responda.
+- Confirmar disponibilidad del Package Manager.
+- Revisar que el proyecto compile sin errores.
+- Comprobar espacio de escritura para escena, registros y capturas.
+- Usar un archivo de registro nuevo para cada intento.
+- Registrar hora de inicio, método ejecutado y resultado esperado.
+- Proteger el guardado personal utilizado por la prueba.
+- Definir una alternativa normal no-batch cuando falle el modo headless.
+
+Después de la ejecución:
+
+- Confirmar el mensaje PASS específico.
+- Revisar que Unity haya terminado con código de salida correcto.
+- Verificar fecha y hora de la captura.
+- Confirmar que la escena o prefab objetivo fue guardado.
+- Comprobar que no quede un proceso de Unity bloqueado.
+- No mostrar como nueva una captura producida por un intento anterior.
+
+TIP
+Un editor que se abrió no demuestra que el método se ejecutó. La aprobación necesita el
+registro correcto, una captura reciente y la confirmación de que la escena fue guardada.
+
+======================================================================
+46. SEPARAR CANVAS ESTÁTICOS Y DINÁMICOS CON CRITERIO
+======================================================================
+
+Un cambio en un elemento de UGUI puede forzar la reconstrucción del Canvas que lo
+contiene. En pantallas complejas conviene agrupar por frecuencia de cambio:
+
+- Canvas estático: fondos, marcos y etiquetas que no cambian.
+- Canvas dinámico ocasional: selección, estados y paneles contextuales.
+- Sub-Canvas dinámico frecuente: temporizadores, barras o animaciones continuas.
+
+No dividir cada objeto en su propio Canvas: los Canvas separados tampoco combinan sus
+lotes entre sí. Empezar con pocos grupos coherentes y subdividir únicamente después de
+medir una reconstrucción costosa.
+
+TIP
+Los elementos que cambian juntos deben permanecer juntos. Medir Canvas.BuildBatch y
+las reconstrucciones antes y después para demostrar que la división ayuda realmente.
+
+======================================================================
+47. REDUCIR RAYCASTS A LOS CONTROLES QUE REALMENTE RECIBEN TOQUES
+======================================================================
+
+- Desactivar Raycast Target en textos, fondos, brillos e iconos decorativos.
+- Mantener un único objetivo táctil en la raíz de cada control compuesto.
+- Confirmar que ese objetivo sea el `Button.targetGraphic`, esté activo y mantenga
+  `raycastTarget=true`; la presencia del componente Button no basta.
+- Retirar Graphic Raycaster de Canvas completamente no interactivos.
+- Evitar Blocking Objects de física 2D/3D salvo necesidad funcional comprobada.
+- Comprobar que un elemento oculto no siga bloqueando botones situados detrás.
+
+TIP
+Una tarjeta con fondo, icono, título y valor no necesita cuatro objetivos de raycast.
+Su área táctil raíz puede recibir el evento y actualizar visualmente a sus hijos.
+
+======================================================================
+48. EVITAR LAYOUT GROUPS ANIDADOS EN COMPOSICIONES FIJAS
+======================================================================
+
+Horizontal, Vertical y Grid Layout Group son útiles para contenido verdaderamente
+variable, pero sus reconstrucciones aumentan con jerarquías anidadas. Para pantallas
+fijas y fieles a una referencia:
+
+- Preferir anclas, medidas aprobadas y contenedores estables.
+- Usar Layout Group sólo donde el contenido necesite redistribuirse.
+- Evitar varios Layout Group anidados.
+- Si un layout sólo sirve para la construcción inicial, evaluar desactivarlo después
+  de fijar la composición, siempre que no rompa localización o cambios dinámicos.
+
+TIP
+No retirar un sistema de layout por intuición. Comparar primero el estado más largo y
+el más dinámico y comprobar en el Profiler que el cambio reduce reconstrucciones.
+
+======================================================================
+49. AUTOMATIZAR LA IMPORTACIÓN CON PRESETS FILTRADOS POR CARPETA
+======================================================================
+
+Crear Presets de TextureImporter para familias conocidas de UI y aplicarlos mediante
+Preset Manager con filtros de carpeta. Como mínimo separar:
+
+- Iconos con alfa.
+- Marcos y sprites preparados para 9-slice.
+- Fondos espaciales.
+- Texturas para Android.
+- Capturas y referencias, que no deben confundirse con assets de runtime.
+
+El preset debe fijar propiedades repetitivas como tipo, alfa, compresión, tamaño,
+filtro y mipmaps. Revisar manualmente excepciones artísticas y no aplicar un único
+preset indiscriminadamente a todas las imágenes.
+
+TIP
+El preset elimina errores de importación repetidos y hace reproducible el resultado;
+el catálogo de assets debe indicar qué preset corresponde a cada familia.
+
+======================================================================
+50. CREAR SPRITE ATLAS POR FAMILIA VISUAL ESTABLE
+======================================================================
+
+Cuando los sprites finales de una dimensión estén aprobados, agrupar los que suelen
+aparecer juntos en Sprite Atlas para reducir cambios de textura y draw calls. Evitar
+mezclar en un atlas gigantesco assets que nunca se muestran a la vez.
+
+- Separar atlas comunes y atlas propios de cada dimensión.
+- No incluir referencias, conceptos o capturas.
+- Revisar tamaño, padding, alfa y compresión de plataforma.
+- Considerar variantes de menor resolución sólo cuando las pruebas móviles lo pidan.
+
+TIP
+Crear el atlas después de estabilizar los assets evita repaquetados continuos durante
+la fase artística y permite medir con una pantalla representativa.
+
+======================================================================
+51. GENERALIZAR CON PREFABS Y VARIANTES DESPUÉS DE DOS CASOS APROBADOS
+======================================================================
+
+Un prefab base debe contener estructura y comportamiento realmente comunes. Usar una
+Prefab Variant cuando una dimensión conserve ese contrato pero cambie sprites, color,
+márgenes o detalles permitidos.
+
+No convertir la primera tarjeta o marco nuevo en componente universal. Comparar al
+menos dos pantallas aprobadas, extraer únicamente lo común y mantener como overrides
+las diferencias propias de cada dimensión.
+
+TIP
+Editar el prefab base propaga sus cambios a las variantes excepto donde exista un
+override. Por eso los overrides deben ser pocos, intencionales y documentados.
+
+======================================================================
+52. COMBINAR DEVICE SIMULATOR, PRUEBAS AUTOMÁTICAS Y DISPOSITIVO REAL
+======================================================================
+
+Para acelerar cada iteración:
+
+1. Usar pruebas Edit Mode para estructura, referencias, nombres, pivotes y medidas.
+2. Usar Play Mode para interacciones, varios fotogramas, animaciones y navegación.
+3. Usar Device Simulator para proporciones, orientación, Safe Area y toque simulado.
+4. Reservar el dispositivo Android real para legibilidad, rendimiento, moiré, tacto,
+   instalación y comportamiento específico del hardware.
+
+TIP
+El simulador reduce iteraciones lentas, pero no reemplaza el perfilado ni la revisión
+visual final en el teléfono objetivo.
+
+======================================================================
+53. GUARDAR UNA LÍNEA BASE DEL PROFILER POR TIPO DE PANTALLA
+======================================================================
+
+Medir una pantalla representativa en su estado más costoso y registrar al menos:
+
+- Tiempo de CPU y GPU.
+- Canvas.BuildBatch y reconstrucciones de layout/gráficos.
+- Cantidad de batches y draw calls.
+- Overdraw por transparencias.
+- Objetos activos y objetivos de raycast.
+- Memoria de texturas y atlas.
+- Asignaciones por fotograma.
+
+Comparar cada optimización contra la línea base. No aceptar una optimización que haga
+el diseño menos fiel sin demostrar una mejora necesaria en el dispositivo objetivo.
+
+TIP
+Perfilar un rango de fotogramas y el estado más pesado; un solo fotograma limpio puede
+ocultar picos periódicos de refresco, navegación o animación.
+
+======================================================================
+PLANTILLA DE INICIO PARA CADA PANTALLA
+======================================================================
+
+NOMBRE DE LA PANTALLA:
+
+FUNCIÓN PRINCIPAL:
+
+FORMA DE ENTRAR:
+
+FORMA DE SALIR:
+
+ACCIÓN PRINCIPAL:
+
+RESOLUCIÓN BASE:
+
+CANVAS SCALER Y SAFE AREA:
+
+DISPOSITIVOS Y PROPORCIONES OBJETIVO:
+
+CONTRATO DE APROBACIÓN:
+-
+
+AMBICIÓN ARTÍSTICA:
+- Debe sentirse como:
+- Debe destacar:
+- No debe parecer:
+
+SIMPLIFICACIONES PERMITIDAS Y PROHIBIDAS:
+-
+
+REFERENCIAS DISPONIBLES:
+-
+
+SISTEMA DE DISEÑO Y TOKENS REUTILIZADOS:
+-
+
+CONTRATO DE MARCOS Y ZONAS INTERIORES:
+- Asset:
+- Tipo Simple/Sliced:
+- Proporciones permitidas:
+- Zona segura interior:
+- Márgenes mínimos:
+- Placa interior opaca:
+
+ASSETS CANÓNICOS REUTILIZADOS:
+-
+
+MATRIZ DE REUTILIZACIÓN OBLIGATORIA:
+- Concepto | primera aparición | ruta exacta | estado | alcance | decisión
+
+COMPONENTES, PREFABS, MATERIALES O GENERADORES REUTILIZADOS:
+-
+
+JUSTIFICACIÓN DE CADA ASSET NUEVO DESPUÉS DE LA BÚSQUEDA:
+-
+
+ASSETS NUEVOS NECESARIOS:
+-
+
+CLASIFICACIÓN DE ASSETS:
+- Concepts:
+- Generated/Placeholders:
+- Production:
+- Captures:
+
+BLOQUES PRINCIPALES:
+-
+
+DATOS REALES MOSTRADOS:
+-
+
+PRESUPUESTO DE CONTENIDO Y LEGIBILIDAD:
+- Filas máximas:
+- Longitud máxima:
+- Tamaño ideal y mínimo:
+- Elementos abreviables:
+- Estrategia de desbordamiento:
+
+CLAVES DE LOCALIZACIÓN E IDIOMAS:
+-
+
+ESTADOS QUE DEBEN EXISTIR:
+- Neutral
+- Normal
+- Seleccionado
+- Bloqueado
+- Vacío
+- Completado
+
+NAVEGACIÓN VISIBLE:
+
+COMPORTAMIENTO DEL BOTÓN ATRÁS:
+
+CONTROLES TÁCTILES Y ÁREAS DE TOQUE:
+
+ELEMENTOS ANIMADOS:
+
+CONTRATO DE ANIMACIÓN POR CAPA:
+- Capa:
+- Movimiento visible:
+- Elementos inmóviles:
+- Umbral perceptible:
+- Calidad baja/alta:
+
+PROPIETARIO DE CADA TEXTO DINÁMICO:
+
+DATOS QUE SE GUARDAN O MIGRAN:
+
+TRANSICIONES DE DESBLOQUEO:
+- Estado anterior:
+- Acción temporal:
+- Estado durante el proceso:
+- Navegación permanente posterior:
+- Controles que desaparecen:
+
+PRESUPUESTO DE RENDIMIENTO:
+
+ESCENARIOS QA DETERMINISTAS:
+-
+
+PUERTAS DE APROBACIÓN REQUERIDAS:
+-
+
+REVISIONES ESPECIALIZADAS:
+- Funcional.
+- Dirección artística.
+- Viabilidad Unity.
+- Rendimiento móvil.
+- QA visual.
+
+PRUEBAS ESPECÍFICAS:
+-
+
+CAPTURAS REQUERIDAS:
+- Neutral
+- Seleccionada
+- Bloqueada, si corresponde
+
+MÉTODO DE MEDICIÓN DE FIDELIDAD:
+- Superposición requerida:
+- Bloques y centros medidos:
+- Recortes críticos:
+- Diferencias aceptadas:
+
+PREFLIGHT TÉCNICO DE UNITY:
+- Unity cerrado:
+- Licencia y Package Manager:
+- Compilación limpia:
+- Registro de ejecución:
+- Método alternativo no-batch:
+
+EVIDENCIAS DE ENTREGA:
+- Escena o prefab.
+- Registro PASS.
+- Capturas reales identificadas.
+- Comparación con la referencia.
+
+CRITERIO DE APROBACIÓN:
+- Función correcta.
+- Datos reales.
+- Sin errores ni excepciones.
+- Composición estable.
+- Similitud visual mínima del 95 %.
+
+======================================================================
+LISTA RÁPIDA DE CONSTRUCCIÓN
+======================================================================
+
+[ ] Entendí la función y el flujo de la pantalla.
+[ ] Clasifiqué las referencias.
+[ ] Revisé el código, las reglas y el lore.
+[ ] Definí el contrato de implementación y aprobación.
+[ ] Definí la ambición artística y las simplificaciones prohibidas.
+[ ] Acordé las puertas de aprobación y no adelanté etapas pendientes.
+[ ] Superé la Puerta 0 y completé la matriz concepto-origen-ruta-estado-decisión.
+[ ] Busqué en escenas, prefabs, scripts, assets, catálogo y capturas anteriores.
+[ ] Preparé el inventario de assets.
+[ ] Separé conceptos, placeholders, arte de producción y capturas.
+[ ] Reutilicé el sistema de diseño y los tokens aprobados.
+[ ] Definí el contrato y la zona segura de cada marco reutilizado.
+[ ] Medí bloques, márgenes y centros.
+[ ] Definí cuadrícula y zonas seguras.
+[ ] Configuré Canvas Scaler, Safe Area y comportamiento responsivo.
+[ ] Diseñé la jerarquía.
+[ ] Asigné un propietario a cada dato y propiedad visual.
+[ ] Construí la versión estática completa.
+[ ] Comparé la versión estática con la referencia.
+[ ] Preparé correctamente texturas e iconos.
+[ ] No redibujé ni simplifiqué un concepto que ya tenía recurso autorizado.
+[ ] Cada asset nuevo está justificado como faltante real y registrado como candidato.
+[ ] Definí la escala tipográfica.
+[ ] Definí el presupuesto de contenido y el tamaño mínimo de cada panel.
+[ ] Conecté datos reales.
+[ ] Probé localización y formatos con los textos más largos.
+[ ] Definí y probé todos los estados.
+[ ] Diseñé y probé las transiciones completas de desbloqueo.
+[ ] Integré la navegación sin superposiciones.
+[ ] Probé áreas táctiles, toques repetidos, modales y botón Atrás.
+[ ] Añadí las interacciones.
+[ ] Añadí las animaciones al final.
+[ ] Los assets fueron producidos en las capas necesarias para animarlos.
+[ ] Validé la animación mediante fotogramas realmente renderizados.
+[ ] Probé 1080 × 1920 y 720 × 1280.
+[ ] Probé valores largos y estados extremos.
+[ ] Ejecuté escenarios QA deterministas sin alterar el guardado personal.
+[ ] Probé el ciclo de vida y la supresión estable de navegación durante diez segundos.
+[ ] Perfilé la pantalla en el dispositivo objetivo.
+[ ] Probé entrada, salida, persistencia y carga de una partida anterior.
+[ ] Generé capturas nuevas de Unity.
+[ ] Ejecuté el preflight técnico antes de reconstruir o capturar.
+[ ] Alcancé al menos 95 % de similitud visual.
+[ ] Medí la fidelidad y registré las diferencias aceptadas.
+[ ] Ejecuté las pruebas automáticas.
+[ ] Preparé el paquete de evidencia identificable.
+[ ] Revisé el diff y confirmé que ningún asset final fue sobrescrito por un generador.
+[ ] Completé las revisiones funcional, artística, técnica, móvil y visual.
+[ ] Revisé la guía de prevención de errores.
+[ ] Documenté en las guías y la bitácora los errores o tips nuevos de esta pantalla.
+[ ] Separé elementos estáticos y dinámicos sólo cuando la medición lo justificó.
+[ ] Desactivé Raycast Target y Graphic Raycaster donde no son necesarios.
+[ ] Evité Layout Groups anidados en composiciones fijas.
+[ ] Apliqué el Preset de importación correspondiente a cada familia de assets.
+[ ] Revisé si los sprites finales pertenecen a un Sprite Atlas estable.
+[ ] Reutilicé prefabs o variantes sólo a partir de patrones ya aprobados.
+[ ] Probé Safe Area y proporciones en Device Simulator antes del dispositivo real.
+[ ] Comparé el rendimiento contra una línea base del Profiler.
+[ ] Las colecciones paginadas reutilizan ranuras estables y no conservan contenido de otra página.
+
+======================================================================
+DEFINICIÓN DE PANTALLA TERMINADA
+======================================================================
+
+Una pantalla se considera terminada solamente cuando:
+
+1. Cumple su función con datos y reglas reales.
+2. Su navegación es clara y no interfiere con otras pantallas.
+3. Mantiene su composición en todas las interacciones.
+4. Todos sus estados están diseñados y probados.
+5. Sus textos son correctos, legibles y tienen un único propietario.
+6. Sus assets conservan proporción, calidad y estilo canónico.
+7. Las animaciones son estables y no afectan el layout.
+8. Funciona en las resoluciones y dispositivos objetivo.
+9. Tiene capturas reales recientes y pruebas exitosas.
+10. Alcanza una similitud visual mínima del 95 % con la referencia aprobada.
+11. Respeta el sistema de diseño compartido de Quantum Forge.
+12. Funciona con localización, entradas táctiles y botón Atrás.
+13. Mantiene el presupuesto de rendimiento en el dispositivo objetivo.
+14. Conserva correctamente navegación, persistencia y partidas anteriores.
+15. Incluye evidencia suficiente para distinguir concepto, referencia e implementación.
+16. Alcanza la ambición artística aprobada sin simplificaciones silenciosas.
+17. Sus assets finales están separados de conceptos y recursos regenerables.
+18. La animación solicitada está demostrada mediante salida realmente renderizada.
+19. Su ciclo de vida no provoca carreras de navegación, Safe Area o layout.
+20. Ha superado revisiones funcional, artística, técnica, móvil y visual.
+21. Cada marco reutilizable respeta su proporción y zona interior segura.
+22. Cada panel mantiene su presupuesto de contenido y tamaño mínimo legible.
+23. Las transiciones de desbloqueo no dejan controles duplicados o incorrectos.
+24. La fidelidad visual está medida y las diferencias restantes están registradas.
+25. La automatización superó el preflight y produjo evidencia nueva verificable.
+
+REGLA MAESTRA
+Primero estructura, después fidelidad visual, luego comportamiento y finalmente
+animación. Cada etapa debe aprobarse antes de pasar a la siguiente.
+
+======================================================================
+54. DIBUJAR GRÁFICOS TÉCNICOS DESDE EL CENTRO LOCAL DEL PANEL
+======================================================================
+
+Cuando un radar, nave, dron o indicador se construya con vértices y líneas UGUI:
+
+- Confirmar si el origen local del RectTransform está en el centro o en una esquina.
+- Convertir primero la posición medida desde la referencia al sistema local del panel.
+- Mantener el gráfico en un contenedor propio con pivote (0.5, 0.5).
+- Comprobar sus cuatro extremos contra los límites interiores antes de capturar.
+- Usar una captura real para revisar que ningún vértice cruce el marco.
+
+TIP
+Si el panel mide ancho A y alto B, una coordenada medida desde su esquina superior
+izquierda se convierte a local centrada como: xLocal = x - A/2 e yLocal = B/2 - y.
+Este cálculo evita corregir cada ilustración mediante desplazamientos visuales a ojo.
+
+======================================================================
+55. MEDIR TAMBIÉN LA OCUPACIÓN INTERIOR DE CADA PANEL
+======================================================================
+
+Una composición puede coincidir en posición y tamaño y aun verse más vacía que la
+referencia si sus iconos, textos o ilustraciones ocupan una proporción menor.
+
+- Medir el rectángulo exterior del panel y también el ancho y alto visibles de su
+  contenido principal.
+- Comparar icono/panel, texto/panel y márgenes internos como proporciones, no sólo
+  mediante valores absolutos.
+- Comparar también la complejidad interna: cantidad de planos, facetas, sensores,
+  nervaduras y puntos focales visibles respecto al icono de la referencia.
+- Validar antes la topología: contorno exterior, número de alas o apéndices, relación
+  ancho/alto y ubicación de las masas principales. El detalle interno no corrige una
+  silueta que representa otro objeto.
+- Ajustar primero la escala del contenido y después su posición local.
+- Volver a comprobar textos dinámicos largos tras aumentar tipografía o ilustración.
+- Realizar esta pasada cuando la estructura ya esté estable, antes de animar.
+
+TIP
+EJEMPLO HISTÓRICO — DIMENSIÓN 1 / EXPLORAR
+La nave, el dron y la sonda analítica de Explorar sólo se acercaron a la referencia
+cuando se midió primero su rectángulo visible y se sustituyó su topología completa.
+Añadir líneas a las siluetas anteriores las hacía más complejas, pero seguían siendo
+un dardo, un moño y un ojo orbital distintos de los objetos del diseño.
+
+======================================================================
+56. ELEGIR EL MEDIO GRÁFICO SEGÚN EL ACABADO DE LA REFERENCIA
+======================================================================
+
+Una ilustración estilizada puede contener líneas técnicas y aun necesitar masas
+sólidas, volumen, sombras internas y brillos. No debe reconstruirse automáticamente
+como line art sólo porque use un lenguaje técnico o luminoso.
+
+- Usar geometría UGUI para radares, diagramas y elementos cuya lectura dependa de
+  líneas, anillos o rutas.
+- Usar un sprite con alfa cuando el objeto necesite superficies rellenas, sombreado,
+  textura o volumen que deban sobrevivir al escalado móvil.
+- Evaluar el recurso a su tamaño final real; un asset detallado puede convertirse en
+  una mancha oscura al reducirlo.
+- Simplificar el detalle fino y conservar grandes masas de color, silueta y puntos
+  focales cuando el icono se muestre por debajo de 100 píxeles.
+- Mantener el recurso como candidato hasta que el usuario apruebe su apariencia en la
+  pantalla real; sólo entonces registrarlo como canónico.
+
+MÉTODO COMPROBADO PASO A PASO
+
+1. Recortar mentalmente o medir el objeto dentro de la referencia: rectángulo visible,
+   centro, relación ancho/alto, orientación y masas principales.
+2. Comprobar primero si existe un asset canónico. Si existe, reutilizarlo; si no existe,
+   registrar que se creará un candidato nuevo.
+3. Elegir el medio correcto. Usar trazado UGUI sólo si la referencia es realmente un
+   diagrama. Si muestra cuerpo, paneles, sombra o volumen, crear un sprite con alfa.
+4. Generar la primera versión usando la pantalla original como referencia de autoridad,
+   aislando un único objeto y prohibiendo texto, panel, marco y elementos adicionales.
+5. Pedir expresamente superficies rellenas, silueta clara, transparencia real y ausencia
+   de wireframe, blueprint, esqueleto o interiores vacíos.
+6. No aceptar automáticamente la primera generación. Probarla a su tamaño final dentro
+   de Unity. Si se vuelve oscura o ilegible, crear una segunda versión simplificada con
+   menos líneas finas, masas del color dominante más grandes y divisiones internas
+   más legibles.
+7. Verificar el alfa del PNG. Una cuadrícula dibujada dentro del RGB no es transparencia.
+   Retirar ese fondo, comprobar alfa 0 en las esquinas y revisar que no queden halos.
+8. Importar como Sprite (2D and UI), alfa transparente, sin mipmaps y sin compresión
+   destructiva mientras se realiza la aprobación visual.
+9. Colocar el sprite usando las medidas de la referencia y capturar a 1080×1920 y
+   720×1280. Comparar primero reconocimiento y silueta; después color, volumen y detalle.
+10. Guardar versiones sin sobrescribir recursos aprobados. Registrar el sprite como
+    candidato y promoverlo a canónico únicamente después de la aprobación del usuario.
+
+PLANTILLA BREVE PARA GENERAR UN ICONO SÓLIDO
+
+- Referencia: indicar cuál imagen manda en silueta, proporción, orientación y paleta.
+- Objeto: solicitar un único objeto aislado y nombrar sus masas principales.
+- Acabado: describir la ilustración UI 2D, rellenos, sombras, bordes y brillos según la
+  referencia y el perfil de la dimensión; no reutilizar automáticamente la paleta D1.
+- Tamaño real: indicar los píxeles aproximados en los que debe seguir siendo legible.
+- Restricciones: alfa real; sin texto, panel, marco, fondo, objetos adicionales ni marca.
+- Evitar: wireframe, blueprint, exceso de líneas finas, fotorrealismo y relleno negro
+  dominante.
+
+SEÑAL PARA HACER UNA SEGUNDA PASADA
+
+Si el recurso ampliado parece excelente pero en la captura móvil sólo se perciben líneas
+o una mancha oscura, no aumentar su tamaño como primera solución. Reducir complejidad,
+aclarar las masas sólidas y conservar únicamente los detalles que sobrevivan al escalado.
+
+TIP
+EJEMPLO HISTÓRICO — DIMENSIÓN 1 / EXPLORAR
+En Explorar, la nave y el dron dejaron de parecer esqueletos cuando pasaron de líneas
+UGUI a ilustraciones con alfa y paneles rellenos. La sonda analítica permaneció como
+trazado porque su jaula técnica estrecha sí coincidía con el lenguaje de la referencia.
+
+CONTRAEJEMPLO HISTÓRICO — DIMENSIÓN 1 / HANGAR
+En Hangar, los vehículos sí se presentan como planos técnicos de línea porque así lo
+exige su referencia. La regla transferible es respetar el medio gráfico del diseño de
+autoridad, no preferir siempre sprites rellenos ni preferir siempre trazados.
+
+======================================================================
+57. MEDIR EL DESPLAZAMIENTO HEREDADO ANTES DE ANIDAR UN OVERLAY NUEVO
+======================================================================
+
+Un panel provisional puede tener tamaño, anclaje o posición heredados que no coinciden
+con el viewport aunque visualmente pareciera una raíz de pantalla.
+
+- Medir dónde cae realmente su centro dentro del Canvas antes de anidar la composición.
+- Si debe conservarse como propietario funcional, encapsular la pantalla nueva en un
+  lienzo de tamaño conocido y registrar explícitamente la compensación necesaria.
+- Comprobar los cuatro bordes: un desplazamiento vertical suele recortar el encabezado
+  y dejar una franja vacía opuesta.
+- No compensar moviendo cada bloque por separado.
+
+TIP
+En el Hangar D1, la raíz funcional provisional estaba desplazada respecto al viewport.
+Una única compensación en D1_HangarVisualRoot recuperó encabezado, marco y navegación
+sin alterar las coordenadas internas medidas desde la referencia.
+
+======================================================================
+58. LAS BARRAS SIN SPRITE DEBEN RECORTARSE CON ANCLAJES
+======================================================================
+
+Image.Type.Filled no siempre representa fillAmount cuando la Image no tiene un sprite
+válido. Para barras sólidas construidas con una Image sin sprite:
+
+- Mantener un fondo de ancho completo.
+- Anclar el relleno a la izquierda.
+- Expresar el progreso en anchorMax.x entre 0 y 1.
+- Dejar offsetMin y offsetMax en cero.
+- Probar al menos tres valores distintos; no basta con que una barra se vea coloreada.
+
+TIP
+En el Hangar D1, las cuatro barras parecían llenas pese a tener fillAmount diferente.
+El recorte mediante anchorMax.x reprodujo 53 %, 62 %, 48 % y 55 % de forma visible.
+
+======================================================================
+59. UNA CAPTURA DETERMINISTA DEBE AISLAR MODALES CREADOS EN RUNTIME
+======================================================================
+
+Las pantallas de retorno, ausencia o recompensas pueden crearse después de iniciar Play
+Mode y cubrir una captura aunque no existan activas en la escena serializada.
+
+- Consumir únicamente el informe pendiente dentro del escenario QA sin guardado.
+- Desactivar sus raíces runtime durante todos los fotogramas previos a la captura.
+- Esperar varios fotogramas y actualizar el Canvas antes de renderizar.
+- En capturas a RenderTexture, realizar una segunda actualización/render si la primera
+  pasada puede conservar mallas de la resolución anterior.
+- Confirmar que el guardado permanece suprimido durante todo el proceso.
+
+======================================================================
+60. UN BLUEPRINT DETALLADO NO SE REDUCE A SU CONTORNO
+======================================================================
+
+Que una referencia use líneas técnicas no autoriza a convertir cada vehículo en una
+silueta genérica con pocas divisiones. Su identidad también depende de la distribución
+de módulos, paneles y cambios de grosor internos.
+
+- Crear un recorte de trabajo individual de cada objeto para que la pantalla completa no
+  diluya su silueta durante la reconstrucción.
+- Medir por separado nariz, cuerpo, alas, pods, motores y vacío entre módulos.
+- Comparar el número y la posición de las masas principales antes de añadir líneas finas.
+- Conservar dos jerarquías de línea: contorno legible y detalle interno más tenue.
+- Probar el mismo recurso en la tarjeta pequeña y en el panel ampliado; ambas escalas
+  deben reconocer la misma nave sin parecer una mancha ni un icono distinto.
+- Si una generación entrega un fondo horneado, preferir alfa real. Cuando la extracción
+  automática falle y el lenguaje visual sea monocromático, un único material controlado
+  puede extraer luminosidad/croma y aplicar el tint, siempre que la captura final no
+  muestre rectángulos, granulado ni halos.
+- Rechazar la versión si sólo aumentó la cantidad de líneas pero conserva una topología
+  genérica. Debe reconstruirse desde la silueta de autoridad.
+
+TIP
+EJEMPLO HISTÓRICO — DIMENSIÓN 1 / HANGAR
+Los primeros cuatro vehículos encajaban en sus paneles, pero fueron rechazados por ser
+demasiado simples. La corrección eficaz fue recortar cada nave de la referencia, crear
+un sprite independiente de alta densidad, validar su lectura en ambas escalas y separar
+el fondo con un material común que conserva la selección cyan/ámbar.
+
+======================================================================
+61. CREAR COLECCIONES DE OBJETOS SÓLIDOS SIN MEZCLAR SUS IDENTIDADES
+======================================================================
+
+Cuando una pantalla contiene una cuadrícula de objetos distintos, no conviene pedir una
+sola generación basada en la pantalla completa. El modelo puede fusionar siluetas,
+materiales o detalles entre tarjetas.
+
+- Crear un recorte de referencia independiente por objeto, sin incluir título, tier,
+  marco ni objetos vecinos.
+- Definir para cada pieza silueta, orientación, relación ancho/alto, material dominante
+  y punto de luz; mantener un acabado común sin homogeneizar las formas.
+- Generar y versionar cada sprite por separado, y después comprobar el conjunto en una
+  hoja de contacto sobre el color de fondo real de la pantalla.
+- Verificar alfa en datos, no por apariencia: una cuadrícula visible puede estar
+  horneada con alfa 255 aunque imite transparencia.
+- Si se limpia un fondo horneado, conservar el original fuera de Assets, usar una
+  herramienta reproducible y revisar halos, piezas metálicas claras y esquinas.
+- Probar el texto más pequeño de la tarjeta en 720×1280. Una palabra que parece correcta
+  en 1080×1920 puede perder trazos al reducirse; ajustar tamaño, peso y margen sin mover
+  toda la composición.
+- Mantener las piezas como candidatas hasta que el usuario apruebe la pantalla completa.
+- Si la colección necesita páginas, reutilizar un conjunto fijo de tarjetas y actualizar
+  solamente arte, nombre, tier, estado e ID. No duplicar una jerarquía completa por página.
+- En una última página incompleta, ocultar y desactivar las ranuras sobrantes y centrar
+  las piezas existentes sin cambiar su tamaño ni el contrato visual de la tarjeta.
+- Probar navegación de ida y vuelta, primer y último elemento de cada página, y confirmar
+  que una ranura reutilizada no conserve adornos exclusivos del contenido anterior.
+
+TIP
+EJEMPLO HISTÓRICO — DIMENSIÓN 1 / CÁMARA DE RELIQUIAS
+Las ocho reliquias se reconstruyeron desde ocho recortes individuales. Brújula, taladro,
+cristal, tableta, contenedor, núcleo, antena y sello conservaron identidades distintas,
+pero compartieron volumen metálico y luz D1. La hoja de contacto detectó fondos
+horneados antes del montaje, y la captura 720×1280 reveló que tier y estado necesitaban
+mayor peso tipográfico aunque ya fueran legibles en 1080×1920.
+
+======================================================================
+62. SUPERAR UNA AUDITORÍA DE REUTILIZACIÓN ANTES DE CREAR DESDE CERO
+======================================================================
+
+La reutilización debe decidirse antes de comenzar la composición, no después de haber
+producido sustitutos. Esta regla aplica a todas las dimensiones y a imágenes, código,
+prefabs, materiales, temas, efectos, navegación y patrones de estado.
+
+MÉTODO OBLIGATORIO
+
+1. Dividir la referencia en conceptos identificables: encabezado, recursos, marcos,
+   fondos, iconos, ilustraciones, botones, navegación, efectos y estados.
+2. Buscar cada concepto en `CATALOGO_ASSETS_UI.csv`,
+   `MAPA_REUTILIZACION_Y_ORIGEN_UI.md` y en el proyecto real mediante nombre, ID,
+   función y primera pantalla donde apareció.
+3. Comparar las capturas aprobadas de esa dimensión. Un archivo existente que nunca
+   fue aprobado no se promueve por conveniencia.
+4. Completar la matriz `concepto -> primera aparición -> ruta -> estado -> alcance ->
+   decisión` dentro de la ficha de pantalla.
+5. Reutilizar el mismo asset o componente cuando representa el mismo concepto dentro
+   del alcance autorizado. Si la implementación está encerrada en un script privado,
+   consolidarla sin cambiar su salida visual; no copiarla como aproximación nueva.
+6. No forzar un asset parecido cuando cambia la identidad exigida por la referencia.
+   En ese caso se registra un faltante real y se crea sólo esa pieza como candidata.
+7. Comparar juntos recurso anterior, candidato nuevo y referencia al tamaño final.
+8. Actualizar catálogo, mapa, ficha y bitácora antes de cerrar la pantalla.
+
+CONTRATO CONTRA LA SIMPLIFICACIÓN
+
+- El nivel de detalle, medio gráfico, volumen, proporción y ocupación del diseño de
+  autoridad son requisitos, no decoración opcional.
+- No convertir una ilustración en pictograma, una pieza sólida en wireframe ni una
+  composición densa en una distribución vacía por rapidez de implementación.
+- Optimizar para móvil significa conservar identidad con menos coste medido. Toda
+  pérdida visible necesita comparación y aprobación explícita.
+- Si faltan piezas esenciales, el resultado se etiqueta incompleto o rechazado; nunca
+  se declara 95 % por compartir únicamente paleta y estructura general.
+
+TIP
+EJEMPLO HISTÓRICO — DIMENSIÓN 1 / ÁRBOL CUÁNTICO
+La primera composición reutilizó correctamente los cinco sprites de navegación, pero
+redibujó hogar, metales, cristal y nodos con aproximaciones simples. También redujo un
+sistema orbital denso a elipses vacías. Aunque compiló y produjo capturas PASS, fue
+rechazada porque PASS técnico no equivale a fidelidad visual. El aprendizaje general es
+auditar todo el proyecto y conservar la ambición del diseño antes de crear sustitutos.

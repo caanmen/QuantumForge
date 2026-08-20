@@ -1,0 +1,8 @@
+REFERENCIA: ARK — CENTRO GALÁCTICO
+=================================
+
+Archivo: referencia_ark_centro_galactico_v1.png
+Origen: imagen entregada por el usuario en el chat del 2026-08-19.
+Clasificación: REFERENCIA VISUAL, no captura de Unity y no asset final.
+Estado: vigente para la composición estática de la subpantalla del Sector 5.
+Restricción: los números ilustrativos de la imagen no sustituyen el estado real.

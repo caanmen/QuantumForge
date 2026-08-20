@@ -1,0 +1,12 @@
+REFERENCIA: ÓRBITAS ANTIGUAS — DIMENSIÓN 1
+==========================================
+
+Archivo: referencia_orbitas_antiguas_v1.png
+Origen: imagen adjunta por el usuario el 19 de agosto de 2026.
+Clasificación: REFERENCIA VISUAL; no es captura de Unity ni asset final.
+Resolución recibida: 663 x 1186 vertical.
+Autoridad: composición, jerarquía, proporciones y contenido visible de esta subpantalla.
+
+Los números representados sirven para medir el diseño. La implementación debe obtener
+niveles, cantidades, producción, costes, desbloqueos y disponibilidad del estado real.
+

@@ -127,7 +127,7 @@ public sealed class VerticalTriangleObservatoryUI : MonoBehaviour
 
     private void RefreshActive(GameState state, UpgradeStudyDef active, bool conclusion)
     {
-        SetConsoleHeight(conclusion ? 300f : 560f);
+        SetConsoleHeight(conclusion ? 360f : 600f);
         if (statusText != null)
             statusText.SetText(conclusion
                 ? L("study.status.conclusion", "Conclusión disponible")
@@ -153,7 +153,7 @@ public sealed class VerticalTriangleObservatoryUI : MonoBehaviour
 
     private void RefreshAvailable(GameState state)
     {
-        SetConsoleHeight(250f);
+        SetConsoleHeight(300f);
         if (statusText != null)
             statusText.SetText(L("observatory.available", "Consola disponible"));
         SetAllOpportunitiesHidden();

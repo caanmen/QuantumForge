@@ -1,0 +1,127 @@
+FICHA DE PANTALLA — QUANTUM FORGE
+
+IDENTIDAD
+Nombre visible:
+Nombre interno estable:
+Dimensión o sistema:
+Tipo: principal / secundaria / modal / informe / navegación
+Responsable de aprobación visual:
+
+ALCANCE
+Reglas generales heredadas:
+Perfil propio de la dimensión:
+Ejemplos históricos consultados:
+Decisiones de esos ejemplos que NO deben heredarse:
+Decisiones exclusivas de esta pantalla:
+
+FUNCIÓN
+Objetivo en una frase:
+Forma de entrar:
+Forma de salir:
+Acción principal:
+Datos que puede modificar:
+Datos que sólo previsualiza:
+
+REFERENCIAS
+Ruta de referencia visual permanente:
+Tipo: referencia / concepto / captura real / asset final
+Resolución original:
+Relación de aspecto:
+Partes ambiguas pendientes de decisión:
+
+PUERTA 0 — AUDITORÍA Y REUTILIZACIÓN
+Rutas y pantallas anteriores inspeccionadas:
+Catálogo consultado: SÍ / NO
+Mapa de reutilización consultado: SÍ / NO
+Capturas aprobadas comparadas:
+
+Matriz obligatoria — una fila por concepto visual o funcional:
+Concepto | primera aparición localizada | ruta exacta | estado | decisión
+
+Confirmación de que no se recreará desde cero un concepto ya resuelto:
+Simplificaciones prohibidas por la referencia:
+Diferencias o simplificaciones autorizadas explícitamente por el usuario:
+
+DATOS Y LORE
+Sistemas fuente:
+Nombres oficiales:
+Costes y requisitos:
+Valores mínimo y máximo visibles:
+Localización o formatos especiales:
+
+COMPOSICIÓN
+Resolución base:
+Zonas: encabezado / contenido / contexto / navegación / modal
+Márgenes seguros:
+Bloques principales y medidas:
+Jerarquía prevista:
+
+ASSETS
+Assets canónicos reutilizados:
+Componentes, prefabs o generadores reutilizados:
+Assets nuevos aprobados:
+Assets candidatos pendientes de aprobación:
+Assets faltantes:
+Placeholders temporales autorizados:
+Justificación individual de cada asset nuevo pese a la búsqueda previa:
+
+ESTADOS
+[ ] Neutral
+[ ] Normal
+[ ] Preseleccionado
+[ ] Seleccionado
+[ ] Bloqueado
+[ ] Deshabilitado
+[ ] Vacío
+[ ] Completado
+[ ] Error
+
+Para cada estado, indicar qué cambia y qué permanece fijo:
+
+PROPIETARIOS
+Layout:
+Textos dinámicos:
+Colores y estados visuales:
+Reglas y progreso:
+Navegación:
+Animación:
+
+INTERACCIONES
+Botones y acciones:
+Respuesta visual inmediata:
+Comportamiento ante toques repetidos:
+Botón Atrás:
+
+ANIMACIONES
+Intención definida antes de Unity: SÍ / NO
+Elemento:
+Objetivo: informativo / respuesta de interacción / ambiental
+Capa separada necesaria:
+Propiedad animada:
+Pivote y posición base:
+Duración, amplitud y objetivo informativo:
+Estado que inicia y detiene:
+Elementos que deben permanecer inmóviles:
+Margen o recorte necesario:
+Coste y reducción prevista para móvil:
+Confirmación: no implementar antes de aprobar la composición estática:
+
+RECONSTRUCCIÓN
+Escena o prefab:
+Script generador, si existe:
+Archivos que son fuente definitiva:
+
+PRUEBAS
+Resoluciones:
+Escenarios QA:
+Pruebas inmediatas después del toque:
+Pruebas después del refresco o animación:
+Capturas requeridas:
+
+APROBACIÓN
+Referencia aprobada por:
+Fecha:
+Similitud visual objetivo: 95 % mínimo
+Diferencias aceptadas explícitamente:
+Confirmación de que no se copió estética de otra dimensión sin autorización:
+Confirmación de que el diseño no se simplificó silenciosamente:

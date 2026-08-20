@@ -20,6 +20,14 @@ public static class VerticalUpgradesVisualPolish
     private const string ButtonFramePath = PolishFolder + "/qf_upgrade_button_frame.png";
     private const string GenerationPolishFolder =
         "Assets/Project/UI/Vertical/GenerationPolish";
+    private const string LabBackgroundPath = GenerationPolishFolder +
+        "/qf_lab_accident_background_v3.png";
+    private const string SelectorPlatePath = GenerationPolishFolder +
+        "/qf_selector_metal_plate_v2.png";
+    private const string ModuleCardMetalPath = GenerationPolishFolder +
+        "/qf_module_card_metal_v2.png";
+    private const string ResourceCounterMetalPath = GenerationPolishFolder +
+        "/qf_resource_counter_metal_v2.png";
 
     private static readonly string[] CanonicalIds =
     {
@@ -48,9 +56,16 @@ public static class VerticalUpgradesVisualPolish
         Sprite triangleSymbol = LoadGenerationSprite("qf_circuit_experimental.png");
         Sprite resourceLe = LoadGenerationSprite("qf_resource_le.png");
         Sprite resourceTraces = LoadGenerationSprite("qf_resource_traces.png");
+        Sprite labBackground = AssetDatabase.LoadAssetAtPath<Sprite>(LabBackgroundPath);
+        Sprite selectorPlate = AssetDatabase.LoadAssetAtPath<Sprite>(SelectorPlatePath);
+        Sprite moduleCardMetal = AssetDatabase.LoadAssetAtPath<Sprite>(ModuleCardMetalPath);
+        Sprite resourceCounterMetal =
+            AssetDatabase.LoadAssetAtPath<Sprite>(ResourceCounterMetalPath);
         Require(theme != null && moduleFrame != null && buttonFrame != null &&
             higgs != null && tetra != null && modulator != null &&
-            triangleSymbol != null && resourceLe != null && resourceTraces != null,
+            triangleSymbol != null && resourceLe != null && resourceTraces != null &&
+            labBackground != null && selectorPlate != null &&
+            moduleCardMetal != null && resourceCounterMetal != null,
             "Faltan recursos visuales para pulir Mejoras.");
 
         Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
@@ -66,9 +81,10 @@ public static class VerticalUpgradesVisualPolish
 
         VerticalUpgradesPolishUI polish = GetOrAdd<VerticalUpgradesPolishUI>(f2Panel);
         BuildResourceHeader(panel.transform, hud, resourceLe, resourceTraces, modulator,
-            theme, moduleFrame, polish);
+            theme, resourceCounterMetal, moduleFrame, polish);
         StyleShell(shell, moduleFrame, buttonFrame, higgs, tetra, modulator,
-            triangleSymbol, theme, polish);
+            triangleSymbol, labBackground, selectorPlate, moduleCardMetal,
+            resourceCounterMetal, theme, polish);
 
         EditorUtility.SetDirty(polish);
         EditorSceneManager.MarkSceneDirty(scene);
@@ -108,6 +124,7 @@ public static class VerticalUpgradesVisualPolish
         Sprite tracesIcon,
         Sprite energyIcon,
         VerticalUiTheme theme,
+        Sprite resourceCounterMetal,
         Sprite moduleFrame,
         VerticalUpgradesPolishUI polish)
     {
@@ -116,18 +133,21 @@ public static class VerticalUpgradesVisualPolish
         headerRect.anchorMin = new Vector2(0f, 1f);
         headerRect.anchorMax = new Vector2(1f, 1f);
         headerRect.pivot = new Vector2(0.5f, 1f);
-        headerRect.anchoredPosition = new Vector2(0f, -34f);
-        headerRect.sizeDelta = new Vector2(-250f, 92f);
+        headerRect.anchoredPosition = new Vector2(0f, -28f);
+        headerRect.sizeDelta = new Vector2(-132f, 98f);
 
         TextMeshProUGUI leText = BuildResourcePanel(header.transform,
             "UpgradeResource_LE", leIcon, theme.energy,
-            new Vector2(0f, 0f), new Vector2(0.32f, 1f), theme, moduleFrame);
+            new Vector2(0f, 0f), new Vector2(0.32f, 1f), theme,
+            resourceCounterMetal, moduleFrame);
         TextMeshProUGUI tracesText = BuildResourcePanel(header.transform,
             "UpgradeResource_Traces", tracesIcon, theme.traces,
-            new Vector2(0.34f, 0f), new Vector2(0.66f, 1f), theme, moduleFrame);
+            new Vector2(0.34f, 0f), new Vector2(0.66f, 1f), theme,
+            resourceCounterMetal, moduleFrame);
         TextMeshProUGUI energyText = BuildResourcePanel(header.transform,
             "UpgradeResource_Energy", energyIcon, theme.triangle,
-            new Vector2(0.68f, 0f), new Vector2(1f, 1f), theme, moduleFrame);
+            new Vector2(0.68f, 0f), new Vector2(1f, 1f), theme,
+            resourceCounterMetal, moduleFrame);
         energyText.SetText("ENERGÍA 0\n+0.00/s");
         polish.sourceLeText = hud.leText;
         polish.sourceTracesText = hud.tracesText;
@@ -147,6 +167,7 @@ public static class VerticalUpgradesVisualPolish
         Vector2 anchorMin,
         Vector2 anchorMax,
         VerticalUiTheme theme,
+        Sprite resourceCounterMetal,
         Sprite moduleFrame)
     {
         GameObject panel = GetOrCreateUi(name, parent);
@@ -156,9 +177,9 @@ public static class VerticalUpgradesVisualPolish
         rect.offsetMin = Vector2.zero;
         rect.offsetMax = Vector2.zero;
         Image background = GetOrAdd<Image>(panel);
-        background.sprite = moduleFrame;
-        background.type = Image.Type.Sliced;
-        background.color = new Color(0.56f, 0.75f, 0.92f, 0.82f);
+        background.sprite = resourceCounterMetal;
+        background.type = Image.Type.Simple;
+        background.color = new Color(0.82f, 0.88f, 0.92f, 1f);
         background.raycastTarget = false;
 
         Image inner = CreateImage("TechInnerBorder", panel.transform,
@@ -167,11 +188,11 @@ public static class VerticalUpgradesVisualPolish
         Color innerColor = accent;
         innerColor.a = 0.22f;
         inner.color = innerColor;
-        Stretch(inner.rectTransform, 7f);
+        Stretch(inner.rectTransform, 13f);
         inner.transform.SetAsFirstSibling();
 
         Image icon = CreateImage("Icon", panel.transform, iconSprite, Color.white);
-        SetLeftCenter(icon.rectTransform, 24f, 58f, 58f);
+        SetLeftCenter(icon.rectTransform, 28f, 54f, 54f);
         icon.preserveAspect = true;
 
         TextMeshProUGUI value = CreateText("Value", panel.transform,
@@ -183,8 +204,8 @@ public static class VerticalUpgradesVisualPolish
         value.characterSpacing = 0.5f;
         value.rectTransform.anchorMin = Vector2.zero;
         value.rectTransform.anchorMax = Vector2.one;
-        value.rectTransform.offsetMin = new Vector2(92f, 6f);
-        value.rectTransform.offsetMax = new Vector2(-12f, -8f);
+        value.rectTransform.offsetMin = new Vector2(92f, 8f);
+        value.rectTransform.offsetMax = new Vector2(-22f, -10f);
         return value;
     }
 
@@ -196,22 +217,31 @@ public static class VerticalUpgradesVisualPolish
         Sprite tetra,
         Sprite modulator,
         Sprite triangleSymbol,
+        Sprite labBackground,
+        Sprite selectorPlate,
+        Sprite moduleCardMetal,
+        Sprite resourceCounterMetal,
         VerticalUiTheme theme,
         VerticalUpgradesPolishUI polish)
     {
         RectTransform shellRect = (RectTransform)shell.transform;
         shellRect.anchorMin = Vector2.zero;
         shellRect.anchorMax = Vector2.one;
-        shellRect.offsetMin = new Vector2(96f, 20f);
-        shellRect.offsetMax = new Vector2(-96f, -148f);
+        shellRect.offsetMin = new Vector2(28f, 20f);
+        shellRect.offsetMax = new Vector2(-28f, -138f);
         Image shellImage = GetOrAdd<Image>(shell);
-        shellImage.color = Color.clear;
+        shellImage.sprite = labBackground;
+        shellImage.type = Image.Type.Simple;
+        shellImage.preserveAspect = false;
+        // Shared accident-lab atmosphere: visible enough to establish place,
+        // but darker than the functional cards and their typography.
+        shellImage.color = new Color(0.44f, 0.47f, 0.48f, 0.66f);
         shellImage.raycastTarget = false;
 
         TextMeshProUGUI title = shell.transform.Find("Title")
             ?.GetComponent<TextMeshProUGUI>();
         Require(title != null, "VerticalUpgradesShell perdio Title.");
-        SetTopRect(title.rectTransform, 0f, 78f, 8f, -8f);
+        SetTopRect(title.rectTransform, 0f, 82f, 14f, -414f);
         title.font = theme.primaryFont;
         title.fontSize = 38f;
         title.fontSizeMax = 38f;
@@ -220,12 +250,14 @@ public static class VerticalUpgradesVisualPolish
         title.characterSpacing = 5f;
 
         Image titleFrame = CreateImage("UpgradesTitleFrame", shell.transform,
-            moduleFrame, new Color(0.62f, 0.82f, 0.98f, 0.86f));
-        titleFrame.type = Image.Type.Sliced;
-        SetTopRect(titleFrame.rectTransform, 0f, 78f, 8f, -8f);
+            resourceCounterMetal, new Color(0.74f, 0.81f, 0.86f, 1f));
+        titleFrame.type = Image.Type.Simple;
+        SetTopRect(titleFrame.rectTransform, 0f, 82f, 14f, -414f);
         titleFrame.transform.SetSiblingIndex(title.transform.GetSiblingIndex());
         title.transform.SetSiblingIndex(titleFrame.transform.GetSiblingIndex() + 1);
         CreateTitleAccents(titleFrame.transform, theme.energy);
+
+        StyleCompletedFilter(shell.transform, resourceCounterMetal, moduleFrame, theme);
 
         Transform scrollTransform = shell.transform.Find("UpgradesScroll");
         Require(scrollTransform != null, "VerticalUpgradesShell perdio UpgradesScroll.");
@@ -233,21 +265,25 @@ public static class VerticalUpgradesVisualPolish
         scrollRect.anchorMin = Vector2.zero;
         scrollRect.anchorMax = Vector2.one;
         scrollRect.offsetMin = Vector2.zero;
-        scrollRect.offsetMax = new Vector2(0f, -88f);
+        scrollRect.offsetMax = new Vector2(0f, -94f);
         Transform content = scrollTransform.Find("Viewport/Content");
         Require(content != null, "UpgradesScroll perdio Content.");
         VerticalLayoutGroup contentLayout = content.GetComponent<VerticalLayoutGroup>();
         Require(contentLayout != null, "Content de Mejoras perdio VerticalLayoutGroup.");
-        contentLayout.padding = new RectOffset(8, 8, 8, 22);
-        contentLayout.spacing = 12f;
+        contentLayout.padding = new RectOffset(4, 4, 8, 30);
+        contentLayout.spacing = 10f;
+
+        StyleStudyConsole(content.Find("UpgradeStudyConsole"), labBackground,
+            selectorPlate, moduleCardMetal, resourceCounterMetal, modulator,
+            moduleFrame, theme);
 
         var sections = new List<VerticalUpgradesPolishUI.SectionBinding>();
         sections.Add(StyleSection(content.Find("Section_Production"), higgs,
-            theme.energy, moduleFrame, theme));
+            theme.energy, labBackground, resourceCounterMetal, moduleFrame, theme));
         sections.Add(StyleSection(content.Find("Section_Traces"), tetra,
-            theme.traces, moduleFrame, theme));
+            theme.traces, labBackground, resourceCounterMetal, moduleFrame, theme));
         sections.Add(StyleSection(content.Find("Section_Triangle"), modulator,
-            theme.triangle, moduleFrame, theme));
+            theme.triangle, labBackground, resourceCounterMetal, moduleFrame, theme));
         polish.sections = sections.ToArray();
 
         var rows = new List<VerticalUpgradesPolishUI.RowBinding>();
@@ -259,7 +295,7 @@ public static class VerticalUpgradesVisualPolish
             Sprite icon = GetIcon(id, higgs, tetra, modulator);
             rows.Add(StyleRow(row, accent, icon,
                 id == "triangle_unlock_1" ? triangleSymbol : null,
-                moduleFrame, buttonFrame, theme));
+                resourceCounterMetal, moduleFrame, buttonFrame, theme));
         }
         polish.rows = rows.ToArray();
 
@@ -271,7 +307,8 @@ public static class VerticalUpgradesVisualPolish
             "La Keycard o la seccion activa del Triangulo no existe.");
         keycard.transform.SetParent(triangleSection, false);
         keycard.transform.SetAsLastSibling();
-        StyleKeycardRow(keycard, theme.energy, moduleFrame, buttonFrame, theme);
+        StyleKeycardRow(keycard, theme.energy, resourceCounterMetal,
+            moduleFrame, buttonFrame, theme);
 
         VerticalUpgradesScreenUI screen =
             polish.GetComponent<VerticalUpgradesScreenUI>();
@@ -282,10 +319,177 @@ public static class VerticalUpgradesVisualPolish
         ApplyFont(shell.transform, theme);
     }
 
+    private static void StyleCompletedFilter(
+        Transform shell,
+        Sprite resourceCounterMetal,
+        Sprite moduleFrame,
+        VerticalUiTheme theme)
+    {
+        Transform filter = shell.Find("HideCompletedButton");
+        if (filter == null)
+            filter = shell.Find("UpgradesScroll/Viewport/Content/HideCompletedButton");
+        if (filter == null) return;
+        filter.SetParent(shell, false);
+        LayoutElement layout = GetOrAdd<LayoutElement>(filter.gameObject);
+        layout.ignoreLayout = true;
+        SetTopRect((RectTransform)filter, 0f, 82f, 634f, -14f);
+        Image background = GetOrAdd<Image>(filter.gameObject);
+        background.sprite = resourceCounterMetal;
+        background.type = Image.Type.Simple;
+        background.color = new Color(0.58f, 0.64f, 0.68f, 0.96f);
+        Image inset = CreateImage("FilterInset", filter, moduleFrame,
+            new Color(theme.energy.r, theme.energy.g, theme.energy.b, 0.12f));
+        inset.type = Image.Type.Sliced;
+        Stretch(inset.rectTransform, 10f);
+        inset.transform.SetAsFirstSibling();
+        TextMeshProUGUI label = filter.GetComponentInChildren<TextMeshProUGUI>(true);
+        if (label != null)
+        {
+            label.font = theme.primaryFont;
+            label.fontSize = 20f;
+            label.fontSizeMax = 20f;
+            label.fontSizeMin = 15f;
+            label.characterSpacing = 1f;
+            label.color = theme.secondaryText;
+        }
+    }
+
+    public static void ApplyAndValidateUpgradesOnlyBatch()
+    {
+        try
+        {
+            ApplyVisualPolish();
+            ApplyVisualPolish();
+            VerticalUiBlock5Validation.Validate();
+            VerticalUpgradesVisualPolishValidation.Validate();
+            F2ProgressionMigrationValidation.Validate();
+            Debug.Log("[Upgrades Visual Polish] UPGRADES-ONLY PASS | " +
+                "aplicado dos veces | visual | estudios | progresion F2");
+            EditorApplication.Exit(0);
+        }
+        catch (Exception exception)
+        {
+            Debug.LogException(exception);
+            EditorApplication.Exit(1);
+        }
+    }
+
+    private static void StyleStudyConsole(
+        Transform console,
+        Sprite labBackground,
+        Sprite selectorPlate,
+        Sprite moduleCardMetal,
+        Sprite resourceCounterMetal,
+        Sprite modulator,
+        Sprite moduleFrame,
+        VerticalUiTheme theme)
+    {
+        Require(console != null, "Falta la consola real de estudios de Mejoras.");
+        Image frame = GetOrAdd<Image>(console.gameObject);
+        frame.sprite = resourceCounterMetal;
+        frame.type = Image.Type.Simple;
+        frame.color = new Color(0.62f, 0.68f, 0.72f, 1f);
+
+        Image lab = CreateImage("UpgradesLabBackground", console,
+            labBackground, new Color(0.68f, 0.70f, 0.71f, 0.88f));
+        lab.type = Image.Type.Simple;
+        lab.preserveAspect = false;
+        Stretch(lab.rectTransform, 18f);
+        lab.transform.SetAsFirstSibling();
+
+        Image darkVeil = CreateImage("ConsoleDarkVeil", console, null,
+            new Color(0.008f, 0.016f, 0.022f, 0.30f));
+        Stretch(darkVeil.rectTransform, 20f);
+        darkVeil.transform.SetSiblingIndex(1);
+
+        TextMeshProUGUI title = FindDescendant(console, "Title")
+            ?.GetComponent<TextMeshProUGUI>();
+        TextMeshProUGUI status = FindDescendant(console, "Status")
+            ?.GetComponent<TextMeshProUGUI>();
+        TextMeshProUGUI detail = FindDescendant(console, "Detail")
+            ?.GetComponent<TextMeshProUGUI>();
+        Require(title != null && status != null && detail != null,
+            "La consola de estudios perdio sus textos funcionales.");
+        title.font = theme.primaryFont;
+        title.fontSize = 28f;
+        title.fontSizeMax = 28f;
+        title.fontSizeMin = 21f;
+        title.characterSpacing = 1.2f;
+        title.color = theme.energy;
+        SetTopRect(title.rectTransform, 18f, 48f, 34f, -34f);
+
+        Image titlePlate = CreateImage("ConsoleTitlePlate", console,
+            resourceCounterMetal, new Color(0.54f, 0.60f, 0.64f, 0.98f));
+        titlePlate.type = Image.Type.Simple;
+        SetTopRect(titlePlate.rectTransform, 12f, 64f, 24f, -24f);
+        titlePlate.transform.SetSiblingIndex(Mathf.Max(2,
+            title.transform.GetSiblingIndex()));
+        title.transform.SetSiblingIndex(titlePlate.transform.GetSiblingIndex() + 1);
+
+        Image receptacle = CreateImage("ResearchReceptacle", console,
+            selectorPlate, new Color(0.62f, 0.68f, 0.70f, 1f));
+        SetCentered(receptacle.rectTransform, new Vector2(-270f, -54f),
+            new Vector2(244f, 208f));
+        receptacle.type = Image.Type.Simple;
+        receptacle.preserveAspect = false;
+        Image socket = CreateImage("ResearchSocket", receptacle.transform,
+            moduleFrame, new Color(0.015f, 0.026f, 0.032f, 0.98f));
+        socket.type = Image.Type.Sliced;
+        SetCentered(socket.rectTransform, new Vector2(0f, -18f),
+            new Vector2(148f, 148f));
+        Image coreGlow = CreateImage("ResearchCoreGlow", receptacle.transform,
+            theme.softGlow, new Color(theme.energy.r, theme.energy.g,
+                theme.energy.b, 0.16f));
+        SetCentered(coreGlow.rectTransform, new Vector2(0f, -18f),
+            new Vector2(126f, 126f));
+        Image core = CreateImage("ResearchCore", receptacle.transform,
+            modulator, new Color(0.48f, 0.55f, 0.58f, 0.68f));
+        SetCentered(core.rectTransform, new Vector2(0f, -18f),
+            new Vector2(112f, 112f));
+        core.preserveAspect = true;
+
+        Image readout = CreateImage("ResearchReadout", console,
+            moduleCardMetal, new Color(0.56f, 0.62f, 0.66f, 0.98f));
+        readout.type = Image.Type.Simple;
+        SetCentered(readout.rectTransform, new Vector2(202f, -54f),
+            new Vector2(424f, 208f));
+        status.transform.SetParent(readout.transform, false);
+        detail.transform.SetParent(readout.transform, false);
+        SetTopRect(status.rectTransform, 36f, 44f, 34f, -34f);
+        status.fontSize = 23f;
+        status.fontSizeMax = 23f;
+        status.fontSizeMin = 17f;
+        status.color = theme.energy;
+        SetTopRect(detail.rectTransform, 86f, 90f, 38f, -38f);
+        detail.fontSize = 18f;
+        detail.fontSizeMax = 18f;
+        detail.fontSizeMin = 14f;
+        detail.color = theme.secondaryText;
+        detail.alignment = TextAlignmentOptions.Center;
+
+        Image scanLine = CreateImage("ResearchScanLine", readout.transform,
+            null, new Color(theme.energy.r, theme.energy.g, theme.energy.b, 0.32f));
+        scanLine.rectTransform.anchorMin = new Vector2(0.08f, 0.16f);
+        scanLine.rectTransform.anchorMax = new Vector2(0.92f, 0.16f);
+        scanLine.rectTransform.sizeDelta = new Vector2(0f, 2f);
+        scanLine.rectTransform.anchoredPosition = Vector2.zero;
+
+        Transform progress = console.Find("Progress");
+        if (progress != null) progress.SetAsLastSibling();
+        Transform tuning = console.Find("Tuning");
+        if (tuning != null) tuning.SetAsLastSibling();
+        Transform tune = console.Find("TuneButton");
+        if (tune != null) tune.SetAsLastSibling();
+        Transform conclusion = console.Find("ConclusionButton");
+        if (conclusion != null) conclusion.SetAsLastSibling();
+    }
+
     private static VerticalUpgradesPolishUI.SectionBinding StyleSection(
         Transform section,
         Sprite iconSprite,
         Color accent,
+        Sprite labBackground,
+        Sprite resourceCounterMetal,
         Sprite moduleFrame,
         VerticalUiTheme theme)
     {
@@ -293,43 +497,60 @@ public static class VerticalUpgradesVisualPolish
         Image background = GetOrAdd<Image>(section.gameObject);
         background.sprite = moduleFrame;
         background.type = Image.Type.Sliced;
-        background.color = WithAlpha(accent, 0.70f);
+        background.color = new Color(
+            0.10f + accent.r * 0.10f,
+            0.13f + accent.g * 0.08f,
+            0.16f + accent.b * 0.06f,
+            0.98f);
         background.raycastTarget = false;
 
         VerticalLayoutGroup layout = section.GetComponent<VerticalLayoutGroup>();
         Require(layout != null, section.name + " perdio VerticalLayoutGroup.");
-        layout.padding = new RectOffset(12, 12, 10, 12);
+        layout.padding = new RectOffset(12, 12, 8, 8);
         layout.spacing = 6f;
 
         Transform header = section.Find("Header");
         Require(header != null, section.name + " perdio Header.");
         LayoutElement headerLayout = GetOrAdd<LayoutElement>(header.gameObject);
-        headerLayout.minHeight = 108f;
-        headerLayout.preferredHeight = 108f;
+        headerLayout.minHeight = 96f;
+        headerLayout.preferredHeight = 96f;
         headerLayout.flexibleHeight = 0f;
         Image oldBackground = GetOrAdd<Image>(header.gameObject);
         oldBackground.color = Color.clear;
         oldBackground.raycastTarget = false;
 
+        Image metalHeader = CreateImage("SectionMetalHeader", header,
+            resourceCounterMetal, new Color(0.66f, 0.70f, 0.72f, 0.98f));
+        metalHeader.type = Image.Type.Simple;
+        Stretch(metalHeader.rectTransform, 0f);
+        metalHeader.transform.SetAsFirstSibling();
+
+        // Reuse the approved cube treatment: the metal sprite is only the shell;
+        // the lab remains visible inside the uninterrupted flat content surface.
+        Image headerLab = CreateImage("SectionLabBackdrop", header,
+            labBackground, new Color(0.56f, 0.58f, 0.59f, 0.78f));
+        headerLab.type = Image.Type.Simple;
+        headerLab.preserveAspect = false;
+        Stretch(headerLab.rectTransform, 26f);
+        headerLab.transform.SetSiblingIndex(1);
+        Image headerVeil = CreateImage("SectionLabVeil", header, null,
+            new Color(0.004f, 0.012f, 0.018f, 0.34f));
+        Stretch(headerVeil.rectTransform, 27f);
+        headerVeil.transform.SetSiblingIndex(2);
+
         Transform oldAccent = header.Find("Accent");
         if (oldAccent != null)
         {
-            RectTransform accentRect = (RectTransform)oldAccent;
-            accentRect.anchorMin = new Vector2(0f, 0.10f);
-            accentRect.anchorMax = new Vector2(0f, 0.90f);
-            accentRect.pivot = new Vector2(0f, 0.5f);
-            accentRect.anchoredPosition = new Vector2(0f, 0f);
-            accentRect.sizeDelta = new Vector2(4f, 0f);
-            Image accentImage = oldAccent.GetComponent<Image>();
-            accentImage.color = accent;
-            accentImage.raycastTarget = false;
+            // The horizontal rail already identifies the category. The old outer
+            // accent sat on top of the metal border and made the shell look cut.
+            oldAccent.gameObject.SetActive(false);
         }
 
         Image iconGlow = CreateImage("IconGlow", header, theme.softGlow,
             WithAlpha(accent, 0.14f));
-        SetLeftCenter(iconGlow.rectTransform, 10f, 104f, 104f);
+        SetLeftCenter(iconGlow.rectTransform, 104f, 72f, 72f);
         Image icon = CreateImage("MechanicalIcon", header, iconSprite, Color.white);
-        SetLeftCenter(icon.rectTransform, 14f, 96f, 96f);
+        SetLeftCenter(icon.rectTransform, 108f, 64f, 64f);
         icon.preserveAspect = true;
 
         TextMeshProUGUI label = header.Find("Label")?.GetComponent<TextMeshProUGUI>();
@@ -343,28 +564,28 @@ public static class VerticalUpgradesVisualPolish
         label.color = accent;
         label.rectTransform.anchorMin = new Vector2(0f, 0f);
         label.rectTransform.anchorMax = new Vector2(1f, 1f);
-        label.rectTransform.offsetMin = new Vector2(126f, 52f);
-        label.rectTransform.offsetMax = new Vector2(-12f, -6f);
+        label.rectTransform.offsetMin = new Vector2(184f, 52f);
+        label.rectTransform.offsetMax = new Vector2(-42f, -6f);
 
         Image railBase = CreateImage("RailBase", header, null,
             new Color(0.018f, 0.080f, 0.115f, 0.96f));
-        SetHorizontalRail(railBase.rectTransform, 122f, 10f, 15f, 43f);
+        SetHorizontalRail(railBase.rectTransform, 180f, 70f, 15f, 43f);
         Image railGlow = CreateImage("RailGlow", header, theme.softGlow,
             WithAlpha(accent, 0.14f));
-        SetHorizontalRail(railGlow.rectTransform, 126f, 8f, 19f, 38f);
+        SetHorizontalRail(railGlow.rectTransform, 184f, 74f, 19f, 38f);
         Image railCore = CreateImage("RailCore", header, null, accent);
-        SetHorizontalRail(railCore.rectTransform, 128f, 10f, 28f, 33f);
+        SetHorizontalRail(railCore.rectTransform, 186f, 72f, 28f, 33f);
         TextMeshProUGUI segments = CreateText("RailSegments", header,
             ">  >  >  >  >  >  >  >  >  >", 13f,
             TextAlignmentOptions.Center, WithAlpha(accent, 0.48f), theme);
-        SetHorizontalRail(segments.rectTransform, 142f, 24f, 18f, 42f);
+        SetHorizontalRail(segments.rectTransform, 198f, 78f, 18f, 42f);
         segments.textWrappingMode = TextWrappingModes.NoWrap;
 
         Image cap = CreateImage("RailCap", header, null, accent);
         cap.rectTransform.anchorMin = new Vector2(1f, 0f);
         cap.rectTransform.anchorMax = new Vector2(1f, 0f);
         cap.rectTransform.pivot = new Vector2(1f, 0f);
-        cap.rectTransform.anchoredPosition = new Vector2(-8f, 30f);
+        cap.rectTransform.anchoredPosition = new Vector2(-72f, 30f);
         cap.rectTransform.sizeDelta = new Vector2(10f, 10f);
 
         return new VerticalUpgradesPolishUI.SectionBinding
@@ -382,6 +603,7 @@ public static class VerticalUpgradesVisualPolish
         Color accent,
         Sprite iconSprite,
         Sprite symbolSprite,
+        Sprite resourceCounterMetal,
         Sprite moduleFrame,
         Sprite buttonFrame,
         VerticalUiTheme theme)
@@ -395,9 +617,13 @@ public static class VerticalUpgradesVisualPolish
         layout.flexibleHeight = 0f;
 
         Image frame = GetOrAdd<Image>(row.gameObject);
-        frame.sprite = moduleFrame;
-        frame.type = Image.Type.Sliced;
-        frame.color = WithAlpha(accent, 0.82f);
+        frame.sprite = resourceCounterMetal;
+        frame.type = Image.Type.Simple;
+        frame.color = new Color(
+            0.60f + accent.r * 0.08f,
+            0.64f + accent.g * 0.06f,
+            0.68f + accent.b * 0.05f,
+            0.98f);
         frame.raycastTarget = false;
         Image innerFrame = CreateImage("RowInnerFrame", row.transform,
             moduleFrame, WithAlpha(accent, 0.20f));
@@ -529,6 +755,7 @@ public static class VerticalUpgradesVisualPolish
     private static void StyleKeycardRow(
         KeycardPurchaseUI keycard,
         Color accent,
+        Sprite resourceCounterMetal,
         Sprite moduleFrame,
         Sprite buttonFrame,
         VerticalUiTheme theme)
@@ -551,9 +778,13 @@ public static class VerticalUpgradesVisualPolish
 
         Image frame = GetOrAdd<Image>(row);
         frame.enabled = true;
-        frame.sprite = moduleFrame;
-        frame.type = Image.Type.Sliced;
-        frame.color = WithAlpha(accent, 0.82f);
+        frame.sprite = resourceCounterMetal;
+        frame.type = Image.Type.Simple;
+        frame.color = new Color(
+            0.60f + accent.r * 0.08f,
+            0.64f + accent.g * 0.06f,
+            0.68f + accent.b * 0.05f,
+            0.98f);
         frame.raycastTarget = false;
 
         Image inner = CreateImage("KeycardInnerFrame", row.transform,
@@ -732,6 +963,14 @@ public static class VerticalUpgradesVisualPolish
     {
         foreach (F2UpgradeRowUI row in root.GetComponentsInChildren<F2UpgradeRowUI>(true))
             if (row.UpgradeId == id) return row;
+        return null;
+    }
+
+    private static Transform FindDescendant(Transform root, string name)
+    {
+        if (root == null) return null;
+        foreach (Transform current in root.GetComponentsInChildren<Transform>(true))
+            if (current.name == name) return current;
         return null;
     }
 

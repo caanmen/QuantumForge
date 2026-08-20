@@ -1,0 +1,34 @@
+ORIGEN Y ESTADO — REFERENCIAS CANDIDATAS DE DIMENSIÓN 2
+
+Clasificación: CONCEPTOS / REFERENCIAS CANDIDATAS.
+No son capturas reales de Unity, assets finales ni referencias canónicas aprobadas.
+
+Fecha recibida: 19 de agosto de 2026.
+Origen: 2026-08-19_Continuidad_UI_Dimension2.zip, entregado por el usuario.
+SHA-256 del ZIP: 26349DF4EC5227D39AADCB67A35EB78C69370FF8969210BD9B38130AEEB55359.
+
+Contenido: 20 PNG numerados del 01 al 20.
+Resolución de cada PNG: 941 x 1672 píxeles, formato vertical cercano a 9:16.
+
+Partes constantes observadas:
+- Piedra carbón, bronce envejecido y tipografía serif grabada.
+- Estructura vertical con encabezado, recursos, contenido principal, panel contextual y navegación.
+- Acentos diferenciados por civilización.
+
+Decisiones pendientes antes de aprobar o usar como base canónica:
+- Unificar el icono de cada pestaña en todas sus apariciones.
+- Añadir o resolver la navegación de regreso ausente en las pantallas 11 y 13.
+- Unificar ENTE / ENTIDAD según los nombres dinámicos del código.
+- Conservar las transformaciones UMBRAL -> PACTO, CONTENCIÓN -> PACTO MAYOR y ENTE -> PACTO OPCIONAL.
+- Fijar un contrato único de encabezado, flecha, navegación, tamaños, márgenes y brillo de selección.
+- Definir si los valores representan una secuencia QA continua o escenarios independientes.
+- Corregir la presentación de Confianza del mapa para no confundir el requisito de 300 con el máximo real de 500.
+
+No utilizar ninguna imagen completa como textura de interfaz. Debe descomponerse en
+fondos, marcos, iconos, textos y capas animables después de la aprobación explícita.
+
+REVISIONES V2
+- Existen revisiones candidatas posteriores de las pantallas 01 y 04 en
+  `../CORREGIDAS_V2_2026-08-19`.
+- Su origen, resolución y estado se describen en el ORIGEN_Y_ESTADO de esa carpeta.
+- No sustituyen automáticamente a estos archivos hasta registrar la decisión del usuario.

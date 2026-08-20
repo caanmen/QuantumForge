@@ -109,10 +109,10 @@ public static class Dimension3Block2Validation
                     state.dimension3, Dimension3Catalog.ChannelProcessTime),
                 "Nivel 2 no habilita Ritmo Operativo.", failures);
             Check(!D3ProductionSystem.IsPartVersionUnlocked(state, 2),
-                "V2 se desbloquea antes de 25 MK1 ensamblados.", failures);
-            D3InventorySystem.AddAssemblyCount(state.dimension3, 1, 15L);
+                "V2 se desbloquea antes de 15 MK1 ensamblados.", failures);
+            D3InventorySystem.AddAssemblyCount(state.dimension3, 1, 5L);
             Check(D3ProductionSystem.IsPartVersionUnlocked(state, 2),
-                "V2 no se desbloquea con nivel 2 y 25 MK1.", failures);
+                "V2 no se desbloquea con nivel 2 y 15 MK1.", failures);
 
             D3InventorySystem.AddAssemblyCount(state.dimension3, 2, 10L);
             Check(Dimension3System.TryQueueProcessBankUpgrade(state, out reason),
@@ -124,10 +124,10 @@ public static class Dimension3Block2Validation
                     state.dimension3, Dimension3Catalog.ChannelProcessCost),
                 "Nivel 3 no habilita Ahorro Energético.", failures);
             Check(!D3ProductionSystem.IsPartVersionUnlocked(state, 3),
-                "V3 se desbloquea antes de 25 MK2 ensamblados.", failures);
-            D3InventorySystem.AddAssemblyCount(state.dimension3, 2, 15L);
+                "V3 se desbloquea antes de 15 MK2 ensamblados.", failures);
+            D3InventorySystem.AddAssemblyCount(state.dimension3, 2, 5L);
             Check(D3ProductionSystem.IsPartVersionUnlocked(state, 3),
-                "V3 no se desbloquea con nivel 3 y 25 MK2.", failures);
+                "V3 no se desbloquea con nivel 3 y 15 MK2.", failures);
         }
         finally { UnityEngine.Object.DestroyImmediate(state.gameObject); }
     }

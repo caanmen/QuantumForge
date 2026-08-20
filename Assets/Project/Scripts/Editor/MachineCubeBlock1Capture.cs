@@ -149,6 +149,8 @@ public static class MachineCubeBlock1Capture
             {
                 MachineCube3DPrototypeSetup.ConfigurePrototype();
                 MachineCube3DPrototypeSetup.ValidatePrototype();
+                MachineCubeApprovedStyleSetup.Configure();
+                MachineCubeApprovedStyleSetup.Validate();
             }
             EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
 

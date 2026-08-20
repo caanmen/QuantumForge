@@ -1,0 +1,17 @@
+DECISIONES ESPECÍFICAS: ÓRBITAS ANTIGUAS
+========================================
+
+- Es una subpantalla del Sector 3 y no una sexta opción de la navegación D1.
+- La referencia manda en composición; el código real manda en números y estados.
+- Los planetas 4 y 5 reutilizan los sprites existentes de Carta Galáctica.
+- Los cuatro destinos son los IDs oficiales de Sector03AncientOrbits; cada tarjeta abre
+  Explorar con el destino correspondiente, sin crear una mecánica paralela.
+- Las barras representan el avance del nivel actual hacia el desbloqueo real del metal
+  secundario en nivel 10; los porcentajes de la referencia no se fijan artificialmente.
+- Cada acción muestra su coste real. Un planeta bloqueado cambia la acción a desbloquear.
+- La navegación inferior reutiliza el contrato y los cinco iconos premium de Hangar.
+- No se añade animación antes de aprobar la composición estática.
+- Los iconos nuevos de destinos permanecen como candidatos hasta la aprobación visual.
+- La raíz es hermana de Carta Galáctica y usa CanvasGroup propio. No se anida bajo un
+  panel que otra ruta de navegación pueda desactivar.
+- `BackgroundMobile` es decorativo y no intercepta raycasts.

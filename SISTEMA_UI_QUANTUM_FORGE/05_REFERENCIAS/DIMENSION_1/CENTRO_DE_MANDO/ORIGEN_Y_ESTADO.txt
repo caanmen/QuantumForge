@@ -1,0 +1,8 @@
+Pantalla: Centro de Mando — Dimensión 1
+Archivo: referencia_centro_de_mando.png
+Tipo: REFERENCIA VISUAL
+Origen: imagen proporcionada por el usuario en chat
+Estado: referencia utilizada para la pantalla aprobada
+Resolución original: 643×1259
+Notas: conservar composición, identidad cian/ámbar y navegación local inferior.
+

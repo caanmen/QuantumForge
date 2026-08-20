@@ -1,0 +1,13 @@
+Pantalla: Carta Galáctica — Dimensión 1
+Resolución: 1080×1920
+Escena: Assets/Project/Scenes/Main.unity
+Generador: Dimension1GalaxyPremiumSetup.ConfigureReferenceV11
+Prueba: Dimension1GalaxyReferenceCapture.RunInteractionRegression
+
+Archivos:
+- carta_galactica_neutral_1080x1920.png
+- carta_galactica_orbitas_seleccionada_1080x1920.png
+
+Estado: capturas reales archivadas después de rutas simétricas y correcciones de
+títulos/materiales. Mantener el registro de prueba junto a futuras sustituciones.
+

@@ -1167,6 +1167,11 @@ public class Room2PanelUI : MonoBehaviour
         image.sprite = sprite;
         image.color = Color.white;
         image.enabled = sprite != null;
+        Transform emptyInterior = image.transform.parent != null
+            ? image.transform.parent.Find("ApprovedSlotInterior")
+            : null;
+        if (emptyInterior != null)
+            emptyInterior.gameObject.SetActive(sprite == null);
     }
     private void OnClickFragmentSlotA()
     {

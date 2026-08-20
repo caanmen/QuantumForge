@@ -1,0 +1,53 @@
+PLAN CANDIDATO DE CAPAS PARA ANIMACIÓN — DIMENSIÓN 2
+
+Estado: PREVISIÓN TÉCNICA; MOVIMIENTOS PENDIENTES DE APROBACIÓN.
+
+Este documento no autoriza animaciones concretas. Define qué partes deberán poder
+separarse para evitar reconstruir el arte cuando llegue la fase de Unity.
+
+REGLAS COMUNES
+
+- Fondo y marcos estructurales permanecen inmóviles.
+- Textos, cifras, botones y navegación no se hornean dentro de las ilustraciones.
+- Selección, progreso, bloqueo y alerta utilizan capas propias.
+- Cada ilustración principal conserva margen suficiente para una máscara y un pivote.
+- Ningún efecto futuro puede desplazar el layout ni reducir la legibilidad.
+- El movimiento exacto, duración, amplitud y disparador requieren aprobación antes
+  de implementarse.
+
+MAPA DE LOS PACTOS
+
+- Fondo de piedra inmóvil.
+- Cada territorio como capa independiente.
+- Emblema y estado de cada territorio separados de su masa y de sus textos.
+- Selección/disponibilidad como capa de efecto separada.
+- No crear líneas ni nodos animados entre territorios.
+
+SANTUARIO
+
+- Fondo ambiental inmóvil y separado de personajes o luces ambientales.
+- Ilustración principal de cada sección independiente de marcos y textos.
+- Icono, borde seleccionado y estado disponible/bloqueado en capas distintas.
+- Indicadores circulares, barras y contadores separados de sus fondos.
+
+RESISTENCIA
+
+- Regiones, medidores, emblemas y estados de amenaza/protección separados.
+- Ente, cadenas y marco de Contención como capas independientes.
+- Alerta y selección separadas de los iconos base.
+- La sustitución CONTENCIÓN -> PACTO MAYOR cambia estado y contenido sin mover la
+  navegación ni reconstruir los demás paneles.
+
+ARQUEOLOGÍA Y ENTE
+
+- Fondos de ruinas, restos, libro del Archivo y emblema del Ente independientes.
+- Barras, hitos, niveles, selección y bloqueo separados de las ilustraciones.
+- La sustitución ENTE -> PACTO OPCIONAL conserva geometría y emblema de la cuarta
+  pestaña; sólo cambia el estado y la etiqueta prevista.
+
+VALIDACIÓN POSTERIOR EN UNITY
+
+- Registrar pivote y posición base antes de cualquier movimiento.
+- Probar fotogramas renderizados, no solamente valores del componente.
+- Confirmar versión normal y reducción móvil.
+- Detener efectos cuando la pantalla no esté visible.

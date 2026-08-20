@@ -1,0 +1,36 @@
+MAPA RÁPIDO
+
+Antes de seguir cualquier ruta, clasificar lo leído:
+- Regla general: se aplica al proyecto cuando corresponda.
+- Ejemplo histórico: enseña un caso, pero no transmite su estética.
+- Decisión de dimensión: sólo pertenece a ese perfil.
+- Decisión de pantalla: sólo pertenece a esa pantalla.
+
+Quiero crear una pantalla nueva:
+1. Leer INSTRUCCIONES_MAESTRAS_UI.md.
+2. Revisar RECOMENDACIONES_OFICIALES_UNITY_UI.md cuando se planifique rendimiento o reutilización.
+3. Leer las dos guías de 01_GUIAS.
+4. Leer el perfil de 03_ESTILOS correspondiente.
+5. Confirmar qué reglas generales hereda y qué decisiones de otras dimensiones no aplica.
+6. Crear 10_PANTALLAS/<DIMENSIÓN>/<PANTALLA> y completar su ficha.
+7. Definir qué se animará y preparar capas y pivotes, sin implementar movimiento todavía.
+8. Guardar y clasificar la referencia en 05_REFERENCIAS.
+9. Registrar assets en 04_CATALOGO_ASSETS.
+10. Aprobar la composición estática antes de implementar animación.
+11. Aplicar las demás puertas de aprobación.
+12. Guardar capturas aprobadas en 06_CAPTURAS_APROBADAS.
+13. Actualizar 07_REGISTROS.
+
+Quiero modificar una pantalla existente:
+1. Leer su ficha, perfil, referencia y decisiones.
+2. Confirmar la fuente real: escena, prefab y/o generador.
+3. Crear captura base antes del cambio.
+4. Modificar la fuente definitiva.
+5. Ejecutar pruebas específicas y regresión.
+6. Archivar captura nueva sólo si fue aprobada.
+
+Quiero comenzar en otro chat:
+1. Abrir el mismo proyecto.
+2. Indicar dimensión, pantalla y referencia.
+3. Pedir revisar AGENTS.md y el sistema UI antes de actuar.
+4. No depender de imágenes temporales de un chat anterior.

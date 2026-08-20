@@ -24,8 +24,10 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
         public Image orbitRing;
         public Image glow;
         public Image labelPlate;
+        public Image labelBorder;
         public Image[] routes;
         public GameObject lockBadge;
+        public GameObject currentBadge;
         public TMP_Text titleText;
         public TMP_Text stateText;
     }
@@ -36,10 +38,11 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
     [SerializeField] private MetalChip[] metalChips;
     [SerializeField] private SectorNodeView[] sectorNodes;
     [SerializeField] private Image[] routeLines;
-    [SerializeField] private RectTransform starLayer;
-    [SerializeField] private RectTransform nebulaLayer;
     [SerializeField] private RectTransform[] rotatingBodies;
     [SerializeField] private RectTransform[] driftingAsteroids;
+    [SerializeField] private Image[] pulsingRouteLines;
+    [SerializeField] private RectTransform[] ambientRotatingBodies;
+    [SerializeField] private RectTransform[] pulsingBodies;
     [SerializeField] private TMP_Text selectedTitleText;
     [SerializeField] private TMP_Text selectedExplorationsText;
     [SerializeField] private TMP_Text selectedStatusText;
@@ -47,16 +50,27 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
     [SerializeField] private TMP_Text selectedRequirementsText;
     [SerializeField] private Image selectedPlanetPreview;
     [SerializeField] private Image secondaryPlanetPreview;
+    [SerializeField] private Image animatedGalaxyImage;
+    [SerializeField] private GameObject[] selectedDetailRoots;
+    [SerializeField] private TMP_Text neutralInstructionText;
     [SerializeField] private GameObject[] hideWhileOpen;
     [SerializeField] private float refreshInterval = 0.25f;
 
     private float refreshTimer;
-    private float nextAnimationTime;
-    private Vector2 starOrigin;
-    private Vector2 nebulaOrigin;
+    private float lastAnimationTime;
+    private float selectedPlanetAngle;
+    private string animatedPlanetSectorId = "";
     private Vector2[] asteroidOrigins;
     private string lastPreviewSectorId;
     private bool[] hiddenPreviousStates;
+    private VerticalNavigationUI verticalNavigation;
+    private bool exclusiveNavigationPending;
+    private Material runtimeGalaxyMaterial;
+    private float galaxyAnimationTime;
+    private Vector2 selectedTitleBasePosition;
+    private bool selectedTitlePositionCached;
+
+    private static readonly int GalaxyAnimTimeId = Shader.PropertyToID("_AnimTime");
 
     private static readonly string[] MetalIds =
     {
@@ -74,8 +88,7 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
 
     private void Awake()
     {
-        if (starLayer != null) starOrigin = starLayer.anchoredPosition;
-        if (nebulaLayer != null) nebulaOrigin = nebulaLayer.anchoredPosition;
+        PrepareGalaxyMaterial();
         if (driftingAsteroids == null) return;
 
         asteroidOrigins = new Vector2[driftingAsteroids.Length];
@@ -86,15 +99,45 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
 
     private void OnEnable()
     {
-        ApplyExclusiveNavigation(true);
+        // No desactivar otros Selectable desde OnEnable: UGUI aun esta
+        // registrando botones durante la carga y una desactivacion reentrante
+        // puede corromper su lista global, dejando inerte el boton Continuar.
+        exclusiveNavigationPending = true;
+        if (verticalNavigation == null)
+            verticalNavigation = FindFirstObjectByType<VerticalNavigationUI>(FindObjectsInactive.Include);
+        if (verticalNavigation != null)
+            verticalNavigation.SetNavigationSuppressed(true, this);
         refreshTimer = 0f;
         lastPreviewSectorId = "";
+        animatedPlanetSectorId = "";
+        selectedPlanetAngle = 0f;
+        galaxyAnimationTime = 0f;
+        lastAnimationTime = Time.unscaledTime;
+        PrepareGalaxyMaterial();
         Refresh();
     }
 
     private void OnDisable()
     {
+        exclusiveNavigationPending = false;
         ApplyExclusiveNavigation(false);
+        if (verticalNavigation != null)
+            verticalNavigation.SetNavigationSuppressed(false, this);
+    }
+
+    private void OnDestroy()
+    {
+        if (runtimeGalaxyMaterial != null)
+            Destroy(runtimeGalaxyMaterial);
+    }
+
+    private void PrepareGalaxyMaterial()
+    {
+        if (runtimeGalaxyMaterial != null || animatedGalaxyImage == null || animatedGalaxyImage.material == null)
+            return;
+        runtimeGalaxyMaterial = Instantiate(animatedGalaxyImage.material);
+        runtimeGalaxyMaterial.name = animatedGalaxyImage.material.name + " (Runtime)";
+        animatedGalaxyImage.material = runtimeGalaxyMaterial;
     }
 
     private void ApplyExclusiveNavigation(bool hide)
@@ -121,16 +164,21 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
 
     private void Update()
     {
+        if (exclusiveNavigationPending)
+        {
+            exclusiveNavigationPending = false;
+            ApplyExclusiveNavigation(true);
+        }
+
         if (hideWhileOpen != null)
             foreach (GameObject target in hideWhileOpen)
                 if (target != null && target.activeSelf) target.SetActive(false);
 
         float time = Time.unscaledTime;
-        if (time >= nextAnimationTime)
-        {
-            nextAnimationTime = time + (1f / 30f);
-            Animate(time);
-        }
+        galaxyAnimationTime += Time.unscaledDeltaTime;
+        if (runtimeGalaxyMaterial != null)
+            runtimeGalaxyMaterial.SetFloat(GalaxyAnimTimeId, galaxyAnimationTime);
+        Animate(time);
 
         refreshTimer -= Time.unscaledDeltaTime;
         if (refreshTimer > 0f) return;
@@ -140,54 +188,78 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
 
     private void Animate(float time)
     {
-        if (starLayer != null)
-            starLayer.anchoredPosition = starOrigin + new Vector2(
-                Mathf.Sin(time * 0.045f) * 6f,
-                Mathf.Cos(time * 0.038f) * 5f);
-
-        if (nebulaLayer != null)
-            nebulaLayer.anchoredPosition = nebulaOrigin + new Vector2(
-                Mathf.Cos(time * 0.032f) * 4f,
-                Mathf.Sin(time * 0.027f) * 3f);
-
+        float deltaTime = Mathf.Clamp(time - lastAnimationTime, 0f, 0.1f);
+        // Retained for scene compatibility, but all technical rings are now static.
         if (rotatingBodies != null)
         {
             for (int i = 0; i < rotatingBodies.Length; i++)
             {
                 RectTransform body = rotatingBodies[i];
                 if (body == null) continue;
-                float direction = (i & 1) == 0 ? 1f : -1f;
-                body.localRotation = Quaternion.Euler(0f, 0f,
-                    time * direction * (2.2f + i * 0.3f));
+                body.localRotation = Quaternion.identity;
             }
         }
 
         if (sectorNodes != null)
         {
             string preview = GetPreviewSectorId();
+            if (preview != animatedPlanetSectorId)
+            {
+                animatedPlanetSectorId = preview;
+                selectedPlanetAngle = 0f;
+            }
+
+            selectedPlanetAngle = Mathf.Repeat(selectedPlanetAngle - deltaTime * 11f, 360f);
             for (int i = 0; i < sectorNodes.Length; i++)
             {
                 SectorNodeView node = sectorNodes[i];
                 if (node == null || node.root == null) continue;
-                float target = node.sectorId == preview
-                    ? 1.018f + Mathf.Sin(time * 3.1f) * 0.018f
-                    : 1f;
-                node.root.localScale = Vector3.one * target;
+                node.root.localScale = Vector3.one;
+                if (node.glow != null)
+                    node.glow.gameObject.SetActive(false);
+                if (node.planet != null)
+                    node.planet.rectTransform.localRotation = node.sectorId == preview
+                        ? Quaternion.Euler(0f, 0f, selectedPlanetAngle)
+                        : Quaternion.identity;
             }
         }
 
-        if (routeLines != null)
+        if (ambientRotatingBodies != null)
         {
-            for (int i = 0; i < routeLines.Length; i++)
+            for (int i = 0; i < ambientRotatingBodies.Length; i++)
             {
-                Image line = routeLines[i];
-                if (line == null) continue;
-                Color color = line.color;
-                color.a = Mathf.Clamp01(color.a * 0.82f +
-                    (0.50f + 0.18f * Mathf.Sin(time * 1.7f + i)) * 0.18f);
-                line.color = color;
+                RectTransform body = ambientRotatingBodies[i];
+                if (body == null) continue;
+                float direction = i % 2 == 0 ? 1f : -1f;
+                body.localRotation = Quaternion.Euler(0f, 0f,
+                    direction * time * (1.4f + i * 0.22f));
             }
         }
+
+        if (pulsingBodies != null)
+        {
+            for (int i = 0; i < pulsingBodies.Length; i++)
+            {
+                RectTransform body = pulsingBodies[i];
+                if (body == null) continue;
+                float pulse = 1f + Mathf.Sin(time * 1.1f + i * 0.8f) * 0.018f;
+                body.localScale = new Vector3(pulse, pulse, 1f);
+            }
+        }
+
+        if (pulsingRouteLines != null)
+        {
+            for (int i = 0; i < pulsingRouteLines.Length; i++)
+            {
+                Image route = pulsingRouteLines[i];
+                if (route == null) continue;
+                Color color = route.color;
+                color.a = 0.55f + Mathf.Sin(time * 2.2f + i * 0.72f) * 0.22f;
+                route.color = color;
+            }
+        }
+
+        lastAnimationTime = time;
 
         if (driftingAsteroids == null || asteroidOrigins == null) return;
         for (int i = 0; i < driftingAsteroids.Length; i++)
@@ -195,11 +267,12 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
             RectTransform asteroid = driftingAsteroids[i];
             if (asteroid == null) continue;
             float phase = i * 1.37f;
-            asteroid.anchoredPosition = asteroidOrigins[i] + new Vector2(
-                Mathf.Sin(time * 0.12f + phase) * (7f + i),
-                Mathf.Cos(time * 0.09f + phase) * (4f + i * 0.35f));
-            asteroid.localRotation = Quaternion.Euler(0f, 0f,
-                time * (2f + i * 0.2f) + phase * 12f);
+            Vector2 drift = asteroidOrigins[i] + new Vector2(
+                Mathf.Sin(time * 0.08f + phase) * (5f + i * 0.65f),
+                Mathf.Cos(time * 0.06f + phase) * (3f + i * 0.25f));
+            // Whole UI pixels avoid sub-pixel shimmer at fractional Game View scales.
+            asteroid.anchoredPosition = new Vector2(Mathf.Round(drift.x), Mathf.Round(drift.y));
+            asteroid.localRotation = Quaternion.identity;
         }
     }
 
@@ -226,12 +299,14 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
         RefreshNodes(state);
 
         string preview = GetPreviewSectorId();
-        if (preview != lastPreviewSectorId)
+        bool hasPreview = Dimension1System.IsDimension1SectorId(preview);
+        SetNeutralDetailsVisible(!hasPreview);
+        if (hasPreview && preview != lastPreviewSectorId)
         {
             lastPreviewSectorId = preview;
             RefreshSelectedPanel(state, preview);
         }
-        else
+        else if (hasPreview)
         {
             RefreshSelectedPanel(state, preview);
         }
@@ -252,37 +327,52 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
             bool selected = preview == node.sectorId;
             bool centerLocked = node.sectorId == Dimension1System.Sector05GalacticCenter && !unlocked;
             Color accent = selected ? Hex("F4B545") :
-                centerLocked ? Hex("FF5B58") : unlocked ? Hex("55CFFF") : Hex("667586");
+                centerLocked ? Hex("F4A300") : unlocked ? Hex("55CFFF") : Hex("667586");
 
-            if (node.orbitRing != null) node.orbitRing.color = accent;
+            if (node.orbitRing != null)
+            {
+                node.orbitRing.color = new Color(accent.r, accent.g, accent.b, 0f);
+                node.orbitRing.gameObject.SetActive(false);
+            }
             if (node.glow != null)
             {
-                Color glow = accent;
-                glow.a = selected ? 0.48f : unlocked ? 0.20f : 0.08f;
-                node.glow.color = glow;
+                node.glow.color = new Color(accent.r, accent.g, accent.b, 0f);
+                node.glow.gameObject.SetActive(false);
             }
             if (node.labelPlate != null)
             {
                 Color plate = selected ? Hex("4B3515", 242) : Hex("07111B", 238);
                 node.labelPlate.color = plate;
             }
+            if (node.labelBorder != null)
+                node.labelBorder.color = selected
+                    ? Hex("D89B2A")
+                    : unlocked ? Hex("4F91A8") : Hex("46525B");
+            // Locked state is communicated by the ring, label and lock badge.
+            // Keep celestial art fully opaque so planets never look accidentally faded.
             if (node.planet != null)
-                node.planet.color = unlocked ? Color.white : Hex("697682", 205);
+                node.planet.color = Color.white;
             if (node.lockBadge != null) node.lockBadge.SetActive(!unlocked);
+            if (node.currentBadge != null) node.currentBadge.SetActive(current && unlocked);
             if (node.titleText != null) node.titleText.text = GetShortSectorName(node.sectorId);
             if (node.stateText != null)
             {
                 int count = sector == null ? 0 : Mathf.Max(0, sector.completedExplorations);
-                node.stateText.text = current
-                    ? "ACTUAL · " + count + " EXPEDICIONES"
-                    : unlocked ? count + " EXPEDICIONES" : "REQUISITOS PENDIENTES";
+                string expeditionWord = count == 1 ? "EXPEDICIÓN" : "EXPEDICIONES";
+                node.stateText.text = centerLocked
+                    ? "???"
+                    : current
+                        ? count + "\n" + expeditionWord
+                        : unlocked
+                            ? count + "\n" + expeditionWord
+                            : "REQUISITOS\nPENDIENTES";
                 node.stateText.color = selected ? Hex("FFD56E") : unlocked ? Hex("62D8F4") : Hex("A8B0B8");
             }
 
             if (node.routes != null)
             {
-                Color route = selected ? Hex("F4B545") : unlocked ? Hex("4FCFF0") : Hex("3E4A56");
-                route.a = unlocked || selected ? 0.72f : 0.35f;
+                Color route = selected ? Hex("F4B545") : Hex("4FCFF0");
+                route.a = selected ? 0.88f : unlocked ? 0.72f : 0.58f;
                 foreach (Image routeImage in node.routes)
                     if (routeImage != null) routeImage.color = route;
             }
@@ -325,13 +415,50 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
         }
     }
 
+    private void SetNeutralDetailsVisible(bool neutral)
+    {
+        if (selectedTitleText != null)
+        {
+            RectTransform titleRect = selectedTitleText.rectTransform;
+            if (!selectedTitlePositionCached)
+            {
+                selectedTitleBasePosition = titleRect.anchoredPosition;
+                selectedTitlePositionCached = true;
+            }
+            titleRect.anchoredPosition = selectedTitleBasePosition + (neutral ? Vector2.down * 34f : Vector2.zero);
+        }
+        if (selectedDetailRoots != null)
+            foreach (GameObject root in selectedDetailRoots)
+                if (root != null && root.activeSelf == neutral)
+                    root.SetActive(!neutral);
+
+        if (neutralInstructionText != null)
+        {
+            neutralInstructionText.gameObject.SetActive(neutral);
+            neutralInstructionText.text = "TOCA UN SECTOR PARA VER SUS DATOS";
+        }
+        if (selectedTitleText != null && neutral)
+            selectedTitleText.text = "SELECCIONA UN SECTOR";
+    }
+
     private string GetPreviewSectorId()
     {
         if (panel != null && Dimension1System.IsDimension1SectorId(panel.GalaxyPreviewSectorId))
             return panel.GalaxyPreviewSectorId;
-        GameState state = GameState.I;
-        return state != null ? state.dimension1SelectedSectorId : Dimension1System.Sector01OuterRim;
+        return "";
     }
+
+
+    public float GalaxyAnimationTime => galaxyAnimationTime;
+
+#if UNITY_EDITOR
+    public void SetGalaxyAnimationTimeForVisualQa(float value)
+    {
+        galaxyAnimationTime = Mathf.Max(0f, value);
+        if (runtimeGalaxyMaterial != null)
+            runtimeGalaxyMaterial.SetFloat(GalaxyAnimTimeId, galaxyAnimationTime);
+    }
+#endif
 
     private SectorNodeView FindNode(string sectorId)
     {
@@ -355,7 +482,7 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
         if (ids == null || ids.Length == 0) return "ARK · MISIÓN CENTRAL";
         var lines = new List<string>();
         for (int i = 0; i < ids.Length && i < 4; i++)
-            lines.Add("  ◆  " + GetDestinationName(ids[i]));
+            lines.Add("  -  " + GetDestinationName(ids[i]));
         return string.Join("\n", lines);
     }
 

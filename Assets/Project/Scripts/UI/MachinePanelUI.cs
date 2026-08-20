@@ -21,6 +21,7 @@ public class MachinePanelUI : MonoBehaviour
     [SerializeField] private Button btnBackToNodesFromFusion;
     [SerializeField] private Button btnFusionPanel;
     [SerializeField] private Button btnNodesTab;
+    [SerializeField] private Button btnSeedsTab;
     
     [Header("Vistas")]
     [SerializeField] private GameObject machineRepairViewRoot;
@@ -100,6 +101,9 @@ public class MachinePanelUI : MonoBehaviour
 
         if (btnNodesTab != null)
             btnNodesTab.onClick.AddListener(CloseFusionPanel);
+
+        if (btnSeedsTab != null)
+            btnSeedsTab.onClick.AddListener(OpenSeedsView);
 
         if (btnBackToNodesFromFusion != null)
             btnBackToNodesFromFusion.onClick.AddListener(CloseFusionPanel);
@@ -1224,11 +1228,20 @@ public class MachinePanelUI : MonoBehaviour
             machineNodeViewRoot.SetActive(cubeVisual == null && !_fusionPanelVisible);
 
         bool seedsViewOpen = instantSeedsViewRoot != null && instantSeedsViewRoot.activeSelf;
+        bool seedsUnlocked = MachineManager.I != null &&
+            MachineManager.I.InstantChamberCoreUnlocked;
+
+        if (!seedsUnlocked && seedsViewOpen)
+        {
+            instantSeedsViewRoot.SetActive(false);
+            seedsViewOpen = false;
+        }
 
         // Semillas funciona como el segundo overlay operativo de la Máquina.
         // Conservamos la misma cabecera y las mismas pestaÃ±as compartidas que
         // usa el panel de fusión para no romper el lenguaje visual aprobado.
         bool showContextTabs = machineAvailable;
+        RefreshContextTabLayout(seedsUnlocked);
 
         if (btnFusionPanel != null)
         {
@@ -1252,6 +1265,21 @@ public class MachinePanelUI : MonoBehaviour
             ApplyContextTabVisual(btnNodesTab,
                 !_fusionPanelVisible && !seedsViewOpen,
                 new Color(0f, 0.79f, 1f, 1f));
+        }
+
+        if (btnSeedsTab != null)
+        {
+            bool showSeedsTab = showContextTabs && seedsUnlocked;
+            btnSeedsTab.gameObject.SetActive(showSeedsTab);
+            btnSeedsTab.interactable = showSeedsTab && !seedsViewOpen;
+
+            TextMeshProUGUI labelText =
+                btnSeedsTab.GetComponentInChildren<TextMeshProUGUI>();
+            if (labelText != null)
+                labelText.text = "SEMILLAS";
+
+            ApplyContextTabVisual(btnSeedsTab, seedsViewOpen,
+                new Color(0f, 0.84f, 0.76f, 1f));
         }
 
         if (btnBackToNodesFromFusion != null)
@@ -1294,6 +1322,40 @@ public class MachinePanelUI : MonoBehaviour
                 ? Color.white
                 : new Color(0.68f, 0.72f, 0.76f, 1f);
         }
+    }
+
+    private void RefreshContextTabLayout(bool showSeedsTab)
+    {
+        if (btnNodesTab == null || btnFusionPanel == null)
+            return;
+
+        RectTransform nodesRect = btnNodesTab.transform as RectTransform;
+        RectTransform mixesRect = btnFusionPanel.transform as RectTransform;
+        RectTransform seedsRect = btnSeedsTab != null
+            ? btnSeedsTab.transform as RectTransform
+            : null;
+        if (nodesRect == null || mixesRect == null)
+            return;
+
+        if (showSeedsTab && seedsRect != null)
+        {
+            SetContextTabRect(nodesRect, 0f, 0.32f);
+            SetContextTabRect(mixesRect, 0.34f, 0.66f);
+            SetContextTabRect(seedsRect, 0.68f, 1f);
+            return;
+        }
+
+        SetContextTabRect(nodesRect, 0f, 0.49f);
+        SetContextTabRect(mixesRect, 0.51f, 1f);
+    }
+
+    private static void SetContextTabRect(RectTransform rect, float minX,
+        float maxX)
+    {
+        rect.anchorMin = new Vector2(minX, 0.04f);
+        rect.anchorMax = new Vector2(maxX, 0.96f);
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
     }
 
     private void OpenFusionPanel()
@@ -1404,20 +1466,11 @@ public class MachinePanelUI : MonoBehaviour
 
     private void RefreshInstantChamberButtons()
     {
-        bool instantChamberUnlocked =
-            MachineManager.I != null && MachineManager.I.InstantChamberCoreUnlocked;
-
-        bool seedsViewOpen = instantSeedsViewRoot != null && instantSeedsViewRoot.activeSelf;
-
-        bool showSeedsButton =
-            instantChamberUnlocked &&
-            _currentZone == MachineZoneType.InstantChamber &&
-            !_fusionPanelVisible &&
-            !seedsViewOpen;
-
         if (btnOpenSeedsPanel != null)
         {
-            btnOpenSeedsPanel.gameObject.SetActive(showSeedsButton);
+            // Semillas becomes a persistent context tab after Cámara Básica is
+            // repaired. Do not duplicate that navigation inside node cards.
+            btnOpenSeedsPanel.gameObject.SetActive(false);
 
             TextMeshProUGUI labelText = btnOpenSeedsPanel.GetComponentInChildren<TextMeshProUGUI>();
             if (labelText != null)
@@ -1647,6 +1700,15 @@ public class MachinePanelUI : MonoBehaviour
 
     private void OpenSeedsView()
     {
+        if (MachineManager.I == null ||
+            !MachineManager.I.InstantChamberCoreUnlocked)
+        {
+            if (instantSeedsViewRoot != null)
+                instantSeedsViewRoot.SetActive(false);
+            Refresh();
+            return;
+        }
+
         _fusionPanelVisible = false;
 
         if (legacyFusionPanel != null)

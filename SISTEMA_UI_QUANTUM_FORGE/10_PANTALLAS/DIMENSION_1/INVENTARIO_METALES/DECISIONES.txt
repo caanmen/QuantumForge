@@ -1,0 +1,20 @@
+DECISIONES ESPECÍFICAS: INVENTARIO DE METALES
+================================================
+
+- Es una subpantalla de Dimensión 1, no una sexta tarjeta del menú inferior.
+- La referencia visual define la jerarquía, las dos columnas, los filtros y los estados;
+  GameState y Dimension1System definen todos los números y bloqueos.
+- Se conserva la pantalla de origen activa debajo y se oculta el inventario con un
+  CanvasGroup; regresar no reconstruye ni reinicia el origen.
+- La raíz usa el mismo desplazamiento vertical heredado de 82 px que las pantallas D1.
+- Los seis accesos 10 METALES comparten un único controlador y una conexión persistente;
+  el enlace dinámico se conserva como tolerancia adicional.
+- La navegación inferior no aparece dentro de la subpantalla.
+- Los filtros reorganizan únicamente las tarjetas visibles; no alteran el inventario.
+- Los metales bloqueados nunca muestran cantidad cero como si fuese un dato poseído.
+- Los sprites V5 son la selección final del set actual. Se recortan por silueta visible,
+  comparten una ocupación máxima de 390 px dentro de lienzos transparentes de 512 px y
+  quedan centrados por sus límites reales.
+- Los sprites V4 fueron rechazados: la extracción del fondo deformó varias siluetas y
+  conservó márgenes internos desiguales; no deben volver a usarse en pantalla.
+- La captura candidata permanece en esta carpeta hasta aprobación explícita del usuario.

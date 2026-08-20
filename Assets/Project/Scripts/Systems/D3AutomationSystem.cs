@@ -93,6 +93,12 @@ public static class D3AutomationSystem
             reason = "La accion no esta autorizada por el Catalogo Maestro.";
             return false;
         }
+        if (definition.facilityId == Dimension3Catalog.FacilityExpeditionPort &&
+            !D3FacilitySystem.IsExpeditionPortLinked(gameState))
+        {
+            reason = "El Puerto está construido, pero sigue sin enlace. Completa primero una acción manual compatible en Dimensión 1.";
+            return false;
+        }
         if (D3FacilitySystem.GetFacilityLevel(
                 gameState.dimension3, definition.facilityId) <
             definition.requiredFacilityLevel)
@@ -160,6 +166,13 @@ public static class D3AutomationSystem
         }
         D3AutomationActionDefinition definition =
             D3AutomationCatalog.GetAction(routine.actionId);
+        if (definition != null &&
+            definition.facilityId == Dimension3Catalog.FacilityExpeditionPort &&
+            !D3FacilitySystem.IsExpeditionPortLinked(gameState))
+        {
+            reason = "El Puerto está sin enlace con Dimensión 1.";
+            return false;
+        }
         if (definition == null ||
             definition.status != D3AutomationCatalogStatus.Authorized ||
             !D3FacilitySystem.IsFunctionActive(
@@ -485,6 +498,8 @@ public static class D3AutomationSystem
             {
                 transactionExecuted = true;
                 routine.executionsCompleted++;
+                D3AutonomyCoreSystem.RecordSuccessfulAutomationExecution(
+                    gameState.dimension3);
                 routine.lastResult = result;
                 if (HasReachedStop(routine))
                 {

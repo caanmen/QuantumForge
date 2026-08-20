@@ -1,0 +1,38 @@
+DECISIONES ESPECÍFICAS: PLANTA DE PRODUCCIÓN — DIMENSIÓN 3
+===========================================================
+
+- La referencia nueva sustituye por completo el prototipo anterior como punto de
+  partida visual, pero continúa siendo candidata y no captura real de Unity.
+- Se conserva la dirección artística industrial negra, acero envejecido y latón, la
+  máquina central, la estructura vertical y la navegación PLANTA/TALLER/CONTROL.
+- La numeración "00" es documental y no forma parte del título visible.
+- Los cinco nombres visibles se ajustan al código: CHASIS, SISTEMA MOTRIZ,
+  HERRAMIENTA, MÓDULO DE CONTROL y REGULADOR.
+- La producción debe mostrar versión V1–V6. La cantidad 50 sólo queda habilitada con
+  Banco de Procesos N5.
+- El ensamblaje muestra cantidades 1/5/10/25, coste, tiempo, cinco requisitos y la
+  acción oficial ENSAMBLAR MK1 NORMAL.
+- Se conservan Piezas, Ensamble, Planos y Obras como rótulos visuales cortos del resumen
+  que abre las colas funcionales Producción, Ensamblaje, Investigación e Instalaciones.
+- Cada recurso, cola e instalación utilizará un único símbolo en todas las pantallas
+  de Dimensión 3. La familia concreta queda candidata hasta aprobación visual.
+- La candidata usa un escenario común de QA con 3.25M LE, 4.2K Trazas y 56
+  autómatas: 40 MK1 Normal, 10 MK2 Rápidos, 5 MK3 Normal y 1 MK4
+  Normal. Esto satisface simultáneamente la reserva de Investigación V4 y los requisitos
+  visibles del Núcleo N2 y Diagnóstico N4 sin inventar contenido.
+- Los valores de LE y Trazas se abrevian con el FormatNumber real del proyecto: M para
+  millones y K para miles. La imagen no impone separadores numéricos distintos al código.
+- Las exigencias de autómatas de las instalaciones son requisitos de inventario en el
+  código y no se consumen al construir; por eso el total de 56 es consistente.
+- La franja resumen de colas debe ser claramente pulsable. La cancelación se resuelve
+  en el panel global de colas, no con controles duplicados en la raíz.
+- Se mantienen accesos visibles a AUTÓMATAS y BANCO DE PROCESOS para no ocultar las
+  asignaciones ni la mejora existente en el código.
+- Se planifican desde ahora capas independientes para engranajes, luces y piezas, pero
+  no se implementará movimiento antes de aprobar la composición estática.
+- La candidata V2 se verificó a 1080 x 1920 y 720 x 1280. No se copia a Capturas
+  Aprobadas y no se usa para cerrar el perfil D3 hasta recibir aprobación explícita
+  del usuario.
+- El usuario aprobó explícitamente la composición estática V2 el 19 de agosto de 2026.
+  Esta aprobación permite derivar el perfil parcial D3 y corregir las demás imágenes;
+  no equivale a una captura real aprobada ni autoriza todavía animación en Unity.

@@ -1,0 +1,1653 @@
+QUANTUM FORGE
+GUÍA DE PREVENCIÓN DE ERRORES PARA NUEVAS PANTALLAS
+Actualizado: 19 de agosto de 2026
+
+OBJETIVO
+Esta guía reúne los problemas encontrados durante la creación de las pantallas
+del juego. Debe revisarse antes de diseñar, animar o conectar cualquier pantalla
+nueva.
+
+ALCANCE DE ESTA GUÍA
+
+Cada bloque PROBLEMA ENCONTRADO describe un caso histórico y puede nombrar la pantalla,
+dimensión, color o componente donde apareció. Esos detalles explican la evidencia y no
+se convierten en dirección artística para otras dimensiones.
+
+La PREVENCIÓN y la PRUEBA OBLIGATORIA expresan el aprendizaje generalizable, salvo que
+el propio bloque indique un alcance menor. Antes de aplicarlas, deben combinarse con la
+referencia, el perfil y el contrato de la pantalla actual. Nunca se copian automáticamente
+paletas, marcos, iconos, navegación, fondos o metáforas visuales del caso de origen.
+
+MANTENIMIENTO OBLIGATORIO
+Cuando una pantalla revele un error o riesgo nuevo y reproducible, incorporarlo
+aquí antes de cerrar el trabajo. La entrada debe incluir PROBLEMA ENCONTRADO,
+CAUSA, PREVENCIÓN y PRUEBA OBLIGATORIA, además de actualizar la lista de control.
+Si el hallazgo amplía un error existente, mejorar esa sección en vez de duplicarla.
+Registrar también el aprendizaje en 07_REGISTROS/BITACORA_APRENDIZAJES_UI.md.
+
+======================================================================
+1. NO MEZCLAR NAVEGACIONES DE PANTALLAS DIFERENTES
+======================================================================
+
+PROBLEMA ENCONTRADO
+Caso histórico de origen — Dimensión 1.
+El selector general de dimensiones apareció encima de la navegación propia de
+la Dimensión 1 y tapó los botones Galaxia, Explorar, Hangar, Reliquias y Árbol.
+
+CAUSA
+Las dos barras permanecían activas al mismo tiempo y compartían la misma zona
+inferior de la pantalla.
+
+PREVENCIÓN
+- Cada pantalla debe tener una sola navegación principal visible.
+- Al abrir una pantalla secundaria, ocultar temporalmente las barras externas.
+- Al cerrar la pantalla, restaurar exactamente el estado anterior.
+- No depender solamente del orden visual de las capas para ocultar botones.
+
+PRUEBA OBLIGATORIA
+Abrir y cerrar la pantalla varias veces y confirmar que no haya botones
+superpuestos, duplicados o todavía interactivos aunque estén ocultos.
+
+======================================================================
+2. USAR PIVOTES CENTRADOS EN ELEMENTOS ANIMADOS
+======================================================================
+
+PROBLEMA ENCONTRADO
+Planetas, el Anillo de Restos y el Centro Galáctico salían disparados fuera de
+sus hexágonos al seleccionarlos o animarlos.
+
+CAUSA
+Algunos RectTransform giraban o cambiaban de escala con el pivote ubicado en
+una esquina en vez de estar en el centro.
+
+PREVENCIÓN
+- Todo planeta, nave, reliquia, anillo o elemento que gire debe usar pivote
+  (0.5, 0.5).
+- Su posición debe definirse desde el centro del contenedor.
+- Nunca corregir este problema desplazando manualmente la imagen durante la
+  animación; primero corregir pivote, anclas y jerarquía.
+- Animar la capa gráfica interna, no el botón o panel completo.
+
+PRUEBA OBLIGATORIA
+Guardar la posición inicial, seleccionar y deseleccionar el elemento varias
+veces y verificar que la posición no cambie ni un píxel.
+
+======================================================================
+3. UN SOLO SISTEMA DEBE CONTROLAR CADA TEXTO
+======================================================================
+
+PROBLEMA ENCONTRADO
+Los títulos BORDE EXTERIOR, ANILLO DE RESTOS, ÓRBITAS ANTIGUAS y FRONTERA
+SILENCIOSA cambiaban momentáneamente por textos antiguos como:
+"Sector 1 - Borde Exterior [DESBLOQUEADO]". Algunas veces quedaban así.
+
+CAUSA
+El controlador antiguo y el controlador gráfico nuevo escribían sobre el mismo
+TextMeshPro. El sistema antiguo actualizaba el texto al pulsar y el nuevo lo
+restauraba después, creando un parpadeo y un resultado dependiente del orden de
+actualización.
+
+PREVENCIÓN
+- Cada texto visible debe tener un único propietario.
+- Los controles antiguos no deben buscar indiscriminadamente el primer texto
+  hijo de un botón nuevo.
+- Los títulos y estados deben tener referencias separadas y nombres estables.
+- La identificación de un componente no puede depender de un marco decorativo
+  que quizá se elimine más adelante.
+- Los cambios de estilo nunca deben modificar el contenido del texto.
+
+PRUEBA OBLIGATORIA
+Comprobar el título inmediatamente después del toque y nuevamente después de
+varios ciclos de actualización. No basta con revisar solamente el estado final.
+
+======================================================================
+4. NO USAR ELEMENTOS DECORATIVOS COMO IDENTIFICADORES LÓGICOS
+======================================================================
+
+PROBLEMA ENCONTRADO
+Al quitar el marco de expediciones, dejó de funcionar la protección que evitaba
+que el sistema antiguo modificara los títulos.
+
+CAUSA
+La lógica reconocía el diseño nuevo buscando un objeto decorativo llamado
+LabelPlate. Al eliminar ese objeto visual, la condición lógica dejó de cumplirse.
+
+PREVENCIÓN
+- Identificar componentes por una etiqueta, componente o referencia dedicada.
+- Nunca usar bordes, brillos, fondos o iconos opcionales como condición lógica.
+- Los cambios gráficos deben poder hacerse sin alterar el comportamiento.
+
+PRUEBA OBLIGATORIA
+Ocultar o eliminar adornos opcionales y confirmar que botones, textos y estados
+continúan funcionando igual.
+
+======================================================================
+5. MANTENER LAS IMÁGENES DENTRO DE SU CONTENEDOR
+======================================================================
+
+PROBLEMA ENCONTRADO
+Al seleccionar diferentes sectores, el primer planeta de algunos hexágonos se
+desplazaba fuera del marco.
+
+CAUSA
+Se animaba el RectTransform equivocado o se combinaban pivotes, anclas y escalas
+de diferentes sistemas de coordenadas.
+
+PREVENCIÓN
+- Cada cuerpo celeste debe tener un contenedor estable.
+- Las animaciones se aplican a un hijo centrado.
+- No animar el nodo completo cuando solo debe animarse el planeta.
+- Verificar los límites relativos del cuerpo respecto a su hexágono.
+
+PRUEBA OBLIGATORIA
+Seleccionar todos los sectores en secuencia y confirmar que cada imagen continúa
+dentro de su panel.
+
+======================================================================
+6. NO AÑADIR ADORNOS QUE NO APARECEN EN LA REFERENCIA
+======================================================================
+
+PROBLEMA ENCONTRADO
+Se añadieron círculos técnicos alrededor de los planetas de Órbitas Antiguas que
+no estaban presentes en el diseño solicitado.
+
+CAUSA
+Se intentó enriquecer visualmente la pantalla sin respetar de forma estricta la
+referencia.
+
+PREVENCIÓN
+- No agregar órbitas, marcos, partículas, líneas o fondos sin comprobarlos en la
+  imagen de referencia.
+- La fidelidad visual tiene prioridad sobre adornos adicionales.
+- Antes de crear un elemento, confirmar su presencia, tamaño, color y posición.
+
+PRUEBA OBLIGATORIA
+Comparar la captura final lado a lado con la referencia y eliminar cualquier
+elemento que no tenga equivalente visual.
+
+======================================================================
+7. LA SELECCIÓN DEBE ILUMINAR SOLO LO SOLICITADO
+======================================================================
+
+PROBLEMA ENCONTRADO
+Al seleccionar un sector se iluminaba todo el marco de expediciones, aunque la
+referencia solo iluminaba el texto.
+
+CAUSA
+El estado seleccionado se aplicó al contenedor completo en vez de aplicarse al
+texto y a la ruta correspondiente.
+
+PREVENCIÓN
+- Separar visualmente título, estado, borde, fondo, icono y ruta.
+- Definir explícitamente qué cambia en estados normal, seleccionado y bloqueado.
+- No propagar el color de selección a todos los hijos automáticamente.
+
+PRUEBA OBLIGATORIA
+Capturar estados normal y seleccionado y comparar qué píxeles o elementos
+cambian entre ambos.
+
+======================================================================
+8. RESERVAR ESPACIO PARA CONEXIONES Y RUTAS
+======================================================================
+
+PROBLEMA ENCONTRADO
+Los sectores eran tan grandes y estaban tan juntos que las líneas hacia Órbitas
+Antiguas y Frontera Silenciosa casi no se veían.
+
+CAUSA
+Los tamaños se definieron antes de reservar el espacio necesario para las rutas.
+Además, algunas líneas quedaban detrás de los marcos por el orden de las capas.
+
+PREVENCIÓN
+- Diseñar primero la composición completa: nodos, centro, rutas y panel inferior.
+- Reservar una separación visible entre hexágonos conectados.
+- Ajustar tamaño y posición de todos los nodos proporcionalmente.
+- Comprobar el orden de capas después de crear los elementos.
+- Las rutas deben verse completas, pero no atravesar títulos, planetas o marcos.
+
+PRUEBA OBLIGATORIA
+Verificar las cuatro rutas tanto en estado normal como seleccionado y confirmar
+que ninguna quede oculta, cortada o convertida en una franja demasiado corta.
+
+======================================================================
+9. CONTROLAR EL ORDEN DE LAS CAPAS
+======================================================================
+
+PROBLEMA ENCONTRADO
+Algunas conexiones existían, pero quedaban ocultas debajo del Centro Galáctico
+o de los sectores inferiores.
+
+CAUSA
+La jerarquía visual no coincidía con el orden en que debían renderizarse las
+rutas y los nodos.
+
+PREVENCIÓN
+- Definir el orden: fondo, rutas, cuerpos, marcos, textos y efectos de selección.
+- Después de crear la jerarquía, colocar explícitamente las rutas en la capa
+  correcta.
+- No asumir que el orden de creación siempre produce el orden visual correcto.
+
+PRUEBA OBLIGATORIA
+Revisar todas las intersecciones y esquinas de las rutas a tamaño real.
+
+======================================================================
+10. EVITAR MÁSCARAS GLOBALES INNECESARIAS
+======================================================================
+
+PROBLEMA ENCONTRADO
+RectMask2D llegó a cortar elementos y produjo diferencias entre la captura
+automática y la pantalla real.
+
+CAUSA
+Una máscara aplicada a un contenedor demasiado grande afectaba rutas, efectos y
+elementos que sobresalían intencionalmente.
+
+PREVENCIÓN
+- Usar máscaras únicamente en el elemento que realmente necesita recorte.
+- No colocar una máscara global sobre todo el mapa.
+- Verificar la pantalla real y la captura automatizada por separado.
+
+PRUEBA OBLIGATORIA
+Comprobar bordes, brillos, rutas y elementos parcialmente superpuestos en la
+Game View y en una captura de resolución final.
+
+======================================================================
+11. LAS IMÁGENES DEBEN TENER TRANSPARENCIA REAL
+======================================================================
+
+PROBLEMA ENCONTRADO
+Algunas imágenes espaciales requerían máscaras o mostraban fondos no deseados.
+
+CAUSA
+El archivo visual no tenía un canal alfa limpio y se intentaba corregirlo desde
+la interfaz.
+
+PREVENCIÓN
+- Preparar los recursos con transparencia real antes de integrarlos.
+- Evitar soluciones con máscaras complejas cuando basta un PNG correctamente
+  recortado.
+- Revisar halos, bordes negros y residuos de fondo.
+
+PRUEBA OBLIGATORIA
+Mostrar el recurso sobre un fondo claro y otro oscuro para comprobar su alfa.
+
+======================================================================
+12. NO INTRODUCIR SEPARADORES VISUALES NO SOLICITADOS
+======================================================================
+
+PROBLEMA ENCONTRADO
+Las tarjetas de materiales mostraban una línea vertical blanca junto a sus
+iconos.
+
+CAUSA
+Se añadió un objeto decorativo Marker que no era necesario y se veía demasiado
+brillante en pantalla.
+
+PREVENCIÓN
+- Cada línea decorativa debe justificarse con la referencia.
+- Comprobar el resultado a resolución real, porque un color cian puede verse
+  blanco cuando tiene demasiado brillo.
+- Los iconos ya pueden actuar como ancla visual sin separadores adicionales.
+
+PRUEBA OBLIGATORIA
+Revisar individualmente todas las tarjetas de recursos y confirmar que tengan la
+misma estructura y separación.
+
+======================================================================
+13. DIFERENCIAR SECTOR ACTUAL DE SECTOR PREVISUALIZADO
+======================================================================
+
+PROBLEMA ENCONTRADO
+La pantalla podía abrir mostrando automáticamente información seleccionada,
+aunque la referencia requería un estado neutral inicial.
+
+CAUSA
+Se utilizaba el sector persistente actual también como selección visual temporal.
+
+PREVENCIÓN
+- Mantener dos estados separados: sector actual guardado y sector que el usuario
+  está previsualizando.
+- Al abrir la carta, permitir un estado neutral sin modificar el progreso.
+- Mostrar el botón de entrada solamente cuando exista una selección válida.
+
+PRUEBA OBLIGATORIA
+Abrir la pantalla, confirmar el estado neutral, seleccionar un sector, cerrarla y
+verificar que el progreso persistente no cambie por una simple previsualización.
+
+======================================================================
+14. HACER PRUEBAS EN EL INSTANTE DEL TOQUE
+======================================================================
+
+PROBLEMA ENCONTRADO
+Una comprobación realizada varios fotogramas después del toque no detectaba el
+parpadeo temporal de los títulos.
+
+CAUSA
+El controlador gráfico corregía el texto antes de que la prueba lo revisara.
+
+PREVENCIÓN
+- Validar inmediatamente después de ejecutar la acción.
+- Volver a validar después de la animación y del refresco periódico.
+- Probar toques repetidos y cambios rápidos entre sectores.
+
+PRUEBA OBLIGATORIA
+Para cada botón: revisar estado antes del toque, justo después, durante la
+transición y al finalizar.
+
+======================================================================
+15. RECONSTRUIR Y PROBAR CON UNITY CERRADO
+======================================================================
+
+PROBLEMA ENCONTRADO
+Unity bloqueó la reconstrucción automática porque el proyecto ya estaba abierto.
+
+CAUSA
+Unity no permite que otra instancia abra y modifique el mismo proyecto de manera
+segura.
+
+PREVENCIÓN
+- Guardar y cerrar Unity antes de ejecutar una reconstrucción automatizada.
+- Nunca forzar el cierre del editor si puede haber cambios sin guardar.
+- Confirmar que no exista un proceso de Unity antes de comenzar.
+
+PRUEBA OBLIGATORIA
+Verificar que la reconstrucción termine con confirmación de éxito y sin errores
+de compilación.
+
+======================================================================
+16. LAS CAPTURAS AUTOMÁTICAS NECESITAN COMPLETAR EL MODO DE JUEGO
+======================================================================
+
+PROBLEMA ENCONTRADO
+Algunas pruebas podían cerrar Unity antes de que terminara la captura o la
+interacción programada.
+
+CAUSA
+El cierre inmediato de Unity competía con una prueba que necesitaba varios
+fotogramas en modo de juego.
+
+PREVENCIÓN
+- Las pruebas visuales deben cerrar Unity por sí mismas al terminar.
+- Esperar la confirmación final de la prueba, no solamente el inicio del editor.
+- Separar captura neutral, captura seleccionada y prueba de interacción cuando
+  sea necesario.
+
+PRUEBA OBLIGATORIA
+Confirmar que existan el mensaje final de éxito y las imágenes esperadas.
+
+======================================================================
+17. RESPETAR UNA ZONA SEGURA DENTRO DE CADA MARCO
+======================================================================
+
+PROBLEMA ENCONTRADO
+En las pantallas de Cubo, Mejoras, Mezclas y Semillas algunos textos, barras y
+botones tocaban, atravesaban o quedaban parcialmente fuera de los marcos
+metálicos.
+
+CAUSA
+Los elementos se posicionaban respecto al RectTransform completo, incluyendo
+los biseles y adornos del marco, en vez de usar solamente la superficie interior
+útil.
+
+PREVENCIÓN
+- Definir una zona segura interior para cada tipo de marco.
+- Mantener márgenes simétricos a la izquierda, derecha, arriba y abajo.
+- No usar los límites 0 y 1 de un panel ornamental para colocar contenido.
+- Revisar por separado textos largos, barras de progreso y botones anchos.
+- Si el contenido no cabe, redistribuirlo antes de reducir su tamaño.
+
+PRUEBA OBLIGATORIA
+Revisar las cuatro esquinas y todos los bordes a resolución final y confirmar que
+ningún texto, icono, botón o barra toque el bisel del marco.
+
+======================================================================
+18. DEFINIR UN TAMAÑO MÍNIMO REALMENTE LEGIBLE
+======================================================================
+
+PROBLEMA ENCONTRADO
+El autoajuste redujo algunos textos de Incubación de Semillas hasta hacerlos
+difíciles de leer, aunque técnicamente permanecían dentro del panel.
+
+CAUSA
+El sistema intentaba hacer caber textos largos en rectángulos demasiado pequeños
+sin un tamaño mínimo visualmente aceptable.
+
+PREVENCIÓN
+- Definir fontSizeMin según la resolución final y la importancia del texto.
+- No considerar correcto un texto únicamente porque no produce desbordamiento.
+- Abreviar mensajes secundarios cuando no puedan conservar un tamaño legible.
+- Aumentar el espacio del texto antes de reducir su tipografía.
+- Evitar Ellipsis en información necesaria para comprender una acción.
+
+PRUEBA OBLIGATORIA
+Leer todos los textos en una captura de resolución final sin ampliarla y confirmar
+que los estados, costes, requisitos y botones se entiendan claramente.
+
+======================================================================
+19. CENTRAR CONJUNTOS VISUALES, NO SOLO ELEMENTOS INDIVIDUALES
+======================================================================
+
+PROBLEMA ENCONTRADO
+Los medidores circulares de Estabilidad y Tensión estaban alineados entre sí,
+pero no coincidían visualmente con el umbral y el aviso amarillo situados debajo.
+
+CAUSA
+Cada objeto fue centrado usando sus propias anclas sin calcular el centro del
+grupo completo formado por medidores, valores y leyendas.
+
+PREVENCIÓN
+- Agrupar los elementos que comunican una misma información.
+- Calcular un centro común para iconos, valores, títulos y textos inferiores.
+- Mantener separaciones simétricas dentro del grupo.
+- Evaluar el peso visual del contenido, no solamente sus coordenadas numéricas.
+
+PRUEBA OBLIGATORIA
+Dibujar mentalmente o mediante una guía el eje central del grupo y comprobar que
+los medidores y sus textos se distribuyan equilibradamente a ambos lados.
+
+======================================================================
+20. NO ESTIRAR MARCOS ORNAMENTALES INADECUADOS
+======================================================================
+
+PROBLEMA ENCONTRADO
+Algunos fondos de botones y paneles quedaron deformados o mostraron líneas y
+adornos atravesando los textos al cambiar su proporción.
+
+CAUSA
+Se reutilizaron sprites creados para otra forma o tamaño y se configuraron con un
+tipo de imagen que no conservaba correctamente sus bordes y superficie central.
+
+PREVENCIÓN
+- Comprobar si cada sprite debe usar Image.Type.Simple o Image.Type.Sliced.
+- No reutilizar un marco vertical como fondo de un panel horizontal ancho.
+- Verificar que la zona central del recurso sea adecuada para colocar texto.
+- Añadir una placa interior opaca cuando el fondo ambiental pueda cruzar el
+  contenido.
+- Preparar un recurso nuevo si el marco original no admite la proporción requerida.
+
+PRUEBA OBLIGATORIA
+Revisar esquinas, biseles, líneas internas y centro del marco en todas las
+proporciones utilizadas y confirmar que ningún adorno atraviese el contenido.
+
+======================================================================
+21. NO INVENTAR CONCEPTOS, NOMBRES O INFORMACIÓN
+======================================================================
+
+PROBLEMA ENCONTRADO
+Durante el diseño aparecieron textos como FASE en lugar de ENERGÍA, PROTOCOLO DE
+CUARENTENA, BENEFICIO y 3/3 ACOPLADO, aunque no representaban correctamente el
+código, el lore o el estado real del juego.
+
+CAUSA
+Se completaron espacios visuales con información conceptual sin verificar antes
+los nombres y comportamientos implementados.
+
+PREVENCIÓN
+- Consultar el código y el diseño funcional antes de escribir una etiqueta.
+- Respetar los nombres oficiales de recursos, sistemas y estados.
+- No añadir alertas o diagnósticos únicamente para llenar espacio.
+- Si un concepto todavía no está definido, usar un estado neutral aprobado.
+- Confirmar que cada valor visible pueda explicarse mediante una regla del juego.
+- Un valor numérico pendiente no equivale a cero: comunicar que falta definición y no
+  mostrar “+0” como si fuera una bonificación diseñada.
+
+PRUEBA OBLIGATORIA
+Comparar todos los textos de la pantalla con el código, el lore y las reglas de
+juego y justificar el origen de cada nombre, porcentaje y estado mostrado. Revisar
+de forma específica que ningún valor pendiente aparezca transformado en cero.
+
+======================================================================
+22. EVITAR INFORMACIÓN REDUNDANTE
+======================================================================
+
+PROBLEMA ENCONTRADO
+La sincronización del Triángulo aparecía tanto en la barra lateral como en el
+centro de la composición, ocupando dos espacios con el mismo dato.
+
+CAUSA
+Se conservaron indicadores conceptuales anteriores después de incorporar una
+ubicación definitiva para la misma información.
+
+PREVENCIÓN
+- Asignar una ubicación principal a cada dato importante.
+- No repetir porcentajes o estados salvo que exista una necesidad funcional.
+- Usar el espacio restante para información diferente y útil.
+- Eliminar indicadores que no aporten una decisión nueva al jugador.
+
+PRUEBA OBLIGATORIA
+Enumerar todos los datos visibles y confirmar que ninguno aparezca dos veces sin
+una razón explícita.
+
+======================================================================
+23. DISEÑAR EXPLÍCITAMENTE LOS ESTADOS VACÍOS
+======================================================================
+
+PROBLEMA ENCONTRADO
+Las ranuras vacías de Mezclas mostraban líneas internas que parecían contenido
+roto o información que no había cargado.
+
+CAUSA
+El mismo fondo se utilizaba para estados vacíos y ocupados sin definir qué debía
+permanecer visible cuando faltaba el icono principal.
+
+PREVENCIÓN
+- Diseñar estados separados para vacío, seleccionado, bloqueado y completado.
+- Ocultar adornos que puedan confundirse con contenido ausente.
+- Mantener una superficie limpia cuando todavía no exista una selección.
+- No ocultar marcos, títulos o controles necesarios para comprender la ranura.
+- Cambiar únicamente las capas asociadas al estado.
+
+PRUEBA OBLIGATORIA
+Capturar cada ranura vacía y ocupada y confirmar que ambas se entiendan sin
+parecer incompletas o dañadas accidentalmente.
+
+======================================================================
+24. MOSTRAR CONTROLES CONDICIONALES SOLO DONDE CORRESPONDEN
+======================================================================
+
+PROBLEMA ENCONTRADO
+El botón de Semillas apareció inicialmente dentro de todos los nodos del Cubo,
+aunque debía pertenecer únicamente a la Cámara de Semillas y convertirse después
+en una pestaña permanente.
+
+CAUSA
+La visibilidad del botón se aplicó al panel genérico de nodos en vez de depender
+del nodo seleccionado y del estado de desbloqueo.
+
+PREVENCIÓN
+- Relacionar cada control condicional con su nodo y requisito exactos.
+- Separar la acción de desbloqueo de la navegación permanente posterior.
+- Ocultar el botón en todos los estados donde no tenga una función válida.
+- No reutilizar una referencia genérica para controles específicos.
+
+PRUEBA OBLIGATORIA
+Recorrer todos los nodos antes y después del desbloqueo y confirmar que el botón
+aparezca solamente en el lugar y momento correctos.
+
+======================================================================
+25. VERIFICAR QUE LA CAPTURA SEA REALMENTE NUEVA
+======================================================================
+
+PROBLEMA ENCONTRADO
+Cuando Unity falló por el cliente de licencia se volvió a revisar una captura
+anterior como si contuviera los últimos cambios.
+
+CAUSA
+La ejecución terminó sin generar una imagen nueva, pero no se comprobó la fecha
+del archivo ni el mensaje final de éxito antes de abrirlo.
+
+PREVENCIÓN
+- Comprobar el mensaje PASS de la captura correspondiente.
+- Verificar la fecha y hora de modificación de la imagen.
+- Usar nombres de registro diferentes para cada intento.
+- No evaluar una imagen si Unity terminó con errores de licencia, compilación o
+  Package Manager.
+- Informar claramente cuando una captura mostrada pertenece a una versión anterior.
+
+PRUEBA OBLIGATORIA
+Comparar la hora de inicio de la validación con la fecha de la captura y confirmar
+en el registro que el proceso funcional terminó correctamente.
+
+======================================================================
+26. UN SOLO SISTEMA DEBE CONTROLAR CADA RECTTRANSFORM
+======================================================================
+
+PROBLEMA ENCONTRADO
+Algunos ajustes guardados podían ser reemplazados por constructores visuales o
+refrescos ejecutados posteriormente, haciendo que posiciones y tamaños volvieran
+a valores anteriores.
+
+CAUSA
+Más de un sistema modificaba las anclas o dimensiones del mismo elemento sin un
+orden y propietario claramente definidos.
+
+PREVENCIÓN
+- Asignar un único propietario para la posición y tamaño de cada elemento.
+- Separar construcción inicial, estilo visual y actualización de datos.
+- Los refrescos de estado no deben modificar la composición de la pantalla.
+- Definir un orden estable cuando sea necesario reconstruir y después pulir.
+- Las herramientas de configuración deben ser idempotentes.
+
+PRUEBA OBLIGATORIA
+Ejecutar dos veces la configuración, entrar y salir de Play Mode y reabrir la
+escena; confirmar que ningún RectTransform cambie de posición o tamaño.
+
+======================================================================
+27. CONFIRMAR TODAS LAS REFERENCIAS VISUALES ANTES DE CAMBIAR
+======================================================================
+
+PROBLEMA ENCONTRADO
+Una solicitud mencionaba seis fotografías, pero solamente se habían adjuntado
+cinco, dejando una corrección sin referencia visual directa.
+
+CAUSA
+No se comprobó la correspondencia completa entre el número de imagen y cada
+instrucción antes de comenzar los cambios.
+
+PREVENCIÓN
+- Contar las imágenes recibidas y relacionarlas con cada instrucción.
+- No asumir cuál era una referencia ausente si puede cambiar el resultado.
+- Usar el historial únicamente cuando la correspondencia sea inequívoca.
+- Pedir la imagen faltante cuando la instrucción no pueda verificarse con seguridad.
+
+PRUEBA OBLIGATORIA
+Antes de implementar, crear una correspondencia entre cada fotografía y el cambio
+solicitado y confirmar que no falte ninguna referencia necesaria.
+
+======================================================================
+28. NO USAR ACTIVESELF COMO VISIBILIDAD Y COMO ENTRADA DEL LAYOUT
+======================================================================
+
+PROBLEMA ENCONTRADO
+Toda Carta Galáctica, incluido el fondo, saltaba periódicamente aunque el
+RectTransform local de la imagen permanecía inmóvil.
+
+CAUSA
+Un controlador activaba la navegación secundaria cada 0,35 segundos y otro la
+ocultaba. VerticalSafeAreaLayout utilizaba el activeSelf de esa barra para decidir
+el tamaño del ContentSlot. Cada activación cambiaba 120 píxeles la altura del
+contenedor padre y desplazaba toda la pantalla hija.
+
+PREVENCIÓN
+- No usar el mismo activeSelf como estado visual y como condición de composición.
+- Cuando una pantalla suprima la navegación, comunicarlo mediante un estado
+  explícito compartido, por ejemplo navigationSuppressed o fullScreenOverride.
+- Si varias pantallas pueden permanecer activas o solaparse durante una transición,
+  la supresión debe registrar propietarios. Un booleano único permite que una pantalla
+  libere la navegación que otra todavía necesita mantener oculta.
+- Aplicar el cambio físico de visibilidad en el Update siguiente al clic y calcular el
+  layout con el estado lógico compartido; no alternar Selectable dentro de OnPointerClick.
+- Si una barra debe ocultarse sin cambiar la geometría, usar CanvasGroup o mantener
+  reservada su altura.
+- Un hijo puede conservar anchoredPosition = 0 y aun así moverse en pantalla si
+  cambia cualquier padre, el Safe Area o el Canvas Scaler.
+- Al diagnosticar saltos, medir las esquinas en coordenadas de pantalla de toda la
+  cadena de padres, no solamente la posición local de la imagen.
+
+PRUEBA OBLIGATORIA
+Dejar la pantalla abierta al menos diez segundos sin interacción y comprobar que
+ContentSlot, Safe Area, mapa, fondo, encabezado y paneles mantengan sus cuatro
+esquinas de pantalla dentro de una tolerancia de 0,05 píxeles.
+
+======================================================================
+29. SEPARAR EL REFRESCO DE DATOS DE LA ANIMACIÓN VISUAL
+======================================================================
+
+PROBLEMA ENCONTRADO
+Carta Galáctica refrescaba datos cada 0,25 segundos y algunos elementos visuales
+competían con ese ciclo, produciendo textos alternados y riesgo de reconstrucciones
+periódicas del Canvas.
+
+CAUSA
+La actualización del estado del juego, la composición y la animación se trataban
+como una sola responsabilidad.
+
+PREVENCIÓN
+- El refresco periódico sólo debe cambiar datos que realmente hayan variado.
+- Las animaciones deben vivir en Animator, tween, shader o un componente visual
+  independiente y utilizar Time.unscaledTime cuando corresponda.
+- Nunca reconstruir la jerarquía, cambiar anclas o regenerar el layout en cada
+  refresco de datos.
+- Cachear textos y estados para no reasignar el mismo valor cada 0,25 segundos.
+- Detener animaciones y reconstrucciones cuando el panel esté inactivo.
+
+PRUEBA OBLIGATORIA
+Mantener la pantalla sin tocar durante varios ciclos de refresco y verificar que
+solamente cambien los valores dinámicos autorizados, sin reflow, cambios de texto
+transitorios ni reconstrucciones innecesarias del layout.
+
+======================================================================
+30. VALIDAR LA ANIMACIÓN RENDERIZADA, NO SOLO LA FÓRMULA
+======================================================================
+
+PROBLEMA ENCONTRADO
+Se afirmó varias veces que el fondo estaba animado, pero al abrir Unity no se
+percibía movimiento. En otra versión sólo se movían partículas añadidas alrededor,
+mientras la imagen de la galaxia seguía siendo completamente estática.
+
+CAUSA
+La prueba comprobaba tiempo, posiciones calculadas, alfa o escala de componentes,
+pero no demostraba que los píxeles visibles de la capa solicitada cambiaran. Una
+animación demasiado tenue también podía pasar la validación técnica.
+
+PREVENCIÓN
+- Definir antes de implementar qué capa debe moverse realmente: fondo, galaxia,
+  brazos, polvo, núcleo, planeta o partículas.
+- No sustituir la animación solicitada por adornos móviles cercanos.
+- Comprobar que la malla, textura, material y alfa estén renderizados.
+- Capturar fotogramas reales separados entre 0,5 y 1 segundo.
+- Comparar píxeles dentro de la región animada y puntos de control estáticos fuera.
+- Establecer un desplazamiento o cambio de luminancia mínimo perceptible y también
+  un máximo por paso para evitar saltos.
+
+PRUEBA OBLIGATORIA
+Generar una secuencia o video corto de la Game View. La región que debe animarse
+tiene que mostrar cambios visibles, mientras textos, marcos y fondo estático
+conservan exactamente su posición.
+
+======================================================================
+31. NO MOVER EL RASTER ESTELAR COMPLETO PARA SIMULAR VIDA
+======================================================================
+
+PROBLEMA ENCONTRADO
+Mover, escalar o duplicar texturas que contenían estrellas produjo sensación de
+salto, ghosting y un fondo que parecía deslizarse detrás de la interfaz.
+
+CAUSA
+Las estrellas de alto contraste formaban parte de la misma imagen usada para el
+parallax, pulso o respiración. Cualquier transformación desplazaba referencias
+visuales que el ojo espera que permanezcan fijas.
+
+PREVENCIÓN
+- Mantener completamente inmóvil la capa que contiene el campo estelar.
+- Separar estrellas, nebulosa, polvo, brazos, núcleo y destellos en capas distintas.
+- Animar alfa, UV o deformación únicamente en capas localizadas sin estrellas
+  horneadas.
+- No superponer dos copias móviles de la misma nebulosa o campo estelar.
+- Para una galaxia animada, usar una galaxia aislada con transparencia en lugar de
+  deformar una fotografía completa del espacio.
+
+PRUEBA OBLIGATORIA
+Comparar varios fotogramas y confirmar que cada estrella de control conserve las
+mismas coordenadas, aunque cambien suavemente los brazos, el polvo o el núcleo.
+
+======================================================================
+32. CONSERVAR LA PROPORCIÓN Y RECORTAR EN UN VIEWPORT DEDICADO
+======================================================================
+
+PROBLEMA ENCONTRADO
+Una galaxia cuadrada podía estirarse para llenar 1080×1920 o el área 1080×1005,
+alterando su inclinación y haciendo que pareciera un disco o una figura distinta.
+También llegó a extenderse detrás del encabezado y del panel inferior.
+
+CAUSA
+Se usó Stretch con preserveAspect desactivado sin comparar la relación de aspecto
+del asset con la del contenedor.
+
+PREVENCIÓN
+- Registrar las dimensiones y la relación de aspecto de cada imagen antes de usarla.
+- Escalar uniformemente y recortar el excedente dentro de un viewport localizado.
+- Aplicar RectMask2D sólo al área que necesita el recorte, no a toda la pantalla.
+- Preparar un recorte offline específico cuando sea necesario controlar con precisión
+  la composición.
+- La imagen ambiental del mapa debe ser hermana de encabezados y paneles, no un
+  fondo global situado detrás de todos ellos.
+
+PRUEBA OBLIGATORIA
+Superponer una cuadrícula o círculo de referencia sobre el asset original y la
+captura final para confirmar que no existe deformación y que ningún píxel del fondo
+aparece fuera del viewport autorizado.
+
+======================================================================
+33. CONFIGURAR TEXTURAS ESPACIALES PARA EVITAR MOIRÉ Y CENTELLEO
+======================================================================
+
+PROBLEMA ENCONTRADO
+Fondos con muchas estrellas de uno o dos píxeles parecían saltar o centellear en
+Game View a escala 0,64 y en videos grabados con el teléfono, aun cuando la imagen
+no cambiaba de posición.
+
+CAUSA
+La textura se reescalaba varias veces, tenía estrellas demasiado pequeñas, mipmaps
+desactivados, filtro Bilinear y compresión que introducía halos de alta frecuencia.
+
+PREVENCIÓN
+- Crear fondos para la resolución y proporción reales de destino.
+- Evitar detalles estelares inferiores a dos píxeles efectivos.
+- Para fondos espaciales, probar mipmaps activados, filtro Trilinear, Wrap Mode Clamp
+  y tamaño máximo suficiente.
+- Comparar primero sin compresión y después usar Android ASTC 4×4 de buena calidad.
+- Evitar Crunch o ETC automático cuando degraden estrellas, alfa o filamentos.
+- No juzgar estabilidad únicamente filmando una Game View reducida; usar captura
+  directa a escala 1:1 y una compilación en dispositivo.
+
+PRUEBA OBLIGATORIA
+Capturar directamente a 1080×1920 y 720×1280, revisar también el dispositivo y
+distinguir entre movimiento geométrico real y aliasing producido por el escalado.
+
+======================================================================
+34. EL DISEÑO APROBADO DEBE PODER RECONSTRUIRSE CON LOS ASSETS FINALES
+======================================================================
+
+PROBLEMA ENCONTRADO
+Algunos conceptuales iniciales prometían una apariencia que después no podía
+reproducirse fielmente en Unity con los sprites, modelos, shaders y estructura
+disponibles. El resultado funcional terminaba demasiado simplificado y diferente.
+
+CAUSA
+Se aprobó una imagen completa sin descomponerla en elementos concretos ni demostrar
+cómo se construiría dentro del motor.
+
+PREVENCIÓN
+- Antes de aprobar un diseño, enumerar cada sprite, marco, texto, shader, partícula,
+  máscara, modelo y animación necesarios.
+- Diferenciar claramente un mockup de presentación de un asset utilizable.
+- No usar la lámina de opciones o una captura conceptual como textura final.
+- Preparar los assets en las mismas capas y proporciones que tendrá Unity.
+- Si una característica requiere 3D, RenderTexture o un shader especial, declararlo
+  antes de prometer la apariencia.
+- Validar primero un recorte representativo dentro de Unity antes de producir toda
+  la pantalla.
+
+PRUEBA OBLIGATORIA
+Comparar el mockup aprobado con una captura real de Unity y justificar cómo se
+construye cada elemento visible. No aprobar si una parte importante sólo existe en
+la imagen conceptual.
+
+======================================================================
+35. MANTENER EL MISMO NIVEL DE DETALLE ENTRE FONDO Y ELEMENTOS PRINCIPALES
+======================================================================
+
+PROBLEMA ENCONTRADO
+Los planetas tenían iluminación y textura realistas, pero algunos fondos parecían
+un papel plano con puntos, creando una diferencia evidente de calidad artística.
+
+CAUSA
+El fondo se trató como un relleno funcional y no como parte del mismo lenguaje
+visual de los cuerpos celestes y la interfaz premium.
+
+PREVENCIÓN
+- Definir conjuntamente paleta, contraste, escala del detalle, profundidad y tipo
+  de iluminación de fondo y elementos principales.
+- Un fondo puede ser eficiente sin ser vacío o genérico: usar nebulosas, polvo,
+  variación de densidad y profundidad controlada.
+- No aumentar detalle detrás de textos hasta perjudicar su lectura.
+- Revisar la composición completa, no aprobar assets individualmente aislados.
+
+PRUEBA OBLIGATORIA
+Evaluar a resolución final si fondo, planetas, marcos y efectos parecen pertenecer
+al mismo juego y si la riqueza visual no compite con la información funcional.
+
+======================================================================
+36. DIFERENCIAR CONCEPTO, CAPTURA REAL E IMPLEMENTACIÓN FUNCIONAL
+======================================================================
+
+PROBLEMA ENCONTRADO
+Se mostraron imágenes de propuesta que podían interpretarse como capturas reales
+del juego y también se habló de una apariencia como si ya estuviera implementada,
+aunque todavía era solamente un diseño conceptual.
+
+CAUSA
+No se indicó de forma visible el estado del material presentado ni se exigió una
+evidencia independiente para confirmar que la pantalla existía dentro de Unity.
+
+PREVENCIÓN
+- Etiquetar cada imagen como CONCEPTO, CAPTURA REAL DE UNITY o REFERENCIA.
+- No afirmar que algo está implementado únicamente porque existe un mockup.
+- Una implementación debe demostrarse con escena o prefab guardado, compilación
+  correcta y captura nueva producida desde la Game View.
+- Indicar por separado qué partes son funcionales y cuáles son decorativas.
+- No prometer que un diseño puede conservarse idéntico sin comprobar primero sus
+  assets, shaders, animaciones y comportamiento en Unity.
+
+PRUEBA OBLIGATORIA
+Para declarar una pantalla implementada, abrir la escena real, interactuar con sus
+controles y conservar una captura nueva junto con el registro exitoso de Unity.
+
+======================================================================
+37. REUTILIZAR LOS ICONOS CANÓNICOS DEL JUEGO
+======================================================================
+
+PROBLEMA ENCONTRADO
+Los iconos de Fragmento A y Fragmento B no coincidían con los utilizados en la
+primera parte del juego, y el icono del Catalizador era demasiado simple frente
+al nivel de detalle mecánico de los otros dos.
+
+CAUSA
+Se crearon sustitutos visuales sin buscar primero los assets ya aprobados y no se
+comparó la complejidad, volumen, iluminación y acabado de todos los iconos del grupo.
+
+PREVENCIÓN
+- Buscar y reutilizar primero el sprite canónico de cada recurso o artefacto.
+- Mantener una tabla que relacione concepto, nombre visible y ruta del asset final.
+- No reemplazar un icono existente por una aproximación generada sin autorización.
+- Comparar juntos todos los iconos de una misma fila o sistema.
+- Si hace falta un icono nuevo, igualar perspectiva, marco mecánico, iluminación,
+  grosor, contraste, resolución y nivel de detalle de los iconos vecinos.
+- Si el icono se dibuja por código, no reducirlo a una silueta: separar chasis,
+  paneles, facetas, sensores, motores, nervaduras y núcleo cuando la referencia
+  muestre esas capas.
+- Antes de añadir esas capas, comparar la topología del contorno: relación ancho/alto,
+  número y dirección de alas o apéndices, centro de masa y forma de la terminación.
+  Si no coincide, redibujar la base en vez de decorar la geometría equivocada.
+- Revisar todas las pantallas donde el mismo concepto vuelve a aparecer.
+
+PRUEBA OBLIGATORIA
+Comparar cada icono con su primera aparición en el juego y confirmar que el mismo
+concepto utiliza el mismo asset, salvo que exista una variante aprobada y documentada.
+
+======================================================================
+38. NO OCULTAR REQUISITOS FUNCIONALES AL JUGADOR
+======================================================================
+
+PROBLEMA ENCONTRADO
+El Estudio del enfoque LE mostraba un coste de 120 de Energía, pero el botón seguía
+bloqueado porque también exigía haber sincronizado previamente el circuito LE al
+100 %. Ese segundo requisito no se comunicaba claramente y parecía un error.
+
+CAUSA
+La lógica de desbloqueo tenía más condiciones que la tarjeta y el botón visibles.
+Además, el requisito adicional no era intuitivo para el orden de progresión.
+
+PREVENCIÓN
+- Todo requisito que pueda bloquear una acción debe aparecer antes de intentar usarla.
+- La tarjeta debe distinguir coste, duración, prerrequisitos y motivo de bloqueo.
+- El texto mostrado debe provenir de la misma definición funcional que usa la lógica.
+- No introducir requisitos circulares o poco intuitivos sin una razón de diseño clara.
+- Si una condición deja de aportar valor, eliminarla de la lógica y del texto juntos.
+- Un botón deshabilitado siempre debe explicar qué falta y cómo conseguirlo.
+
+PRUEBA OBLIGATORIA
+Probar cada combinación de requisitos cumplidos e incumplidos y confirmar que el
+motivo visible coincide exactamente con GetStartBlockReason, CanBuy o su equivalente.
+
+======================================================================
+39. RESERVAR ESPACIO ENTRE TEXTOS DINÁMICOS VECINOS
+======================================================================
+
+PROBLEMA ENCONTRADO
+La etiqueta MODULADOR se superponía con el porcentaje de SINCRONIZACIÓN debajo del
+nodo central del Triángulo.
+
+CAUSA
+Los RectTransform se revisaron como posiciones aisladas, pero no se comprobó la
+intersección de sus límites de texto renderizados en el lienzo vertical del teléfono.
+
+PREVENCIÓN
+- Definir una separación mínima entre los bounds reales de textos vecinos.
+- Reservar altura para el valor más largo posible, no solamente para el texto inicial.
+- No corregir una superposición moviendo un texto hacia otro bloque informativo.
+- Considerar autoajuste, ascensos, descensos, saltos de línea y localización.
+- Repetir la comprobación en todos los estados dinámicos y relaciones de aspecto.
+- Guardar el ajuste tanto en la escena real como en la herramienta que la reconstruye.
+
+PRUEBA OBLIGATORIA
+Calcular o inspeccionar los límites renderizados de cada pareja de textos y confirmar
+que no se intersecten a 1080×1920, 720×1280 y en el dispositivo de prueba.
+
+======================================================================
+40. VALIDAR COMPATIBILIDAD REAL DEL APK EN ANDROID
+======================================================================
+
+PROBLEMA ENCONTRADO
+Android mostró “App not installed as app isn't compatible with your phone” al
+intentar instalar una compilación del juego.
+
+CAUSA
+El APK no incluía todas las arquitecturas requeridas por los dispositivos de prueba
+o sus ajustes de plataforma no se verificaron antes de entregarlo.
+
+PREVENCIÓN
+- Para pruebas amplias, incluir ARMv7 y ARM64 cuando las dependencias lo permitan.
+- Comprobar Min SDK, Target SDK, backend, orientación y formato de empaquetado.
+- No confundir una compilación exitosa con una instalación compatible.
+- Registrar ABI, identificador, código de versión y firma de cada APK entregado.
+- Probar instalación y arranque en al menos un dispositivo de cada arquitectura objetivo.
+
+PRUEBA OBLIGATORIA
+Inspeccionar el APK para confirmar sus ABI y realizar una instalación limpia de prueba
+y una instalación como actualización antes de entregarlo.
+
+======================================================================
+41. UNA COMPILACIÓN QA DEBE CONSERVAR TODAS LAS HERRAMIENTAS DE PRUEBA
+======================================================================
+
+PROBLEMA ENCONTRADO
+Una compilación para pruebas ocultó opciones de depuración que eran necesarias para
+adelantar progresión, añadir recursos y reproducir errores rápidamente.
+
+CAUSA
+No se diferenció explícitamente el perfil QA del perfil destinado a jugadores.
+
+PREVENCIÓN
+- Mantener perfiles de compilación separados para QA y producción.
+- En QA no ocultar, eliminar ni desactivar controles de prueba solicitados.
+- Mostrar claramente que la compilación es QA para no confundirla con la final.
+- Las herramientas QA no deben alterar el comportamiento normal salvo cuando el
+  probador las active voluntariamente.
+- Documentar qué botones, atajos, checkpoints y registros contiene cada perfil.
+
+PRUEBA OBLIGATORIA
+Instalar el APK QA y recorrer una lista de todas las herramientas de prueba esperadas,
+confirmando que sean visibles, interactuables y funcionales.
+
+======================================================================
+42. UNA ACTUALIZACIÓN NO DEBE BORRAR EL AVANCE
+======================================================================
+
+PROBLEMA ENCONTRADO
+Al preparar una nueva versión surgió el riesgo de que el jugador tuviera que
+desinstalar el APK anterior y perdiera el archivo save.json con su progreso.
+
+CAUSA
+No se había fijado como contrato de entrega conservar identificador de aplicación,
+firma y compatibilidad del formato de guardado entre versiones.
+
+PREVENCIÓN
+- Mantener el mismo applicationIdentifier y la misma firma para las actualizaciones.
+- Incrementar el versionCode en cada APK nuevo.
+- No pedir que se desinstale la versión anterior para instalar una corrección.
+- Mantener migraciones para campos nuevos, renombrados o eliminados del guardado.
+- Hacer una copia de seguridad o checkpoint antes de probar cambios de alto riesgo.
+- Una variante QA que deba actualizar la instalación actual debe usar la identidad
+  acordada; si usa otra identidad, debe explicarse que será una aplicación separada.
+
+PRUEBA OBLIGATORIA
+Crear progreso en la versión anterior, instalar la nueva encima y confirmar que el
+save.json carga correctamente, conserva recursos y desbloqueos, y puede volver a guardarse.
+
+======================================================================
+43. NO OMITIR LA RESOLUCIÓN DE PAQUETES PARA ACELERAR UNA VALIDACIÓN
+======================================================================
+
+PROBLEMA ENCONTRADO
+Una ejecución con el Package Manager deshabilitado produjo numerosos errores falsos
+de tipos inexistentes como TextMeshProUGUI, TMP_Text, Image y Button.
+
+CAUSA
+Unity intentó compilar antes de resolver los paquetes que aportan TextMeshPro y UGUI.
+
+PREVENCIÓN
+- No usar -noUpm cuando Library necesita reimportarse o cambió el estado de paquetes.
+- Esperar a que Package Manager termine antes de interpretar errores de compilación.
+- Distinguir un fallo del código del proyecto de una dependencia todavía no resuelta.
+- Conservar manifest.json, packages-lock.json y PackageCache coherentes.
+- No declarar una validación exitosa si el método solicitado nunca llegó a ejecutarse.
+
+PRUEBA OBLIGATORIA
+Confirmar en el registro que los paquetes se registraron, la compilación terminó sin
+errores y aparece el mensaje PASS específico del método ejecutado.
+
+======================================================================
+44. LOS CAMBIOS DE COLOR DEBEN SER PERCEPTIBLES Y COMPARABLES
+======================================================================
+
+PROBLEMA ENCONTRADO
+Se solicitaron varias veces tonos de azul más oscuros para Higgs, pero las capturas
+consecutivas parecían iguales y no permitían confirmar que el cambio se hubiera aplicado.
+
+CAUSA
+La variación numérica era demasiado pequeña, las capturas no garantizaban exactamente
+el mismo estado visual o el brillo y los efectos reducían la diferencia percibida.
+
+PREVENCIÓN
+- Definir el color objetivo con un valor hexadecimal o RGB documentado.
+- Comparar antes y después usando la misma escena, progreso, iluminación y resolución.
+- Aplicar el cambio a todas las capas que construyen el color percibido: icono, halo,
+  haz, borde y estados, sin teñir elementos que deban conservar otro color.
+- No considerar suficiente una diferencia numérica que no pueda verse a tamaño real.
+- Conservar contraste y legibilidad al oscurecer o aclarar un elemento.
+- Mostrar una comparación lado a lado cuando haya varias iteraciones cercanas.
+
+PRUEBA OBLIGATORIA
+Tomar muestras de color en puntos equivalentes y revisar las capturas lado a lado a
+escala 1:1; la diferencia solicitada debe ser visible sin depender de una explicación.
+
+======================================================================
+45. NO MEZCLAR COORDENADAS DESDE ESQUINA CON COORDENADAS LOCALES CENTRADAS
+======================================================================
+
+PROBLEMA ENCONTRADO
+Los gráficos vectoriales del contador de destinos, la nave, el dron de apoyo y la
+sonda activa aparecieron fuera de sus paneles aunque sus valores parecían correctos.
+
+CAUSA
+Las posiciones se copiaron como distancias desde la esquina superior izquierda,
+pero el componente de líneas interpretaba los puntos desde el centro del RectTransform.
+
+PREVENCIÓN
+- Documentar el origen que utiliza cada componente gráfico reutilizable.
+- Convertir las medidas de referencia al espacio local antes de crear vértices.
+- Encapsular cada ilustración en un RectTransform centrado y de tamaño conocido.
+- Validar límites máximos y mínimos de todos los puntos contra la zona interior.
+- No compensar el error moviendo el panel completo.
+
+PRUEBA OBLIGATORIA
+Capturar a la resolución objetivo y comprobar que contador, nave, dron, sonda y radar
+permanecen íntegramente dentro de sus marcos y conservan su centro visual.
+
+======================================================================
+46. EVITAR QUE LA INTERFAZ ANTERIOR ASOME POR LOS BORDES DEL OVERLAY
+======================================================================
+
+PROBLEMA ENCONTRADO
+Al abrir una pantalla visual nueva, una franja de la interfaz anterior continuaba
+visible en el borde derecho aunque la raíz nueva cubría su área de contenido.
+
+CAUSA
+El fondo del overlay respetaba el rectángulo interno del panel padre, mientras otros
+elementos antiguos se extendían hasta el viewport completo o fuera de la Safe Area.
+
+PREVENCIÓN
+- Identificar si la pantalla nueva debe cubrir el contenido, la Safe Area o todo el
+  viewport antes de crear el fondo bloqueante.
+- Extender el fondo opaco hasta los bordes reales cuando la pantalla sea modal o
+  reemplace visualmente a la anterior.
+- Mantener el contenido importante dentro de la Safe Area aunque el fondo sea full bleed.
+- Revisar los cuatro bordes sobre una captura completa, no sólo el centro de la pantalla.
+- Confirmar que la capa nueva también bloquea raycasts sobre la interfaz oculta.
+
+PRUEBA OBLIGATORIA
+Capturar el viewport completo y comprobar que no aparezcan franjas, botones o fondos
+de la pantalla anterior en ninguno de sus bordes.
+
+======================================================================
+47. NO CONFUNDIR UNA ILUSTRACIÓN RELLENA CON UN ESQUELETO DE LÍNEAS
+======================================================================
+
+PROBLEMA ENCONTRADO
+Caso histórico de origen — Dimensión 1 / Explorar.
+La nave y el dron de Explorar tenían proporciones cercanas, pero continuaban pareciendo
+planos de alambre porque sólo mostraban contornos y divisiones internas.
+
+CAUSA
+Se interpretó una paleta luminosa y un estilo técnico como autorización para dibujar
+todo con líneas, ignorando las superficies rellenas, sombras y volumen del diseño.
+
+PREVENCIÓN
+- Separar en la referencia contorno, relleno, sombreado, brillo y detalle técnico.
+- Si las masas sólidas definen la lectura del objeto, usar un sprite con alfa o un
+  material que las conserve; no intentar sustituirlas únicamente con más líneas.
+- Revisar el icono a su tamaño final, no sólo ampliado.
+- Evitar detalles que desaparezcan al reducir y conservar una silueta clara.
+- No declarar similitud del 95 % mientras el medio gráfico produzca una lectura
+  distinta, aunque posición y tamaño coincidan.
+
+PRUEBA OBLIGATORIA
+Comparar a 1080×1920 y 720×1280 y confirmar que el objeto se reconoce como una pieza
+terminada, con superficies visibles, sin apariencia de blueprint o esqueleto.
+Si la referencia exige expresamente un plano técnico de línea, comprobar lo contrario:
+que el trazado conserve la silueta y legibilidad requeridas sin añadir volumen inventado.
+
+======================================================================
+48. UN MODAL RUNTIME PUEDE INVALIDAR UNA CAPTURA VISUAL
+======================================================================
+
+PROBLEMA ENCONTRADO
+El informe de ausencia apareció sobre el Hangar durante la primera captura y ocultó
+la mayor parte de la composición aunque el instalador y la jerarquía eran correctos.
+
+CAUSA
+El modal se creó en Play Mode después de cargar el guardado; desactivar sólo los paneles
+serializados de la escena no lo incluía.
+
+PREVENCIÓN
+- Identificar modales generados en runtime además de los objetos de la escena.
+- Consumir el informe pendiente sólo dentro del escenario QA con escrituras suprimidas.
+- Desactivar sus raíces en cada fotograma de preparación, no una sola vez.
+- Rechazar cualquier captura donde un modal ajeno cubra la pantalla evaluada.
+
+PRUEBA OBLIGATORIA
+Verificar el viewport completo y confirmar que sólo la pantalla objetivo está visible.
+
+======================================================================
+49. FILLAMOUNT NO ES PRUEBA DE QUE UNA BARRA ESTÉ RECORTADA
+======================================================================
+
+PROBLEMA ENCONTRADO
+Las barras de Carga, Velocidad, Blindaje y Sensores mostraban anchos completos aunque
+sus valores fillAmount eran diferentes.
+
+CAUSA
+Las Image usadas como relleno no tenían sprite, por lo que el modo Filled no produjo
+el recorte perceptible esperado.
+
+PREVENCIÓN
+- Para barras sólidas sin sprite, controlar el ancho mediante anchorMax.x.
+- Probar valores bajos, medios y altos en la misma captura.
+- Mantener el fondo y el relleno como objetos separados.
+
+PRUEBA OBLIGATORIA
+Confirmar visualmente que porcentajes distintos producen longitudes distintas y que
+el extremo izquierdo permanece fijo.
+
+======================================================================
+50. UN OVERLAY HEREDA EL ESPACIO DE SU PADRE FUNCIONAL
+======================================================================
+
+PROBLEMA ENCONTRADO
+La primera raíz visual del Hangar quedó desplazada hacia arriba: el encabezado se
+recortaba y aparecía una franja vacía inferior.
+
+CAUSA
+La pantalla nueva se anidó en el HangarPanel provisional, cuyo RectTransform no estaba
+centrado exactamente en el viewport completo.
+
+PREVENCIÓN
+- Medir el RectTransform real del padre antes de usarlo como sistema de coordenadas.
+- Aplicar una sola compensación documentada a la raíz visual.
+- No redistribuir manualmente todos los bloques para ocultar un error del padre.
+- Revisar los cuatro bordes en 1080×1920 y 720×1280.
+
+PRUEBA OBLIGATORIA
+El marco exterior debe conservar márgenes equivalentes arriba y abajo, sin recortes.
+
+======================================================================
+51. UN PLANO TÉCNICO PUEDE SER FIEL AL MEDIO Y AUN SER DEMASIADO SIMPLE
+======================================================================
+
+PROBLEMA ENCONTRADO
+Caso histórico de origen — Dimensión 1 / Hangar.
+Los vehículos respetaban el color y el lenguaje de blueprint, pero parecían iconos
+genéricos porque sólo conservaban contorno, eje y unas pocas divisiones.
+
+CAUSA
+Se validó el tipo de dibujo sin comparar la topología interna ni la densidad mecánica de
+cada nave. Añadir líneas a una forma simplificada no recuperó su identidad.
+
+PREVENCIÓN
+- Aislar cada objeto de la referencia antes de reconstruirlo.
+- Comparar silueta, módulos, proporción y ocupación interior por separado.
+- Mantener recursos distintos para objetos distintos; no derivarlos todos de una misma
+  geometría genérica.
+- Validar tarjeta y ampliación en una captura real antes de aceptar el asset.
+- Verificar que cualquier extracción de fondo no deje ruido rectangular o halos.
+
+PRUEBA OBLIGATORIA
+Superponer mentalmente o mediante guía la referencia y la captura: nariz, alas, pods,
+motor y centro deben ocupar posiciones equivalentes. A 720×1280 todavía deben distinguirse
+las cuatro naves y no debe verse el rectángulo original del sprite.
+
+======================================================================
+52. AISLAR QA DESPUÉS DE ACTIVAR TODA LA CADENA DE PADRES
+======================================================================
+
+PROBLEMA ENCONTRADO
+La captura del Árbol Cuántico reactivaba una navegación global duplicada. Al intentar
+ocultar todas las coincidencias por nombre, también se apagó HUD, que era ancestro de
+VerticalUIRoot y dejó invisible la pantalla objetivo.
+
+CAUSA
+Activar la cadena de padres disparó OnEnable de TabsUI después del primer aislamiento.
+Además, buscar sólo la primera coincidencia por nombre no cubría objetos duplicados y
+los nombres genéricos HUD o Panel_Generacion incluían contenedores estructurales.
+
+PREVENCIÓN
+- Resolver y conservar primero la cadena de ancestros de la raíz objetivo.
+- Activar la pantalla completa antes del aislamiento definitivo de QA.
+- Ocultar todas las instancias de las raíces globales específicas, no la primera.
+- No desactivar por nombre genérico un objeto que pueda contener VerticalUIRoot.
+- Reafirmar el aislamiento durante los fotogramas de preparación si OnEnable puede
+  reconstruir navegación o modales.
+
+PRUEBA OBLIGATORIA
+Antes de renderizar, la raíz objetivo debe estar activa en jerarquía y ninguna instancia
+de la navegación global puede estar activa. La captura debe finalizar con PASS en las
+dos resoluciones y no debe depender del orden de inicio de TabsUI.
+
+======================================================================
+53. NO RECONSTRUIR DESDE CERO NI SIMPLIFICAR UN DISEÑO YA RESUELTO
+======================================================================
+
+PROBLEMA ENCONTRADO
+Caso histórico de origen — Dimensión 1 / Árbol Cuántico.
+La pantalla compartía paleta y estructura general con la referencia, pero sustituyó
+iconos, recursos, cristal y órbitas por dibujos nuevos más simples. Varias piezas ya
+existían en pantallas anteriores o tenían un origen reutilizable documentable.
+
+CAUSA
+La construcción comenzó antes de terminar un inventario concepto por concepto. Se tomó
+la ausencia de rutas explícitas en la ficha como permiso para dibujar desde cero y se
+confundió una captura técnicamente correcta con una composición visualmente fiel.
+
+PREVENCIÓN
+- Completar la Puerta 0 y la matriz de reutilización antes de crear la jerarquía.
+- Buscar en proyecto, catálogo, mapa, capturas, escenas, prefabs y scripts; no sólo PNG.
+- Reutilizar el mismo asset o consolidar el mismo componente sin alterar su salida.
+- Registrar los faltantes reales y producir únicamente esas piezas como candidatas.
+- Conservar medio gráfico, volumen, densidad, proporción y ocupación de la referencia.
+- No usar wireframe, pictogramas o geometría genérica como sustitutos de assets finales.
+- No declarar 95 % hasta comparar por bloques, iconos y nivel de detalle.
+- Mantener el ejemplo ligado a su dimensión: reutilizar no autoriza a propagar la
+  estética D1 a otras dimensiones.
+
+PRUEBA OBLIGATORIA
+La ficha contiene una fila por concepto y cada asset nuevo tiene justificación de
+faltante. En la comparación lado a lado no existe ningún elemento esencial más simple
+que su autoridad sin una diferencia explícitamente aprobada por el usuario.
+
+54. REUTILIZAR TAMBIÉN EL TRATAMIENTO DEL ASSET, NO SÓLO SU PNG
+----------------------------------------------------------------
+Un sprite existente puede depender de un material, shader, máscara, recorte o ajuste de
+importación para producir su resultado aprobado. Referenciar únicamente el PNG puede
+mostrar fondos blancos, halos incorrectos o colores distintos.
+
+Prevención obligatoria:
+- revisar cómo lo presenta su pantalla de origen;
+- reutilizar juntos sprite y material/shader cuando formen una unidad visual;
+- validar alfa real en archivos generados; un tablero dibujado dentro del PNG no es
+  transparencia;
+- convertir la preparación repetible en parte del instalador, no en un ajuste manual;
+- capturar de nuevo después de importar o cambiar el material.
+
+Caso histórico: el blueprint de Hangar mostró un fondo claro en Árbol Cuántico cuando
+se reutilizó sin `d1_hangar_blueprint_keyed.mat`. La corrección válida reutilizó ambos.
+
+55. NO CONFUNDIR AISLAMIENTO DE CAPTURA CON FUNCIONAMIENTO EN JUEGO
+-------------------------------------------------------------------
+Una captura puede ocultar correctamente la navegación global para evaluar una pantalla
+y, al mismo tiempo, encubrir que esa pantalla no la suprime durante una partida real.
+
+Prevención obligatoria:
+- conservar la captura aislada para comparar composición y fidelidad;
+- añadir una prueba separada entrando desde el flujo real del juego;
+- mantener la pantalla abierta varios fotogramas y comprobar que ninguna navegación
+  global reaparece por OnEnable, refrescos periódicos o cambios de Safe Area;
+- probar regreso al centro y navegación hacia cada pantalla vecina;
+- no aceptar como prueba funcional un método que apaga manualmente los objetos cuya
+  coexistencia necesita verificarse.
+
+Caso histórico: la captura del Árbol Cuántico ocultaba `BottomDrawer`,
+`PrimaryNavigationSlot` y `SecondaryNavigationSlot`. La imagen quedaba limpia, pero en
+la partida esas barras seguían activas y cubrían la navegación local.
+
+56. UN SOLO PROPIETARIO PARA EL ARMAZÓN DE PANTALLAS HERMANAS
+------------------------------------------------------------
+Cuando varias pantallas pertenecen a la misma familia visual, sus márgenes, lienzo,
+encabezado, marco exterior y navegación persistente no deben repetirse como números
+independientes en cada instalador. Compartir sólo el RectTransform de la tarjeta no
+unifica la interfaz si etiqueta, icono, relleno, borde o indicador siguen siendo propios.
+
+Prevención obligatoria:
+- definir tokens compartidos para las medidas verdaderamente comunes;
+- mantener independiente únicamente el contenido interno de cada pantalla;
+- aplicar una corrección localizada a la jerarquía existente antes de considerar una
+  reconstrucción completa que pueda reemplazar contenido aprobado;
+- validar por lectura de RectTransform que todas las pantallas usan exactamente los
+  mismos valores y comparar al menos dos capturas reales consecutivas;
+- sincronizar los instaladores para que una reconstrucción futura no restaure medidas
+  antiguas.
+
+Caso histórico: las seis pantallas de Dimensión 1 tenían raíces, encabezados, marcos y
+barras inferiores diferentes. `Dimension1SharedLayoutTokens` y
+`Dimension1SharedShellApply` consolidaron el lienzo 1080×1920, el marco
+10/12/1060/1892, el encabezado y la navegación 24/1704/1032/180 sin reconstruir el
+contenido propio de cada pantalla.
+
+57. UNA TARJETA CON ASPECTO DE BOTÓN DEBE TENER TODA LA CADENA INTERACTIVA
+--------------------------------------------------------------------------
+Una composición puede mostrar marcos, etiquetas y estados seleccionados correctos y
+seguir sin aceptar clics si la raíz carece de GraphicRaycaster, su CanvasGroup bloquea
+raycasts o las tarjetas son paneles sin Button y sin ruta persistente.
+
+Prevención obligatoria:
+- validar por separado presencia de GraphicRaycaster, CanvasGroup interactivo y Button;
+- exigir que `Button.targetGraphic` exista, esté activo y conserve
+  `raycastTarget=true`; asignar como objetivo un Fill decorativo con raycast desactivado
+  produce una tarjeta visible y un Button válido que el EventSystem nunca alcanza;
+- comprobar que cada acción tiene exactamente una ruta persistente al controlador;
+- mantener desactivada sólo la tarjeta que representa la pantalla actual;
+- probar los clics dentro de Play Mode dejando pasar varios fotogramas entre destinos;
+- verificar que OnDisable restaura la navegación global y que OnEnable vuelve a
+  suprimirla al reabrir la pantalla;
+- sincronizar la escena migrada y el instalador que puede reconstruirla.
+
+Caso histórico: Árbol Cuántico tenía Canvas y tarjetas visuales, pero no
+GraphicRaycaster, su CanvasGroup usaba interactable=false/blocksRaycasts=false y Centro
+y la barra inferior eran paneles estáticos. La captura no podía revelar este fallo.
+
+58. UN MATERIAL DE RECORTE DEBE CONSERVAR EL MEDIO GRÁFICO APROBADO
+------------------------------------------------------------------
+Dos imágenes con fondo horneado no necesariamente admiten el mismo shader. Un material
+que convierte un blueprint en líneas de un solo color destruye volumen, metal, luces y
+matices si se aplica a una ilustración premium multicolor.
+
+Prevención obligatoria:
+- comprobar si el tratamiento de origen preserva RGB o lo reemplaza por un tinte;
+- usar un recorte de negro que derive sólo el alfa cuando el color es parte del asset;
+- disponer de una variante seleccionada explícita cuando el estado ámbar debe cambiar
+  el color sin aplanar la silueta;
+- validar tarjeta neutral y seleccionada en más de una jerarquía de pantalla;
+- mantener raycastTarget=false en la imagen decorativa superpuesta;
+- registrar sprite y material como una unidad canónica de la dimensión correspondiente.
+
+Caso histórico: los nuevos iconos premium D1 tenían fondo negro uniforme. El material
+de blueprint de Hangar eliminaba el fondo, pero también reemplazaba todo el arte por un
+tinte plano. `UI/QuantumForgeBlackKey` conserva el RGB y deriva el alfa del negro.
+
+59. INVOCAR UN MÉTODO NO REPRODUCE EL CICLO REAL DE UN CLIC UGUI
+----------------------------------------------------------------
+Una prueba que llama directamente a `AbrirPantalla()` puede pasar aunque pulsar el
+Button real deje toda la interfaz inerte. Durante `OnPointerClick`, UGUI todavía está
+procesando selección y registro de Selectable; desactivar otros controles desde el
+`OnEnable` de la pantalla abierta puede corromper ese estado sin lanzar una excepción.
+
+Prevención obligatoria:
+- diferir al siguiente Update cualquier desactivación masiva iniciada por OnEnable;
+- validar la entrada mediante EventSystem, PointerEventData y el Button real visible;
+- ejecutar primero `EventSystem.RaycastAll` desde una coordenada visible y confirmar que
+  el primer handler de clic pertenece al Button esperado; despachar ExecuteEvents
+  directamente sobre el GameObject también evita el GraphicRaycaster y puede dar un
+  falso PASS cuando targetGraphic no recibe raycasts;
+- fijar o comprobar la resolución objetivo antes de convertir el centro del RectTransform
+  a coordenadas de pantalla; un batch horizontal no valida una interfaz vertical;
+- esperar varios fotogramas y pulsar después un segundo control de la pantalla abierta;
+- comprobar todas las salidas y reaperturas, no sólo que la primera raíz aparezca;
+- no considerar suficiente `button.onClick.Invoke()` ni una llamada directa al método;
+- ante PlayerLoop activo sin respuesta de UI, revisar primero reentrancia de Selectable.
+
+Caso histórico: la validación inicial del Árbol llamó directamente a
+`OnClickOpenDimension1TreePanel` y después despachó ExecuteEvents sobre el destino; ambas
+rutas pasaban aunque el Fill asignado a targetGraphic conservaba raycastTarget=false.
+La prueba válida debe atravesar GraphicRaycaster desde pantalla, entrar mediante
+`Nav_ÁRBOL`, pulsar un segundo control y verificar todas las salidas.
+
+60. COMPARTIR EL ARMAZÓN INCLUYE SUS ELEMENTOS INTERNOS VISIBLES
+---------------------------------------------------------------
+Dos tarjetas pueden ocupar el mismo RectTransform y aun saltar al cambiar de pantalla si
+su texto, icono, capas, fuente o indicador seleccionado tienen medidas diferentes.
+
+Prevención obligatoria:
+- elegir una pantalla aprobada como autoridad explícita dentro de la familia visual;
+- centralizar posición, tamaño, tipografía, capas Shadow/Fill/Border y geometría de las
+  etiquetas compartidas, no sólo el contenedor exterior;
+- reutilizar los assets canónicos existentes para iconos equivalentes;
+- limitar la variante seleccionada al estado previsto: ámbar, icono, borde e indicador;
+- conservar el contenido interno de cada pantalla fuera del propietario compartido;
+- dejar una separación comprobable entre el final del encabezado común y el primer
+  panel propio de cada pantalla;
+- aplicar el contrato al final de cada constructor y también a la escena migrada;
+- comparar capturas reales 1080×1920 y 720×1280, además de cambiar entre pantallas.
+
+Caso histórico: en D1 las cinco tarjetas inferiores ya compartían posición, pero sus
+etiquetas variaban entre 17 y 22 px y ocupaban alturas distintas. Los títulos superiores,
+botón Centro y recursos también cambiaban. Hangar se estableció como autoridad D1; el
+Árbol necesitó además bajar 22 px su banda propia para no invadir el encabezado común.
+
+61. CENTRAR UN GRUPO POR SUS LÍMITES, NO POR LA APARIENCIA DE UNA SOLA PIEZA
+-------------------------------------------------------------------------
+Un título centrado no demuestra que los paneles bajo él también lo estén. Para un grupo
+de varios cuadros debe medirse su límite izquierdo mínimo y derecho máximo; el promedio
+de ambos debe coincidir con el centro del lienzo o del contenedor autorizado.
+
+Prevención obligatoria:
+- calcular la caja envolvente del grupo completo en coordenadas del mismo padre;
+- comparar `(mínimo X + máximo X) / 2` con el centro real del contenedor;
+- trasladar el grupo completo sin cambiar tamaños ni separaciones internas;
+- incluir paneles anchos, acciones y filas inferiores en la misma corrección;
+- guardar los valores corregidos tanto en escena como en el constructor;
+- comprobar de nuevo 1080×1920 y 720×1280.
+
+Caso histórico: el contenido principal de Explorar D1 ocupaba x=24..980 en un lienzo
+de 1080 px. Su centro era 502 en lugar de 540. Los siete bloques propios se trasladaron
+38 px a la derecha y quedaron contenidos en x=62..1018, simétricos respecto al lienzo.
+
+62. UNA SUBPANTALLA DEBE PRESERVAR EL ESTADO Y EL ESPACIO REAL DE SU PANTALLA BASE
+-------------------------------------------------------------------------------
+Una capa puede parecer correcta en escena aislada y aun recortar el encabezado, dejar
+ver navegación ajena o perder la pantalla de origen al cerrarse.
+
+Prevención obligatoria:
+- tratarla como overlay con propietario único de visibilidad, no como otra pantalla del menú;
+- conservar activa la pantalla base y ocultar la capa con CanvasGroup;
+- usar un Canvas superior y un fondo opaco que cubra todo el viewport;
+- medir el desplazamiento heredado del padre y aplicar la misma compensación de la familia;
+- conectar todos los accesos equivalentes al mismo controlador;
+- guardar también conexiones persistentes para acciones que deben responder desde el
+  primer fotograma, sin depender únicamente de Start u OnEnable;
+- probar abrir, filtrar, cerrar y reabrir dejando varios fotogramas entre acciones;
+- comparar el estado de la pantalla base antes y después de cerrar.
+
+Caso histórico: Inventario de Metales D1 quedó 82 px por encima del viewport al usar
+posición local cero, recortó su título y dejó asomar la navegación de Hangar. La raíz
+debía usar la compensación canónica D1 y conservar Hangar sin reconstruirlo.
+
+63. NO MEZCLAR LA API LEGACY DE INPUT CON UN PROYECTO CONFIGURADO PARA INPUT SYSTEM
+-------------------------------------------------------------------------------
+Consultar `UnityEngine.Input` en un proyecto configurado sólo para Input System puede
+lanzar una excepción cada fotograma aunque el botón táctil y la captura parezcan funcionar.
+
+Prevención obligatoria:
+- usar los Button y EventSystem del flujo móvil como ruta principal;
+- no añadir atajos de teclado si la pantalla no los necesita;
+- si un atajo es necesario, usar la API de entrada activa o una compilación condicional;
+- buscar excepciones en todo el log, no sólo el mensaje PASS final.
+
+Caso histórico: el primer controlador del Inventario de Metales consultaba Escape con
+`Input.GetKeyDown`; la prueba terminaba en PASS pero el log contenía una excepción por
+fotograma. El atajo no era parte del contrato móvil y se eliminó.
+
+64. CENTRAR SPRITES POR SU SILUETA VISIBLE Y VALIDAR EL ALFA REAL
+----------------------------------------------------------------
+Dos archivos con el mismo tamaño no garantizan que sus objetos se vean alineados. El
+espacio vacío interno, una cuadrícula de transparencia horneada o una extracción agresiva
+pueden desplazar, recortar o deformar el recurso aunque su RectTransform sea correcto.
+
+Prevención obligatoria:
+- inspeccionar el archivo generado a tamaño completo antes de incorporarlo;
+- comprobar sus canales reales y no asumir transparencia por la apariencia del fondo;
+- separar cada objeto sin cortar su silueta ni mezclar partes de la celda vecina;
+- calcular la caja visible de cada sprite después de limpiar el fondo;
+- normalizar todos los miembros del conjunto por la misma ocupación máxima;
+- centrar la caja visible dentro de un lienzo común, no el recorte original completo;
+- revisar un mosaico del conjunto y después la captura real a ambas resoluciones;
+- versionar el conjunto corregido y retirar su variante defectuosa del constructor.
+
+Caso histórico: los metales V4 del Inventario D1 compartían RectTransform, pero sus
+márgenes internos eran distintos y la limpieza del fondo dañó varias formas. Los V5 se
+generaron sobre fondo sólido, se separaron sin redibujar la silueta y se normalizaron a
+390 px dentro de lienzos transparentes de 512 px antes de validarlos en Unity.
+
+65. UN FONDO DECORATIVO NO PUEDE INTERCEPTAR CLICS Y UNA SUBPANTALLA NO DEBE HEREDAR UN CIERRE AJENO
+--------------------------------------------------------------------------------------------------
+Un fondo a pantalla completa con `raycastTarget=true` puede dejar toda la interfaz
+inerte. Del mismo modo, una subpantalla anidada bajo un panel que otra ruta apaga puede
+tener CanvasGroup visible y aun permanecer inactiva por herencia.
+
+Prevención obligatoria:
+- todo fondo, estrella, marco y adorno sin interacción usa `raycastTarget=false`;
+- la superficie táctil de cada Button es el único gráfico decorativo autorizado para
+  recibir su raycast;
+- una subpantalla con ciclo de visibilidad propio se monta como hermana dentro del
+  propietario estable, no bajo una pantalla que pueda desactivarse al navegar;
+- probar `activeSelf`, `activeInHierarchy`, CanvasGroup y la cadena completa de padres;
+- sincronizar esta jerarquía tanto en escena como en el instalador idempotente.
+
+Caso histórico: Órbitas Antiguas tenía CanvasGroup visible pero heredaba el estado de
+GalaxyPanel; además `BackgroundMobile` conservaba raycast. La raíz pasó a ser hermana de
+Carta Galáctica y el fondo global quedó explícitamente no interactivo.
+
+66. AL RECONSTRUIR UN PANEL FUNCIONAL, SUS LISTENERS DEBEN SOBREVIVIR AL CICLO DE ACTIVACIÓN
+-----------------------------------------------------------------------------------------
+Reemplazar botones serializados de un panel existente puede dejar referencias correctas
+pero eventos vacíos si el propietario ya ejecutó OnEnable antes de la reconstrucción o
+permanece habilitado durante la prueba.
+
+Prevención obligatoria:
+- cada acción debe tener una ruta persistente o un enlace dinámico verificable;
+- si existe listener persistente, el propietario no añade un segundo listener dinámico;
+- la captura debe pulsar el Button real y comprobar el cambio de estado, no sólo invocar
+  directamente el método final;
+- probar cierre y reapertura después de reconstruir el panel;
+- mantener la misma política en escena e instalador idempotente.
+
+Caso histórico: el primer panel visual del ARK conservaba todas las referencias pero sus
+tarjetas no ejecutaban las sincronías en QA. Los eventos quedaron persistentes y el enlace
+dinámico pasó a actuar únicamente como respaldo sin duplicar acciones.
+
+======================================================================
+LISTA DE CONTROL ANTES DE APROBAR CADA PANTALLA
+======================================================================
+
+[ ] La composición coincide fielmente con la referencia.
+[ ] No se añadieron adornos no solicitados.
+[ ] No hay botones de otras pantallas superpuestos.
+[ ] Todos los elementos animados tienen pivote centrado.
+[ ] Ningún elemento cambia de posición al seleccionarlo.
+[ ] Cada texto tiene un único controlador.
+[ ] Los estados normal, seleccionado y bloqueado están separados.
+[ ] Las rutas y conexiones se ven completas.
+[ ] El orden de capas es correcto.
+[ ] No existen máscaras globales que recorten contenido.
+[ ] Las imágenes tienen transparencia limpia.
+[ ] No hay separadores, líneas o marcos sobrantes.
+[ ] La pantalla funciona en estado neutral.
+[ ] Los títulos son correctos inmediatamente después del toque.
+[ ] Se probaron selecciones rápidas y repetidas.
+[ ] Se revisó una captura a resolución final.
+[ ] Se comparó visualmente contra la referencia.
+[ ] No hay errores de compilación ni excepciones durante la prueba.
+[ ] Todo el contenido respeta la zona segura interior de sus marcos.
+[ ] Los textos son legibles sin ampliar la captura.
+[ ] Los grupos de iconos, valores y leyendas comparten un centro visual.
+[ ] Ningún fondo o marco ornamental está deformado o cruza el contenido.
+[ ] Todos los nombres y valores corresponden al código y al lore.
+[ ] Ningún valor pendiente se presenta como cero o como una bonificación ya definida.
+[ ] No existe información repetida sin una necesidad funcional.
+[ ] Los estados vacío, seleccionado, bloqueado y completado fueron revisados.
+[ ] Los controles condicionales aparecen únicamente cuando corresponden.
+[ ] La captura revisada pertenece realmente a la última ejecución.
+[ ] Cada RectTransform tiene un único sistema responsable de su composición.
+[ ] Todas las referencias visuales solicitadas estaban disponibles.
+[ ] La visibilidad de la navegación no provoca cambios periódicos del Safe Area.
+[ ] El refresco de datos no reconstruye ni anima el layout.
+[ ] La animación solicitada fue comprobada en fotogramas realmente renderizados.
+[ ] El campo estelar permanece inmóvil y separado de las capas animadas.
+[ ] Ninguna imagen está deformada para llenar un contenedor de otra proporción.
+[ ] Las texturas espaciales fueron probadas sin moiré a 1080×1920 y 720×1280.
+[ ] Cada elemento del diseño aprobado puede reconstruirse con assets reales de Unity.
+[ ] Fondo, planetas, marcos y efectos mantienen un nivel de detalle coherente.
+[ ] Cada imagen entregada está identificada como concepto, referencia o captura real.
+[ ] La implementación declarada fue demostrada en la escena real y no sólo en un mockup.
+[ ] Los conceptos repetidos reutilizan sus iconos canónicos aprobados.
+[ ] Todos los iconos de un mismo grupo mantienen un nivel de detalle coherente.
+[ ] Cada acción muestra todos sus costes, requisitos y motivos de bloqueo.
+[ ] Ningún texto dinámico se superpone en las resoluciones y estados de prueba.
+[ ] El APK incluye las arquitecturas Android previstas y fue instalado en dispositivo.
+[ ] El perfil QA conserva todas las herramientas de prueba acordadas.
+[ ] La actualización del APK conserva identificador, firma y avance guardado.
+[ ] Unity resolvió los paquetes antes de compilar y ejecutó el método de validación.
+[ ] Los cambios de color son perceptibles en comparaciones del mismo estado visual.
+[ ] Los gráficos por vértices usan el mismo origen local que sus RectTransform.
+[ ] El fondo de reemplazo cubre el viewport sin dejar franjas de la interfaz anterior.
+[ ] La ocupación interior de iconos, textos e ilustraciones coincide con la referencia.
+[ ] Los errores nuevos encontrados fueron incorporados a esta guía y a su bitácora.
+[ ] Ningún modal creado en runtime cubre la captura de la pantalla objetivo.
+[ ] Las barras con valores diferentes muestran longitudes perceptiblemente diferentes.
+[ ] La raíz visual compensa el espacio real de su padre sin recortar el viewport.
+[ ] Cada blueprint conserva silueta, módulos y densidad mecánica de su objeto de autoridad.
+[ ] El aislamiento QA se aplica después de activar la cadena de padres de la pantalla.
+[ ] Ningún nombre genérico de ocultamiento apaga un ancestro de VerticalUIRoot.
+[ ] La Puerta 0 y la matriz de reutilización están completas.
+[ ] Se buscaron componentes y assets en el proyecto real además del catálogo.
+[ ] Ningún diseño aprobado fue reemplazado por una versión más simple sin autorización.
+[ ] Cada asset nuevo está registrado como faltante real y candidato.
+[ ] La captura aislada tiene una prueba separada de navegación dentro de una partida real.
+[ ] Las pantallas hermanas leen el armazón común desde un único propietario de medidas.
+[ ] Toda tarjeta que parece pulsable tiene GraphicRaycaster, CanvasGroup, Button, targetGraphic con raycast y una ruta válida.
+[ ] El material de recorte conserva color y detalle del medio gráfico aprobado.
+[ ] La entrada a una pantalla se probó mediante el Button y PointerEvent reales de UGUI.
+[ ] El armazón compartido unifica también fuente, etiqueta, icono, capas e indicador, no sólo el RectTransform exterior.
+[ ] Los grupos de varios paneles están centrados por su caja envolvente completa.
+[ ] Toda subpantalla conserva el estado previo y cubre completamente el viewport.
+[ ] Ningún controlador usa una API de entrada distinta de la configurada en el proyecto.
+[ ] Los sprites de un mismo conjunto están centrados por su silueta visible, no sólo por su lienzo.
+[ ] La transparencia real fue inspeccionada y no contiene cuadrícula horneada ni recortes destructivos.
+[ ] Ningún fondo decorativo a pantalla completa conserva raycastTarget.
+[ ] Toda subpantalla con visibilidad propia cuelga de un propietario que permanece activo.
+[ ] Todo botón reconstruido conserva exactamente una ruta funcional tras cerrar y reabrir.
+
+REGLA FINAL
+Una pantalla no debe darse por terminada únicamente porque funciona. Debe ser
+estable, conservar su diseño durante las interacciones y mantener una similitud
+visual mínima del 95 % con la referencia aprobada.

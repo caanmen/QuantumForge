@@ -1,0 +1,63 @@
+FICHA DE PANTALLA: INVENTARIO DE METALES
+========================================
+
+ID: D1_INVENTARIO_METALES
+Dimensión: 1
+Tipo: subpantalla superpuesta de consulta y filtrado
+Estado: CANDIDATA IMPLEMENTADA; PENDIENTE DE APROBACIÓN VISUAL DEL USUARIO
+Referencia: 05_REFERENCIAS/DIMENSION_1/INVENTARIO_METALES/referencia_inventario_metales_v1.png
+Escena principal: Assets/Project/Scenes/Main.unity
+Controlador: Assets/Project/Scripts/UI/Dimension1MetalsInventoryUI.cs
+Resolución base: 1080 x 1920 vertical
+
+FUNCIÓN
+Mostrar los diez metales oficiales de Dimensión 1, sus cantidades, producción,
+procedencia y motivo real de bloqueo sin abandonar la pantalla D1 de origen.
+
+ENTRADA Y SALIDA
+- Entrada: tarjeta 10 METALES de las seis pantallas de Dimensión 1.
+- Salida: flecha Regresar; restaura exactamente la pantalla y estado anteriores.
+- No pertenece al menú inferior ni añade una nueva sección de navegación.
+
+DATOS REALES
+- IDs, cantidades, producción y desbloqueo: GameState y Dimension1System.
+- Metales: Hierro, Cobre, Aluminio, Titanio, Níquel, Cobalto, Litio,
+  Tungsteno, Platino e Iridio.
+- La producción total y el metal de mayor producción se calculan en ejecución.
+- Los requisitos bloqueados consultan planeta y nivel de extractor reales.
+- Los valores de la referencia no se convirtieron en constantes del juego.
+
+COMPOSICIÓN
+- Título propio, subtítulo D1 / Recursos y flecha Regresar.
+- Tres indicadores: total, desbloqueados y producción total.
+- Filtros Todos, Produciendo y Bloqueados; ámbar sólo en la selección.
+- Diez tarjetas en dos columnas y cinco filas.
+- Estado desbloqueado con cantidad, tasa y planeta; estado bloqueado atenuado con requisito.
+- Resumen inferior con el metal de mayor producción.
+- Fondo opaco completo para no mezclar la navegación de la pantalla base.
+
+ASSETS
+- Marcos, rellenos, campo estelar, paleta y Rajdhani canónicos D1.
+- Diez sprites detallados finales seleccionados:
+  Assets/Project/UI/Dimension1/Generated/MetalsInventory/d1_metal_*_v5.png
+- Origen: dos tiras coherentes generadas mediante la herramienta integrada de imágenes,
+  separadas por recurso y normalizadas por su silueta visible; no son pictogramas
+  procedurales ni recortes deformados de la referencia.
+
+PROPIETARIOS
+- Layout reproducible: Dimension1MetalsInventorySetup.
+- Visibilidad, filtros y datos: Dimension1MetalsInventoryUI.
+- Reglas y guardado: GameState / Dimension1System.
+- Pantalla de origen: permanece activa y no es reconstruida por la subpantalla.
+
+PRUEBAS ACTUALES — 19 DE AGOSTO DE 2026
+- Instalación y validación de jerarquía: PASS.
+- Compilación Unity sin errores: PASS.
+- Abrir mediante la tarjeta real de Hangar: PASS.
+- Filtros Produciendo y Bloqueados comparados con datos reales: PASS.
+- Regresar sin alterar el estado previo: PASS.
+- Reabrir desde el encabezado: PASS.
+- Capturas 1080 x 1920 y 720 x 1280: PASS.
+- Integridad, escala y centro visual de los diez sprites V5: PASS.
+- Excepciones relacionadas durante la ejecución final: ninguna.
+- Aprobación perceptual mínima del 95 %: PENDIENTE DEL USUARIO.

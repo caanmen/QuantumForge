@@ -1,0 +1,55 @@
+FICHA DE PANTALLA: EXPLORAR
+===========================
+
+ID: D1_EXPLORAR
+Dimensión: 1
+Estado: LISTA PARA REVISIÓN DEL USUARIO
+Referencia: 05_REFERENCIAS/DIMENSION_1/EXPLORAR/referencia_explorar.png
+Escena principal: Assets/Project/Scenes/Main.unity
+Controlador funcional existente: Assets/Project/Scripts/UI/Dimension1PanelUI.cs
+Resolución base: 1080 x 1920 vertical
+
+FUNCIÓN
+Mostrar escáner, destino, nave, apoyo, expedición activa, inicio de expedición,
+registro y navegación local de Dimensión 1 usando los datos reales existentes.
+
+COMPOSICIÓN DE REFERENCIA
+- Encabezado compacto con regreso a Centro de Mando y recursos.
+- Título EXPLORAR centrado.
+- Radar grande a la izquierda.
+- Destino y nave apilados a la derecha.
+- Panel horizontal de apoyo opcional.
+- Panel horizontal de expedición activa y tiempo restante.
+- Botones Iniciar expedición y Registro.
+- Navegación local inferior con Explorar seleccionado en ámbar.
+
+DATOS Y PROPIEDAD
+- Dimension1PanelUI conserva la autoridad funcional sobre escaneo y expediciones.
+- El controlador visual nuevo sólo representa el estado y reenvía acciones públicas.
+- Los valores de la referencia son un escenario de captura, no constantes del juego.
+
+IMPLEMENTACIÓN
+- Raíz visual: D1_ExploreVisualRoot.
+- Controlador visual: Assets/Project/Scripts/UI/Dimension1ExploreVisualUI.cs.
+- Instalador reproducible: Dimension1ExploreReferenceSetup.Install.
+- Captura determinista: Dimension1ExploreReferenceCapture.Run.
+- Evidencia candidata: CAPTURA_CANDIDATA_1080x1920.png.
+- Evidencia responsiva: CAPTURA_CANDIDATA_720x1280.png.
+
+VALIDACIÓN ACTUAL
+- Compilación Unity: PASS.
+- Instalación y jerarquía: PASS.
+- Captura 1080 × 1920: PASS.
+- Captura 720 × 1280: PASS.
+- Comparación interna con referencia: nueva revisión geométrica completada; aprobación
+  perceptual del usuario pendiente.
+- Marcos, radar, materiales y navegación inferior: pulidos.
+- Nave y dron extractor: ilustraciones ráster sólidas con alfa, superficies rellenas,
+  volumen y tamaño/centro medidos en la referencia; ya no se construyen como esqueletos
+  de líneas.
+- Sonda analítica: conserva la versión técnica estrecha que el usuario señaló como la
+  mejor de las tres; revisión final todavía pendiente.
+- Cobertura completa sin franjas de la interfaz anterior: PASS.
+- Navegación global suprimida: PASS.
+- Datos reales separados del escenario visual de referencia: PASS.
+- Aprobación final del usuario: PENDIENTE.

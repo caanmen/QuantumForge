@@ -1,0 +1,24 @@
+REFERENCIA VISUAL: ÁRBOL CUÁNTICO — DIMENSIÓN 1
+================================================
+
+Archivo: referencia_arbol_cuantico_orbital_v1.png
+Resolución: 931 x 1689 píxeles.
+Tipo: REFERENCIA VISUAL CANDIDATA SELECCIONADA.
+Estado: aprobada por el usuario para construir y revisar la composición estática.
+
+ORIGEN
+- Variante 3, "Constelación orbital", seleccionada por el usuario el 19 de agosto de 2026.
+- Generada como mockup comparativo a partir de la referencia inicial del Árbol Cuántico
+  y de las pantallas D1 ya aprobadas o candidatas de Hangar y Cámara de Reliquias.
+- No es captura de Unity, asset final ni evidencia de implementación.
+
+AUTORIDAD
+- Define la dirección orbital, jerarquía, distribución, densidad visual y tratamiento
+  cian/ámbar de la composición estática.
+- Los nombres, niveles máximos, costes, requisitos, descripciones y estados funcionales
+  proceden del código real y tienen prioridad sobre cualquier error de texto del mockup.
+- El cristal central es un foco visual decorativo, no una mecánica ni un control nuevo.
+- Los anillos agrupan progreso por sector y no representan prerrequisitos entre nodos.
+
+No depender de la ruta original dentro de .codex/generated_images. Esta copia permanente
+es la referencia del proyecto para las siguientes comparaciones.

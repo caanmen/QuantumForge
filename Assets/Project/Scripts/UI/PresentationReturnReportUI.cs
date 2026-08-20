@@ -39,6 +39,7 @@ public sealed class PresentationReturnReportUI : MonoBehaviour
     private PresentationReturnReport _report;
     private VerticalUiTheme _theme;
     private int _localizationRevision = -1;
+    private bool _subscribedToReportService;
 
     private Color Background => _theme != null ? _theme.background : FallbackBackground;
     private Color Panel => _theme != null ? _theme.panel : FallbackPanel;
@@ -125,25 +126,48 @@ public sealed class PresentationReturnReportUI : MonoBehaviour
 
         Button close = CreateButton("Continue", panelObject.transform,
             new Vector2(700f, 86f), new Vector2(0f, -268f), out _continueLabel);
+        close.navigation = new Navigation { mode = Navigation.Mode.None };
         close.onClick.AddListener(Close);
         _modalRoot.SetActive(false);
+        SubscribeToReportService();
     }
 
     private void Update()
     {
         if (_modalRoot == null) return;
-        if (_report == null)
-        {
-            _report = PresentationReturnReportService.Consume();
-            if (_report == null) return;
-            _modalRoot.SetActive(true);
-            RefreshText();
-        }
+        TryShowPendingReport();
 
         int revision = LocalizationManager.I != null
             ? LocalizationManager.I.Revision : -1;
         if (_modalRoot.activeSelf && revision != _localizationRevision)
             RefreshText();
+    }
+
+    private void SubscribeToReportService()
+    {
+        if (_subscribedToReportService) return;
+        PresentationReturnReportService.ReportPrepared += TryShowPendingReport;
+        _subscribedToReportService = true;
+        TryShowPendingReport();
+    }
+
+    private void OnDestroy()
+    {
+        if (!_subscribedToReportService) return;
+        PresentationReturnReportService.ReportPrepared -= TryShowPendingReport;
+        _subscribedToReportService = false;
+    }
+
+    private void TryShowPendingReport()
+    {
+        if (_modalRoot == null || _report != null) return;
+        PresentationReturnReport pending = PresentationReturnReportService.Consume();
+        if (pending == null) return;
+
+        _report = pending;
+        _modalRoot.transform.SetAsLastSibling();
+        _modalRoot.SetActive(true);
+        RefreshText();
     }
 
     private void RefreshText()

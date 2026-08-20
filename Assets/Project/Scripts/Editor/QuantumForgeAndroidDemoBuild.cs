@@ -9,10 +9,11 @@ using UnityEngine;
 public static class QuantumForgeAndroidDemoBuild
 {
     private const string OutputPath =
-        "Builds/Android/QuantumForge-QA-0.1.2-Recovery-Development-ARM64.apk";
+        "Builds/Android/QuantumForge-QA-0.1.3-Update-ARM64.apk";
     private const string AndroidIdentifier = "com.nedfla.quantumforge";
-    private const string QaBundleVersion = "0.1.2-qa-recovery";
-    private const int QaVersionCode = 3;
+    private const string QaBundleVersion = "0.1.3-qa-update";
+    private const int QaVersionCode = 4;
+    private const int PreviousHighestVersionCode = 3;
 
     [MenuItem("Tools/Quantum Forge/Build/Build Android Demo APK")]
     public static void BuildAndroidDemo()
@@ -38,6 +39,12 @@ public static class QuantumForgeAndroidDemoBuild
 
         try
         {
+            if (QaVersionCode <= PreviousHighestVersionCode)
+                throw new InvalidOperationException(
+                    "El versionCode debe superar la ultima APK distribuida.");
+
+            SaveRecoveryValidation.ValidateOrThrow();
+
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
             PlayerSettings.allowedAutorotateToPortrait = true;
             PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
@@ -49,7 +56,8 @@ public static class QuantumForgeAndroidDemoBuild
             PlayerSettings.bundleVersion = QaBundleVersion;
             PlayerSettings.Android.bundleVersionCode = QaVersionCode;
             EditorUserBuildSettings.buildAppBundle = false;
-            // APK de recuperacion para el dispositivo conectado (ARM64).
+            // Una sola APK ARM64 sirve como actualizacion y como instalacion
+            // nueva en telefonos Android modernos de 64 bits.
             PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android,
                 ScriptingImplementation.IL2CPP);
             PlayerSettings.Android.targetArchitectures =
@@ -83,6 +91,14 @@ public static class QuantumForgeAndroidDemoBuild
 
     private static void BuildInternal()
     {
+        if (PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.Android) !=
+            AndroidIdentifier)
+            throw new InvalidOperationException(
+                "El paquete Android no coincide con la aplicacion instalada.");
+        if (PlayerSettings.Android.bundleVersionCode != QaVersionCode)
+            throw new InvalidOperationException(
+                "El versionCode Android no coincide con el autorizado.");
+
         string[] scenes = EditorBuildSettings.scenes
             .Where(scene => scene.enabled)
             .Select(scene => scene.path)
@@ -114,7 +130,11 @@ public static class QuantumForgeAndroidDemoBuild
             // QaRuntimeService habilita las herramientas solo cuando
             // Debug.isDebugBuild es verdadero. AllowDebugging permite además
             // respaldar save.json con adb antes de iniciar la aplicación.
-            options = BuildOptions.Development | BuildOptions.AllowDebugging
+            // CleanBuildCache evita que Gradle/Unity reutilicen bloques obsoletos
+            // que pueden inflar la APK despues de una recompilacion incremental.
+            options = BuildOptions.Development |
+                BuildOptions.AllowDebugging |
+                BuildOptions.CleanBuildCache
         });
 
         BuildSummary summary = report.summary;

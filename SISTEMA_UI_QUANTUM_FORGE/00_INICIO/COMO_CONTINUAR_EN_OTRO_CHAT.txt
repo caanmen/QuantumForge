@@ -1,0 +1,33 @@
+CONTINUAR EL TRABAJO EN OTRO CHAT
+================================
+
+No hace falta copiar toda la conversación anterior. El nuevo chat debe abrir el
+mismo proyecto y recibir un mensaje como este:
+
+"Vamos a trabajar en la pantalla <NOMBRE> de la Dimensión <NÚMERO>. Antes de
+hacer cambios, lee AGENTS.md y el sistema SISTEMA_UI_QUANTUM_FORGE completo en
+lo que corresponda a esa pantalla. Usa su referencia permanente, su ficha, su
+perfil de dimensión y sus decisiones. No inventes elementos y aplica las
+puertas de aprobación hasta alcanzar el 95 % visual aprobado. Distingue reglas
+generales, ejemplos históricos y decisiones exclusivas; no copies la estética de
+otra dimensión salvo autorización registrada."
+
+Además se adjunta la referencia nueva si todavía no está guardada en
+05_REFERENCIAS. Cuando ya está guardada allí, basta con indicar su ruta.
+
+El nuevo chat debe comenzar leyendo, en este orden:
+1. AGENTS.md
+2. REGLAS_DE_TRABAJO_Y_CONTINUIDAD.md
+3. 00_INICIO/INSTRUCCIONES_MAESTRAS_UI.md
+4. Las dos guías de 01_GUIAS
+5. El perfil de la dimensión
+6. La carpeta específica dentro de 10_PANTALLAS
+7. La referencia y las capturas aprobadas de esa pantalla
+
+Si el estilo de la nueva dimensión cambia, se crea o completa su propio perfil.
+Las reglas de calidad y pruebas se reutilizan; el diseño visual no se copia por
+obligación desde otra dimensión.
+
+Los casos de Carta Galáctica, Centro de Mando, Explorar y Hangar documentados en las
+guías son evidencia histórica de Dimensión 1. Sus aprendizajes técnicos pueden ser
+transferibles; su paleta, arte, navegación y contenido no lo son automáticamente.

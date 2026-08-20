@@ -316,6 +316,11 @@ public static class TriangleRedesignValidation
                 amount = 1L,
                 stabilizedAmount = 1L
             });
+            Check(!D3AutonomyCoreSystem.CanIntegrate(state, out _),
+                "El Núcleo permite culminar sin una automatización real ejecutada.",
+                failures);
+            D3AutonomyCoreSystem.RecordSuccessfulAutomationExecution(
+                state.dimension3);
             Check(D3AutonomyCoreSystem.TryIntegrate(state, out _),
                 "No se puede integrar el Núcleo de Autonomía con sus requisitos.",
                 failures);

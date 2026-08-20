@@ -26,6 +26,16 @@ public static class D3FacilitySystem
         return facility == null || !facility.built ? 0 : Math.Max(0, facility.level);
     }
 
+    public static bool IsExpeditionPortLinked(GameState gameState)
+    {
+        return gameState != null && gameState.dimension01Unlocked &&
+            (gameState.dimension1ManualSimpleScanCompleted ||
+             (gameState.dimension1ManualSimpleDestinationIds != null &&
+              gameState.dimension1ManualSimpleDestinationIds.Count > 0) ||
+             (gameState.dimension1ManualExtractorUpgradePlanetIds != null &&
+              gameState.dimension1ManualExtractorUpgradePlanetIds.Count > 0));
+    }
+
     public static double GetRequiredEffectiveCapacity(int level)
     {
         switch (level)
@@ -432,13 +442,6 @@ public static class D3FacilitySystem
         }
         if (facilityId == Dimension3Catalog.FacilityExpeditionPort)
         {
-            if (targetLevel == 1 &&
-                gameState.dimension01Unlocked &&
-                gameState.dimension1ManualSimpleDestinationIds.Count < 1)
-            {
-                reason = "El Puerto requiere una exploración simple manual completada.";
-                return false;
-            }
             if (targetLevel == 2 &&
                 gameState.dimension1ManualSimpleDestinationIds.Count < 3)
             {

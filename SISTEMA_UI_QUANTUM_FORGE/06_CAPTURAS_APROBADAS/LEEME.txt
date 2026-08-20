@@ -1,0 +1,16 @@
+CAPTURAS APROBADAS
+
+Una captura sólo se copia aquí cuando:
+- Fue producida desde Unity después del último cambio.
+- Se conoce la escena, resolución y estado.
+- Las pruebas relacionadas finalizaron con PASS.
+- El usuario aprobó explícitamente el resultado.
+
+Las capturas candidatas permanecen en `10_PANTALLAS/<DIMENSIÓN>/<PANTALLA>` o en
+una carpeta de trabajo claramente rotulada. Nunca se archivan aquí antes de aprobarse.
+
+Nombre recomendado:
+<pantalla>_<estado>_<ancho>x<alto>_<AAAA-MM-DD>.png
+
+No sobrescribir silenciosamente una captura aprobada. Si cambia el diseño, conservar
+la anterior con fecha o trasladarla al historial de la pantalla.

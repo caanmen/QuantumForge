@@ -1,0 +1,16 @@
+ORIGEN Y ESTADO: CÁMARA DE RELIQUIAS
+====================================
+
+Referencia permanente:
+SISTEMA_UI_QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_1/RELIQUIAS/referencia_reliquias.png
+
+Origen: imagen suministrada por el usuario el 19 de agosto de 2026.
+Estado de la referencia: autoridad visual aprobada para construir la pantalla.
+Estado de la implementación: INSTALADA EN UNITY — tres páginas candidatas en revisión.
+
+La imagen temporal del chat no se utiliza como dependencia del proyecto. La copia
+permanente anterior es la única referencia visual de esta pantalla.
+
+La primera página responde a la referencia permanente. Las páginas 2 y 3 son una
+extensión aprobada para integración por el usuario y conservan evidencia diferenciada
+como propuesta y como captura real de Unity.

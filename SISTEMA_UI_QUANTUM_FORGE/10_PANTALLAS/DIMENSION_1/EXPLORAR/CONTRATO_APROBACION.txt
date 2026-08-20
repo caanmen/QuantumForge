@@ -1,0 +1,29 @@
+CONTRATO DE APROBACIÓN: EXPLORAR
+===============================
+
+Referencia permanente: registrada.
+Resolución principal: 1080 x 1920 vertical.
+Meta visual: 95 % de parecido percibido con la referencia aprobada.
+
+ESTADOS MÍNIMOS
+- Escáner y destino disponibles.
+- Sin destinos disponibles.
+- Barrido activo.
+- Expedición disponible.
+- Expedición activa con temporizador.
+- Contenido bloqueado o nave no disponible cuando corresponda.
+
+CONDICIONES
+- No mezclar la navegación global con la navegación local D1.
+- No modificar datos del juego al abrir la pantalla.
+- No permitir que dos controladores escriban el mismo texto visual.
+- No deformar radar, iconos o marcos.
+- No añadir adornos ausentes de la referencia.
+- La composición estática se aprueba antes de añadir animación.
+
+RESULTADO DE LA REVISIÓN INTERNA
+- Proporciones de bloques comparadas a 1080 × 1920: CUMPLE.
+- Gráficos contenidos dentro de sus marcos: CUMPLE.
+- Captura determinista sin modificar el guardado: CUMPLE.
+- Navegación local sin mezcla con botones globales: CUMPLE.
+- Aprobación visual del usuario: PENDIENTE.

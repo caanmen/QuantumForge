@@ -843,12 +843,14 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
         ConfigureSelectedCardText(selectedCostText, 12f, false);
         ConfigureSelectedCardText(selectedRequirementsText, 12f, true);
 
-        SetCardTextBand(selectedNameText, 0.78f, 0.96f, 1);
-        SetCardTextBand(selectedStateText, 0.63f, 0.79f, 1);
-        SetCardTextBand(selectedDescriptionText, 0.42f, 0.64f, 2);
-        SetCardTextBand(selectedEffectText, 0.29f, 0.42f, 2);
-        SetCardTextBand(selectedRequirementsText, 0.16f, 0.29f, 2);
-        SetCardTextBand(selectedCostText, 0.03f, 0.16f, 1);
+        // Keep every row inside the flat center of the approved metal frame.
+        // In particular, the former 0.03-0.16 cost band sat on the lower bevel.
+        SetCardTextBand(selectedNameText, 0.76f, 0.90f, 1);
+        SetCardTextBand(selectedStateText, 0.66f, 0.77f, 1);
+        SetCardTextBand(selectedDescriptionText, 0.51f, 0.66f, 2);
+        SetCardTextBand(selectedEffectText, 0.40f, 0.50f, 2);
+        SetCardTextBand(selectedRequirementsText, 0.30f, 0.40f, 2);
+        SetCardTextBand(selectedCostText, 0.20f, 0.30f, 1);
     }
 
     private static void SetCardTextBand(

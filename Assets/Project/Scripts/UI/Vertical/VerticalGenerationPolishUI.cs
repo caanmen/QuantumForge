@@ -136,54 +136,40 @@ public sealed class VerticalGenerationPolishUI : MonoBehaviour
         Color accent,
         float pulse)
     {
+        Color stabilityColor = available && active != TriangleCircuitType.None
+            ? accent
+            : inactiveBorderColor;
         if (gaugeFrame != null)
         {
-            Color tint = active == TriangleCircuitType.None
-                ? new Color(0.35f, 0.50f, 0.62f, 0.82f)
-                : Color.Lerp(Color.white, accent, 0.22f);
-            tint.a = available ? 0.92f + 0.08f * pulse : 0.55f;
+            Color tint = Color.Lerp(Color.white, stabilityColor, 0.22f);
+            tint.a = available ? 0.92f + 0.08f * pulse : 0.58f;
             gaugeFrame.color = tint;
         }
         if (gaugeGlow != null)
         {
-            Color glow = active == TriangleCircuitType.None
-                ? inactiveBorderColor
-                : accent;
+            Color glow = stabilityColor;
             glow.a = available ? 0.16f + 0.10f * pulse : 0.07f;
             gaugeGlow.color = glow;
         }
         if (gaugeProgressRing != null)
         {
-            gaugeProgressRing.fillAmount = available && state != null
-                ? Mathf.Clamp01(state.triangleSynchronization)
-                : 0f;
-            Color ring = active == TriangleCircuitType.None
-                ? inactiveBorderColor
-                : accent;
-            ring.a = available ? 0.90f + 0.10f * pulse : 0.25f;
+            gaugeProgressRing.fillAmount = available &&
+                active != TriangleCircuitType.None ? 1f : 0.28f;
+            Color ring = stabilityColor;
+            ring.a = available
+                ? 0.68f + 0.28f * pulse
+                : 0.26f;
             gaugeProgressRing.color = ring;
         }
 
-        if (gaugeCircuitText != null)
-            gaugeCircuitText.SetText(GetCircuitName(active));
-        if (gaugeProgressText != null)
-        {
-            if (!available || active == TriangleCircuitType.None || state == null)
-            {
-                gaugeProgressText.SetText("--");
-                gaugeProgressText.color = new Color(0.55f, 0.64f, 0.72f, 1f);
-            }
-            else
-            {
-                int percent = Mathf.RoundToInt(state.triangleSynchronization * 100f);
-                int remaining = Mathf.CeilToInt(
-                    (float)state.GetTriangleSynchronizationRemainingSeconds());
-                gaugeProgressText.SetText(remaining > 0
-                    ? $"{percent}% · {remaining} s"
-                    : $"{percent}%");
-                gaugeProgressText.color = accent;
-            }
-        }
+        if (gaugeCircuitText != null) gaugeCircuitText.gameObject.SetActive(false);
+        if (gaugeProgressText != null) gaugeProgressText.gameObject.SetActive(false);
+    }
+
+    private static bool IsEnglish()
+    {
+        return LocalizationManager.I != null &&
+            LocalizationManager.I.CurrentLanguage == LocalizationManager.Language.EN;
     }
 
     private void SetBeam(
@@ -372,7 +358,7 @@ public sealed class VerticalGenerationPolishUI : MonoBehaviour
         if (circuit == TriangleCircuitType.Experimental)
             return Localize(localization, "triangle.circuit.experimental", "TRAZAS");
         if (circuit == TriangleCircuitType.Phase)
-            return Localize(localization, "triangle.circuit.phase", "ENERGÍA");
+            return Localize(localization, "triangle.circuit.phase", "ENERG\u00cdA");
         return "TRIÁNGULO";
     }
 

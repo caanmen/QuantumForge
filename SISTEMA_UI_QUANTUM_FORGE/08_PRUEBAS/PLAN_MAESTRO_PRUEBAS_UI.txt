@@ -1,0 +1,74 @@
+PLAN MAESTRO DE PRUEBAS UI
+
+ALCANCE
+Este plan es general y se instancia para cada pantalla. Los escenarios con prefijo de
+dimensión o nombre de pantalla son regresiones específicas y no definen la estética ni
+los datos de otras dimensiones.
+
+PRECHECK ANTES DE ABRIR UNITY BATCH
+[ ] Unity normal está cerrado.
+[ ] El proyecto no está en Play Mode.
+[ ] La referencia permanente existe.
+[ ] La escena/prefab y el generador están identificados.
+[ ] Package Manager no está deshabilitado cuando puede requerirse resolución.
+[ ] Existe espacio para capturas y registros.
+
+PRUEBA ESTRUCTURAL
+[ ] Objetos esenciales presentes.
+[ ] Referencias serializadas no nulas.
+[ ] Un solo EventSystem y navegación esperada.
+[ ] Jerarquía y orden de capas válidos.
+[ ] Safe Area aplicada por un único sistema.
+
+PRUEBA VISUAL
+[ ] 1080×1920.
+[ ] 720×1280 cuando corresponda.
+[ ] Proporciones conservadas.
+[ ] Zonas seguras respetadas.
+[ ] Tipografía legible.
+[ ] Comparación con referencia y diferencias registradas.
+[ ] Comparación realizada contra la referencia de esta pantalla, no contra un ejemplo
+    histórico de otra dimensión.
+
+PRUEBA DE ESTADOS
+[ ] Neutral.
+[ ] Normal.
+[ ] Preseleccionado/seleccionado.
+[ ] Bloqueado/deshabilitado con causa.
+[ ] Vacío.
+[ ] Completado.
+[ ] Valores mínimos, máximos y textos largos.
+
+PRUEBA DE INTERACCIÓN
+[ ] Validación inmediata después del toque.
+[ ] Validación después del refresco periódico.
+[ ] Toques rápidos y repetidos.
+[ ] Apertura/cierre repetidos.
+[ ] Botón Atrás.
+[ ] Botones ocultos no reciben eventos.
+
+PRUEBA DE ANIMACIÓN
+[ ] La intención y las capas se documentaron antes de producir los assets finales.
+[ ] La implementación comenzó sólo después de aprobar la composición estática.
+[ ] Cada movimiento coincide con el contrato; no hay animaciones inventadas durante Unity.
+[ ] Pivotes centrados.
+[ ] Posiciones base sin deriva.
+[ ] Sólo se anima la capa prevista.
+[ ] Evidencia renderizada.
+[ ] Sin pérdida de legibilidad ni movimiento del layout.
+
+PRUEBA DE INTEGRACIÓN
+[ ] Datos y reglas reales.
+[ ] Guardado/carga cuando corresponda.
+[ ] Partida nueva y antigua cuando exista migración.
+[ ] Navegación hacia pantallas vecinas.
+[ ] Sin excepciones relacionadas.
+
+CIERRE
+[ ] Mensaje PASS específico.
+[ ] Capturas nuevas identificadas.
+[ ] Captura aprobada archivada.
+[ ] Registro de pantalla actualizado.
+[ ] Diferencias restantes documentadas.
+[ ] Similitud visual mínima del 95 % aprobada.
+[ ] Decisiones exclusivas y aprendizajes generalizables archivados por separado.

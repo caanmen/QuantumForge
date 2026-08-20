@@ -1,0 +1,32 @@
+CONTRATO DE APROBACIÓN: ARK — CENTRO GALÁCTICO
+==============================================
+
+Referencia permanente: registrada.
+Resolución principal: 1080 x 1920 vertical.
+Meta visual: 95 % de parecido percibido con la referencia suministrada.
+
+PUERTA 0 — AUDITORÍA Y REUTILIZACIÓN
+[x] Marcos, metales, naves, señal, órbitas y lógica existentes localizados.
+[x] Hero central registrado como único faltante real.
+
+PUERTA 1 — CONTRATO
+[x] Función, entrada, salida, estados, datos y propietarios definidos.
+[x] Valores ilustrativos separados del estado real.
+
+PUERTA 2 — COMPOSICIÓN ESTÁTICA
+[x] Jerarquía y proporciones construidas en la escena real.
+[x] Hero candidato y cuatro naves canónicas integrados.
+[x] Capturas revisadas a 1080 x 1920 y 720 x 1280.
+
+PUERTA 3 — DATOS E INTERACCIÓN
+[x] Regreso e inventario de metales.
+[x] Investigación, sincronías y misión final conectadas al sistema existente.
+[x] Estados completado, activo, pendiente y bloqueado representados.
+
+PUERTA 5 — CIERRE
+[x] Instalador y captura PASS.
+[x] Sin errores o excepciones relacionadas.
+[ ] Similitud mínima del 95 % aprobada por el usuario.
+[ ] Capturas aprobadas archivadas.
+
+Resultado: CANDIDATA FUNCIONAL LISTA PARA REVISIÓN; NO APROBADA AÚN

@@ -1,0 +1,29 @@
+DECISIONES ESPECÍFICAS: HANGAR
+==============================
+
+- La imagen del 19 de agosto de 2026 es la autoridad visual de esta pantalla.
+- La interfaz provisional del Hangar conserva la autoridad funcional, pero deja de ser
+  visible cuando está presente la nueva composición.
+- La selección inicial de la referencia es Sonda Ligera + Velocidad.
+- Los cuatro vehículos usan planos técnicos de línea porque esta referencia los presenta
+  así; no se reutiliza esta decisión como regla general para otras pantallas.
+- Plano técnico no significa icono simple: cada nave debe conservar su silueta propia,
+  módulos principales y densidad de divisiones mecánicas. La primera versión procedural
+  fue descartada por no cumplir esta condición.
+- La versión V2 se reconstruye desde un recorte de autoridad por nave. El sprite conserva
+  el detalle y un único material UI elimina el fondo horneado y controla el tint de estado.
+- Los valores de la referencia se reproducen sólo en captura determinista. En juego se
+  consultan niveles, desbloqueos y costes reales.
+- Cada propiedad visible tiene un propietario único: el controlador visual escribe los
+  textos nuevos y el controlador funcional ejecuta compras y guardado.
+- La composición estática se valida antes de añadir animación ambiental.
+- La captura candidata permanecerá en esta carpeta hasta la aprobación explícita del
+  usuario; sólo entonces podrá archivarse como captura aprobada.
+- Las capturas de los iconos simples se conservan con el prefijo
+  CAPTURA_RECHAZADA_ICONOS_SIMPLES y no son candidatas de aprobación.
+- HangarPanel conserva la autoridad funcional y D1_HangarVisualRoot compensa su
+  desplazamiento heredado con una única posición base documentada.
+- Las barras sólidas usan anclaje horizontal para que el porcentaje sea visible incluso
+  sin un sprite de relleno.
+- El escenario QA consume y oculta los informes runtime, renderiza el Canvas actualizado
+  y mantiene suprimidas las escrituras del guardado.
