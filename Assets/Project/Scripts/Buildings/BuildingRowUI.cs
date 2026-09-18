@@ -31,7 +31,9 @@ public class BuildingRowUI : MonoBehaviour
 
     [Header("Rendimiento")]
     [SerializeField] private float refreshInterval = 0.25f;
+    [SerializeField] private float tickBarRefreshInterval = 1f / 15f;
     private float _t;
+    private float _tickBarTimer;
 
     // Estado del edificio que esta fila representa
     private BuildingState state;
@@ -178,8 +180,12 @@ public class BuildingRowUI : MonoBehaviour
 
     private void Update()
     {
-
-        UpdateTickBar();
+        _tickBarTimer += Time.unscaledDeltaTime;
+        if (_tickBarTimer >= tickBarRefreshInterval)
+        {
+            _tickBarTimer = 0f;
+            UpdateTickBar();
+        }
 
         _t += Time.unscaledDeltaTime;
         if (_t < refreshInterval) return;
@@ -403,7 +409,9 @@ public class BuildingRowUI : MonoBehaviour
         var lm = LocalizationManager.I;
         if (lm == null) return fallback;
         var s = lm.T(key);
-        return string.IsNullOrEmpty(s) ? fallback : s;
+        // LocalizationManager devuelve la propia clave cuando falta una
+        // traduccion. Nunca debe filtrarse una clave interna al jugador.
+        return string.IsNullOrEmpty(s) || s == key ? fallback : s;
     }
 
     private string LF(string key, string fallback, params object[] args)
@@ -514,6 +522,13 @@ public class BuildingRowUI : MonoBehaviour
     string costLine = $"{costPrefix} {gameState.GetEffectiveBuildingCost(state):0.##} LE";
     if (def.id == "fluctuation_antenna" && state.level > 0)
         costLine += $" + {gameState.GetTriangleEnergyGeneratorTraceCost():0.##} Trazas";
+    int nextMilestone = GameState.GetNextArtifactMilestoneLevel(def.id, state.level);
+    if (nextMilestone > 0)
+    {
+        double milestoneMultiplier = GameState.GetArtifactLevelMilestoneMultiplier(
+            def.id, nextMilestone);
+        costLine += $"\nHito Nv. {nextMilestone}: producción x{milestoneMultiplier:0}";
+    }
 
     if (def.tickInterval <= 0.0)
     {

@@ -1,0 +1,24 @@
+DECISIONES — ANALIZAR RESTOS
+
+2 de septiembre de 2026
+
+1. La referencia permanente V4 manda sobre el adjunto temporal del chat.
+2. Analizar Restos es subvista de Arqueología/Excavar, no raíz ni pestaña nueva.
+3. La placa limpia sólo posee marcos, textura, ilustraciones, iconos y ornamentos;
+   todos los textos, cifras, estados, barra y áreas táctiles pertenecen a Unity.
+4. La selección de calidad es transitoria y no consume Restos.
+5. Únicamente el botón ANALIZAR llama TryStartAnalysis con la calidad elegida.
+6. El análisis, sus recompensas, duración y consumo no se duplican en la UI.
+7. El panel se adapta a la zona seleccionada y usa su Erudito y recurso propios.
+8. MEJORAR/CONTRATAR ERUDITO refleja CanUpgradeScholar o CanHireScholar y cambia
+   su estado visual cuando la acción no está disponible.
+9. La barra de investigación usa researchProgress real y ajusta su ancho.
+10. Los recursos de Civilización 1 se leen de los altares existentes.
+11. El botón superior y EXCAVAR vuelven a Arqueología; Archivo y Ente conservan
+    sus rutas existentes.
+12. El capturador suprime escrituras persistentes y protege save.json y su backup.
+13. Cualquier cambio de placa, geometría, texto o navegación exige repetir las
+    capturas 1080×1920 y 720×1280 y el gate perceptual AA mínimo de 95 %.
+14. Superar el gate técnico no sustituye la aprobación visual del usuario.
+15. Las cuatro recompensas usan cajas independientes alineadas fila por fila con
+    sus iconos; la franja superior separa claramente cada icono, rótulo y valor.

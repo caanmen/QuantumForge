@@ -1,0 +1,72 @@
+FICHA DE PANTALLA — ARCHIVO IV / MEJORAS PERMANENTES
+
+Fecha: 3 de septiembre de 2026
+Estado: APROBADA VISUALMENTE POR EL USUARIO
+
+IDENTIDAD Y FUNCIÓN
+- Subvista de Arqueología/Excavar de Civilización 3 en Dimensión 2.
+- Presenta el nivel real del Archivo, Conocimiento Antiguo, Conocimiento del Ente
+  y los recursos propios de las tres zonas.
+- Conserva las tres mejoras reales: Cartografía Estratificada, Concordancia
+  Anómala y Exégesis Profunda.
+- Cada mejora refleja nivel, coste, recurso, umbral, disponibilidad y desbloqueo
+  mediante D2Civilization3System.
+- Atrás y EXCAVAR regresan a Ruinas Sepultadas; ANALIZAR y ENTE abren sus áreas.
+
+REFERENCIA DE AUTORIDAD
+- Ruta: 05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/18_Archivo_Mejoras_Permanentes_Corregido_V4.png
+- Tipo: referencia visual candidata permanente V4.
+- Resolución: 941×1672; composición objetivo 1080×1920.
+- SHA-256: B38D55DCB68FE3546572D17C2F2EF1497EED103E928F825B6A31407A43810A48
+- El borde de selección del adjunto temporal del chat no pertenece a la pantalla.
+
+ARQUITECTURA Y PROPIETARIOS
+- D2Civilization3System: costes, requisitos, efectos y desbloqueos.
+- Dimension2State: persistencia del nivel, recursos y mejoras.
+- D2ArchivePanelUI: formato, refresco, estados y acciones.
+- Dimension2Block1UISetup: geometría, placa, capas y áreas táctiles.
+- Placa limpia: Assets/Project/UI/Dimension2/Archive/Generated/D2_Archive_CleanBasePlate_v1.png
+- SHA-256 de placa: 64081152F79E36C0BE1170BAA06E35AF1DAD8C90C444B2D7E463BB0E9DF8816F
+- Candado dinámico: Assets/Project/UI/Dimension2/Archive/Generated/D2_Archive_LockIcon_v1.png
+- Procedencia y prompts: Assets/Project/UI/Dimension2/Archive/Generated/ORIGEN_Y_USO.txt
+
+ESTADOS CUBIERTOS
+- Mejora disponible y botón DESBLOQUEAR interactuable.
+- Mejora bloqueada con candado y botón no interactuable.
+- Mejora adquirida, sin doble cobro ni botón activo.
+- Archivo bloqueado o niveles I, II, III y IV.
+- Variaciones de Conocimiento del Ente, Conocimiento Antiguo y recursos de zona.
+
+RECONSTRUCCIÓN Y QA
+- Escena: Assets/Project/Scenes/Main.unity.
+- Constructor: Dimension2Block1UISetup.ConfigureBlock1UI.
+- Captura y pruebas: Dimension2ArchiveCapture.Run.
+- Comparación: UIReferenceComparison.RunDimension2Archive.
+- Captura 1080: CAPTURAS_CANDIDATAS/D2_ArchivoMejoras_1080x1920.png
+- Captura 720: CAPTURAS_CANDIDATAS/D2_ArchivoMejoras_720x1280.png
+- Log de captura: Logs/dimension2_archive_capture_final.log
+- Log de comparación: Logs/dimension2_archive_comparison.log
+
+EVIDENCIA ACTUALIZADA EL 3 DE SEPTIEMBRE DE 2026
+- STRUCTURE_PASS | STATE_PASS | ACTIONS_PASS | ROUTE_PASS |
+  SAVE_INTACT_PASS | TEXT_GEOMETRY_PASS.
+- Similitud perceptual AA: 97.42 % a 1080×1920 y 97.68 % a 720×1280.
+- Fixture: Archivo IV, 90 Conocimiento Antiguo, Conocimiento del Ente 3/6,
+  Fragmentos Base 40, Inscripciones Parciales 20 y Sellos Antiguos 5.
+- Cartografía queda disponible; Concordancia y Exégesis permanecen bloqueadas.
+- La prueba pulsa físicamente Cartografía, verifica el descuento a 40 de
+  Conocimiento y 15 Fragmentos, confirma la mejora adquirida y restaura el fixture.
+- La prueba valida las rutas desde Ruinas y hacia Analizar, Ente, Excavar y atrás.
+
+APROBACIÓN VISUAL
+- El usuario confirmó explícitamente «quedó perfecto» el 3 de septiembre de 2026.
+- Las capturas aprobadas quedaron archivadas en
+  06_CAPTURAS_APROBADAS/DIMENSION_2/ARCHIVO_MEJORAS_PERMANENTES/.
+
+AJUSTE POSTERIOR SOLICITADO EL 3 DE SEPTIEMBRE DE 2026
+- Los textos de las dos filas de coste se centraron ópticamente respecto a sus iconos.
+- Nueva candidata: 97.42 % a 1080×1920 y 97.68 % a 720×1280.
+- STRUCTURE_PASS | STATE_PASS | ACTIONS_PASS | ROUTE_PASS |
+  SAVE_INTACT_PASS | TEXT_GEOMETRY_PASS.
+- El usuario continuó a la pantalla siguiente después de revisar el ajuste; las
+  capturas aprobadas fueron sustituidas por esta versión corregida.

@@ -1,0 +1,32 @@
+CONTINUAR EL TRABAJO EN OTRO CHAT
+================================
+
+No hace falta copiar toda la conversación anterior ni leer todo el sistema. El nuevo chat
+debe abrir el mismo proyecto y recibir un mensaje como este:
+
+"Continuamos con Quantum Forge. La etapa actual es <ETAPA> y el pendiente inmediato es
+<BLOQUE O LISTA NUMERADA>. Este es el resumen compacto: <RESUMEN>. Revisa la carpeta de
+producción mediante su enrutador: conoce el inventario, pero lee sólo las reglas, guías,
+aprendizajes, pruebas y archivos reales relacionados. Dime brevemente qué seleccionaste
+antes de actuar."
+
+Además se adjunta la referencia nueva si todavía no está guardada en
+05_REFERENCIAS. Cuando ya está guardada allí, basta con indicar su ruta.
+
+El nuevo chat debe comenzar así:
+1. Leer AGENTS.md y aplicar el enrutador general.
+2. Leer el estado y resumen compacto sin tratarlos como sustituto de los archivos reales.
+3. Consultar MAPA_DEL_SISTEMA.txt y elegir la ruta de la tarea.
+4. Para una corrección localizada, leer sólo ficha, decisiones, perfil, referencia y
+   pruebas de la pantalla o sistema afectado.
+5. Para una pantalla nueva o rediseño, añadir instrucciones maestras y guías de creación.
+6. Buscar en el catálogo únicamente aprendizajes que coincidan con el problema.
+
+Si el estilo de la nueva dimensión cambia, se crea o completa su propio perfil.
+Las reglas de calidad y pruebas se reutilizan; el diseño visual no se copia por
+obligación desde otra dimensión.
+
+Los casos de Carta Galáctica, Centro de Mando, Explorar y Hangar documentados en las guías
+son evidencia histórica de Dimensión 1. No se leen por rutina: sólo cuando una regla o el
+problema actual los haga relevantes. Sus aprendizajes técnicos pueden ser transferibles;
+su paleta, arte, navegación y contenido no lo son automáticamente.

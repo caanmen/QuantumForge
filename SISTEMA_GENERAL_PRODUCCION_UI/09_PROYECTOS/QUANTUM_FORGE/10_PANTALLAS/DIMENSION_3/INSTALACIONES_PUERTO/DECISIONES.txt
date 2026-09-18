@@ -1,0 +1,15 @@
+DECISIONES — INSTALACIONES / PUERTO
+===================================
+
+1. La maestra limpia 09_Instalaciones_Puerto.png manda en composición y acabado.
+2. Puerto es una variante del D3FacilitiesPanelUI compartido; no crea otro sistema.
+3. El enlace D1 debe provenir de una acción manual registrada, no de una bandera inventada.
+4. Capacidad 2 se calcula únicamente con los cuatro MK1 estabilizados; el quinto sigue pendiente.
+5. La placa no recibe raycasts y los controles reales conservan toda la interacción.
+6. Aprobada explícitamente por el usuario al continuar con la pantalla siguiente;
+   capturas archivadas en 1080x1920 y 720x1280 el 2026-09-07.
+7. La candidata real de Unity fue verificada en 1080x1920 y 720x1280 el 2026-09-07.
+8. La validación funcional confirmó Puerto N1 enlazado con D1, capacidad 2,
+   5 MK1 asignados, 4 estables y estabilización pendiente de 30 segundos.
+9. Las regresiones de Núcleo, Consola y Mejora coinciden byte por byte con sus
+   capturas aprobadas en ambas resoluciones.

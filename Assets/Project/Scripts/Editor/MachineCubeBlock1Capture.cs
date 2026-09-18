@@ -748,21 +748,6 @@ public static class MachineCubeBlock1Capture
             ValidatePhysicalSelection(controller, panel.SelectedNodeId);
             SetSelectionGuideVisible(false);
             Capture("true3d_09_face_4_repaired.png");
-            Require(TabsUI.Instance != null, "TabsUI no disponible para Ajustes.");
-            TabsUI.Instance.ShowAjustes();
-            Canvas.ForceUpdateCanvases();
-            Advance(12);
-            return;
-        }
-        if (stage == 12)
-        {
-            VerticalSettingsPanelUI settings =
-                UnityEngine.Object.FindFirstObjectByType<VerticalSettingsPanelUI>(
-                    FindObjectsInactive.Include);
-            Require(settings != null && settings.gameObject.activeInHierarchy,
-                "El panel de Ajustes no se abrio para validar calidad 3D.");
-            settings.RefreshQualityState();
-            Capture("true3d_10_graphics_settings.png");
             EditorApplication.update -= Tick;
             EndCaptureRendering();
             SessionState.SetBool(CompletedKey, true);
@@ -835,15 +820,7 @@ public static class MachineCubeBlock1Capture
                 HasActiveAncestors(module.transform.parent));
         Require(expectedBalancedModules > 0 && expectedHighModules > 0,
             "El cubo no contiene detalle escalable para Media y Alta.");
-        VerticalSettingsPanelUI settings =
-            UnityEngine.Object.FindFirstObjectByType<VerticalSettingsPanelUI>(
-                FindObjectsInactive.Include);
-        Require(settings != null && settings.lowQualityButton != null &&
-            settings.balancedQualityButton != null &&
-            settings.highQualityButton != null && settings.currentQualityText != null,
-            "Los controles de calidad 3D no estan conectados.");
-
-        settings.SetLow();
+        MachineCube3DQuality.Set(MachineCube3DQualityLevel.Low);
         controller.RenderNow();
         Require(controller.CurrentRenderSize == 512 &&
             !HasActiveCubeShadows(controller) &&
@@ -858,7 +835,7 @@ public static class MachineCubeBlock1Capture
         Require(lowNodeLights > 0,
             "El perfil BAJA oculto las luces de identidad de los nodos.");
         Capture("true3d_quality_low.png");
-        settings.SetBalanced();
+        MachineCube3DQuality.Set(MachineCube3DQualityLevel.Balanced);
         controller.RenderNow();
         Require(controller.CurrentRenderSize == 768 &&
             !HasActiveCubeShadows(controller) &&
@@ -874,7 +851,7 @@ public static class MachineCubeBlock1Capture
         Require(balancedNodeLights == lowNodeLights,
             "El perfil EQUILIBRADA cambio la cantidad de luces de nodos.");
         Capture("true3d_quality_balanced.png");
-        settings.SetHigh();
+        MachineCube3DQuality.Set(MachineCube3DQualityLevel.High);
         controller.RenderNow();
         Require(controller.CurrentRenderSize == 1024 &&
             HasActiveCubeShadows(controller) &&

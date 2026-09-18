@@ -10,6 +10,7 @@ using UnityEngine.UI;
 
 public static class VerticalGenerationVisualPolish
 {
+    private const float TriangleVerticalOffset = 48f;
     // Azul propio de Higgs: claramente más profundo que el cian general.
     private static readonly Color HiggsBlue = new(0.01f, 0.30f, 0.76f, 1f);
     private static readonly Color32 HiggsBlue32 = new(3, 77, 194, 255);
@@ -325,12 +326,12 @@ public static class VerticalGenerationVisualPolish
         if (legacyObservatory != null)
             UnityEngine.Object.DestroyImmediate(legacyObservatory.gameObject);
         RectTransform contentRect = (RectTransform)content;
-        contentRect.sizeDelta = new Vector2(0f, 1440f);
+        contentRect.sizeDelta = new Vector2(0f, 1488f);
 
         TextMeshProUGUI title = content.Find("TriangleGenerationTitle")
             ?.GetComponent<TextMeshProUGUI>();
         Require(title != null, "Falta TriangleGenerationTitle.");
-        SetTopRect(title.rectTransform, 0f, 78f, 8f, -8f);
+        SetTopRect(title.rectTransform, TriangleVerticalOffset, 78f, 8f, -8f);
         title.fontSize = 38f;
         title.fontSizeMax = 38f;
         title.fontSizeMin = 26f;
@@ -340,7 +341,7 @@ public static class VerticalGenerationVisualPolish
         Image titleFrame = CreateImage("GenerationTitleFrame", content,
             theme.panelFrame, Color.white);
         titleFrame.type = Image.Type.Sliced;
-        SetTopRect(titleFrame.rectTransform, 0f, 78f, 8f, -8f);
+        SetTopRect(titleFrame.rectTransform, TriangleVerticalOffset, 78f, 8f, -8f);
         titleFrame.transform.SetSiblingIndex(title.transform.GetSiblingIndex());
         title.transform.SetSiblingIndex(titleFrame.transform.GetSiblingIndex() + 1);
         CreateTitleAccents(titleFrame.transform, theme.energy);
@@ -348,7 +349,7 @@ public static class VerticalGenerationVisualPolish
         Transform focus = content.Find("TriangleFocus");
         Require(focus != null, "Falta TriangleFocus.");
         RectTransform focusRect = (RectTransform)focus;
-        SetTopRect(focusRect, 88f, 1348f, 0f, 0f);
+        SetTopRect(focusRect, 88f + TriangleVerticalOffset, 1348f, 0f, 0f);
         Image focusImage = focus.GetComponent<Image>();
         focusImage.sprite = theme.panelFrame;
         focusImage.type = Image.Type.Sliced;
@@ -444,17 +445,21 @@ public static class VerticalGenerationVisualPolish
             purchasesTitle.characterSpacing = 3f;
         }
 
-        SetTopRect((RectTransform)circuits, 820f, 100f, 8f, -8f);
+        SetTopRect((RectTransform)circuits,
+            820f + TriangleVerticalOffset, 100f, 8f, -8f);
         StyleCircuits(circuits, circuitEnergy, circuitExperimental,
             circuitPhase, selectorFrame, theme, polish);
         Image purchasesFrame = CreateImage("TrianglePurchasesFrame", content,
             theme.panelFrame, Color.white);
         purchasesFrame.type = Image.Type.Sliced;
-        SetTopRect(purchasesFrame.rectTransform, 928f, 508f, 8f, -8f);
+        SetTopRect(purchasesFrame.rectTransform,
+            928f + TriangleVerticalOffset, 508f, 8f, -8f);
         purchasesFrame.transform.SetSiblingIndex(artifactsTitle.GetSiblingIndex());
-        SetTopRect((RectTransform)artifactsTitle, 936f, 52f, 28f, -28f);
+        SetTopRect((RectTransform)artifactsTitle,
+            936f + TriangleVerticalOffset, 52f, 28f, -28f);
         artifactsTitle.SetSiblingIndex(purchasesFrame.transform.GetSiblingIndex() + 1);
-        SetTopRect((RectTransform)cards, 992f, 426f, 22f, -22f);
+        SetTopRect((RectTransform)cards,
+            992f + TriangleVerticalOffset, 426f, 22f, -22f);
         cards.SetSiblingIndex(artifactsTitle.GetSiblingIndex() + 1);
         StyleCards(cards, higgs, tetra, modulator, theme);
 
@@ -498,8 +503,8 @@ public static class VerticalGenerationVisualPolish
     {
         rect.anchorMin = Vector2.zero;
         rect.anchorMax = Vector2.one;
-        rect.offsetMin = new Vector2(96f, 20f);
-        rect.offsetMax = new Vector2(-96f, -148f);
+        rect.offsetMin = new Vector2(16f, 20f);
+        rect.offsetMax = new Vector2(-16f, -148f);
     }
 
     private static void StyleBeforeTriangleRoot(
@@ -529,7 +534,7 @@ public static class VerticalGenerationVisualPolish
         CreateTitleAccents(titleFrame.transform, theme.energy);
 
         RectTransform frameRect = (RectTransform)frameTransform;
-        SetTopRect(frameRect, 88f, 1090f, 0f, 0f);
+        SetTopRect(frameRect, 88f, 720f, 0f, 0f);
         Image frame = frameTransform.GetComponent<Image>();
         Require(frame != null, "ArtifactsFrame perdio su Image.");
         frame.sprite = theme.panelFrame;
@@ -988,9 +993,18 @@ public static class VerticalGenerationVisualPolish
         VerticalUiTheme theme)
     {
         VerticalLayoutGroup layout = cards.GetComponent<VerticalLayoutGroup>();
-        Require(layout != null, "TriangleArtifactCards perdió VerticalLayoutGroup.");
+        if (layout == null)
+        {
+            HorizontalLayoutGroup horizontal =
+                cards.GetComponent<HorizontalLayoutGroup>();
+            if (horizontal != null)
+                UnityEngine.Object.DestroyImmediate(horizontal);
+            layout = cards.gameObject.AddComponent<VerticalLayoutGroup>();
+        }
         layout.spacing = 8f;
         layout.padding = new RectOffset(4, 4, 4, 4);
+        layout.childControlWidth = true;
+        layout.childForceExpandWidth = true;
         layout.childControlHeight = true;
         layout.childForceExpandHeight = false;
 

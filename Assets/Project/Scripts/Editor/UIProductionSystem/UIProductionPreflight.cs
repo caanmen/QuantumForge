@@ -8,7 +8,7 @@ using UnityEngine;
 
 public static class UIProductionPreflight
 {
-    private const string SystemRoot = "SISTEMA_UI_QUANTUM_FORGE";
+    private const string SystemRoot = "SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE";
 
     [MenuItem("Quantum Forge/UI Production/Ejecutar comprobación general")]
     public static void Run()

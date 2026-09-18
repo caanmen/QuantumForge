@@ -1,0 +1,52 @@
+FICHA DE PANTALLA: ANILLO DE RESTOS
+==================================
+
+IDENTIDAD
+Nombre visible: ANILLO DE RESTOS
+Nombre interno estable: D1_ANILLO_DE_RESTOS
+Dimensión: 1
+Tipo: subpantalla de sector dentro de Galaxia
+Estado: CANDIDATA FUNCIONAL VALIDADA; PENDIENTE DE APROBACIÓN VISUAL
+
+FUNCIÓN
+Objetivo: consultar y mejorar el planeta 3 del Sector 2 y abrir sus cuatro destinos
+oficiales desde la familia visual D1.
+Entrada: seleccionar Anillo de Restos en Carta Galáctica y confirmar la entrada.
+Salida: flecha superior o VOLVER A CARTA GALÁCTICA.
+
+AUTORIDAD Y REUTILIZACIÓN
+- Armazón: composición de Órbitas Antiguas reutilizada por petición explícita actual.
+- Planeta 3 y arte sectorial elegido: `Candidates/DebrisRing/
+  d1_debris_ring_option_1_dense_orbit.png`.
+- Marcos, rellenos, campo estelar, metales y navegación: assets canónicos D1.
+- Nave abandonada: candidato existente de Órbitas Antiguas.
+- Cementerio de naves, cinturón mineral y sondas: candidatos SectorDetails V2.
+- No existe una referencia visual permanente específica para esta subpantalla.
+
+DATOS REALES
+- Planeta 3: Níquel / Cobalto.
+- Destinos, en orden oficial: Cementerio de Naves, Cinturón Mineral, Nave Abandonada y
+  Sondas a la Deriva.
+- Producción, costes, desbloqueo y mejora: GameState / Dimension1System.
+- Las tarjetas de destinos resuelven la opción escaneada por ID estable.
+
+COMPOSICIÓN Y ESTADOS
+Resolución base: 1080 x 1920 vertical; comprobación adicional 720 x 1280.
+El único planeta real se centra verticalmente en el área reservada para planetas; no se
+inventa una segunda tarjeta. Se conservan encabezado, destinos, regreso y navegación.
+
+PROPIETARIOS
+Composición serializada: Dimension1SectorDetailsSetup.
+Datos, visibilidad y acciones: Dimension1SectorDetailUI.
+Entrada y selección: Dimension1PanelUI.
+
+EVIDENCIA
+- Instalación: [D1 Sector Details] INSTALL_PASS.
+- QA: entrada real, cuatro IDs, inventario, mejora y regreso: PASS.
+- Centrado del Planeta 3: PASS en ambas resoluciones.
+- Encabezado completo, sin recorte superior, y márgenes compartidos con la familia: PASS.
+- Última evidencia: `[D1 Sector Details Capture] PASS | 3 entradas reales + 12 destinos
+  exactos + metales + mejoras + regreso | 1080x1920 + 720x1280`.
+- Capturas candidatas archivadas en CAPTURAS_CANDIDATAS.
+- Nueva imagen del anillo verificada en el detalle a 1080 x 1920 y 720 x 1280: PASS.
+- Similitud visual mínima del 95 %: pendiente del usuario.

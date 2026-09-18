@@ -1,0 +1,15 @@
+DECISIONES — INSTALACIONES / CONSOLA DE PRODUCCIÓN
+=================================================
+
+1. La referencia entregada por el usuario coincide exactamente con la maestra limpia
+   del paquete final y manda en composición y acabado.
+2. El valor 2.83 debe proceder del cálculo real: dos MK2 estables aportan potencia 8
+   y la capacidad efectiva es sqrt(8).
+3. Esta variante comparte D3FacilitiesPanelUI con Núcleo. El skin selecciona placa y
+   geometría según el valor real de facilityDropdown.
+4. La composición estática se aprueba antes de implementar todas las variantes de
+   interacción y realimentación visual.
+5. El usuario aprobó explícitamente esta variante el 7 de septiembre de 2026 con
+   la frase "perfecto" al continuar con la pantalla siguiente.
+6. Se archivaron las capturas reales de Unity 1080x1920 y 720x1280 en
+   06_CAPTURAS_APROBADAS/DIMENSION_3/INSTALACIONES_CONSOLA_ASIGNACION/.

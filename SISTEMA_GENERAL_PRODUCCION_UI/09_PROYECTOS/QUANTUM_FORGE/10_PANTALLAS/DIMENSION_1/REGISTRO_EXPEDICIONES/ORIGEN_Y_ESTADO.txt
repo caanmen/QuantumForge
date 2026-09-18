@@ -1,0 +1,23 @@
+ORIGEN Y ESTADO: REGISTRO DE EXPEDICIONES
+=========================================
+
+Referencia permanente:
+05_REFERENCIAS/DIMENSION_1/REGISTRO_EXPEDICIONES/referencia_registro_expediciones_v1.png
+
+Estado inicial del proyecto:
+- Existe un panel textual funcional llamado `Exploration Record Panel`.
+- Existe un botón REGISTRO conectado desde Explorar.
+- El historial real conserva hasta 20 `D1ExplorationRecordEntry`.
+- No existía todavía la composición visual detallada de la referencia.
+
+La nueva implementación debe reemplazar únicamente la presentación del panel textual y
+conservar su autoridad funcional, navegación y compatibilidad de guardado.
+
+Estado al 2026-08-20:
+- `Dimension1ExpeditionRecordUI` conserva la autoridad de `Dimension1PanelUI` y lee
+  `dimension1RecentExplorationRecords` sin escribirlo.
+- La escena contiene `D1_ExpeditionRecordVisualRoot` reconstruible mediante
+  `Dimension1ExpeditionRecordSetup`.
+- `Dimension1ExpeditionRecordCapture` confirmó filtros, cardinalidades, scroll, ARK,
+  estados vacíos, cierre seguro y 1080×1920 / 720×1280.
+- La composición continúa como candidata hasta aprobación explícita del usuario.

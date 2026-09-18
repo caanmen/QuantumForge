@@ -1,0 +1,54 @@
+FICHA DE PANTALLA: BORDE EXTERIOR
+================================
+
+IDENTIDAD
+Nombre visible: BORDE EXTERIOR
+Nombre interno estable: D1_BORDE_EXTERIOR
+Dimensión: 1
+Tipo: subpantalla de sector dentro de Galaxia
+Estado: CANDIDATA FUNCIONAL VALIDADA; PENDIENTE DE APROBACIÓN VISUAL
+
+FUNCIÓN
+Objetivo: consultar y mejorar los planetas 1 y 2 del Sector 1 y abrir sus cuatro
+destinos oficiales desde la familia visual D1.
+Entrada: seleccionar Borde Exterior en Carta Galáctica y confirmar la entrada.
+Salida: flecha superior o VOLVER A CARTA GALÁCTICA.
+
+AUTORIDAD Y REUTILIZACIÓN
+- Armazón: composición de Órbitas Antiguas reutilizada por petición explícita actual.
+- Planeta 1: d1_body_planet_blue_v3.png.
+- Planeta 2: d1_body_planet_molten_alpha_v2.png.
+- Marcos, rellenos, campo estelar, metales y navegación: assets canónicos D1.
+- Nave abandonada: candidato existente de Órbitas Antiguas.
+- Cinturón mineral, cementerio de naves y sondas: candidatos SectorDetails V2.
+- No existe una referencia visual permanente específica para esta subpantalla.
+
+DATOS REALES
+- Planeta 1: Hierro / Cobre.
+- Planeta 2: Aluminio / Titanio.
+- Destinos, en orden oficial: Cinturón Mineral, Cementerio de Naves, Sondas a la
+  Deriva y Nave Abandonada.
+- Producción, costes, desbloqueo y mejora: GameState / Dimension1System.
+- Las tarjetas de destinos resuelven la opción escaneada por ID estable.
+
+COMPOSICIÓN Y ESTADOS
+Resolución base: 1080 x 1920 vertical; comprobación adicional 720 x 1280.
+Zonas: encabezado; metales; dos tarjetas planetarias; cuatro destinos; regreso; cinco
+botones de navegación D1.
+Estados requeridos: planeta bloqueado/desbloqueado, mejora disponible/insuficiente y
+destino escaneado/no disponible.
+
+PROPIETARIOS
+Composición serializada: Dimension1SectorDetailsSetup.
+Datos, visibilidad y acciones: Dimension1SectorDetailUI.
+Entrada y selección: Dimension1PanelUI.
+
+EVIDENCIA
+- Instalación: [D1 Sector Details] INSTALL_PASS.
+- QA: entrada real, cuatro IDs, inventario, mejora y regreso: PASS.
+- Centrado de ambos planetas: PASS en ambas resoluciones.
+- Encabezado completo, sin recorte superior, y márgenes compartidos con la familia: PASS.
+- Última evidencia: `[D1 Sector Details Capture] PASS | 3 entradas reales + 12 destinos
+  exactos + metales + mejoras + regreso | 1080x1920 + 720x1280`.
+- Capturas candidatas archivadas en CAPTURAS_CANDIDATAS.
+- Similitud visual mínima del 95 %: pendiente del usuario.

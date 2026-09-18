@@ -1,0 +1,20 @@
+REFERENCIA — INVESTIGACIÓN DE PIEZAS V4–V6 · DIMENSIÓN 3
+========================================================
+
+Archivo canónico:
+- referencia_investigacion_piezas_final_1080x1920.png
+
+Origen:
+- copia exacta de ENTREGABLES/Dimension3_11_Pantallas_Finales_1080x1920_ORDENADAS_01-11/05_Investigacion.png;
+- seleccionada por el usuario el 7 de septiembre de 2026 mediante captura del chat;
+- SHA-256: 33EA90B549D15CB24F798354A4FB50BE42BFDB148B22655859E9458FF4D24798.
+
+Estado:
+- autoridad visual vigente para la composición estática;
+- todavía no es captura de Unity aprobada;
+- exige captura nueva 1080x1920 y 720x1280, validación real y aprobación del usuario.
+
+Autoridad funcional:
+- D3ResearchPanelUI, D3ResearchSystem y Dimension3Catalog;
+- escenario: Módulo de Control V4, equipo de 40 MK1 Normal, potencia 50,
+  coste base 100000 LE + 100 T, duración base 1200 s y cola vacía.

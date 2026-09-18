@@ -1,0 +1,54 @@
+{
+  "schema_version": "2.2",
+  "scope": "Cartas numéricas tradicionales de patrón inglés para los cuatro palos",
+  "suits": ["clubs", "diamonds", "hearts", "spades"],
+  "reference_basis": [
+    "Referencia visual aportada por el usuario: diez de corazones tradicional",
+    "The World of Playing Cards: patrón inglés de doble orientación 1/1 a 5/5"
+  ],
+  "universal_geometry_contract": "CONTRATO_GEOMETRIA_UNIVERSAL_CARTAS.json",
+  "orientation_policy": {
+    "mode": "per_row",
+    "description": "La orientación pertenece a la fila canónica, no se infiere sólo de si su centro está por encima o por debajo de 0.5.",
+    "english_pattern_upright_inverted_counts": {
+      "1": [1, 0], "2": [1, 1], "3": [2, 1], "4": [2, 2], "5": [3, 2],
+      "6": [4, 2], "7": [5, 2], "8": [5, 3], "9": [5, 4], "10": [5, 5]
+    }
+  },
+  "measurements": {
+    "source": "Píxeles visibles del render comparados con el campo visible de una fuente limpia independiente",
+    "mean_center_required_by_rank": {
+      "1": true, "2": true, "3": true, "4": true, "5": true,
+      "6": true, "7": false, "8": true, "9": true, "10": true
+    },
+    "mean_center_exception_reason": {"7": "El patrón inglés 5/2 es deliberadamente más pesado en la mitad superior."},
+    "bounds_center_required": true,
+    "per_theme_visible_field_occupancy_required": true,
+    "field_occupancy_source": "Huella universal fija extraída del render final dividida por el campo útil visible del marco; si no cabe se modifica el marco, no la huella.",
+    "theme_transform_override_allowed": false,
+    "minimum_visible_clearance_required": true,
+    "clearance_value_source": "Perfil aprobado de cada familia y escala de salida",
+    "negative_fixtures_required": [
+      "missing_symbol",
+      "extra_symbol",
+      "shifted_pattern",
+      "wrong_topology_same_count",
+      "insufficient_clearance",
+      "wrong_row_orientation",
+      "cramped_pattern_in_wide_field",
+      "theme_transform_override"
+    ]
+  },
+  "patterns": {
+    "1": {"label": "A", "count": 1, "row_signature": [1], "row_orientations_degrees": [0]},
+    "2": {"label": "2", "count": 2, "row_signature": [1, 1], "row_orientations_degrees": [0, 180]},
+    "3": {"label": "3", "count": 3, "row_signature": [1, 1, 1], "row_orientations_degrees": [0, 0, 180]},
+    "4": {"label": "4", "count": 4, "row_signature": [2, 2], "row_orientations_degrees": [0, 180]},
+    "5": {"label": "5", "count": 5, "row_signature": [2, 1, 2], "row_orientations_degrees": [0, 0, 180]},
+    "6": {"label": "6", "count": 6, "row_signature": [2, 2, 2], "row_orientations_degrees": [0, 0, 180]},
+    "7": {"label": "7", "count": 7, "row_signature": [2, 1, 2, 2], "row_orientations_degrees": [0, 0, 0, 180]},
+    "8": {"label": "8", "count": 8, "row_signature": [2, 1, 2, 1, 2], "row_orientations_degrees": [0, 0, 0, 180, 180]},
+    "9": {"label": "9", "count": 9, "row_signature": [2, 2, 1, 2, 2], "row_orientations_degrees": [0, 0, 0, 180, 180]},
+    "10": {"label": "10", "count": 10, "row_signature": [2, 1, 2, 2, 1, 2], "row_orientations_degrees": [0, 0, 0, 180, 180, 180]}
+  }
+}

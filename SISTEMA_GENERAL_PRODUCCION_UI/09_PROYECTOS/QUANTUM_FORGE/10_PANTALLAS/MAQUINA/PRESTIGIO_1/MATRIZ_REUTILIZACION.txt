@@ -1,0 +1,21 @@
+PUERTA 0 — MATRIZ DE REUTILIZACIÓN — PRESTIGIO 1
+
+Concepto | Origen verificado | Ruta | Estado | Decisión
+Cabecera MÁQUINA | Captura aprobada | 06_CAPTURAS_APROBADAS/COMUN/MAQUINA_MONOLITO_2D | Canónico | Reutilizar sin alterar proporción
+Fondo industrial | Máquina actual | Assets/Project/UI/Vertical/Machine/Monolith2D/machine_destroyed_industrial_lab_background_square_v06.png | Producción | Reutilizar
+Monolito por progreso | Máquina actual | Assets/Project/UI/Vertical/Machine/Monolith2D/monolith_overview_progression_clean_v03.png | Producción | Reutilizar hoja y UV reales
+Tipografía | UI vertical | Assets/Project/UI/Vertical/Fonts/Rajdhani-Medium SDF.asset | Canónico | Reutilizar
+Recursos LE/Trazas | Máquina actual | MachineMonolith2DRoot/MachineHeader | Canónico | Reutilizar
+Navegación inferior | Vertical UI | VerticalNavigationUI | Canónico | Conservar
+Pestañas contextuales | Referencia aprobada de Prestigio | 05_REFERENCIAS/MAQUINA/PRESTIGIO_1_2026-09-09_V01 | Decisión de pantalla | Reproducir tamaño, centro y estado activo
+Panel de estado | Referencia aprobada de Prestigio | misma referencia | Decisión de pantalla | Construir como bloque limpio; no usar tarjetas de nodo
+Filas de requisitos | Referencia aprobada de Prestigio | misma referencia | Decisión de pantalla | Dos filas anchas con estado a la derecha
+Lista de efectos | Referencia aprobada de Prestigio | misma referencia | Decisión de pantalla | Tres pares clave/valor; no convertir en tarjetas
+Botón principal | Referencia aprobada de Prestigio | misma referencia | Decisión de pantalla | Superpuesto al borde inferior del panel
+
+Simplificaciones prohibidas:
+- Comprimir requisitos y efectos en tarjetas pequeñas.
+- Agrandar el Monolito hasta reducir el panel informativo.
+- Dejar un vacío vertical amplio entre el panel y la navegación.
+- Usar un PASS automático como aprobación visual.
+

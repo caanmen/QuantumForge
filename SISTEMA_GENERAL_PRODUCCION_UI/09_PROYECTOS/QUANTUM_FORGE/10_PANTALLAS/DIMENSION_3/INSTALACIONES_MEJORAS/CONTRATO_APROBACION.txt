@@ -1,0 +1,11 @@
+CONTRATO DE APROBACIÓN — INSTALACIONES / MEJORA
+===============================================
+
+La pantalla sólo puede declararse terminada cuando:
+- existen capturas reales nuevas 1080x1920 y 720x1280;
+- ningún control abandona su marco y la placa deja pasar raycasts;
+- los valores y estados proceden del D3FacilitiesPanelUI real;
+- las variantes Núcleo y Consola/Asignación siguen funcionando;
+- el usuario aprueba al menos 95 % de similitud visual;
+- pasan instalaciones N1–N5, Main, layout móvil y protección del guardado;
+- las capturas se archivan únicamente tras la aprobación explícita.

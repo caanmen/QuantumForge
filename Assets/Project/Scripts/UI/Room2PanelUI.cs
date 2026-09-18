@@ -6,6 +6,8 @@ using System.Collections.Generic;
 
 public class Room2PanelUI : MonoBehaviour
 {
+    private const float UiRefreshInterval = 0.1f;
+
     [Header("Referencias principales")]
     [SerializeField] private GameObject closedBlock;
     [SerializeField] private GameObject openedBlock;
@@ -28,6 +30,12 @@ public class Room2PanelUI : MonoBehaviour
     [SerializeField] private Button fragmentSlotAButton;
     [SerializeField] private Button fragmentSlotBButton;
     [SerializeField] private Button catalystSlotButton;
+    [SerializeField] private Button fragmentSlotAPreviousButton;
+    [SerializeField] private Button fragmentSlotANextButton;
+    [SerializeField] private Button fragmentSlotBPreviousButton;
+    [SerializeField] private Button fragmentSlotBNextButton;
+    [SerializeField] private Button catalystPreviousButton;
+    [SerializeField] private Button catalystNextButton;
 
     [SerializeField] private TextMeshProUGUI fragmentSlotAText;
     [SerializeField] private TextMeshProUGUI fragmentSlotBText;
@@ -58,14 +66,17 @@ public class Room2PanelUI : MonoBehaviour
     private ExperimentalCatalystType selectedCatalyst = ExperimentalCatalystType.None;
     private int currentInstability = 0;
     private int lastRewardAmount = 0;
+    private int lastInstabilityGain = 0;
     private ExperimentalResultType lastFusionResult = ExperimentalResultType.None;
     private bool hasCompletedFusion;
+    private int completedFusionSerial;
     private const int instabilityLowMax = 5;
     private const int instabilityMediumMax = 12;
-    private const int coolTraceCost = 30;
+    private const int coolEnergyCost = 30;
     private const int coolInstabilityReduction = 5;
     private int lastLocalizationRevision = -1;
     private bool isShowingLogPreview = false;
+    private float nextUiRefreshTime;
 
     [Header("Fusión - Tiempo")]
     [SerializeField] private double baseFusionCooldownSeconds = 5.0;
@@ -104,6 +115,7 @@ public class Room2PanelUI : MonoBehaviour
         HasUnlockedFusionSlot &&
         FusionSelectionComplete &&
         HasRequiredFragmentsForSelection &&
+        !FusionInProgress &&
         !FusionCoolingDown;
     public string FusionStatusTitle => BuildFusionStatusTitle();
     public string FusionGuidanceMessage => BuildFusionGuidanceMessage();
@@ -113,13 +125,18 @@ public class Room2PanelUI : MonoBehaviour
     public int CurrentInstability => currentInstability;
     public float CurrentFusionRisk01 => (float)GetCurrentFusionFailureChance();
     public bool FusionCoolingDown => IsFusionCoolingDown();
+    public bool FusionInProgress =>
+        GameState.I != null && GameState.I.pendingFusion != null &&
+        GameState.I.pendingFusion.active;
     public double FusionCooldownRemaining => currentFusionCooldownSeconds;
     public bool CanCoolCurrentInstability =>
-        GameState.I != null && currentInstability > 0 && GameState.I.Traces >= coolTraceCost;
+        GameState.I != null && currentInstability > 0 &&
+        GameState.I.triangleEnergy >= coolEnergyCost;
     public bool HasCompletedFusion => hasCompletedFusion;
+    public int CompletedFusionSerial => completedFusionSerial;
     public ExperimentalResultType LastFusionResult => lastFusionResult;
     public int LastFusionRewardAmount => lastRewardAmount;
-    public int LastFusionInstabilityGain => GetTrialModeInstabilityGain();
+    public int LastFusionInstabilityGain => lastInstabilityGain;
     public int SynthesisCoreCounter => GameState.I != null
         ? GameState.I.synthesisCoreFusionCounter
         : 0;
@@ -132,16 +149,9 @@ public class Room2PanelUI : MonoBehaviour
     {
         get
         {
-            if (GameState.I == null || GameState.I.experimentalMixLog == null)
-                return 0;
-
-            int count = 0;
-            foreach (ExperimentalMixLogEntry entry in GameState.I.experimentalMixLog)
-            {
-                if (entry != null)
-                    count++;
-            }
-            return count;
+            return GameState.I != null
+                ? GameState.I.GetUnreadExperimentalRecipeCount()
+                : 0;
         }
     }
 
@@ -155,6 +165,19 @@ public class Room2PanelUI : MonoBehaviour
 
         if (catalystSlotButton != null)
             catalystSlotButton.onClick.AddListener(OnClickCatalystSlot);
+
+        if (fragmentSlotAPreviousButton != null)
+            fragmentSlotAPreviousButton.onClick.AddListener(() => CycleFragmentA(-1));
+        if (fragmentSlotANextButton != null)
+            fragmentSlotANextButton.onClick.AddListener(() => CycleFragmentA(1));
+        if (fragmentSlotBPreviousButton != null)
+            fragmentSlotBPreviousButton.onClick.AddListener(() => CycleFragmentB(-1));
+        if (fragmentSlotBNextButton != null)
+            fragmentSlotBNextButton.onClick.AddListener(() => CycleFragmentB(1));
+        if (catalystPreviousButton != null)
+            catalystPreviousButton.onClick.AddListener(() => CycleCatalyst(-1));
+        if (catalystNextButton != null)
+            catalystNextButton.onClick.AddListener(() => CycleCatalyst(1));
 
         if (logButton != null)
             logButton.onClick.AddListener(OnClickLogButton);
@@ -182,6 +205,7 @@ public class Room2PanelUI : MonoBehaviour
 
         LoadGuidedIntentFromGameState();
         PullFusionRuntimeStateFromGameState();
+        TryFinalizePendingFusion();
 
         RefreshInstabilityUI();
         RefreshTrialModeUI();
@@ -193,9 +217,12 @@ public class Room2PanelUI : MonoBehaviour
 
     private void OnEnable()
     {
+        nextUiRefreshTime = 0f;
         LoadGuidedIntentFromGameState();
         PullFusionRuntimeStateFromGameState();
+        TryFinalizePendingFusion();
         RefreshGuidedSynthesisUI();
+        RefreshUI();
     }
 
     private void PullFusionRuntimeStateFromGameState()
@@ -203,8 +230,11 @@ public class Room2PanelUI : MonoBehaviour
         if (GameState.I == null)
             return;
 
-        currentInstability = System.Math.Max(0, GameState.I.fusionInstability);
+        currentInstability = System.Math.Clamp(
+            GameState.I.fusionInstability, 0, GameState.FusionInstabilityMax);
         double savedCooldown = GameState.I.fusionCooldownRemainingSeconds;
+        if (GameState.I.pendingFusion == null || !GameState.I.pendingFusion.active)
+            savedCooldown = 0.0;
         currentFusionCooldownSeconds =
             double.IsNaN(savedCooldown) || double.IsInfinity(savedCooldown)
                 ? 0.0
@@ -216,7 +246,8 @@ public class Room2PanelUI : MonoBehaviour
         if (GameState.I == null)
             return;
 
-        GameState.I.fusionInstability = System.Math.Max(0, currentInstability);
+        GameState.I.fusionInstability = System.Math.Clamp(
+            currentInstability, 0, GameState.FusionInstabilityMax);
         GameState.I.fusionCooldownRemainingSeconds = System.Math.Max(
             0.0, currentFusionCooldownSeconds);
     }
@@ -248,7 +279,7 @@ public class Room2PanelUI : MonoBehaviour
 
     private bool IsFusionCoolingDown()
     {
-        return currentFusionCooldownSeconds > 0.0;
+        return FusionInProgress && currentFusionCooldownSeconds > 0.0;
     }
 
     private void RefreshFusionSlotsUI()
@@ -261,8 +292,8 @@ public class Room2PanelUI : MonoBehaviour
             LocalizationManager.I.CurrentLanguage == LocalizationManager.Language.EN;
         string readiness = slots <= 0
             ? (english ? "FUSION TABLE LOCKED" : "MESA DE FUSIÓN BLOQUEADA")
-            : IsFusionCoolingDown()
-                ? (english ? "COOLDOWN " : "ENFRIAMIENTO ") +
+            : FusionInProgress
+                ? (english ? "FUSING " : "FUSIONANDO ") +
                     currentFusionCooldownSeconds.ToString("0.0") + "s"
                 : (english ? "FUSION READY" : "FUSIÓN LISTA");
         fusionSlotsText.text = (english ? "SLOTS " : "RANURAS ") + slots +
@@ -321,37 +352,32 @@ public class Room2PanelUI : MonoBehaviour
         if (compositionReadingText == null)
             return;
 
+        bool discovered = HasCurrentRecipeBeenDiscovered();
+        string probableResultText = discovered
+            ? GetResultDisplayName(D3FusionService.ResolveRecipeResult(
+                selectedFragmentA, selectedFragmentB, selectedCatalyst))
+            : "???";
+
         if (!HasCompositionReading())
         {
             compositionReadingText.text =
                 "Lectura de composición: bloqueada\n" +
-                "Resultado probable: ???\n" +
+                "Resultado conocido: " + probableResultText + "\n" +
                 "Riesgo estimado: ???";
             return;
         }
 
-        string probableResultText = "???";
-
-
-        if (selectedFragmentA != ExperimentalFragmentType.None &&
-            selectedFragmentB != ExperimentalFragmentType.None &&
-            selectedCatalyst != ExperimentalCatalystType.None &&
-                HasCurrentRecipeBeenDiscovered())
-        {
-            ExperimentalResultType probableResult = ResolveRecipeResult(
-                selectedFragmentA,
-                selectedFragmentB,
-                selectedCatalyst);
-
-            probableResultText = GetResultDisplayName(probableResult);
-        }
-
         int riskPercent = Mathf.RoundToInt((float)(GetCurrentFusionFailureChance() * 100.0));
 
+        int modeRiskPercent = Mathf.RoundToInt(
+            (float)(GetTrialModeFailureBonus() * 100.0));
+        int instabilityRiskPercent = Mathf.RoundToInt(
+            (float)(GetInstabilityFailureBonus() * 100.0));
         compositionReadingText.text =
             "Lectura de composición: activa\n" +
-            "Resultado probable: " + probableResultText + "\n" +
-            "Riesgo estimado: " + riskPercent + "%";
+            "Resultado conocido: " + probableResultText + "\n" +
+            "Riesgo " + riskPercent + "% · modo +" + modeRiskPercent +
+            "% · inest. +" + instabilityRiskPercent + "%";
     }
 
     private void RefreshStaticRoom2Texts()
@@ -365,9 +391,9 @@ public class Room2PanelUI : MonoBehaviour
 
         if (introText != null)
         {
-            introText.text = LocalizationManager.I != null
-                ? LocalizationManager.I.T("room2.intro")
-                : "Selecciona dos fragmentos, elige un catalizador y ejecuta un ensayo.";
+            introText.text =
+                "Combina dos fragmentos y un catalizador. Las Mezclas crean " +
+                "materiales necesarios para reparar símbolos del Monolito.";
         }
 
         if (logButtonText != null)
@@ -460,10 +486,8 @@ public class Room2PanelUI : MonoBehaviour
         if (currentInstability <= 0)
             return;
 
-        if (GameState.I.Traces < coolTraceCost)
+        if (!GameState.I.TrySpendTriangleEnergy(coolEnergyCost))
             return;
-
-        GameState.I.Traces -= coolTraceCost;
 
         currentInstability -= coolInstabilityReduction;
 
@@ -526,34 +550,30 @@ public class Room2PanelUI : MonoBehaviour
         }
     }
 
-    private double GetCurrentFusionFailureChance()
+    private string GetTrialModeDescription()
     {
-        double failureChance = GetRecipeBaseFailureChance();
-
+        bool english = IsEnglishLanguage();
         switch (currentTrialMode)
         {
             case TrialMode.Safe:
-                failureChance += 0.00;
-                break;
-
+                return english
+                    ? "1 result · lower risk · +1 instability"
+                    : "1 resultado · menor riesgo · +1 inestabilidad";
             case TrialMode.Forced:
-                failureChance += 0.10;
-                break;
-
-            case TrialMode.Balanced:
+                return english
+                    ? "2 results · higher risk · +4 instability"
+                    : "2 resultados · mayor riesgo · +4 inestabilidad";
             default:
-                failureChance += 0.05;
-                break;
+                return english
+                    ? "1 result · normal risk · +2 instability"
+                    : "1 resultado · riesgo normal · +2 inestabilidad";
         }
+    }
 
-        if (currentInstability > instabilityMediumMax)
-        {
-            failureChance += 0.10;
-        }
-        else if (currentInstability > instabilityLowMax)
-        {
-            failureChance += 0.05;
-        }
+    private double GetCurrentFusionFailureChance()
+    {
+        double failureChance = GetRecipeBaseFailureChance() +
+            GetTrialModeFailureBonus() + GetInstabilityFailureBonus();
 
         if (MachineManager.I != null)
         {
@@ -566,7 +586,8 @@ public class Room2PanelUI : MonoBehaviour
         }
 
         failureChance = Mathf.Clamp01((float)failureChance);
-        failureChance = ApplyStableReactionChamberReduction(failureChance);
+        failureChance = D3FusionService.ApplyStableReactionChamberReduction(
+            failureChance, HasStableReactionChamber());
 
         bool hasCompleteFusionSelection =
             selectedFragmentA != ExperimentalFragmentType.None &&
@@ -588,40 +609,37 @@ public class Room2PanelUI : MonoBehaviour
 
     private double GetFusionFailureChanceBeforeStableChamber()
     {
-        double failureChance = GetRecipeBaseFailureChance();
-
-        switch (currentTrialMode)
-        {
-            case TrialMode.Safe:
-                failureChance += 0.00;
-                break;
-
-            case TrialMode.Forced:
-                failureChance += 0.10;
-                break;
-
-            case TrialMode.Balanced:
-            default:
-                failureChance += 0.05;
-                break;
-        }
-
-        if (currentInstability > instabilityMediumMax)
-        {
-            failureChance += 0.10;
-        }
-        else if (currentInstability > instabilityLowMax)
-        {
-            failureChance += 0.05;
-        }
+        double failureChance = GetRecipeBaseFailureChance() +
+            GetTrialModeFailureBonus() + GetInstabilityFailureBonus();
 
         if (MachineManager.I != null)
         {
             failureChance -= MachineManager.I.GetTotalEffectValue(MachineNodeEffectType.FusionFailureReduction);
         }
 
+        if (HasCatalystTuning() && selectedCatalyst == ExperimentalCatalystType.Beta)
+        {
+            failureChance -= 0.05;
+        }
 
         return Mathf.Clamp01((float)failureChance);
+    }
+
+    private double GetTrialModeFailureBonus()
+    {
+        return currentTrialMode switch
+        {
+            TrialMode.Forced => 0.10,
+            TrialMode.Balanced => 0.05,
+            _ => 0.0
+        };
+    }
+
+    private double GetInstabilityFailureBonus()
+    {
+        if (currentInstability > instabilityMediumMax) return 0.10;
+        if (currentInstability > instabilityLowMax) return 0.05;
+        return 0.0;
     }
 
     private double GetRecipeBaseFailureChance()
@@ -736,31 +754,14 @@ public class Room2PanelUI : MonoBehaviour
         return GameState.I.synthesisCoreFusionCounter >= 10;
     }
 
-    private bool IsStrongFusionRisk(double failureChance)
-    {
-        return failureChance >= 0.30;
-    }
-
-    private double ApplyStableReactionChamberReduction(double failureChance)
-    {
-        if (!HasStableReactionChamber())
-            return failureChance;
-
-        if (!IsStrongFusionRisk(failureChance))
-            return failureChance;
-
-        return failureChance * 0.80;
-    }
-
     private bool TryConvertFailureIntoMinorResult(double failureChanceBeforeStableChamber)
     {
-        if (!HasStableReactionChamber())
-            return false;
-
-        if (!IsStrongFusionRisk(failureChanceBeforeStableChamber))
-            return false;
-
-        return Random.value < 0.25f;
+        double conversionChance =
+            D3FusionService.GetStableMinorConversionChance(
+                failureChanceBeforeStableChamber,
+                GetCurrentFusionFailureChance(),
+                HasStableReactionChamber());
+        return Random.value < conversionChance;
     }
 
 
@@ -816,7 +817,7 @@ public class Room2PanelUI : MonoBehaviour
             bool english = LocalizationManager.I != null &&
                 LocalizationManager.I.CurrentLanguage == LocalizationManager.Language.EN;
             coolButtonText.text = coolLabel.ToUpperInvariant() + " · " +
-                coolTraceCost + (english ? " TRACES" : " TRAZAS");
+                coolEnergyCost + (english ? " ENERGY" : " ENERGÍA");
         }
 
         if (coolButton != null)
@@ -824,7 +825,7 @@ public class Room2PanelUI : MonoBehaviour
             bool canCool =
                 GameState.I != null &&
                 currentInstability > 0 &&
-                GameState.I.Traces >= coolTraceCost;
+                GameState.I.triangleEnergy >= coolEnergyCost;
 
             coolButton.interactable = canCool;
         }
@@ -835,16 +836,16 @@ public class Room2PanelUI : MonoBehaviour
         switch (currentGuidedIntent)
         {
             case GuidedSynthesisIntent.Hallazgo:
-                return "Hallazgo";
+                return "Anomalía";
 
             case GuidedSynthesisIntent.Muestra:
-                return "Muestra";
+                return "Condensado";
 
             case GuidedSynthesisIntent.LecturaIncompleta:
-                return "Lectura incompleta";
+                return "Vestigio";
 
             case GuidedSynthesisIntent.CompuestoUtil:
-                return "Compuesto útil";
+                return "Compuesto";
 
             case GuidedSynthesisIntent.None:
             default:
@@ -922,8 +923,8 @@ public class Room2PanelUI : MonoBehaviour
             modeText.text = modeLabel + "\n" + modeName;
 
         if (modeButtonText != null)
-            modeButtonText.text = modeLabel.TrimEnd(':').ToUpperInvariant() +
-                ": " + modeName.ToUpperInvariant();
+            modeButtonText.text = modeName.ToUpperInvariant() + "\n" +
+                GetTrialModeDescription().ToUpperInvariant();
     }
 
     private void RefreshLocalizationIfNeeded()
@@ -963,6 +964,10 @@ public class Room2PanelUI : MonoBehaviour
         }
 
         RefreshLocalizationIfNeeded();
+        if (Time.unscaledTime < nextUiRefreshTime)
+            return;
+
+        nextUiRefreshTime = Time.unscaledTime + UiRefreshInterval;
         RefreshUI();
     }
 
@@ -972,9 +977,88 @@ public class Room2PanelUI : MonoBehaviour
             double.IsInfinity(simulatedSeconds))
             return;
 
+        // El estado persistente es la fuente de verdad. Esto también cubre el
+        // avance QA cuando el panel de Mezclas está cargado pero inactivo.
+        PullFusionRuntimeStateFromGameState();
         currentFusionCooldownSeconds = System.Math.Max(
             0.0, currentFusionCooldownSeconds - simulatedSeconds);
         PushFusionRuntimeStateToGameState();
+        TryFinalizePendingFusion();
+    }
+
+    private bool TryFinalizePendingFusion()
+    {
+        if (GameState.I == null || GameState.I.pendingFusion == null ||
+            !GameState.I.pendingFusion.active ||
+            GameState.I.fusionCooldownRemainingSeconds > 0.000001)
+        {
+            return false;
+        }
+
+        ExperimentalPendingFusionState pending = GameState.I.pendingFusion;
+        ExperimentalResultType result =
+            (ExperimentalResultType)pending.result;
+        ExperimentalFragmentType fragmentA =
+            (ExperimentalFragmentType)pending.fragmentA;
+        ExperimentalFragmentType fragmentB =
+            (ExperimentalFragmentType)pending.fragmentB;
+        ExperimentalCatalystType catalyst =
+            (ExperimentalCatalystType)pending.catalyst;
+
+        if (result != ExperimentalResultType.None && pending.rewardAmount > 0)
+            GameState.I.AddExperimentalResult(result, pending.rewardAmount);
+
+        D3FusionService.RegisterMixResult(
+            GameState.I, fragmentA, fragmentB, catalyst, result);
+        D3DiagnosticSystem.RegisterManualFusionRecipe(
+            GameState.I, fragmentA, fragmentB, catalyst);
+
+        if (pending.hadSynthesisCore)
+        {
+            GameState.I.synthesisCoreFusionCounter =
+                pending.synthesisCoreWasCharged
+                    ? 0
+                    : GameState.I.synthesisCoreFusionCounter + 1;
+        }
+
+        currentInstability = System.Math.Clamp(
+            currentInstability + pending.instabilityGain,
+            0, GameState.FusionInstabilityMax);
+        lastFusionResult = result;
+        lastRewardAmount = pending.rewardAmount;
+        lastInstabilityGain = pending.instabilityGain;
+        hasCompletedFusion = true;
+        completedFusionSerial++;
+
+        bool failureConverted = pending.failureConverted;
+        bool synthesisCoreWasCharged = pending.synthesisCoreWasCharged;
+        GameState.I.pendingFusion = new ExperimentalPendingFusionState();
+        currentFusionCooldownSeconds = 0.0;
+        PushFusionRuntimeStateToGameState();
+
+        RefreshInstabilityUI();
+        RefreshCoolButtonUI();
+        RefreshFusionSlotsUI();
+
+        if (statusText != null)
+        {
+            statusText.text = BuildResultMessage(result);
+            if (failureConverted)
+            {
+                statusText.text += IsEnglishLanguage()
+                    ? "\nSevere failure stabilized by the Reaction Chamber."
+                    : "\nFallo fuerte estabilizado por la Cámara de Reacción.";
+            }
+            if (synthesisCoreWasCharged)
+            {
+                statusText.text += IsEnglishLanguage()
+                    ? "\nSynthesis Core discharged: fusion reinforced."
+                    : "\nNúcleo de Síntesis descargado: fusión reforzada.";
+            }
+        }
+
+        SaveService.I?.Save();
+        return true;
     }
 
     private void RefreshUI()
@@ -1042,8 +1126,8 @@ public class Room2PanelUI : MonoBehaviour
             return english ? "EXPERIMENTAL CHAMBER LOCKED" : "CÁMARA EXPERIMENTAL BLOQUEADA";
         if (!HasUnlockedFusionSlot)
             return english ? "FUSION TABLE NOT REPAIRED" : "MESA DE FUSIÓN SIN REPARAR";
-        if (FusionCoolingDown)
-            return (english ? "FUSION COOLING DOWN: " : "FUSIÓN EN ENFRIAMIENTO: ") +
+        if (FusionInProgress)
+            return (english ? "FUSION IN PROGRESS: " : "FUSIÓN EN PROCESO: ") +
                 FusionCooldownRemaining.ToString("0.0") + " s";
         if (selectedFragmentA == ExperimentalFragmentType.None &&
             selectedFragmentB == ExperimentalFragmentType.None &&
@@ -1071,9 +1155,9 @@ public class Room2PanelUI : MonoBehaviour
             return english
                 ? "Uncover the Machine in the experimental chamber to activate the first Mixes slot."
                 : "Destapa la Máquina en la cámara experimental para activar la primera ranura de Mezclas.";
-        if (FusionCoolingDown)
-            return (english ? "Wait for stabilization. Remaining time: " :
-                "Espera a que termine la estabilización. Tiempo restante: ") +
+        if (FusionInProgress)
+            return (english ? "The reward will be delivered automatically in " :
+                "La recompensa se entregará automáticamente en ") +
                 FusionCooldownRemaining.ToString("0.0") + " s.";
         if (!FusionSelectionComplete)
             return english
@@ -1081,9 +1165,15 @@ public class Room2PanelUI : MonoBehaviour
                 : "Elige Fragmento A, Fragmento B y un catalizador Alpha o Beta.";
         if (!HasRequiredFragmentsForSelection)
             return BuildMissingFragmentMessage(english);
+        string knownResult = HasCurrentRecipeBeenDiscovered()
+            ? GetResultDisplayName(D3FusionService.ResolveRecipeResult(
+                selectedFragmentA, selectedFragmentB, selectedCatalyst))
+            : "???";
         return english
-            ? "All requirements are met. Press FUSE to run the experiment."
-            : "Todos los requisitos están completos. Pulsa FUSIONAR para ejecutar el ensayo.";
+            ? "Known output: " + knownResult +
+              ". Press FUSE; the material is delivered when the timer ends."
+            : "Resultado conocido: " + knownResult +
+              ". Pulsa FUSIONAR; el material se entrega al terminar el contador.";
     }
 
     private string BuildMissingFragmentMessage(bool english)
@@ -1175,35 +1265,51 @@ public class Room2PanelUI : MonoBehaviour
     }
     private void OnClickFragmentSlotA()
     {
+        CycleFragmentA(1);
+    }
+
+    public void CycleFragmentA(int direction)
+    {
         if (GameState.I == null || !GameState.I.experimentalChamberUnlocked)
             return;
 
-        selectedFragmentA = GetNextAvailableFragment(selectedFragmentA);
+        selectedFragmentA = GetAvailableFragment(selectedFragmentA, direction);
         ClearMixPreview();
         RefreshCompositionReadingUI();
     }
 
     private void OnClickFragmentSlotB()
     {
+        CycleFragmentB(1);
+    }
+
+    public void CycleFragmentB(int direction)
+    {
         if (GameState.I == null || !GameState.I.experimentalChamberUnlocked)
             return;
 
-        selectedFragmentB = GetNextAvailableFragment(selectedFragmentB);
+        selectedFragmentB = GetAvailableFragment(selectedFragmentB, direction);
         ClearMixPreview();
         RefreshCompositionReadingUI();
     }
 
     private void OnClickCatalystSlot()
     {
+        CycleCatalyst(1);
+    }
+
+    public void CycleCatalyst(int direction)
+    {
         if (GameState.I == null || !GameState.I.experimentalChamberUnlocked)
             return;
 
-        selectedCatalyst = GetNextCatalyst(selectedCatalyst);
+        selectedCatalyst = GetCatalyst(selectedCatalyst, direction);
         ClearMixPreview();
         RefreshCompositionReadingUI();
     }
 
-    private ExperimentalFragmentType GetNextAvailableFragment(ExperimentalFragmentType current)
+    private ExperimentalFragmentType GetAvailableFragment(
+        ExperimentalFragmentType current, int direction)
     {
         ExperimentalFragmentType[] order = new ExperimentalFragmentType[]
         {
@@ -1224,9 +1330,12 @@ public class Room2PanelUI : MonoBehaviour
             }
         }
 
+        int sign = direction < 0 ? -1 : 1;
         for (int step = 1; step <= order.Length; step++)
         {
-            int nextIndex = (currentIndex + step) % order.Length;
+            int nextIndex = (currentIndex + sign * step) % order.Length;
+            if (nextIndex < 0)
+                nextIndex += order.Length;
             ExperimentalFragmentType candidate = order[nextIndex];
 
             if (candidate == ExperimentalFragmentType.None)
@@ -1239,19 +1348,21 @@ public class Room2PanelUI : MonoBehaviour
         return ExperimentalFragmentType.None;
     }
 
-    private ExperimentalCatalystType GetNextCatalyst(ExperimentalCatalystType current)
+    private ExperimentalCatalystType GetCatalyst(
+        ExperimentalCatalystType current, int direction)
     {
-        switch (current)
+        ExperimentalCatalystType[] order =
         {
-            case ExperimentalCatalystType.None:
-                return ExperimentalCatalystType.Alpha;
-
-            case ExperimentalCatalystType.Alpha:
-                return ExperimentalCatalystType.Beta;
-
-            default:
-                return ExperimentalCatalystType.None;
-        }
+            ExperimentalCatalystType.None,
+            ExperimentalCatalystType.Alpha,
+            ExperimentalCatalystType.Beta
+        };
+        int index = System.Array.IndexOf(order, current);
+        if (index < 0) index = 0;
+        int sign = direction < 0 ? -1 : 1;
+        int next = (index + sign) % order.Length;
+        if (next < 0) next += order.Length;
+        return order[next];
     }
 
     private string BuildFragmentSlotText(ExperimentalFragmentType fragmentType)
@@ -1263,17 +1374,34 @@ public class Room2PanelUI : MonoBehaviour
         switch (fragmentType)
         {
             case ExperimentalFragmentType.Condensation:
-                return GetFragmentDisplayName(fragmentType) + " (" + GameState.I.fragmentCondensation + ")";
+                return BuildFragmentInventoryLabel(
+                    fragmentType, GameState.I.fragmentCondensation, "HIGGS");
 
             case ExperimentalFragmentType.Confinement:
-                return GetFragmentDisplayName(fragmentType) + " (" + GameState.I.fragmentConfinement + ")";
+                return BuildFragmentInventoryLabel(
+                    fragmentType, GameState.I.fragmentConfinement, "TETRAQUARK");
 
             case ExperimentalFragmentType.ResidualInterference:
-                return GetFragmentDisplayName(fragmentType) + " (" + GameState.I.fragmentResidualInterference + ")";
+                return BuildFragmentInventoryLabel(
+                    fragmentType, GameState.I.fragmentResidualInterference,
+                    IsEnglishLanguage() ? "MODULATOR" : "MODULADOR");
 
             default:
                 return emptyText;
         }
+    }
+
+    private string BuildFragmentInventoryLabel(
+        ExperimentalFragmentType fragmentType, int amount, string source)
+    {
+        bool active = GameState.I != null &&
+            GameState.I.IsExperimentalFragmentProducerActive(fragmentType);
+        string cadence = active
+            ? GameState.I.GetExperimentalFragmentSecondsPerUnit().ToString("0.#") +
+              (IsEnglishLanguage() ? " s/unit" : " s/unidad")
+            : (IsEnglishLanguage() ? "inactive" : "inactivo");
+        return GetFragmentDisplayName(fragmentType) + " (" + amount + ")\n" +
+            source + " · " + cadence;
     }
 
     private string BuildCatalystSlotText(ExperimentalCatalystType catalystType)
@@ -1301,6 +1429,7 @@ public class Room2PanelUI : MonoBehaviour
         hasCompletedFusion = false;
         lastFusionResult = ExperimentalResultType.None;
         lastRewardAmount = 0;
+        lastInstabilityGain = 0;
 
         if (statusText != null)
         {
@@ -1352,64 +1481,45 @@ public class Room2PanelUI : MonoBehaviour
         GameState.I.ConsumeFragment(selectedFragmentA, 1);
         GameState.I.ConsumeFragment(selectedFragmentB, 1);
 
-        lastRewardAmount = 0;
-
+        int rewardAmount = 0;
         if (!failed && result != ExperimentalResultType.None)
         {
-            int rewardAmount = GetTrialModeRewardAmount();
+            rewardAmount = GetTrialModeRewardAmount();
             rewardAmount += GetUsefulResultRewardBonus();
-
-            lastRewardAmount = rewardAmount;
-            GameState.I.AddExperimentalResult(result, rewardAmount);
         }
 
-        lastFusionResult = result;
-        hasCompletedFusion = true;
-
-        RegisterCurrentMixResult(result);
-        D3DiagnosticSystem.RegisterManualFusionRecipe(
-            GameState.I, selectedFragmentA, selectedFragmentB, selectedCatalyst);
-
-        if (HasSynthesisCore())
+        GameState.I.pendingFusion = new ExperimentalPendingFusionState
         {
-            if (synthesisCoreWasCharged)
-            {
-                GameState.I.synthesisCoreFusionCounter = 0;
-            }
-            else
-            {
-                GameState.I.synthesisCoreFusionCounter++;
-            }
-        }
+            active = true,
+            fragmentA = (int)selectedFragmentA,
+            fragmentB = (int)selectedFragmentB,
+            catalyst = (int)selectedCatalyst,
+            result = (int)result,
+            rewardAmount = rewardAmount,
+            instabilityGain = GetTrialModeInstabilityGain(),
+            failureConverted = failureConverted,
+            hadSynthesisCore = HasSynthesisCore(),
+            synthesisCoreWasCharged = synthesisCoreWasCharged
+        };
 
-        currentInstability += GetTrialModeInstabilityGain();
+        hasCompletedFusion = false;
+        lastFusionResult = ExperimentalResultType.None;
+        lastRewardAmount = 0;
+        lastInstabilityGain = 0;
         currentFusionCooldownSeconds = GetFusionCooldownDuration();
         PushFusionRuntimeStateToGameState();
-        RefreshInstabilityUI();
-        RefreshCoolButtonUI();
         RefreshFusionSlotsUI();
 
         if (statusText != null)
         {
-            statusText.text = BuildResultMessage(result);
-
-            if (failureConverted)
-            {
-                statusText.text += IsEnglishLanguage()
-                    ? "\nSevere failure stabilized by the Reaction Chamber."
-                    : "\nFallo fuerte estabilizado por la Cámara de Reacción.";
-            }
-
-            if (synthesisCoreWasCharged)
-            {
-                statusText.text += IsEnglishLanguage()
-                    ? "\nSynthesis Core discharged: fusion reinforced."
-                    : "\nNúcleo de Síntesis descargado: fusión reforzada.";
-            }
+            statusText.text = IsEnglishLanguage()
+                ? "FUSION IN PROGRESS · RESULT IN " +
+                  currentFusionCooldownSeconds.ToString("0.0") + " s"
+                : "FUSIÓN EN PROCESO · RESULTADO EN " +
+                  currentFusionCooldownSeconds.ToString("0.0") + " s";
         }
 
-        if (SaveService.I != null)
-            SaveService.I.Save();
+        SaveService.I?.Save();
     }
 
     private void OnClickLogButton()
@@ -1424,6 +1534,9 @@ public class Room2PanelUI : MonoBehaviour
 
         if (logContentText != null)
             logContentText.text = BuildRecipeLogText();
+
+        GameState.I.MarkExperimentalRecipesRead();
+        SaveService.I?.Save();
     }
 
     private ExperimentalResultType GetResultFromGuidedIntent(GuidedSynthesisIntent intent)
@@ -1675,23 +1788,23 @@ public class Room2PanelUI : MonoBehaviour
         {
             case ExperimentalResultType.Hallazgo:
                 return english
-                    ? plural ? "Findings" : "Finding"
-                    : plural ? "Hallazgos" : "Hallazgo";
+                    ? plural ? "Anomalies" : "Anomaly"
+                    : plural ? "Anomalías" : "Anomalía";
 
             case ExperimentalResultType.Muestra:
                 return english
-                    ? plural ? "Samples" : "Sample"
-                    : plural ? "Muestras" : "Muestra";
+                    ? plural ? "Condensates" : "Condensate"
+                    : plural ? "Condensados" : "Condensado";
 
             case ExperimentalResultType.LecturaIncompleta:
                 return english
-                    ? plural ? "Incomplete readings" : "Incomplete reading"
-                    : plural ? "Lecturas incompletas" : "Lectura incompleta";
+                    ? plural ? "Vestiges" : "Vestige"
+                    : plural ? "Vestigios" : "Vestigio";
 
             case ExperimentalResultType.CompuestoUtil:
                 return english
-                    ? plural ? "Useful compounds" : "Useful compound"
-                    : plural ? "Compuestos útiles" : "Compuesto útil";
+                    ? plural ? "Compounds" : "Compound"
+                    : plural ? "Compuestos" : "Compuesto";
 
             default:
                 return "???";

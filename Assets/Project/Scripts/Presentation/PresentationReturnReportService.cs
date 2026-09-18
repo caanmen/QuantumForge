@@ -30,7 +30,7 @@ public sealed class PresentationReturnReport
 
 public static class PresentationReturnReportService
 {
-    public const double SignificantAbsenceSeconds = 5.0 * 60.0;
+    public const double SignificantAbsenceSeconds = 60.0;
     public const int MaxNewsItems = 3;
     public static PresentationReturnReport PendingReport { get; private set; }
     public static bool UnifiedReportPreparedThisLoad { get; private set; }

@@ -1,0 +1,22 @@
+PAQUETE VISUAL — NOVICIADO
+
+Referencia autorizada:
+SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/05_Noviciado_Corregido_V4.png
+SHA-256: 4AF919491443E729A9122BF236D8C6F3FA75017FAD84D93EA9AD478FE98647B5.
+
+D2_Novitiate_ImageGenClean_v1.png
+- Edición limpia generada con ImageGen el 30-08-2026.
+- Prompt: conservar geometría, piedra, marcos, medallón y placas; eliminar todo texto,
+  cifra, icono funcional y resplandor de selección; no añadir contenido.
+- Modo: edición con la referencia permanente como imagen de entrada.
+
+D2_Novitiate_CleanBasePlate_v1.png
+- Placa híbrida reproducible que conserva marcos y arte canónico exacto de V4.
+- Las regiones de datos dinámicos se sustituyen por superficies de la edición limpia.
+
+D2_Novitiate_StaticIconOverlay_v1.png
+- Overlay transparente derivado mecánicamente de la referencia permanente.
+- Contiene únicamente iconos canónicos aislados de cabecera, tanda y estado.
+
+Tools/VisualQA/PrepareD2NovitiateAssets.ps1 reconstruye la placa y el overlay.
+Los títulos, cifras, estados, costes y acciones se renderizan en Unity.

@@ -148,6 +148,7 @@ public static class Dimension3Block1UISetup
         {
             valid &= Require(panel.firstEntryRoot, "D3.firstEntryRoot");
             valid &= Require(panel.factoryRoot, "D3.factoryRoot");
+            valid &= Require(panel.productionFloorSkin, "D3.productionFloorSkin");
             valid &= Require(panel.objectiveCard, "D3.objectiveCard");
             valid &= Require(panel.productionTitleText, "D3.productionTitleText");
             valid &= Require(panel.coachmarkRoot, "D3.coachmarkRoot");
@@ -557,6 +558,7 @@ public static class Dimension3Block1UISetup
         );
 
         BuildP2Presentation(panel, root);
+        Dimension3ProductionFloorVisualSetup.ApplyTo(panel);
     }
 
     private static void BuildP2Presentation(Dimension3PanelUI panel, GameObject factoryRoot)

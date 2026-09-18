@@ -1,0 +1,74 @@
+FICHA DE PANTALLA — DEFENSA Y REPRESALIAS
+
+Fecha: 1 de septiembre de 2026
+Estado: APROBADA VISUALMENTE POR EL USUARIO; CAPTURAS ARCHIVADAS
+
+IDENTIDAD Y FUNCIÓN
+- Sección Defensa de Civilización 2 — Resistencia.
+- Permite vigilar el riesgo regional antes de la próxima Represalia: Amenaza,
+  Cobertura, pérdida estimada, preparación de Espionaje y debilitamiento vigente.
+- Entrada: pestaña DEFENSA desde Regiones, Operaciones u otra sección de Civ 2.
+- Salida: botón Atrás al Mapa de los Pactos o cualquier pestaña hermana visible.
+- No ejecuta una Represalia ni gasta recursos; presenta estado real y permite
+  cambiar la región seleccionada.
+
+REFERENCIA DE AUTORIDAD
+- Ruta: 05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/11_Defensa_Y_Represalias_Corregida_V4.png
+- Tipo: referencia visual candidata permanente V4.
+- Resolución: 941×1672; composición objetivo 1080×1920.
+- SHA-256: DAD5AB0F938809D1D67103B0DDBF06DA8BAE84BCB4AF3BEB0255E72DE877BFAA
+- El marco de selección del archivo temporal del chat no pertenece a la pantalla.
+
+PUERTA 0 — AUDITORÍA Y REUTILIZACIÓN
+- Catálogo, mapa de reutilización, escena Main.unity, constructor y pantallas
+  Regiones/Operaciones inspeccionados.
+
+Concepto | origen | ruta exacta | estado | decisión
+- Armazón D2 Resistencia | Regiones/Operaciones | Dimension2Block1UISetup.cs | producción | reutilizar Canvas, navegación, Cinzel y coordenadas 1080×1920.
+- Datos regionales | sistema Civ 2 | D2Civilization2System.cs | producción | única autoridad funcional.
+- Controlador de Defensa | placeholder previo | D2ReprisalsPanelUI.cs | producción | conservar y adaptar; no duplicar reglas.
+- Placa decorativa limpia | referencia V4 11 | Assets/Project/UI/Dimension2/Resistance/Generated/D2_ResistanceDefense_CleanBasePlate_v1.png | candidato | usar sólo detrás de UGUI dinámico.
+- Medidores segmentados | faltante real | D2SegmentedGaugeGraphic.cs | candidato técnico | representar progreso real sin hornearlo.
+
+Simplificaciones prohibidas:
+- No convertir medidores radiales en barras lineales.
+- No hornear textos, cifras, progreso, región ni selección en el bitmap.
+- No unir Fragmentos y Represalias en una sola frase ni sustituir el resultado
+  histórico por el mensaje general de Civilización 2.
+
+DATOS Y PROPIETARIOS
+- D2Civilization2System: umbral, pérdida, Cobertura, Espionaje, recompensa,
+  debilitamiento y resultado de Represalia.
+- D2RegionState: región, Amenaza, Cobertura, operación debilitada y último
+  resultado regional tipado.
+- D2ReprisalsPanelUI: formato visual invariante, sin recalcular reglas.
+- D2Civilization2PanelUI: región seleccionada, navegación y refresco.
+- Dimension2Block1UISetup: geometría, tipografía, assets y referencias.
+
+ESTADOS
+- Normal: datos de la región seleccionada.
+- Preparado/no preparado: Espionaje muestra su reducción real.
+- Debilitado/sin debilitamiento: operación, multiplicador y duración o estado neutro.
+- Con registro/sin registro: última pérdida regional tipada o SIN REGISTRO.
+- Alerta: la recompensa de reglas cambia de 3 a 6 Fragmentos según el sistema.
+
+RECONSTRUCCIÓN Y QA
+- Escena: Assets/Project/Scenes/Main.unity.
+- Constructor canónico: Dimension2Block1UISetup.ConfigureBlock1UI.
+- Captura: Dimension2ResistanceDefenseCapture.Run.
+- Resoluciones: 1080×1920 y 720×1280.
+- Criterio: estructura, estado, rutas, texto, guardado intacto y similitud ≥95 %
+  en ambas resoluciones.
+
+EVIDENCIA DEL 1 DE SEPTIEMBRE DE 2026
+- Captura 1080×1920: CAPTURAS_CANDIDATAS/D2_Defensa_Y_Represalias_1080x1920.png
+- Captura 720×1280: CAPTURAS_CANDIDATAS/D2_Defensa_Y_Represalias_720x1280.png
+- Log: Logs/dimension2_resistance_defense_bullets_capture.log
+- Resultado: STRUCTURE_PASS | STATE_PASS | ROUTE_PASS | SAVE_INTACT_PASS |
+  TEXT_GEOMETRY_PASS.
+- Comparación perceptual AA: 95.17 % a 1080×1920 y 95.56 % a 720×1280.
+- Los textos de cabecera, AMENAZA, COBERTURA, 72 %, reglas y resultado final se
+  revisaron visualmente en ambas capturas; no quedan palabras truncadas ni cajas
+  invadidas, y cada regla conserva una sola viñeta alineada.
+
+Evidencia aprobada por el usuario y archivada el 4 de septiembre de 2026.

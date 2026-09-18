@@ -1,0 +1,30 @@
+MONOLITO 2D — PEDESTAL V39
+Fecha: 2026-08-28
+
+AUTORIDAD Y ESTADO
+
+- `monolith_visible_fitted_pedestal_concept_v39.png` es el concepto visual aprobado por
+  el usuario como dirección. No es un asset de Unity y no debe enlazarse en producción.
+- `monolith_canonical_layered_visible_pedestal_preview_v39.png` es una previsualización
+  técnica compuesta con el laboratorio V06 y el Monolito V03 canónicos. No es un asset de
+  Unity.
+- Los assets de producción son dos atlas RGBA separados:
+  - `machine_monolith_fitted_pedestal_back_v39.png`
+  - `machine_monolith_fitted_pedestal_front_v39.png`
+- La captura real de Unity sigue pendiente de aprobación visual del usuario. Hasta recibirla,
+  V39 no debe archivarse dentro de `06_CAPTURAS_APROBADAS`.
+
+INVARIANTES
+
+- Laboratorio general: V06, sin pedestal ni Monolito horneados.
+- Monolito: V03, escala 0,72 y posición (0,34), sin mover ni redimensionar.
+- Caras: conservar las referencias presentes en la escena; este bloque no las modifica.
+- Orden: cama trasera, Monolito, frente de dos niveles.
+- Pedestal: ancho compacto, línea de contacto fija, extensión vertical propia y sin raycast.
+- Transición: el pedestal general se desvanece antes de que domine el soporte del fondo
+  cercano para evitar dos bases superpuestas.
+
+RECONSTRUCCIÓN
+
+Ejecutar `Tools/build_monolith_v39_visible_pedestal_assets.py` para regenerar los atlas y la
+previsualización a partir de los recursos canónicos y el concepto V39 archivado.

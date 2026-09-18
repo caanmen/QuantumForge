@@ -1,0 +1,56 @@
+ORIGEN Y ESTADO — PRIMERA ENTRADA DE DIMENSIÓN 2
+
+Fecha: 24 de agosto de 2026.
+
+Contenido:
+- CANDIDATA_INTRODUCCION_D2_PRIMERA_ENTRADA_V1.png: primera composición archivada como historial.
+- CANDIDATA_INTRODUCCION_D2_PRIMERA_ENTRADA_V2.png: composición intermedia archivada como historial.
+- REFERENCIA_ELEGIDA_D2_PRIMERA_ENTRADA_2026-08-24.png: referencia visual vigente
+  seleccionada explícitamente por el usuario.
+
+Origen:
+- La composición inicial fue aportada y elegida por el usuario en el chat.
+- La V2 fue derivada mediante edición visual para aplicar una instrucción explícita:
+  conservar únicamente el bloque narrativo sobre los tres territorios y el Santuario.
+- El usuario adjuntó posteriormente la imagen exacta que debía conservarse; esa copia
+  es la autoridad visual vigente.
+
+Clasificación:
+- REFERENCIA VISUAL CANDIDATA PARA COMPOSICIÓN ESTÁTICA.
+- NO es captura real de Unity.
+- NO es asset final para usar como fondo plano de la pantalla.
+- NO demuestra todavía similitud del 95 % ni aprobación final de implementación.
+
+Decisión vigente:
+- Mantener título, ilustración territorial, bloque narrativo y botón ABRIR MAPA.
+- Eliminar el segundo panel y todas las menciones a Seguidores, Ofrendas,
+  Peregrinaciones, Confianza y 300 dentro de esta introducción.
+- No añadir texto sustituto.
+
+Resolución de V1 y V2: 941 x 1672 píxeles.
+Resolución de la referencia elegida: 730 x 1325 píxeles.
+SHA-256 de la referencia elegida:
+EE494D4AF41C1B5E38B1CBAC32B360198ED9139B0D562E4ACDC7C70EAE4D7B11
+
+Capa runtime derivada:
+- Ruta: Assets/Project/UI/Dimension2/FirstEntry/Generated/D2_FirstEntry_Hero_v1.png
+- Origen: edición mediante ImageGen de la referencia visual elegida.
+- Intención del prompt: aislar una ilustración cuadrada limpia del bosque, el sendero,
+  el Santuario iluminado y los dos territorios secundarios; retirar toda la interfaz,
+  marcos, título, relato, botón y marcas.
+- Clasificación: asset candidato; no aprobado todavía como asset final.
+- SHA-256: B1943F60A9DF4A5DF2F77F8C6DCD6ACBFA92A97F2D234215F9333D8177E30A5C
+
+Evidencia Unity candidata:
+- 10_PANTALLAS/DIMENSION_2/PRIMERA_ENTRADA/CAPTURAS_CANDIDATAS/D2_FirstEntry_1080x1920.png
+- 10_PANTALLAS/DIMENSION_2/PRIMERA_ENTRADA/CAPTURAS_CANDIDATAS/D2_FirstEntry_720x1280.png
+- BUILD_PASS y Capture PASS registrados el 24 de agosto de 2026.
+- La aprobación visual final y la promoción a 06_CAPTURAS_APROBADAS siguen pendientes.
+
+Revisión ornamental candidata:
+- Se derivaron por edición visual tres capas separadas: atlas de marcos internos,
+  placa dorada sin texto y marco exterior.
+- La composición de Unity mantiene título, relato y ABRIR MAPA como TMP; el botón es
+  UGUI real y la ilustración central continúa separada.
+- La captura candidata vigente es la producida por la validación ornamental final del
+  24 de agosto de 2026. No se declara todavía aprobación visual del 95 %.

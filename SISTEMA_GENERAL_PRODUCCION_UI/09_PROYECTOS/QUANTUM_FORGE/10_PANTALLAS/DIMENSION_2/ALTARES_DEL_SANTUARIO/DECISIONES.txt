@@ -1,0 +1,17 @@
+DECISIONES — ALTARES DEL SANTUARIO
+
+30 de agosto de 2026
+
+1. La selección explícita del usuario adopta la referencia V4 como autoridad.
+2. El negro exterior y los tiradores blancos del adjunto son del visor, no del diseño.
+3. Los cinco espacios canónicos permanecen visibles; el desbloqueo real decide la
+   interacción sin deformar la cuadrícula 3+2.
+4. El selector interno conserva IDs estables, pero no se presenta como dropdown.
+5. Los valores y estados son TMP dinámicos con CultureInfo.InvariantCulture; no están
+   horneados en la placa ni en el overlay.
+6. La placa de esta sección bloquea los raycasts heredados del hub; sus decoraciones
+   y overlays no interceptan entrada.
+7. D2AltarsPanelUI es el único propietario de selección, datos y acciones.
+8. La placa limpia fue derivada con ImageGen y los iconos se separaron de la referencia
+   permanente; no se usa la captura V4 completa como fondo final.
+9. La composición estática y las interacciones se validan antes de animar.

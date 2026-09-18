@@ -1,0 +1,28 @@
+QUANTUM FORGE — MONOLITO 2D — CORRECCIÓN V47
+Fecha: 2026-08-29
+Estado: RECHAZADO visualmente por el usuario; reemplazado por V48.
+
+PROBLEMA SEÑALADO POR EL USUARIO
+- En la cara superior derecha (sector 3) y la inferior derecha (sector 2), varios símbolos
+  quedaban perceptualmente demasiado cerca del borde exterior erosionado.
+- La distribución no aprovechaba correctamente la zona interior de piedra conservada.
+
+DECISIÓN
+- Mantener sin cambios las caras V43, su daño perimetral, el tamaño de los símbolos, sus
+  estados de brillo y las áreas táctiles.
+- Cambiar únicamente las posiciones de los símbolos de S2 y S3.
+- Conservar una distribución irregular determinista, una separación normalizada mínima de
+  0,068 y la validación de la huella completa mediante nueve muestras.
+- Ningún símbolo puede tocar la columna, la base, las esquinas ni el borde roto.
+
+EVIDENCIA DE ORIGEN
+- referencia_usuario_cara_superior_derecha_simbolos_borde_v47.png
+- referencia_usuario_cara_inferior_derecha_simbolos_borde_v47.png
+
+ARCHIVOS DE IMPLEMENTACIÓN
+- Assets/Project/Scripts/UI/MachineMonolith2DVisualUI.cs
+- Assets/Project/Scripts/Editor/MachineMonolith2DCapture.cs
+- Assets/Project/Scripts/Editor/MachineMonolith2DSetup.cs
+
+PENDIENTE
+- No continuar ni validar esta distribución. Consultar V48.

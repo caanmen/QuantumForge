@@ -69,6 +69,7 @@ public sealed class Dimension1MetalsInventoryUI : MonoBehaviour
     private readonly List<Button> entryButtons = new List<Button>();
     private int filterIndex;
     private float refreshTimer;
+    private float entryBindTimer;
     private bool visible;
     private bool localListenersBound;
 
@@ -142,6 +143,13 @@ public sealed class Dimension1MetalsInventoryUI : MonoBehaviour
 
     private void Update()
     {
+        entryBindTimer -= Time.unscaledDeltaTime;
+        if (entryBindTimer <= 0f)
+        {
+            entryBindTimer = .5f;
+            BindEntryButtons();
+        }
+
         if (!visible) return;
         refreshTimer -= Time.unscaledDeltaTime;
         if (refreshTimer <= 0f)
@@ -167,6 +175,14 @@ public sealed class Dimension1MetalsInventoryUI : MonoBehaviour
     public void SelectAll() { SetFilter(0); }
     public void SelectProducing() { SetFilter(1); }
     public void SelectLocked() { SetFilter(2); }
+
+    public Sprite GetMetalIconSprite(string metalId)
+    {
+        int index = Array.IndexOf(MetalIds, metalId);
+        return index >= 0 && metalIcons != null && index < metalIcons.Length && metalIcons[index] != null
+            ? metalIcons[index].sprite
+            : null;
+    }
 
     private void SetFilter(int index)
     {
@@ -211,17 +227,56 @@ public sealed class Dimension1MetalsInventoryUI : MonoBehaviour
 
     private void BindEntryButtons()
     {
+        for (int i = entryButtons.Count - 1; i >= 0; i--)
+            if (entryButtons[i] == null) entryButtons.RemoveAt(i);
+
         Transform owner = panel != null ? panel.transform : transform.parent;
         if (owner == null) return;
-        foreach (Button button in owner.GetComponentsInChildren<Button>(true))
+        foreach (Transform entry in owner.GetComponentsInChildren<Transform>(true))
         {
-            if (button == null || button == backButton) continue;
-            string objectName = button.transform.name;
+            if (entry == null) continue;
+            string objectName = entry.name;
             if (objectName != "MetalsButton" && objectName != "AllMetals") continue;
+
+            Image hit = entry.GetComponent<Image>();
+            if (hit == null)
+            {
+                hit = entry.gameObject.AddComponent<Image>();
+                hit.color = new Color(1f, 1f, 1f, .001f);
+            }
+            hit.raycastTarget = true;
+
+            Button button = entry.GetComponent<Button>();
+            if (button == null) button = entry.gameObject.AddComponent<Button>();
+            if (button == backButton) continue;
+            button.targetGraphic = hit;
+            button.transition = Selectable.Transition.None;
+            button.interactable = true;
             button.onClick.RemoveListener(Open);
-            button.onClick.AddListener(Open);
-            entryButtons.Add(button);
+            if (!HasPersistentMetalsRoute(button) && !IsInsideCommandCenter(entry))
+                button.onClick.AddListener(Open);
+            if (!entryButtons.Contains(button)) entryButtons.Add(button);
         }
+    }
+
+    private static bool HasPersistentMetalsRoute(Button button)
+    {
+        if (button == null) return false;
+        for (int i = 0; i < button.onClick.GetPersistentEventCount(); i++)
+        {
+            string method = button.onClick.GetPersistentMethodName(i);
+            if (button.onClick.GetPersistentTarget(i) != null &&
+                (method == "Open" || method == "OpenMetals" || method == "ToggleMetalsDrawer"))
+                return true;
+        }
+        return false;
+    }
+
+    private static bool IsInsideCommandCenter(Transform entry)
+    {
+        for (Transform current = entry; current != null; current = current.parent)
+            if (current.name == "D1CommandCenterProductionRoot") return true;
+        return false;
     }
 
     private void RefreshData()
@@ -407,5 +462,183 @@ public sealed class Dimension1MetalsInventoryUI : MonoBehaviour
         ColorUtility.TryParseHtmlString("#" + html, out Color color);
         color.a = alpha / 255f;
         return color;
+    }
+}
+
+/// <summary>
+/// Único propietario de los tres metales resumidos del encabezado D1.
+/// Los metales se obtienen de los planetas reales del sector, en orden de planeta
+/// y de producción, y el inventario compartido conserva el acceso a los diez.
+/// </summary>
+public static class Dimension1HeaderMetalsUI
+{
+    private static readonly string[] OuterRimMetals =
+    {
+        Dimension1System.MetalIron,
+        Dimension1System.MetalCopper,
+        Dimension1System.MetalAluminum
+    };
+
+    private static readonly string[] DebrisRingMetals =
+    {
+        Dimension1System.MetalNickel,
+        Dimension1System.MetalCobalt
+    };
+
+    private static readonly string[] AncientOrbitsMetals =
+    {
+        Dimension1System.MetalLithium,
+        Dimension1System.MetalTungsten,
+        Dimension1System.MetalPlatinum
+    };
+
+    private static readonly string[] SilentFrontierMetals =
+    {
+        Dimension1System.MetalIridium,
+        Dimension1System.MetalCobalt,
+        Dimension1System.MetalTungsten
+    };
+
+    public static IReadOnlyList<string> GetSectorMetalIds(string sectorId)
+    {
+        if (sectorId == Dimension1System.Sector02DebrisRing) return DebrisRingMetals;
+        if (sectorId == Dimension1System.Sector03AncientOrbits) return AncientOrbitsMetals;
+        if (sectorId == Dimension1System.Sector04SilentFrontier) return SilentFrontierMetals;
+        return OuterRimMetals;
+    }
+
+    public static void Refresh(Transform screenRoot, GameState state, string sectorId)
+    {
+        if (screenRoot == null || state == null) return;
+        IReadOnlyList<string> ids = GetSectorMetalIds(sectorId);
+        string[] cardNames = CardNames(screenRoot.name);
+
+        for (int i = 0; i < cardNames.Length; i++)
+        {
+            Transform card = FindDescendant(screenRoot, cardNames[i]);
+            if (card == null) continue;
+            bool hasMetal = i < ids.Count;
+            card.gameObject.SetActive(hasMetal);
+            if (!hasMetal) continue;
+
+            string metalId = ids[i];
+            SetText(card, "Name", MetalName(metalId));
+            SetText(card, "Amount", FormatAmount(state.GetD1MetalAmount(metalId)));
+            SetText(card, "Value", FormatAmount(state.GetD1MetalAmount(metalId)));
+            SetText(card, "Rate", "+" + FormatAmount(
+                Dimension1System.GetMetalProductionPerSecond(state, metalId)) + "/s");
+            RefreshIcon(card, metalId);
+        }
+    }
+
+    private static string[] CardNames(string rootName)
+    {
+        if (rootName == "D1CommandCenterProductionRoot")
+            return new[] { "Resource_HIERRO", "Resource_ALUMINIO", "Resource_NÍQUEL" };
+        if (rootName == "D1_GalaxyVisualRoot")
+            return new[] { "Metal_HIERRO", "Metal_ALUMINIO", "Metal_NÍQUEL" };
+        return new[] { "Metal_0", "Metal_1", "Metal_2" };
+    }
+
+    private static void RefreshIcon(Transform card, string metalId)
+    {
+        Sprite sprite = Dimension1MetalsInventoryUI.I != null
+            ? Dimension1MetalsInventoryUI.I.GetMetalIconSprite(metalId)
+            : null;
+        Transform iconTransform = FindDirectChild(card, "SectorMetalIcon");
+        if (sprite == null)
+        {
+            if (iconTransform != null) iconTransform.gameObject.SetActive(false);
+            return;
+        }
+
+        if (iconTransform == null)
+        {
+            GameObject iconObject = new GameObject("SectorMetalIcon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            iconObject.layer = card.gameObject.layer;
+            iconObject.transform.SetParent(card, false);
+            iconTransform = iconObject.transform;
+            RectTransform rect = (RectTransform)iconTransform;
+            rect.anchorMin = rect.anchorMax = new Vector2(0f, .5f);
+            rect.pivot = new Vector2(.5f, .5f);
+            rect.anchoredPosition = new Vector2(27f, 0f);
+            rect.sizeDelta = new Vector2(44f, 62f);
+            iconTransform.SetAsLastSibling();
+        }
+
+        foreach (Transform child in card)
+        {
+            if (child == iconTransform || IsCardStructureOrText(child)) continue;
+            child.gameObject.SetActive(false);
+        }
+
+        Image image = iconTransform.GetComponent<Image>();
+        image.sprite = sprite;
+        image.color = Color.white;
+        image.preserveAspect = true;
+        image.raycastTarget = false;
+        iconTransform.gameObject.SetActive(true);
+    }
+
+    private static bool IsCardStructureOrText(Transform child)
+    {
+        string name = child.name;
+        return name == "Shadow" || name == "Fill" || name == "Border" ||
+               name == "PanelFill" || name == "OuterLine" || name == "InnerLine" ||
+               name.EndsWith("_Border", StringComparison.Ordinal) ||
+               name.EndsWith("_InnerBorder", StringComparison.Ordinal) ||
+               child.GetComponent<TMP_Text>() != null || child.GetComponent<Text>() != null;
+    }
+
+    private static void SetText(Transform parent, string childName, string value)
+    {
+        Transform child = FindDirectChild(parent, childName);
+        TMP_Text text = child != null ? child.GetComponent<TMP_Text>() : null;
+        if (text != null) text.text = value;
+        else
+        {
+            Text legacyText = child != null ? child.GetComponent<Text>() : null;
+            if (legacyText != null) legacyText.text = value;
+        }
+    }
+
+    private static Transform FindDescendant(Transform parent, string name)
+    {
+        foreach (Transform child in parent.GetComponentsInChildren<Transform>(true))
+            if (child.name == name) return child;
+        return null;
+    }
+
+    private static Transform FindDirectChild(Transform parent, string name)
+    {
+        for (int i = 0; i < parent.childCount; i++)
+            if (parent.GetChild(i).name == name) return parent.GetChild(i);
+        return null;
+    }
+
+    private static string MetalName(string metalId)
+    {
+        if (metalId == Dimension1System.MetalIron) return "HIERRO";
+        if (metalId == Dimension1System.MetalCopper) return "COBRE";
+        if (metalId == Dimension1System.MetalAluminum) return "ALUMINIO";
+        if (metalId == Dimension1System.MetalTitanium) return "TITANIO";
+        if (metalId == Dimension1System.MetalNickel) return "NÍQUEL";
+        if (metalId == Dimension1System.MetalCobalt) return "COBALTO";
+        if (metalId == Dimension1System.MetalLithium) return "LITIO";
+        if (metalId == Dimension1System.MetalTungsten) return "TUNGSTENO";
+        if (metalId == Dimension1System.MetalPlatinum) return "PLATINO";
+        if (metalId == Dimension1System.MetalIridium) return "IRIDIO";
+        return "METAL";
+    }
+
+    private static string FormatAmount(double value)
+    {
+        value = Math.Max(0d, value);
+        if (value >= 1000000000d) return (value / 1000000000d).ToString("0.##") + "B";
+        if (value >= 1000000d) return (value / 1000000d).ToString("0.##") + "M";
+        if (value >= 1000d) return (value / 1000d).ToString("0.##") + "K";
+        if (value >= 100d) return value.ToString("0");
+        if (value >= 10d) return value.ToString("0.#");
+        return value.ToString("0.##");
     }
 }

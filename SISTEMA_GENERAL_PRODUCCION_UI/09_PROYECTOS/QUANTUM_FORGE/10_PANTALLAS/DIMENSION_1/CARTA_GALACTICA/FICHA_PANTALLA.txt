@@ -1,0 +1,52 @@
+FICHA DE PANTALLA: CARTA GALÁCTICA
+==================================
+
+ID: D1_CARTA_GALACTICA
+Dimensión: 1
+Estado: V12 ORBITAL APROBADA POR EL USUARIO Y ARCHIVADA.
+Referencia aprobada de composición: 05_REFERENCIAS/DIMENSION_1/CARTA_GALACTICA/CONCEPTO_APROBADO_SISTEMA_ORBITAL_V12_2026-08-21.png
+Capturas candidatas: 05_REFERENCIAS/DIMENSION_1/CARTA_GALACTICA/CAPTURA_CANDIDATA_V12_*.png
+Escena principal: Assets/Project/Scenes/Main.unity
+Constructor canónico: Dimension1GalaxyPremiumSetup.ConfigureReferenceV11
+Controlador visual: Assets/Project/Scripts/UI/Dimension1GalaxyVisualUI.cs
+Captura/validación temporal: Dimension1GalaxyReferenceCapture
+Validación de clic físico: Dimension1GalaxySectorTextCycleValidation
+Resoluciones comprobadas: 1080×1920 y 720×1280 vertical.
+
+IMPLEMENTACIÓN V12 — 21 DE AGOSTO DE 2026
+- Siete cuerpos reales distribuidos en siete trayectorias orbitales inclinadas: PASS.
+- Los cuerpos permanecen fijos en su órbita y rotan sólo sobre su propio eje: PASS.
+- Centro Galáctico separado, oscurecido, con recorte negro canónico y oclusión circular;
+  sin anillo técnico ni halo exterior por corrección posterior del usuario: PASS.
+- Nombres visibles aprobados: Elysia, Vulkar, Corona de Tántalo, Mnemos, Orpheon,
+  Nyxara y Erebon: PASS.
+- IDs internos planet_01…planet_07 conservados para compatibilidad de guardado: PASS.
+- Los contadores históricos de expediciones se retiraron del mapa. Cada cuerpo muestra
+  sector/estado real: PASS.
+- Los dos cuerpos que comparten sector abren el mismo sector correcto: PASS físico.
+- El botón inferior EXPLORAR entrega el control directamente a la pantalla moderna sin
+  mostrar la pantalla inicial ni depender del orden de reconstrucción: PASS físico 14/14.
+- Capturas neutral y seleccionada generadas en ambas resoluciones: PASS técnico.
+- Aprobación visual final de las capturas V12 por el usuario: PENDIENTE.
+
+La antigua composición V11 de cuatro hexágonos queda como antecedente histórico y no es
+la autoridad visual vigente de esta pantalla.
+ACTUALIZACIÓN VALIDADA 2026-08-22
+- Selección exacta por planeta y órbita; Orpheon ya no reutiliza la selección de Mnemos.
+- Campo estelar canónico sutil añadido al fondo sin afectar interacción.
+- Evidencia nueva PASS a 1080×1920 y 720×1280.
+- Siete centros visuales proyectados y validados sobre sus siete elipses inclinadas.
+
+REVISIÓN NUEVA — 2026-09-08
+Se auditó código, escena, navegación física y capturas de Unity en 1080×1920 y
+720×1280. La evidencia anterior se conserva como historial. Consultar
+07_REGISTROS/AUDITORIA_DIMENSION_1_2026-09-08.md y
+08_PRUEBAS/AUDITORIA_D1_2026-09-08 para resultados y correcciones actuales.
+Las capturas de la auditoría pasaron a ser la evidencia aprobada de V12 tras la revisión
+explícita del usuario el 8 de septiembre de 2026.
+
+CIERRE V12 — 2026-09-08
+- Estados neutral y Borde Exterior seleccionado aprobados en 1080×1920 y 720×1280.
+- Las cuatro capturas quedaron archivadas en 06_CAPTURAS_APROBADAS/DIMENSION_1/CARTA_GALACTICA.
+- La ruta de siete cuerpos, selección y apertura de los cuatro sectores conserva su PASS técnico.
+- Resultado: APROBADA Y CERRADA en su composición V12 vigente.

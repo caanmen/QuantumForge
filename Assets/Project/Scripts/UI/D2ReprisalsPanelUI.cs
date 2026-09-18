@@ -1,3 +1,5 @@
+using System;
+using System.Globalization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -6,15 +8,35 @@ using UnityEngine.UI;
 public class D2ReprisalsPanelUI : MonoBehaviour
 {
     public D2Civilization2PanelUI civilization2PanelUI;
+
+    [Header("Cabecera V4")]
+    public TMP_Text availableMembersText;
+    public TMP_Text fragmentsText;
+    public TMP_Text reprisalsCountText;
+    public TMP_Text regionNameText;
+    public Button regionSelectorButton;
+
+    [Header("Medidores V4")]
     public TMP_Text threatText;
     public Slider threatSlider;
+    public D2SegmentedGaugeGraphic threatGauge;
     public TMP_Text coverageText;
     public Slider coverageSlider;
+    public D2SegmentedGaugeGraphic coverageGauge;
+
+    [Header("Estado de la próxima represalia")]
+    public TMP_Text estimatedLossText;
     public TMP_Text protectionText;
-    public TMP_Text fragmentsText;
     public TMP_Text weakeningText;
+    public TMP_Text weakeningDurationText;
     public TMP_Text rulesText;
     public TMP_Text lastResultText;
+
+    private void Awake()
+    {
+        if (regionSelectorButton != null)
+            regionSelectorButton.onClick.AddListener(CycleRegion);
+    }
 
     private void OnEnable()
     {
@@ -36,73 +58,99 @@ public class D2ReprisalsPanelUI : MonoBehaviour
         if (region == null)
             return;
 
-        SetText(
-            threatText,
-            D2Civilization2System.GetRegionDisplayName(regionId).ToUpperInvariant() +
-            " — AMENAZA: " + region.threat.ToString("0.##") + "%"
-        );
-        SetSlider(threatSlider, region.threat, 100.0);
-        SetText(
-            coverageText,
-            "COBERTURA: " + region.coverage.ToString("0.##") + " / " +
-            D2Civilization2System.MaxCoverage.ToString("0")
-        );
+        SetText(availableMembersText, FormatInteger(state.membersAvailable));
+        SetText(fragmentsText, FormatInteger(state.controlFragments));
+        SetText(reprisalsCountText, FormatInteger(state.totalReprisals));
+        SetText(regionNameText,
+            D2Civilization2System.GetRegionDisplayName(regionId).ToUpperInvariant());
+
+        SetText(threatText, FormatPercent(region.threat));
+        SetSlider(threatSlider, region.threat,
+            D2Civilization2System.ReprisalThreatThreshold);
+        SetGauge(threatGauge, region.threat,
+            D2Civilization2System.ReprisalThreatThreshold);
+
+        SetText(coverageText,
+            region.coverage.ToString("0.##", CultureInfo.InvariantCulture) + " / " +
+            D2Civilization2System.MaxCoverage.ToString("0", CultureInfo.InvariantCulture));
         SetSlider(coverageSlider, region.coverage, D2Civilization2System.MaxCoverage);
+        SetGauge(coverageGauge, region.coverage, D2Civilization2System.MaxCoverage);
 
-        bool espionagePrepared = region.nextReprisalEspionageReduction > 0.0 ||
-            D2Civilization2System.IsOperationActive(
-                D2Civilization2System.GetOperation(
-                    region,
-                    D2Civilization2System.EspionageOperationId
-                )
-            );
-        SetText(
-            protectionText,
-            "Pérdida estimada en próxima Represalia: " +
-            (D2Civilization2System.GetExpectedReprisalLossFraction(state, region) * 100.0)
-                .ToString("0.##") + "%\n" +
-            "Preparación de Espionaje: " + (espionagePrepared ? "LISTA (-5%)" : "NO PREPARADA")
-        );
-        SetText(
-            fragmentsText,
-            "FRAGMENTOS DE CONTROL: " + state.controlFragments.ToString("N0") +
-            " | Represalias resistidas: " + state.totalReprisals.ToString("N0")
-        );
+        double expectedLoss = D2Civilization2System.GetExpectedReprisalLossFraction(
+            state, region);
+        SetText(estimatedLossText, FormatPercent(expectedLoss * 100.0));
 
-        string weakening = "Ninguna operación debilitada.";
-        if (!string.IsNullOrEmpty(region.weakenedOperationId) &&
-            region.weakenedOperationRemainingSeconds > 0.0)
+        double espionageReduction =
+            D2Civilization2System.GetPreparedEspionageReprisalReduction(state, region);
+        SetText(protectionText, espionageReduction > 0.0
+            ? "LISTO (-" + FormatPercent(espionageReduction * 100.0) + ")"
+            : "NO PREPARADO");
+
+        bool weakened = !string.IsNullOrEmpty(region.weakenedOperationId) &&
+            region.weakenedOperationRemainingSeconds > 0.0;
+        if (weakened)
         {
-            weakening = D2Civilization2System.GetOperationDisplayName(
-                region.weakenedOperationId
-            ) + " funciona al 50% durante " +
-                FormatDuration(region.weakenedOperationRemainingSeconds) + ".";
+            SetText(weakeningText,
+                D2Civilization2System.GetOperationDisplayName(
+                    region.weakenedOperationId).ToUpperInvariant() + " AL " +
+                FormatPercent(D2Civilization2System.WeakenedOperationMultiplier * 100.0));
+            SetText(weakeningDurationText,
+                FormatDuration(region.weakenedOperationRemainingSeconds));
         }
-        SetText(weakeningText, weakening);
-        SetText(
-            rulesText,
-            "Al llegar a 100% de Amenaza ocurre una Represalia. La Amenaza vuelve " +
-            "a 25%, la Cobertura conserva la mitad y se obtienen " +
-            (state.alertActive ? "6" : "3") + " Fragmentos." +
-            (region.alertMarked ? " La marca añade 3% de pérdidas y se consumirá." : "")
-        );
-        SetText(
-            lastResultText,
-            string.IsNullOrEmpty(state.lastResult)
-                ? "Aún no se ha producido ninguna Represalia."
-                : state.lastResult
-        );
-        SetActive(fragmentsText,
-            state.controlFragments > 0L || state.totalReprisals > 0L);
-        SetActive(weakeningText, state.totalReprisals > 0L ||
-            !string.IsNullOrEmpty(region.weakenedOperationId));
+        else
+        {
+            SetText(weakeningText, "NINGUNA OPERACIÓN");
+            SetText(weakeningDurationText, "—");
+        }
+
+        long fragmentsReward = state.alertActive
+            ? D2Civilization2System.AlertControlFragmentsPerReprisal
+            : D2Civilization2System.ControlFragmentsPerReprisal;
+        SetText(rulesText,
+            "AL LLEGAR A " +
+            FormatPercent(D2Civilization2System.ReprisalThreatThreshold) +
+            " OCURRE UNA REPRESALIA\n" +
+            "LA AMENAZA VUELVE A " +
+            FormatPercent(D2Civilization2System.ThreatAfterReprisal) + "\n" +
+            BuildCoverageRetentionRule() + "\n" +
+            "RECOMPENSA " + FormatInteger(fragmentsReward) + " FRAGMENTOS");
+
+        SetText(lastResultText, region.hasLastReprisalResult
+            ? FormatInteger(region.lastReprisalMemberLosses) + " MIEMBROS PERDIDOS"
+            : "SIN REGISTRO");
+    }
+
+    private void CycleRegion()
+    {
+        if (civilization2PanelUI != null)
+            civilization2PanelUI.CycleSelectedRegion(1);
+    }
+
+    private static string BuildCoverageRetentionRule()
+    {
+        if (Math.Abs(D2Civilization2System.CoverageRetentionAfterReprisal - 0.5) <
+            0.000001)
+            return "LA COBERTURA CONSERVA LA MITAD";
+        return "LA COBERTURA CONSERVA EL " +
+            FormatPercent(
+                D2Civilization2System.CoverageRetentionAfterReprisal * 100.0);
     }
 
     private static string FormatDuration(double seconds)
     {
         int totalSeconds = Mathf.Max(0, Mathf.CeilToInt((float)seconds));
-        return (totalSeconds / 60).ToString("00") + ":" +
-            (totalSeconds % 60).ToString("00");
+        return (totalSeconds / 60).ToString("00", CultureInfo.InvariantCulture) + ":" +
+            (totalSeconds % 60).ToString("00", CultureInfo.InvariantCulture);
+    }
+
+    private static string FormatInteger(long value)
+    {
+        return value.ToString("N0", CultureInfo.InvariantCulture);
+    }
+
+    private static string FormatPercent(double value)
+    {
+        return value.ToString("0.##", CultureInfo.InvariantCulture) + "%";
     }
 
     private static void SetSlider(Slider slider, double value, double maximum)
@@ -111,17 +159,24 @@ public class D2ReprisalsPanelUI : MonoBehaviour
             return;
         slider.minValue = 0f;
         slider.maxValue = (float)maximum;
-        slider.value = (float)value;
+        slider.value = (float)Math.Clamp(value, 0.0, maximum);
+    }
+
+    private static void SetGauge(
+        D2SegmentedGaugeGraphic gauge,
+        double value,
+        double maximum)
+    {
+        if (gauge == null)
+            return;
+        gauge.SetProgress(maximum <= 0.0
+            ? 0f
+            : (float)Math.Clamp(value / maximum, 0.0, 1.0));
     }
 
     private static void SetText(TMP_Text text, string value)
     {
         if (text != null)
             text.text = value;
-    }
-
-    private static void SetActive(Component component, bool active)
-    {
-        if (component != null) component.gameObject.SetActive(active);
     }
 }

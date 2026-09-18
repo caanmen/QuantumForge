@@ -1,0 +1,27 @@
+QUANTUM FORGE — MONOLITO 2D — CORRECCIÓN V48
+Fecha: 2026-08-29
+Estado: RECHAZADO visualmente por el usuario; reemplazado por V49.
+
+CAUSA DEL RECHAZO V47
+- S2 y S3 seguían recortando símbolos desde sus propias hojas V02, cuyo lenguaje era más
+  lineal y diferente de las firmas ramificadas de la cara superior izquierda.
+- La fórmula aproximada de zona segura excluía piedra interior real y comprimía las
+  posiciones de ambas caras dentro de una franja demasiado estrecha.
+
+DECISIÓN V48
+- `monolith_sector_1_progression_v02.png` es la única fuente canónica de firmas para S1,
+  S2 y S3.
+- S3 reutiliza las siete firmas canónicas; S2 reutiliza las mismas siete y repite cuatro
+  para representar sus once nodos reales sin inventar arte nuevo.
+- Los recortes UV de origen quedan separados de las posiciones de presentación.
+- S2 y S3 utilizan una zona interior más ancha, basada en la piedra continua visible de
+  las caras V43 y no en la franja aproximada de V47.
+- Se conserva tamaño de 40 px, toque de 80 px, separación mínima 0,068 y brillos
+  dañado 0,24 / seleccionado 0,40 / reparado 1,00.
+
+EVIDENCIA RECHAZADA
+- referencia_usuario_sector_2_v47_rechazado.png
+- referencia_usuario_sector_3_v47_rechazado.png
+
+PENDIENTE
+- No continuar con la zona segura ampliada de V48. Consultar V49.

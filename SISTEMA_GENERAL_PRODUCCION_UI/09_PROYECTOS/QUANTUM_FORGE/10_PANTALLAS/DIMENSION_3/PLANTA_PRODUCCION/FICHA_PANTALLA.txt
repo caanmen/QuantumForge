@@ -1,0 +1,144 @@
+FICHA DE PANTALLA — QUANTUM FORGE
+
+IDENTIDAD
+Nombre visible: Planta de Producción
+Nombre interno estable: D3_PLANTA_PRODUCCION
+Dimensión o sistema: Dimensión 3 / producción, ensamblaje y asignación de autómatas
+Tipo: principal
+Responsable de aprobación visual: usuario
+
+ALCANCE
+Reglas generales heredadas: sistema general de UI Quantum Forge.
+Perfil propio de la dimensión: PERFIL_ESTILO_DIMENSION_3.txt, todavía pendiente de
+  cerrar hasta aprobar esta primera pantalla.
+Ejemplos históricos consultados: paquete Dimension3_Continuidad_2026-08-19.
+Decisiones de esos ejemplos que NO deben heredarse: numeración documental en títulos,
+  símbolos variables para un mismo concepto, cifra global de 48 autómatas y controles
+  que no representan las opciones reales del código.
+Decisiones exclusivas de esta pantalla: conservar la máquina industrial central y la
+  división inferior entre producción de piezas y ensamblaje.
+
+FUNCIÓN
+Objetivo en una frase: fabricar las cinco piezas, ensamblar autómatas normales y abrir
+  la gestión de asignaciones, Banco de Procesos y colas.
+Forma de entrar: navegación inferior, botón PLANTA.
+Forma de salir: navegación inferior a TALLER o CONTROL.
+Acción principal: encolar producción o ensamblaje con versión y cantidad válidas.
+Datos que puede modificar: colas de piezas/ensamblaje, cantidad, versión, asignaciones
+  y mejora del Banco de Procesos mediante sus accesos correspondientes.
+Datos que sólo previsualiza: recursos, inventario, requisitos, costes, tiempos y resumen
+  de las cuatro colas.
+
+REFERENCIAS
+Ruta de referencia visual permanente:
+  SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_3/PLANTA_PRODUCCION/
+  referencia_planta_produccion_corregida_v2.png
+Tipo: referencia estática aprobada para composición; no es una captura real de Unity.
+Resolución original: 728 x 1268; derivaciones archivadas a 1080 x 1920 y 720 x 1280.
+Relación de aspecto: aproximadamente 9:16.
+Partes ambiguas pendientes de decisión: acabado visual definitivo y perfil completo de
+  Dimensión 3, sujetos a la aprobación de la primera candidata corregida.
+
+DATOS Y LORE
+Sistemas fuente: Dimension3Catalog, D3ProductionSystem, D3AssemblySystem,
+  D3InventorySystem, D3FacilitySystem, D3JobQueueSystem y Dimension3PanelUI.
+Nombres oficiales: Chasis; Sistema Motriz; Herramienta; Módulo de Control; Regulador;
+  Banco de Procesos; Autómatas.
+Costes y requisitos del estado mostrado:
+  Recursos del escenario: 3.25M LE y 4.2K Trazas, usando FormatNumber real.
+  Chasis V1: 100 LE + 1 Traza, 10 s por unidad.
+  Autómata MK1 Normal: 2.000 LE + 5 Trazas, 30 s por unidad y una pieza V1 de cada tipo.
+Valores mínimo y máximo visibles:
+  versiones V1–V6; producción 1/5/10/25/50, con 50 sólo en Banco N5;
+  ensamblaje 1/5/10/25; máximo 10 trabajos por cola.
+Localización o formatos especiales: español; miles con punto; tiempos breves en s.
+
+COMPOSICIÓN
+Resolución base: 1080 x 1920 vertical.
+Zonas: encabezado de recursos; máquina y pestañas de piezas; resumen de colas;
+  producción y ensamblaje; accesos secundarios; navegación inferior.
+Márgenes seguros: conservar contenido interactivo dentro de la zona útil delimitada por el
+  bisel; medir por separado marco exterior, zona útil y huella visible.
+Bloques principales y medidas: definidos por el constructor canónico
+  Dimension3ProductionFloorVisualSetup. Las placas anidadas dejan margen visible en sus cuatro
+  lados y los títulos no cruzan el borde superior.
+Jerarquía prevista: recursos > máquina/pieza > acciones > accesos > navegación.
+
+ASSETS
+Assets canónicos reutilizados: VerticalUiTheme, placa base industrial, atlas de controles,
+  blueprint de ensamblaje y recortes de iconos de la referencia D3.
+Assets nuevos aprobados: ninguno fuera de la familia visual de la referencia.
+Assets candidatos pendientes de aprobación: acabado perceptual final de la captura Unity.
+Assets faltantes: ninguno indispensable para la composición actual de Planta.
+Placeholders temporales autorizados: ninguno en la captura vigente.
+
+ESTADOS
+[x] Neutral
+[x] Normal
+[x] Preseleccionado
+[x] Seleccionado
+[x] Bloqueado
+[x] Deshabilitado
+[x] Vacío
+[x] Completado
+[x] Error
+
+Para cada estado, indicar qué cambia y qué permanece fijo:
+La composición, iconografía y posición permanecen fijas. Sólo cambian color de estado,
+disponibilidad, texto de progreso, cantidades y respuesta inmediata del control.
+
+PROPIETARIOS
+Layout: prefab/escena de la pantalla, después de aprobación estática.
+Textos dinámicos: Dimension3PanelUI y paneles D3 relacionados.
+Colores y estados visuales: VerticalUiTheme/perfil D3 cuando corresponda.
+Reglas y progreso: sistemas D3 reales; la imagen no es autoridad funcional.
+Navegación: Dimension3PanelUI.
+Animación: componente específico posterior, sin escribir posiciones base.
+
+INTERACCIONES
+Botones y acciones: pestañas de cinco piezas; versión; cantidad; FABRICAR;
+  ENSAMBLAR MK1 NORMAL; resumen de colas; AUTÓMATAS; BANCO DE PROCESOS; navegación.
+Respuesta visual inmediata: seleccionado/deshabilitado y mensaje de validación.
+Comportamiento ante toques repetidos: una pulsación debe crear como máximo un trabajo.
+Botón Atrás: cierra primero un panel secundario; en la raíz no inventa otra acción.
+
+ANIMACIONES
+Intención definida antes de Unity: SÍ.
+Elemento: engranajes, luces de estado y flujo de máquina, por capas independientes.
+Objetivo: ambiental e informativo, sin cambiar la composición.
+Capa separada necesaria: SÍ; máquina fija, efectos, luces y piezas móviles separados.
+Propiedad animada: rotación de engranajes, intensidad/opacidad de luces y desplazamiento
+  corto de piezas; nunca RectTransform propietario del layout.
+Pivote y posición base: centrados y documentados antes de implementar.
+Duración, amplitud y objetivo informativo: pendientes de aprobar tras la estática.
+Estado que inicia y detiene: producción activa/pausada/completada.
+Elementos que deben permanecer inmóviles: encabezado, textos, paneles, botones y nav.
+Margen o recorte necesario: reservar el contenedor de la máquina sin invadir texto.
+Coste y reducción prevista para móvil: limitar partículas y luces simultáneas.
+Confirmación: no implementar antes de aprobar la composición estática: CONFIRMADO.
+
+RECONSTRUCCIÓN
+Escena o prefab: Assets/Project/Scenes/Main.unity, raíz funcional D3_Factory.
+Script generador: Assets/Project/Scripts/Editor/Dimension3ProductionFloorVisualSetup.cs.
+Componente de centrado compuesto: Assets/Project/Scripts/UI/D3CenteredIconLabelUI.cs.
+Ambos deben permanecer sincronizados con la escena.
+Archivos que son fuente definitiva: código D3 para reglas y datos; candidata aprobada
+  para composición; perfil D3 aprobado para estilo.
+
+PRUEBAS
+Resoluciones: 1080 x 1920 y 720 x 1280.
+Escenarios QA: neutral, seleccionado, bloqueado, sin recursos, inventario insuficiente,
+  colas llenas, trabajo activo, vacío y completado.
+Pruebas inmediatas después del toque: estado visual y creación única del trabajo.
+Pruebas después del refresco o animación: selector y cola conservan el estado real.
+Capturas requeridas: candidatas estáticas verificadas a 1080 x 1920 y 720 x 1280;
+  evidencia vigente en Logs/VisualQA/Dimension3/ProductionFloor, versión V22. No archivar
+  como aprobadas antes de la confirmación explícita del usuario.
+
+APROBACIÓN
+Referencia estática aprobada por: usuario.
+Fecha: 19 de agosto de 2026.
+Similitud visual objetivo: 95 % mínimo.
+Diferencias aceptadas explícitamente: ninguna adicional; la captura real V22 continúa en
+  revisión perceptual.
+Confirmación de que no se copió estética de otra dimensión sin autorización: SÍ.

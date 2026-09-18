@@ -1,0 +1,132 @@
+FICHA DE PANTALLA: CÁMARA DE RELIQUIAS
+======================================
+
+ID: D1_RELIQUIAS
+Dimensión: 1
+Tipo: pantalla secundaria de colección y mejora de reliquias
+Estado: INSTALADA EN UNITY — TRES PÁGINAS CANDIDATAS PENDIENTES DE APROBACIÓN VISUAL
+Referencia: 05_REFERENCIAS/DIMENSION_1/RELIQUIAS/referencia_reliquias.png
+Escena principal: Assets/Project/Scenes/Main.unity
+Controlador funcional existente: Assets/Project/Scripts/UI/Dimension1PanelUI.cs
+Resolución base: 1080 x 1920 vertical
+
+FUNCIÓN
+Mostrar las reliquias descubiertas de Dimensión 1, permitir seleccionar una pieza,
+consultar su origen, nivel, hitos y efectos, y comprar su siguiente mejora mediante
+las reglas reales del juego.
+
+COMPOSICIÓN DE REFERENCIA
+- Encabezado compacto D1 con regreso a Centro de Mando y tres metales.
+- Título CÁMARA DE RELIQUIAS y contador de descubrimiento.
+- Ocho tarjetas en una cuadrícula de dos filas por cuatro columnas.
+- Tarjeta seleccionada en ámbar; las demás en cyan.
+- Panel inferior de detalle con arte grande, nivel, hitos, efectos y coste.
+- Botón principal MEJORAR RELIQUIA.
+- Navegación local inferior con Reliquias seleccionada en ámbar.
+
+RELIQUIAS VISIBLES EN LA REFERENCIA
+1. Brújula de Deriva — Tier 1 — Borde Exterior.
+2. Taladro Antiguo — Tier 1 — Anillo de Restos.
+3. Cristal Analítico — Tier 2 — Anillo de Restos — seleccionado.
+4. Registro de Navegación Perdido — Tier 2 — Borde Exterior.
+5. Contenedor Modular — Tier 2 — Órbitas Antiguas.
+6. Núcleo de Prospección — Tier 1 — Frontera Silenciosa.
+7. Antena Fracturada — Tier 1 — Órbitas Antiguas.
+8. Sello de Extracción — Tier 2 — Frontera Silenciosa.
+
+La colección funcional contiene 20 reliquias oficiales. La referencia define la primera
+página de ocho. El usuario aprobó integrar la propuesta de tres páginas: ocho piezas en
+la primera, ocho en la segunda y las cuatro finales centradas en una cuadrícula 2 x 2.
+
+DATOS Y PROPIEDAD
+- Dimension1System y GameState conservan autoridad sobre niveles, descubrimiento,
+  efectos, costes y compra.
+- Dimension1PanelUI conserva la autoridad funcional existente.
+- El nuevo controlador visual representa el estado y reenvía acciones públicas.
+- Los números de la referencia son un escenario determinista de QA, no constantes.
+- El coste real puede incluir recursos diferentes a los tres metales mostrados en el
+  escenario visual; la interacción final debe reflejar siempre el coste real.
+
+ASSETS
+- Marcos, fondos, tipografía y navegación de Dimensión 1 existentes.
+- Veinte ilustraciones ráster independientes con alfa, volumen, iluminación interna y
+  silueta diferenciada; no se permiten esqueletos de líneas ni recortes de capturas.
+- Las doce piezas adicionales viven en Generated/Candidates/RelicsExpansion.
+- Los candidatos no se vuelven canónicos hasta aprobación explícita del usuario.
+
+ESTADOS MÍNIMOS
+- Descubierta neutral y descubierta seleccionada.
+- No descubierta o bloqueada.
+- Mejora disponible, recursos insuficientes y nivel máximo.
+- Cambio repetido de selección sin desplazamiento de tarjetas o textos.
+- Escenario de referencia determinista para QA visual.
+
+PRUEBAS
+- Capturas 1080 x 1920 y 720 x 1280.
+- Comparación perceptual contra la referencia permanente.
+- Jerarquía, referencias serializadas y navegación global aislada.
+- Recorrido 1 → 2 → 3 → 2 → 1 y selección de extremos sin cambios de layout.
+- Compra sólo mediante reglas reales y sin escrituras durante QA visual.
+
+APROBACIÓN
+Similitud visual objetivo: 95 % mínimo.
+Aprobación final del usuario: pendiente.
+
+IMPLEMENTACIÓN
+- Raíz visual: D1_RelicsVisualRoot dentro de RelicChamberPanel.
+- Controlador visual: Assets/Project/Scripts/UI/Dimension1RelicsVisualUI.cs.
+- Instalador reproducible: Dimension1RelicsReferenceSetup.Install.
+- Captura determinista: Dimension1RelicsReferenceCapture.Run.
+- Sprites candidatos: Assets/Project/UI/Dimension1/Generated/Candidates/Relics.
+- Sprites adicionales: Assets/Project/UI/Dimension1/Generated/Candidates/RelicsExpansion.
+
+VALIDACIÓN ACTUAL — 19 DE AGOSTO DE 2026
+- Compilación e instalación reproducible en Main.unity: PASS.
+- Captura determinista 1080 x 1920: PASS.
+- Captura responsiva 720 x 1280: PASS.
+- Navegación global aislada durante la captura: PASS.
+- Ocho ilustraciones sólidas con alfa real y sin rectángulos de fondo: PASS.
+- Doce ilustraciones adicionales importadas y conectadas a sus IDs reales: PASS.
+- Tres páginas funcionales con indicador, anterior y siguiente: PASS.
+- Página final con cuatro tarjetas centradas y ranuras sobrantes inactivas: PASS.
+- Recorrido automático de páginas y selección Placa/Núcleo/Fragmento/Memoria: PASS.
+- Las veinte reliquias muestran efectos reales desde una única autoridad: PASS.
+- Legibilidad de tier y estado corregida específicamente en 720 x 1280: PASS.
+- Escenario visual del Cristal Analítico separado de los datos reales: PASS.
+- Aprobación perceptual mínima del 95 % por el usuario: PENDIENTE.
+
+VALIDACIÓN FUNCIONAL — 20 DE AGOSTO DE 2026
+- Catálogo activo: 20 reliquias oficiales seleccionables por ID estable: PASS.
+- Reliquias con dos efectos numéricos definidos y progresión 25/50/75/100: 20.
+- Antena Fracturada: +1.5 pp de destino adicional y -6 % de duración de escaneo a
+  nivel 100, ambos conectados al cálculo real y mostrados en la Cámara: PASS.
+- Resonador de Trazas a nivel 100: +3 % de generación de Trazas y -1 % de costes de
+  Trazas en Mejoras del Cuarto 1 y el Captador de Energía del Triángulo: PASS.
+- Fragmento de Calibración a nivel 100: +4 % de velocidad de sincronización del
+  Triángulo y +1 punto porcentual al avance de cada sintonización correcta de estudios
+  (18 % base → 19 %): PASS.
+- Sello Triangular a nivel 100: +3 % relativo a la potencia positiva del protocolo
+  activo y +1 % de generación de Energía del Triángulo: PASS.
+- Mapa Estelar Incompleto a nivel 100: -4 % de repetición y +2 % de diversidad mediante
+  ajuste de los pesos reales del sector hacia una distribución uniforme: PASS.
+- Sensor de Frecuencia Rara a nivel 100: +2 puntos porcentuales de aparición de puntos
+  especiales y +0.8 puntos porcentuales de promoción a las categorías superiores ya
+  existentes (Eco de Reliquia y Traza de Matriz): PASS.
+- Memoria de Máquina a nivel 100: +2 % a efectos numéricos escalables de nodos y +1 % al
+  impacto de los bonus derivados del progreso de reparación, sin alterar desbloqueos,
+  requisitos ni el porcentaje de reparación: PASS.
+- Compra real desde la Cámara, con guardado personal suprimido durante QA: PASS.
+- Regresión de las tres páginas a 1080 x 1920 y 720 x 1280: PASS.
+- Las 20 reliquias definidas muestran sus dos descripciones canónicas; el skin no usa
+  textos genéricos de «bonificación primaria/secundaria»: PASS.
+- Evidencia automática: `Dimension1RelicEffectsValidation.Run` y
+  `Dimension1RelicsReferenceCapture.Run`.
+- Último PASS funcional:
+  `[D1 Relic Effects] PASS | 20 definidas + 3 efectos finales conectados + 20 selecciones + mejora`.
+
+REVISIÓN NUEVA — 2026-09-08
+Se auditó código, escena, navegación física y capturas de Unity en 1080×1920 y
+720×1280. La evidencia anterior se conserva como historial. Consultar
+07_REGISTROS/AUDITORIA_DIMENSION_1_2026-09-08.md y
+08_PRUEBAS/AUDITORIA_D1_2026-09-08 para resultados y correcciones actuales.
+Las capturas nuevas son candidatas; no constituyen aprobación perceptual del usuario.

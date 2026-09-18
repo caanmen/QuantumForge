@@ -6,6 +6,8 @@ using UnityEngine.UI;
 [DefaultExecutionOrder(100)]
 public sealed class VerticalGenerationPolishUI : MonoBehaviour
 {
+    private const float VisualRefreshInterval = 1f / 20f;
+
     [Header("Medidor")]
     public Image gaugeFrame;
     public Image gaugeGlow;
@@ -61,17 +63,29 @@ public sealed class VerticalGenerationPolishUI : MonoBehaviour
     private Vector3 higgsBaseScale = Vector3.one;
     private Vector3 tetraBaseScale = Vector3.one;
     private Vector3 modulatorBaseScale = Vector3.one;
+    private float nextVisualRefreshTime;
+    private string lastSynchronizationRenderedText;
+    private string lastSynchronizationAccent;
+    private string lastEffectRenderedText;
 
     private void OnEnable()
     {
         if (higgsNode != null) higgsBaseScale = higgsNode.localScale;
         if (tetraNode != null) tetraBaseScale = tetraNode.localScale;
         if (modulatorNode != null) modulatorBaseScale = modulatorNode.localScale;
+        nextVisualRefreshTime = 0f;
+        lastSynchronizationRenderedText = null;
+        lastSynchronizationAccent = null;
+        lastEffectRenderedText = null;
         RefreshVisuals();
     }
 
     private void Update()
     {
+        if (Time.unscaledTime < nextVisualRefreshTime)
+            return;
+
+        nextVisualRefreshTime = Time.unscaledTime + VisualRefreshInterval;
         RefreshVisuals();
     }
 
@@ -309,34 +323,53 @@ public sealed class VerticalGenerationPolishUI : MonoBehaviour
     {
         if (synchronizationText != null)
         {
-            string raw = StripRichText(synchronizationText.text);
-            int separator = raw.LastIndexOf(':');
-            if (separator >= 0)
+            string current = synchronizationText.text;
+            string accentHex = ColorHex(accent);
+            if (current != lastSynchronizationRenderedText ||
+                accentHex != lastSynchronizationAccent)
             {
-                string label = raw.Substring(0, separator + 1);
-                string value = raw.Substring(separator + 1).Trim();
-                synchronizationText.SetText(
-                    $"<color=#EDF5FF>{label}</color> <color=#{ColorHex(accent)}>{value}</color>");
+                string raw = StripRichText(current);
+                int separator = raw.LastIndexOf(':');
+                if (separator >= 0)
+                {
+                    string label = raw.Substring(0, separator + 1);
+                    string value = raw.Substring(separator + 1).Trim();
+                    string styled =
+                        $"<color=#EDF5FF>{label}</color> <color=#{accentHex}>{value}</color>";
+                    synchronizationText.SetText(styled);
+                    lastSynchronizationRenderedText = styled;
+                    lastSynchronizationAccent = accentHex;
+                }
+                else
+                {
+                    lastSynchronizationRenderedText = current;
+                    lastSynchronizationAccent = accentHex;
+                }
             }
         }
 
         if (effectText != null)
         {
-            string raw = StripRichText(effectText.text);
-            int separator = raw.IndexOf(':');
-            string styled = separator >= 0
-                ? $"<color=#DCE8F2>{raw.Substring(0, separator + 1)}</color>{raw.Substring(separator + 1)}"
-                : raw;
-            styled = Regex.Replace(styled,
-                @"([+-][0-9.,]+%?\s*LE)", "<color=#00D5FF>$1</color>",
-                RegexOptions.IgnoreCase);
-            styled = Regex.Replace(styled,
-                @"([+-][0-9.,]+%?\s*Trazas)", "<color=#D55CFF>$1</color>",
-                RegexOptions.IgnoreCase);
-            styled = Regex.Replace(styled,
-                @"([+-][0-9.,]+%?\s*Energ[ií]a)", "<color=#FF9A21>$1</color>",
-                RegexOptions.IgnoreCase);
-            effectText.SetText(styled);
+            string current = effectText.text;
+            if (current != lastEffectRenderedText)
+            {
+                string raw = StripRichText(current);
+                int separator = raw.IndexOf(':');
+                string styled = separator >= 0
+                    ? $"<color=#DCE8F2>{raw.Substring(0, separator + 1)}</color>{raw.Substring(separator + 1)}"
+                    : raw;
+                styled = Regex.Replace(styled,
+                    @"([+-][0-9.,]+%?\s*LE)", "<color=#00D5FF>$1</color>",
+                    RegexOptions.IgnoreCase);
+                styled = Regex.Replace(styled,
+                    @"([+-][0-9.,]+%?\s*Trazas)", "<color=#D55CFF>$1</color>",
+                    RegexOptions.IgnoreCase);
+                styled = Regex.Replace(styled,
+                    @"([+-][0-9.,]+%?\s*Energ[ií]a)", "<color=#FF9A21>$1</color>",
+                    RegexOptions.IgnoreCase);
+                effectText.SetText(styled);
+                lastEffectRenderedText = styled;
+            }
         }
     }
 

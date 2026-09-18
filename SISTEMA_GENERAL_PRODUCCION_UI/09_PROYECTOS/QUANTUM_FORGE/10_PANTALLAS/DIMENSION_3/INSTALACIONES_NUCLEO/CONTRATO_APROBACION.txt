@@ -1,0 +1,11 @@
+CONTRATO DE APROBACIÓN — INSTALACIONES CONECTADAS / NÚCLEO
+==========================================================
+
+La pantalla sólo puede declararse terminada cuando:
+- existe captura real nueva de Unity a 1080x1920 y 720x1280;
+- todos los elementos permanecen dentro de su marco propietario;
+- se comprueban centrado visual y márgenes completos en ambos ejes;
+- el usuario aprueba una similitud visual mínima del 95 %;
+- pasan lógica de instalaciones, integridad de Main, layout móvil y guardado;
+- se validan los estados aplicables de la ficha;
+- la captura aprobada se archiva después de la confirmación del usuario.

@@ -1,0 +1,52 @@
+QUANTUM FORGE — CONTINUIDAD DEL MONOLITO 2D V05
+Fecha: 2026-08-26
+
+REGLAS
+
+- Leer las reglas, instrucciones maestras, guías y archivos reales del proyecto.
+- El Monolito es alienígena y 2D; el laboratorio es humano y quedó abandonado tras un
+  accidente. No usar cubos ni representación 3D.
+- No usar mockups o láminas comparativas como assets de runtime.
+- Mantener sincronizados escena, reconstructor, controlador visual y captura QA.
+
+APROBADO PREVIAMENTE
+
+- Centrado V17 de las cuatro luces.
+- Dirección estática V19 y fondo limpio V18.
+- Primera captura real estática del sector 1 con V18.
+
+DESCARTE V22
+
+- El usuario rechazó V22 aunque había pasado la validación automática.
+- La cara 4 quedó demasiado pequeña respecto al diseño entregado.
+- El acercamiento escaló el Monolito completo desde 0,72 hasta 2,15 y llegó a cubrir casi
+  toda la pantalla. Ese fotograma no representaba la composición V19.
+- Las capturas V22 no son candidatas vigentes ni deben archivarse.
+
+ESTADO VIGENTE V23
+
+- V08 se usa sólo en la vista general, con cuatro luces y sin nodos, símbolos ni `???`.
+- V18 se usa como fondo separado en las cuatro vistas cercanas.
+- Las cuatro caras usan escala 0,90 para recuperar la ocupación grande de V19 dentro del
+  laboratorio, sin recortar su silueta y conservando apoyo físico.
+- Sector 1: 7 nodos. Sector 2: 11 nodos. Sector 3: 7 nodos. Sector 4: accesible, oscuro,
+  cero nodos y `???` únicamente dentro del arte de la cara.
+- La transición escala el Monolito sólo hasta 1,55 veces su escala de reposo, se desplaza
+  hacia la cara seleccionada y mantiene visible el laboratorio, que avanza más lentamente.
+- V08 y V18 se cruzan de forma gradual; el avance temporal está limitado por fotograma.
+
+VALIDACIÓN
+
+- Compilación: 0 errores y 0 advertencias.
+- Unity: VALIDATION PASS y CAPTURE PASS.
+- Evidencia: `Logs/machine_monolith_reference_composition_v23_capture.log`.
+- 26 capturas vigentes en `Logs/VisualQA/MachineMonolith2D`, en 1080×1920 y 720×1280.
+- La prueba cubre estados iniciales y reparados, sector 4, Mezclas, regreso, transición y
+  restauración del guardado.
+
+PENDIENTE
+
+- Aprobación perceptual explícita de V23 por el usuario.
+- Sólo después registrar el 95 % y archivar las capturas elegidas en
+  `SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/06_CAPTURAS_APROBADAS`.
+

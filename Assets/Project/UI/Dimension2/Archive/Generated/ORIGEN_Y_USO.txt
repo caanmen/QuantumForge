@@ -1,0 +1,31 @@
+ORIGEN Y USO — ARCHIVO / MEJORAS PERMANENTES
+
+Fecha: 3 de septiembre de 2026.
+Herramienta: ImageGen integrada de Codex.
+Tipo: edit / precise-object-edit.
+
+Referencia de autoridad:
+SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/
+DIMENSION_2/CORREGIDAS_V4_2026-08-21/18_Archivo_Mejoras_Permanentes_Corregido_V4.png
+
+Salida consumida por Unity:
+D2_Archive_CleanBasePlate_v1.png — 941×1672.
+D2_Archive_LockIcon_v1.png — candado de estado bloqueado.
+
+Prompt final:
+Use case: precise-object-edit.
+Asset type: production clean base plate for the Unity screen "Archivo — Mejoras permanentes".
+Input images: Image 1 is the exact V4 edit target and sole authority for composition.
+Primary request: Create a clean 941x1672 base plate from Image 1. Preserve exactly the full portrait canvas, outer frame, back-button plate and arrow, top resource-strip structure and dividers, all five resource pictorial icons, the large circular stone archive structure, open illustrated book, central diamond level plaque but with its numeral removed, all three upgrade-card borders and dividers, all three large upgrade illustrations, all fixed cost-resource pictorial icons, all empty cost boxes, all empty threshold areas, all empty action-button plates, the message-band frame, and the complete bottom navigation including its pictorial icons and the purple selected Archivo tab. Preserve stone/metal/parchment textures, scratches, lighting, spacing, and geometry.
+Remove ONLY every letter, word, numeral, percentage, punctuation mark used as text, and typographic glyph everywhere on the screen. Remove the "IV" from the central diamond. Remove all state-dependent lock icons and the teal active fill/glow from the first card action button, leaving all three action-button plates empty and neutral. Keep pictorial/rune decoration that is genuinely part of the illustrated artifacts, including markings on the open book and upgrade illustrations.
+Reconstruct removed areas seamlessly from the immediately surrounding local material.
+Constraints: Keep the original exact composition and pixel-aligned layout. Do not crop, resize, redesign, move, recolor, simplify, or add any object. Do not alter any illustration or fixed pictorial icon. No text, numbers, alphabetic glyphs, watermark, green screen, or checkerboard. Output one complete clean production plate.
+
+Reglas de integración:
+- La placa no es dueña de textos, cifras, nivel, estados, bloqueos ni áreas táctiles.
+- Unity superpone todos esos elementos desde D2ArchivePanelUI y Dimension2Block1UISetup.
+- La pestaña Archivo permanece horneada como selección visual fija de esta subvista.
+- El candado se generó como extracción visual independiente. La salida integrada
+  entregó un fondo neutro horneado, por lo que Unity lo elimina mediante el
+  material WhiteKey existente; no es propietario del marco del botón.
+- No es una captura de Unity ni una referencia canónica independiente.

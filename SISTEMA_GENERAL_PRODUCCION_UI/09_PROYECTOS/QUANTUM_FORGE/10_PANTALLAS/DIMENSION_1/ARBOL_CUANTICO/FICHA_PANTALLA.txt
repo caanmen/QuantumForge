@@ -1,0 +1,138 @@
+FICHA DE PANTALLA: ÁRBOL CUÁNTICO
+=================================
+
+ID: D1_ARBOL_CUANTICO
+Nombre interno previsto: D1_TreeVisualRoot
+Dimensión: 1
+Tipo: pantalla secundaria de progreso y compra de mejoras
+Estado: CANDIDATA FUNCIONAL CAPTURADA — APROBACIÓN VISUAL PENDIENTE
+Referencia: 05_REFERENCIAS/DIMENSION_1/ARBOL_CUANTICO/referencia_arbol_cuantico_orbital_v1.png
+Escena principal: Assets/Project/Scenes/Main.unity
+Controlador funcional existente: Assets/Project/Scripts/UI/Dimension1PanelUI.cs
+Sistema funcional: Assets/Project/Scripts/Systems/Dimension1System.cs
+Resolución base: 1080 x 1920 vertical
+
+FUNCIÓN
+Mostrar los diez nodos activos del Árbol D1, permitir inspeccionar su nivel, efecto,
+coste y requisitos, y comprar el siguiente nivel mediante las reglas reales del juego.
+
+ENTRADA Y SALIDA
+- Entrada: Centro de Mando y navegación local D1 desde Galaxia, Explorar, Hangar y Reliquias.
+- Salida: Centro de Mando o navegación local hacia las otras cuatro pantallas D1.
+- Botón Atrás: vuelve al Centro de Mando cuando no exista otro modal prioritario.
+
+DATOS Y LORE
+- Autoridad de saldo y progreso: GameState.d1TreePoints y dimension1TreeNodes.
+- Autoridad de nombres, niveles, costes, requisitos y efectos: Dimension1System.
+- Compra y guardado: Dimension1TreeVisualUI usa Dimension1System y SaveService.
+- La cifra de 3 puntos y los niveles del mockup forman un escenario visual coherente de QA;
+  la partida normal siempre muestra el estado real.
+
+NODOS Y MÁXIMOS REALES
+1. Lectura de Destinos — 1.
+2. Preparación de Hangar — 1.
+3. Registro de Copias — 3.
+4. Memoria de Escaneo — 3.
+5. Lectura de Reliquias — 3.
+6. Rastreo de Hallazgos Ocultos — 3.
+7. Coordinación de Flota — 1.
+8. Optimización de Ruta — 1.
+9. Cartografía Avanzada — 1.
+10. Estabilización de Zona Inestable — 1.
+
+PUERTA 0 — AUDITORÍA Y REUTILIZACIÓN
+- Consultados catálogo global, mapa de reutilización, assets reales D1, scripts de
+  Centro de Mando, Carta Galáctica, Explorar, Hangar y Reliquias, y sus capturas.
+- Reutilización exacta confirmada: marco, relleno, fondo estelar, brillo y cinco iconos
+  de navegación D1.
+- Geometría exacta reutilizada: iconos de Centro y metales del Hangar/Reliquias.
+- Candidato reutilizado sin promoverlo: registro de navegación.
+- Faltante real de contenido: icono detallado de Cartografía Avanzada, producido como
+  candidato independiente y validado con transparencia real.
+- Faltante decorativo detectado en captura: placa orbital de alta resolución, separada
+  de textos, tarjetas, nodos y estados dinámicos.
+- Matriz general y auditoría vigente:
+  04_CATALOGO_ASSETS/MAPA_REUTILIZACION_Y_ORIGEN_UI.md.
+
+MATRIZ INDIVIDUAL DE LOS DIEZ NODOS
+1. Lectura de Destinos: símbolo técnico de destino derivado del escáner D1 existente.
+2. Preparación de Hangar: `d1_hangar_sonda_ligera_blueprint_v2.png` canónico.
+3. Registro de Copias: `d1_relic_lost_navigation_record.png`, conservado como candidato.
+4. Memoria de Escaneo: anillos, marcas y punto del escáner D1 existente.
+5. Lectura de Reliquias: constructor técnico reutilizado de Explorar, variante Reliquias.
+6. Rastreo de Hallazgos Ocultos: lupa técnica consolidada con el lenguaje D1.
+7. Coordinación de Flota: tres instancias del constructor técnico de sonda de Explorar.
+8. Optimización de Ruta: trazado técnico y balizas del patrón de Explorar.
+9. Cartografía Avanzada: `d1_tree_advanced_cartography_v2.png`, candidato faltante real.
+10. Estabilización de Zona Inestable: constructor técnico de galaxia reutilizado de Explorar.
+
+MATRIZ DE BLOQUES COMPARTIDOS
+- Encabezado: misma geometría de Centro/metales y mismos marcos de Hangar/Relics.
+- Campo orbital: `d1_tree_orbital_field_v1.png`, `d1_glow_v3.png` y trazado técnico complementario.
+- Cristal central: geometría técnica reconstruida en Unity; no reutiliza la reliquia sólida.
+- Navegación: conjunto canónico `Generated/NavigationPremium` aplicado por el shell
+  compartido D1 con su material de recorte negro correspondiente.
+
+COMPOSICIÓN
+- Encabezado D1 con Centro de Mando, tres metales y selector de diez metales.
+- Título ÁRBOL CUÁNTICO y saldo de puntos disponible.
+- Cristal técnico central no interactivo.
+- Cuatro anillos o bandas orbitales que agrupan nodos por sector.
+- Diez tarjetas de nodo verticales, siempre rectas y legibles.
+- Panel contextual inferior con nombre, nivel, dos líneas de efecto, coste y acción.
+- Navegación local inferior con Árbol seleccionado en ámbar.
+
+ASSETS
+- Reutilizar marcos, rellenos, fondo, brillo, tipografía y navegación D1 existentes.
+- Reutilizar VerticalUiTheme cuando corresponda; no crear un tema paralelo.
+- Reutilizar primero iconos, ilustraciones y componentes ya localizados en pantallas
+  anteriores. No repetir el mismo concepto con una aproximación nueva.
+- Sólo los nodos sin coincidencia exacta podrán recibir assets candidatos nuevos; cada
+  faltante debe registrarse y conservar el medio y detalle de la referencia.
+- No utilizar el PNG completo como textura de runtime.
+
+ESTADOS MÍNIMOS
+- Neutral sin nodo seleccionado.
+- Disponible no comprado.
+- Comprado parcialmente.
+- Máximo alcanzado.
+- Seleccionado disponible.
+- Seleccionado bloqueado con causa visible.
+- Puntos insuficientes.
+- Compra válida y actualización inmediata.
+
+PROPIETARIOS
+- Layout y composición: D1_TreeVisualRoot y su instalador reproducible.
+- Textos y estados visuales: Dimension1TreeVisualUI.
+- Reglas, saldo, requisitos y compra: Dimension1System / GameState / Dimension1PanelUI.
+- Navegación: Dimension1PanelUI y controladores D1 existentes.
+- Animación: componente visual posterior; nunca modifica posiciones base.
+
+ANIMACIÓN PLANIFICADA, NO AUTORIZADA TODAVÍA
+- Pulso tenue del cristal y flujo localizado en los anillos.
+- Cambio de brillo localizado al seleccionar.
+- Encabezado, nodos, textos, panel contextual y navegación permanecen inmóviles.
+- Sólo se implementará después de aprobar la composición estática.
+
+RECONSTRUCCIÓN PREVISTA
+- Raíz visual: D1_TreeVisualRoot dentro de Dimension1TreePanel.
+- Instalador: Dimension1TreeReferenceSetup.Install.
+- Captura: Dimension1TreeReferenceCapture.Run.
+- Escena e instalador deberán permanecer sincronizados.
+
+PRUEBAS
+- Composición funcional 1080 x 1920 y 720 x 1280.
+- Comparación contra la referencia orbital permanente.
+- Los diez nombres y máximos coinciden con Dimension1System.
+- Cartografía Avanzada muestra coste real 3 y nivel máximo 1.
+- Ningún anillo o conector comunica un requisito inexistente.
+- La navegación externa no se mezcla con la navegación local.
+- La captura QA no modifica el guardado personal.
+
+APROBACIÓN
+Meta de similitud visual: 95 % mínimo contra la referencia orbital seleccionada.
+Composición: primera implementación rechazada y archivada; candidata funcional refinada
+capturada en 1080×1920 y 720×1280 con matriz de reutilización completa y PASS técnico.
+No se declara 95 % ni se archiva como aprobada hasta recibir aprobación explícita.
+Datos e interacción: conectados; selección, compra, estados, guardado y navegación con PASS.
+Animación: pendiente de la Puerta 4.

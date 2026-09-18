@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 /// <summary>
 /// Autoridad única para la velocidad de simulación usada por herramientas QA.
@@ -14,7 +15,7 @@ public static class QaRuntimeService
 
     // Solo se modifica por reflexión desde el validador de editor para cubrir
     // el comportamiento de una build pública sin exponer una API de runtime.
-    private static bool? availabilityOverrideForValidation;
+    private static bool? availabilityOverrideForValidation = null;
 
     public static bool IsAvailable
     {
@@ -53,6 +54,28 @@ public static class QaRuntimeService
         wasAccelerationUsedThisSession;
 
     public static event Action<float> SpeedChanged;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void DisableConflictingRenderingDebugger()
+    {
+        if (!ShouldDisableRenderingDebugger(
+                Application.isEditor, Debug.isDebugBuild))
+        {
+            return;
+        }
+
+        // El Rendering Debugger de URP usa doble toque con tres dedos y crea
+        // un Canvas que captura los toques del panel QA. Las herramientas QA
+        // propias permanecen disponibles mediante Debug.isDebugBuild.
+        DebugManager.instance.displayRuntimeUI = false;
+        DebugManager.instance.enableRuntimeUI = false;
+    }
+
+    private static bool ShouldDisableRenderingDebugger(
+        bool isEditor, bool isDebugBuild)
+    {
+        return !isEditor && isDebugBuild;
+    }
 
     public static bool TrySetSpeed(float multiplier)
     {

@@ -1,0 +1,7 @@
+MOCKUPS V02 — DISTRIBUCIÓN CORREGIDA
+
+- NODOS y MEZCLAS son pestañas contextuales superiores de la Máquina.
+- Las dos filas inferiores existentes se conservan sin cambios.
+- La vista general no muestra nodos.
+- El contenido principal se mantiene centrado y respeta el espacio fijo inferior.
+- Estas imágenes son mockups de composición; todavía no son capturas de Unity ni assets finales.

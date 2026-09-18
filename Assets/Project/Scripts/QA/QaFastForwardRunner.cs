@@ -6,6 +6,7 @@ public class QaFastForwardRunner : MonoBehaviour
 {
     private const double StepSeconds = 1.0;
     private const int StepsPerYield = 50;
+    private const double AggregateOfflineThresholdSeconds = 3600.0;
 
     public QaPanelUI panel;
 
@@ -83,44 +84,78 @@ public class QaFastForwardRunner : MonoBehaviour
             MachineManager machine = MachineManager.I;
             Room2PanelUI room2 = UnityEngine.Object.FindFirstObjectByType<
                 Room2PanelUI>(FindObjectsInactive.Include);
+            double leBefore = state.LE;
+            double tracesBefore = state.Traces;
 
-            int stepsSinceYield = 0;
-            while (ProcessedSecondsThisRun < exactGameSeconds)
+            if (exactGameSeconds >= AggregateOfflineThresholdSeconds)
             {
-                double remaining = exactGameSeconds - ProcessedSecondsThisRun;
-                double step = Math.Min(StepSeconds, remaining);
-
                 try
                 {
-                    ProcessGameStep(step, state, machine, room2);
+                    ApplyAggregateOfflineProgress(
+                        exactGameSeconds, state, machine, room2);
                 }
                 catch (Exception exception)
                 {
-                    Fail("Excepción durante el avance: " + exception.Message);
+                    Fail("Excepción durante el avance de ausencia: " +
+                        exception.Message);
                     yield break;
                 }
 
-                ProcessedSecondsThisRun += step;
-                Progress01 = Mathf.Clamp01(
-                    (float)(ProcessedSecondsThisRun / exactGameSeconds));
-                stepsSinceYield++;
-
-                if (stepsSinceYield >= StepsPerYield &&
-                    ProcessedSecondsThisRun < exactGameSeconds)
+                ProcessedSecondsThisRun = exactGameSeconds;
+                Progress01 = 1f;
+                RefreshAfterAdvance();
+                yield return null;
+            }
+            else
+            {
+                int stepsSinceYield = 0;
+                while (ProcessedSecondsThisRun < exactGameSeconds)
                 {
-                    stepsSinceYield = 0;
-                    SetStatus(BuildProgressStatus(exactGameSeconds));
-                    yield return null;
+                    double remaining = exactGameSeconds - ProcessedSecondsThisRun;
+                    double step = Math.Min(StepSeconds, remaining);
+
+                    try
+                    {
+                        ProcessGameStep(step, state, machine, room2);
+                    }
+                    catch (Exception exception)
+                    {
+                        Fail("Excepción durante el avance: " + exception.Message);
+                        yield break;
+                    }
+
+                    ProcessedSecondsThisRun += step;
+                    Progress01 = Mathf.Clamp01(
+                        (float)(ProcessedSecondsThisRun / exactGameSeconds));
+                    stepsSinceYield++;
+
+                    if (stepsSinceYield >= StepsPerYield &&
+                        ProcessedSecondsThisRun < exactGameSeconds)
+                    {
+                        stepsSinceYield = 0;
+                        SetStatus(BuildProgressStatus(exactGameSeconds));
+                        yield return null;
+                    }
                 }
+                RefreshAfterAdvance();
             }
 
             Progress01 = 1f;
             if (!TrySave("al finalizar"))
                 yield break;
 
-            SetStatus("COMPLETADO: +" + FormatDuration(exactGameSeconds));
-            Debug.Log("[QA Fast Forward] COMPLETE | segundos exactos=" +
-                ProcessedSecondsThisRun.ToString("0.###"));
+            double leGained = Math.Max(0.0, state.LE - leBefore);
+            double tracesGained = Math.Max(0.0, state.Traces - tracesBefore);
+            string mode = exactGameSeconds >= AggregateOfflineThresholdSeconds
+                ? "AUSENCIA AGREGADA"
+                : "SIMULACIÓN ACTIVA";
+            SetStatus("COMPLETADO: +" + FormatDuration(exactGameSeconds) +
+                " | LE +" + FormatResource(leGained) +
+                " | TRAZAS +" + FormatResource(tracesGained));
+            Debug.Log("[QA Fast Forward] COMPLETE | modo=" + mode +
+                " | segundos=" + ProcessedSecondsThisRun.ToString("0.###") +
+                " | LE+=" + leGained.ToString("0.###") +
+                " | Trazas+=" + tracesGained.ToString("0.###"));
         }
         finally
         {
@@ -140,6 +175,45 @@ public class QaFastForwardRunner : MonoBehaviour
             machine.AdvanceAnalysis(step);
         if (room2 != null)
             room2.AdvanceQaFusionCooldown(step);
+    }
+
+    private static TriangleOfflineReport ApplyAggregateOfflineProgress(
+        double seconds, GameState state, MachineManager machine,
+        Room2PanelUI room2)
+    {
+        // Esta ruta QA prioriza obtener recursos base con el cálculo agregado
+        // ya usado al regresar de una ausencia. No recorre un tick por segundo
+        // ni aplica el límite normal de 12 h: +24 H debe representar 24 h QA.
+        TriangleOfflineReport report = state.ApplyOfflineBaseProgress(seconds);
+        if (machine != null)
+            machine.ApplyOfflineAnalysis(seconds);
+        if (room2 != null)
+            room2.AdvanceQaFusionCooldown(seconds);
+        return report;
+    }
+
+    private static void RefreshAfterAdvance()
+    {
+        if (GameState.I != null)
+            GameState.I.ActualizarMaxLE();
+
+        HUD hud = UnityEngine.Object.FindFirstObjectByType<HUD>(
+            FindObjectsInactive.Include);
+        if (hud != null)
+            hud.RefreshNow();
+
+        MachinePanelUI machinePanel =
+            UnityEngine.Object.FindFirstObjectByType<MachinePanelUI>(
+                FindObjectsInactive.Include);
+        if (machinePanel != null)
+            machinePanel.Refresh();
+
+        TabsUI tabs = UnityEngine.Object.FindFirstObjectByType<TabsUI>(
+            FindObjectsInactive.Include);
+        if (tabs != null)
+            tabs.RefreshGenerationLayoutFromOutside();
+
+        Canvas.ForceUpdateCanvases();
     }
 
     private bool TrySave(string stage)
@@ -187,6 +261,18 @@ public class QaFastForwardRunner : MonoBehaviour
         if (seconds >= 60.0 && seconds % 60.0 == 0.0)
             return (seconds / 60.0).ToString("0") + " MIN";
         return seconds.ToString("0.#") + " S";
+    }
+
+    private static string FormatResource(double value)
+    {
+        double safe = Math.Max(0.0, value);
+        if (safe >= 1000000000.0)
+            return (safe / 1000000000.0).ToString("0.##") + "B";
+        if (safe >= 1000000.0)
+            return (safe / 1000000.0).ToString("0.##") + "M";
+        if (safe >= 1000.0)
+            return (safe / 1000.0).ToString("0.##") + "K";
+        return safe.ToString("0.##");
     }
 
     private void SetStatus(string status)

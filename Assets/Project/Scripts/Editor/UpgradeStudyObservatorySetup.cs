@@ -49,14 +49,25 @@ public static class UpgradeStudyObservatorySetup
         if (screen == null || screen.content == null)
             throw new InvalidOperationException("Falta la pantalla vertical de Mejoras.");
 
-        Transform content = screen.content;
-        GameObject panel = GetOrCreate("UpgradeStudyConsole", content);
+        Transform shell = screen.transform.Find("VerticalUpgradesShell");
+        if (shell == null)
+            throw new InvalidOperationException("Falta VerticalUpgradesShell.");
+        GameObject panel = FindNamed(scene, "UpgradeStudyConsole");
+        if (panel == null)
+            panel = GetOrCreate("UpgradeStudyConsole", shell);
+        else if (panel.transform.parent != shell)
+            panel.transform.SetParent(shell, false);
         RectTransform panelRect = (RectTransform)panel.transform;
-        panelRect.sizeDelta = Vector2.zero;
+        panelRect.anchorMin = new Vector2(0f, 1f);
+        panelRect.anchorMax = new Vector2(1f, 1f);
+        panelRect.pivot = new Vector2(0.5f, 1f);
+        panelRect.anchoredPosition = new Vector2(0f, -94f);
+        panelRect.sizeDelta = new Vector2(-8f, 520f);
         LayoutElement panelLayout = GetOrAdd<LayoutElement>(panel);
-        panelLayout.preferredHeight = 560f;
+        panelLayout.ignoreLayout = true;
+        panelLayout.preferredHeight = 520f;
         panelLayout.minHeight = 520f;
-        panel.transform.SetSiblingIndex(Mathf.Min(1, content.childCount - 1));
+        panel.transform.SetSiblingIndex(Mathf.Min(3, shell.childCount - 1));
         Image panelImage = GetOrAdd<Image>(panel);
         panelImage.sprite = theme.panelFrame;
         panelImage.type = Image.Type.Sliced;
@@ -104,19 +115,19 @@ public static class UpgradeStudyObservatorySetup
         TextMeshProUGUI amplitudeLabel = CreateText("AmplitudeLabel", tuning.transform,
             "AMPLITUD", 19f, TextAlignmentOptions.MidlineLeft,
             theme.secondaryText, theme);
-        SetTop(amplitudeLabel.rectTransform, 0f, 34f, 0f);
-        Slider amplitude = BuildSlider("Amplitude", tuning.transform, theme, 38f);
+        SetTop(amplitudeLabel.rectTransform, 0f, 24f, 0f);
+        Slider amplitude = BuildSlider("Amplitude", tuning.transform, theme, 24f);
 
         TextMeshProUGUI frequencyLabel = CreateText("FrequencyLabel", tuning.transform,
             "FRECUENCIA", 19f, TextAlignmentOptions.MidlineLeft,
             theme.secondaryText, theme);
-        SetTop(frequencyLabel.rectTransform, 82f, 34f, 0f);
-        Slider frequency = BuildSlider("Frequency", tuning.transform, theme, 120f);
+        SetTop(frequencyLabel.rectTransform, 60f, 24f, 0f);
+        Slider frequency = BuildSlider("Frequency", tuning.transform, theme, 86f);
 
         TextMeshProUGUI hint = CreateText("Hint", tuning.transform,
             "Firma 1/3 · Coincidencia: 0%", 18f,
             TextAlignmentOptions.Center, theme.primaryText, theme);
-        SetTop(hint.rectTransform, 160f, 74f, 0f);
+        SetTop(hint.rectTransform, 124f, 74f, 0f);
 
         Button tune = BuildButton("TuneButton", panel.transform,
             "AJUSTA LA SEÑAL", theme, out TextMeshProUGUI tuneLabel);
@@ -124,7 +135,7 @@ public static class UpgradeStudyObservatorySetup
         tuneRect.anchorMin = new Vector2(0.18f, 0f);
         tuneRect.anchorMax = new Vector2(0.82f, 0f);
         tuneRect.pivot = new Vector2(0.5f, 0f);
-        tuneRect.anchoredPosition = new Vector2(0f, 24f);
+        tuneRect.anchoredPosition = new Vector2(0f, 12f);
         tuneRect.sizeDelta = new Vector2(0f, 70f);
         LayoutElement tuneLayout = tune.GetComponent<LayoutElement>();
         if (tuneLayout != null) tuneLayout.ignoreLayout = true;
@@ -135,7 +146,7 @@ public static class UpgradeStudyObservatorySetup
         conclusionRect.anchorMin = new Vector2(0.18f, 0f);
         conclusionRect.anchorMax = new Vector2(0.82f, 0f);
         conclusionRect.pivot = new Vector2(0.5f, 0f);
-        conclusionRect.anchoredPosition = new Vector2(0f, 24f);
+        conclusionRect.anchoredPosition = new Vector2(0f, 12f);
         conclusionRect.sizeDelta = new Vector2(0f, 76f);
         LayoutElement conclusionLayout = conclusion.GetComponent<LayoutElement>();
         if (conclusionLayout != null) conclusionLayout.ignoreLayout = true;
@@ -249,8 +260,21 @@ public static class UpgradeStudyObservatorySetup
         if (screen == null || screen.content == null)
             throw new InvalidOperationException("Falta la pantalla vertical de Mejoras.");
 
-        Button button = BuildButton("HideCompletedButton", screen.content,
-            "OCULTAR COMPLETADAS", theme, out TextMeshProUGUI label);
+        Button button = screen.hideCompletedButton;
+        TextMeshProUGUI label;
+        if (button == null)
+        {
+            button = BuildButton("HideCompletedButton", screen.content,
+                "OCULTAR COMPLETADAS", theme, out label);
+        }
+        else
+        {
+            button.transform.SetParent(screen.content, false);
+            label = button.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (label == null)
+                throw new InvalidOperationException(
+                    "HideCompletedButton perdió su texto.");
+        }
         LayoutElement layout = GetOrAdd<LayoutElement>(button.gameObject);
         layout.preferredHeight = 70f;
         layout.minHeight = 64f;
@@ -301,7 +325,7 @@ public static class UpgradeStudyObservatorySetup
         label.alignment = alignment;
         label.color = color;
         label.textWrappingMode = TextWrappingModes.Normal;
-        label.overflowMode = TextOverflowModes.Ellipsis;
+        label.overflowMode = TextOverflowModes.Truncate;
         label.raycastTarget = false;
         return label;
     }

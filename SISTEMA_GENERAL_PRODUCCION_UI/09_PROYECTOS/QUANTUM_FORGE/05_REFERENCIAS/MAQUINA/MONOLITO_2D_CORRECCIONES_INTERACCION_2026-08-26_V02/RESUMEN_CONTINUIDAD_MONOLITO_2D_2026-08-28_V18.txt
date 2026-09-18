@@ -1,0 +1,50 @@
+QUANTUM FORGE — MONOLITO 2D — CONTINUIDAD V18
+Fecha: 2026-08-28
+Estado: implementación y QA técnico completos; aprobación visual del usuario pendiente.
+
+OBJETIVO DE ESTA ITERACIÓN
+- Unificar las cuatro caras cercanas con el diseño indicado por el usuario en la cara superior derecha.
+- Conservar la orientación física que corresponde a cada cuadrante del monolito.
+- Mantener los símbolos dentro de la superficie útil, sin tocar ni invadir los bordes.
+- Conservar la progresión visual de daño a reparación.
+- Mantener la cuarta cara oscura y con el texto ??? como capa separada.
+
+REFERENCIA PERMANENTE
+- referencia_usuario_cara_superior_derecha_diseno_unificado_v41.png
+- La referencia corresponde a la cara superior derecha / sector 3.
+
+DECISIÓN DE ASSETS
+- Se reutilizó la familia canónica V35 ya existente; no se generaron sustitutos.
+- S1: monolith_sector_1_exposed_surface_progression_v35.png
+- S2: monolith_sector_2_exposed_surface_progression_v35.png
+- S3: monolith_sector_3_exposed_surface_progression_v35.png
+- S4: monolith_sector_4_exposed_surface_progression_v35.png
+- La escena Main y la herramienta de reconstrucción quedaron sincronizadas con esos cuatro assets.
+
+MAPEO Y ORIENTACIÓN
+- Sector 1 / superior izquierda: columna interior a la derecha; daño exterior a la izquierda; 7 nodos.
+- Sector 2 / inferior derecha: columna interior a la izquierda; daño exterior a la derecha; 11 nodos.
+- Sector 3 / superior derecha: columna interior a la izquierda; daño exterior a la derecha; 7 nodos.
+- Sector 4 / inferior izquierda: columna interior a la derecha; daño exterior a la izquierda; 0 nodos; superficie oscura opaca + ??? de Unity.
+
+PROGRESIÓN
+- Cada lámina V35 contiene cuatro estados: daño fuerte, daño medio, daño leve y reparado.
+- Los sectores 1, 2 y 3 cambian de estado según su progreso real de reparación.
+- Los símbolos conservan sus niveles visuales: pendiente 0.24, seleccionado 0.40 y reparado 1.00.
+- El sector 4 permanece reservado y oscuro porque todavía no tiene nodos reparables.
+
+VALIDACIÓN
+- PASS específico: V41 UNIFIED FACES PASS.
+- Resoluciones: 1080x1920 y 720x1280.
+- Comprobado: familia V35 completa, orientaciones izquierda/derecha, daño sólo en el perímetro, cuatro estados de reparación, márgenes interiores de símbolos, S4 opaca con ???, pedestal V39 preservado y transición V40 preservada.
+- Controles de transición: 0/25/50/55/62/75/100.
+- Log: Logs/machine_monolith_v41_unified_faces_capture_final.log
+- Capturas: Logs/VisualQA/MachineMonolith2D
+
+AJUSTE DEL VERIFICADOR
+- Se amplió de 3 a 8 segundos únicamente el límite del proceso de captura de QA.
+- La animación del juego conserva su duración de 1 segundo; no se alteró su comportamiento.
+
+PENDIENTE
+- Esperar revisión visual y aprobación explícita del usuario.
+- No copiar todavía estas capturas a 06_CAPTURAS_APROBADAS.

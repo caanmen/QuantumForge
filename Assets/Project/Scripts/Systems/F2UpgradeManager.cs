@@ -77,7 +77,17 @@ public class F2UpgradeManager : MonoBehaviour
     {
         var def = GetDef(id);
         int tier = GetPurchasedTierCount(id);
-        return def?.tiers != null && tier >= 0 && tier < def.tiers.Count ? def.tiers[tier].cost : -1.0;
+        if (def?.tiers == null || tier < 0 || tier >= def.tiers.Count)
+            return -1.0;
+
+        double cost = def.tiers[tier].cost;
+        if (def.currency == F2UpgradeCurrency.Traces && GameState.I != null)
+        {
+            cost *= Dimension1System.GetTracesResonatorRoom1TraceCostMultiplier(
+                GameState.I
+            );
+        }
+        return cost;
     }
 
     public bool MeetsPrerequisites(string id)
@@ -197,8 +207,8 @@ public class F2UpgradeManager : MonoBehaviour
     public double GetTetraquarkTraceBonus() => GetCurrentTotalValue("tetraquark_stabilization");
     public double GetTriangleEnergyLEBonus(double baseValue) =>
         GetCurrentTotalValue("triangle_impulse_tuning", baseValue);
-    public double GetTriangleExperimentalTraceBonus(double baseValue) =>
-        GetCurrentTotalValue("triangle_synergy_resonance", baseValue);
+    public double GetTriangleExperimentalGlobalTraceBonus() =>
+        GetCurrentTotalValue("triangle_synergy_resonance", 0.0);
     public double GetTriangleEnergyProductionBonus() =>
         GetCurrentTotalValue("triangle_energy_efficiency");
     public double GetContainmentTuningBonus() => 0.0;

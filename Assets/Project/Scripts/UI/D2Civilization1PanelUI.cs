@@ -1,4 +1,6 @@
 using TMPro;
+using System;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,6 +28,11 @@ public class D2Civilization1PanelUI : MonoBehaviour
     public D2CivilizationPactsPanelUI pactsPanelUI;
     public D2VeiledThresholdPanelUI veiledThresholdPanelUI;
     public TMP_Text followersText;
+    public TMP_Text trustText;
+    public TMP_Text waxText;
+    public TMP_Text ritualBreadText;
+    public TMP_Text followersAvailableText;
+    public TMP_Text multiplierText;
     public TMP_Text arrivalText;
     public TMP_Text refugeText;
     public TMP_Text assignmentText;
@@ -110,39 +117,48 @@ public class D2Civilization1PanelUI : MonoBehaviour
         D2Civilization1State state = gameState.dimension2.civilization1;
         D2Civilization1System.EnsureState(state);
 
-        long totalFollowers = D2Civilization1System.GetTotalFollowers(state);
         double arrivalPerSecond = D2Civilization1System.GetFollowerArrivalPerSecond(state);
         double assignmentMultiplier = D2Civilization1System.GetAssignedFollowerMultiplier(state);
         long upgradeCost = D2Civilization1System.GetNextRefugeUpgradeCost(state);
+        D2AltarState wax = D2AltarSystem.GetAltar(state, D2AltarSystem.WaxAltarId);
+        D2AltarState bread = D2AltarSystem.GetAltar(
+            state, D2AltarSystem.RitualBreadAltarId);
         bool refugeMaxed = state.refugeLevel >= D2Civilization1System.MaxRefugeLevel;
         bool veiledThresholdUnlocked = D2VeiledThresholdSystem.IsUnlocked(state);
         RefreshProgressivePresentation(gameState, state);
 
         SetText(
             followersText,
-            "SEGUIDORES\n" +
-            "Disponibles: " + state.followersAvailable.ToString("N0") +
-            "   |   Totales presentes: " + totalFollowers.ToString("N0") +
-            "   |   Llegados históricamente: " + state.totalFollowersReceived.ToString("N0")
+            state.followersAvailable.ToString("N0", CultureInfo.InvariantCulture)
         );
+        SetText(trustText,
+            state.trust.ToString("0", CultureInfo.InvariantCulture) + " / " +
+            D2PilgrimageSystem.MaxTrust.ToString("0", CultureInfo.InvariantCulture));
+        SetText(waxText, (wax?.offeringAmount ?? 0.0).ToString(
+            "N0", CultureInfo.InvariantCulture));
+        SetText(ritualBreadText, (bread?.offeringAmount ?? 0.0).ToString(
+            "N0", CultureInfo.InvariantCulture));
+        SetText(followersAvailableText,
+            state.followersAvailable.ToString("N0", CultureInfo.InvariantCulture));
 
         SetText(
             arrivalText,
-            "Llegada: " + arrivalPerSecond.ToString("0.000") + "/s" +
-            "   (" + (arrivalPerSecond * 60.0).ToString("0.00") + "/min)"
+            Math.Round(arrivalPerSecond * 60.0, 0, MidpointRounding.AwayFromZero)
+                .ToString("0.00", CultureInfo.InvariantCulture) + " / MIN"
         );
 
         SetText(
             refugeText,
-            "REFUGIO DE PEREGRINOS — Nivel " + state.refugeLevel +
-            "/" + D2Civilization1System.MaxRefugeLevel
+            "REFUGIO DE PEREGRINOS – NIVEL " + state.refugeLevel +
+            " / " + D2Civilization1System.MaxRefugeLevel
         );
 
         SetText(
             assignmentText,
-            "Asignados al Refugio: " + state.followersAssignedToRefuge.ToString("N0") +
-            "   |   Multiplicador por apoyo: ×" + assignmentMultiplier.ToString("0.000")
+            state.followersAssignedToRefuge.ToString("N0", CultureInfo.InvariantCulture)
         );
+        SetText(multiplierText, "×" + assignmentMultiplier.ToString(
+            "0.000", CultureInfo.InvariantCulture));
 
         if (arrivalProgressSlider != null)
         {
@@ -165,7 +181,8 @@ public class D2Civilization1PanelUI : MonoBehaviour
             upgradeRefugeButtonText,
             refugeMaxed
                 ? "REFUGIO AL MÁXIMO"
-                : "MEJORAR REFUGIO\nCoste: " + upgradeCost.ToString("N0") + " Seguidores"
+                : "MEJORAR REFUGIO\n" + upgradeCost.ToString(
+                    "N0", CultureInfo.InvariantCulture) + " SEGUIDORES"
         );
 
         if (altarsPanelUI != null)
@@ -219,20 +236,21 @@ public class D2Civilization1PanelUI : MonoBehaviour
         SetActive(showNovitiateButton, novitiate.IsVisible);
         SetActive(showRitesButton, rites.IsVisible);
         SetActive(showPactsButton, pacts.IsVisible);
-        SetActive(showVeiledThresholdButton, threshold.IsVisible);
+        // La vista del Santuario presenta las siete rutas desde el hub. UMBRAL
+        // permanece visible como destino bloqueado hasta cumplir su requisito real.
+        SetActive(showVeiledThresholdButton, true);
         SetInteractable(showAltarsButton, altars.CanOpen);
         SetInteractable(showPilgrimagesButton, pilgrimages.CanOpen);
         SetInteractable(showNovitiateButton, novitiate.CanOpen);
         SetInteractable(showRitesButton, rites.CanOpen);
         SetInteractable(showPactsButton, pacts.CanOpen);
         SetInteractable(showVeiledThresholdButton, threshold.CanOpen);
-        SetButtonLabel(showAltarsButton, "ALTARES", altars.isNew);
-        SetButtonLabel(showPilgrimagesButton, "PEREGRINACIONES", pilgrimages.isNew);
-        SetButtonLabel(showNovitiateButton, "NOVICIADO", novitiate.isNew);
-        SetButtonLabel(showRitesButton, "RITOS", rites.isNew);
-        SetButtonLabel(showPactsButton,
-            pacts.CanOpen ? "PACTOS" : "PACTOS · PRÓXIMO", pacts.isNew);
-        SetButtonLabel(showVeiledThresholdButton, "UMBRAL", threshold.isNew);
+        SetButtonLabel(showAltarsButton, "ALTARES", false);
+        SetButtonLabel(showPilgrimagesButton, "PEREGRINACIONES", false);
+        SetButtonLabel(showNovitiateButton, "NOVICIADO", false);
+        SetButtonLabel(showRitesButton, "RITOS", false);
+        SetButtonLabel(showPactsButton, "PACTOS", false);
+        SetButtonLabel(showVeiledThresholdButton, "UMBRAL", false);
 
         SetActive(assignTenButton, refugeLearned);
         SetActive(assignAllButton, refugeLearned);
@@ -250,6 +268,8 @@ public class D2Civilization1PanelUI : MonoBehaviour
             objective = "AHORA · Forma tu primer Acólito.\nDESPUÉS · Ritos del Santuario.";
         else if (rites.CanOpen && D2RiteSystem.GetActiveRiteCount(state) == 0)
             objective = "AHORA · Activa un Rito asignando una unidad.\nDESPUÉS · Fortalece la Confianza.";
+        else if (state.trust < D2PilgrimageSystem.Civilization2UnlockTrust)
+            objective = "AHORA · FORTALECE EL REFUGIO\n→ DESPUÉS · CONTINÚA HACIA 300 DE CONFIANZA.";
         else if (threshold.CanOpen && !state.bondPlacePrepared)
             objective = "AHORA · Prepara el Lugar de Vínculo.\nDESPUÉS · Asigna Acólitos al vínculo.";
         else if (pacts.CanOpen)
@@ -388,6 +408,13 @@ public class D2Civilization1PanelUI : MonoBehaviour
 
     public void ShowPactsSection()
     {
+        GameState gameState = GameState.I;
+        if (!Dimension2System.CanAccessDimension2(gameState))
+            return;
+        Dimension2System.EnsureState(gameState);
+        if (!D2CivilizationPactSystem.ArePactsUnlocked(
+                gameState.dimension2.civilization1))
+            return;
         RecognizeSection(PresentationFeatureIds.D2C1Pacts);
         if (refugeSectionRoot != null)
             refugeSectionRoot.SetActive(false);

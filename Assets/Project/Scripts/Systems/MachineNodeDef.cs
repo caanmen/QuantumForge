@@ -91,6 +91,9 @@ public class MachineNodeDef
     public List<string> requiredNodeIds;
     public bool hidden;
     public bool damaged;
+    // Conserva definiciones históricas para migrar partidas sin exponerlas
+    // al catálogo, progreso ni efectos activos de la Máquina.
+    public bool retired;
 
     // Si varios nodos comparten grupo, la UI solo muestra el siguiente tier pendiente.
     public string tierGroup;

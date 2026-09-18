@@ -1,0 +1,51 @@
+CONTRATO GENERAL DE APROBACIÓN DE PANTALLA
+=========================================
+
+Pantalla:
+Versión:
+Ruta de trabajo:
+
+PUERTA 0 — AUTORIDAD Y REUTILIZACIÓN
+[ ] Función, referencias y perfil identificados.
+[ ] Proyecto real y catálogo inspeccionados.
+[ ] Matriz de reutilización completa.
+[ ] Faltantes y candidatos separados de assets canónicos.
+[ ] No se inventó ni heredó estética sin autorización.
+
+PUERTA 1 — CONTRATO
+[ ] Datos, estados, navegación y persistencia definidos.
+[ ] Resoluciones, entradas, accesibilidad y rendimiento definidos.
+[ ] Animación planificada por capas cuando corresponde.
+[ ] Ambigüedades que cambian el resultado resueltas.
+
+PUERTA 2 — PROTOTIPO DE LA RUTA ELEGIDA
+[ ] Ruta A: composición estática completa comparada.
+[ ] Ruta B: interacción incierta validada y prototipo marcado no final.
+[ ] Ruta C: capacidad del controlador inventariada y adaptadores definidos.
+[ ] Se aprobó la puerta aplicable antes de producir trabajo final dependiente.
+
+PUERTA 3 — COMPOSICIÓN FINAL Y DATOS
+[ ] Jerarquía, proporciones, contenido y tipografía estables.
+[ ] Datos reales, formatos y todos los estados conectados.
+[ ] Cada propiedad tiene propietario único.
+[ ] No existen simplificaciones silenciosas.
+
+PUERTA 4 — INTERACCIÓN, NAVEGACIÓN Y MOVIMIENTO
+[ ] Recorrido real completo mediante controles reales.
+[ ] Entradas repetidas, atrás, modales y reapertura probados.
+[ ] Accesibilidad aplicable validada.
+[ ] Animación renderizada sin deriva ni pérdida de legibilidad.
+
+PUERTA 5 — CIERRE
+[ ] Resoluciones y dispositivos del contrato comprobados.
+[ ] Persistencia protegida y probada cuando corresponde.
+[ ] Rendimiento dentro del presupuesto.
+[ ] Pruebas sin errores relacionados.
+[ ] Evidencia posterior al último cambio.
+[ ] Fidelidad aprobada con el método del proyecto.
+[ ] Decisiones específicas y aprendizajes generales separados.
+
+Resultado: APROBADA / PENDIENTE
+Aprobada por:
+Fecha:
+Diferencias y notas:

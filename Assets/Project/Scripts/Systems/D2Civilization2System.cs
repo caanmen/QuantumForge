@@ -36,6 +36,7 @@ public static class D2Civilization2System
     public const double EspionageReprisalReduction = 0.05;
     public const double WeakenedOperationMultiplier = 0.50;
     public const double WeakenedOperationDurationSeconds = 180.0;
+    public const double ReprisalThreatThreshold = 100.0;
     public const double ThreatAfterReprisal = 25.0;
     public const long ControlFragmentsPerReprisal = 3L;
     public const double Region2UnlockDominance = 80.0;
@@ -720,11 +721,7 @@ public static class D2Civilization2System
         if (region == null)
             return BaseReprisalLossFraction;
 
-        D2OperationState espionage = GetOperation(region, EspionageOperationId);
-        double espionageBase = EspionageReprisalReduction + GetUpgradeLevel(state, EspionageUpgradeId) * EspionageUpgradeReductionPerLevel;
-        double espionageReduction = IsOperationActive(espionage)
-            ? espionageBase
-            : region.nextReprisalEspionageReduction;
+        double espionageReduction = GetPreparedEspionageReprisalReduction(state, region);
         double coverageReduction = Math.Floor(
             Math.Clamp(region.coverage, 0.0, MaxCoverage) / CoveragePerLossPoint
         ) * 0.01;
@@ -738,6 +735,22 @@ public static class D2Civilization2System
         if (shelters != null && shelters.active) loss *= HiddenSheltersLossMultiplier;
         if (state != null && state.hiddenSheltersPenaltySeconds > 0.0) loss *= HiddenSheltersBreachMultiplier;
         return Math.Max(MinimumReprisalLossFraction, loss);
+    }
+
+    public static double GetPreparedEspionageReprisalReduction(
+        D2Civilization2State state,
+        D2RegionState region)
+    {
+        if (region == null)
+            return 0.0;
+
+        D2OperationState espionage = GetOperation(region, EspionageOperationId);
+        double activeReduction = EspionageReprisalReduction +
+            GetUpgradeLevel(state, EspionageUpgradeId) *
+            EspionageUpgradeReductionPerLevel;
+        return IsOperationActive(espionage)
+            ? activeReduction
+            : Math.Max(0.0, region.nextReprisalEspionageReduction);
     }
 
     public static bool IsProtectionActive(D2RegionState region)
@@ -1024,6 +1037,7 @@ public static class D2Civilization2System
                 region.weakenedOperationRemainingSeconds < 0.0 ||
                 region.weakenedOperationRemainingSeconds >
                     WeakenedOperationDurationSeconds * SilencedBellsBreachMultiplier ||
+                region.lastReprisalMemberLosses < 0L ||
                 (!string.IsNullOrEmpty(region.weakenedOperationId) &&
                  !IsOperationId(region.weakenedOperationId)) ||
                 region.operations == null || region.operations.Count != OperationIds.Length ||
@@ -1172,6 +1186,8 @@ public static class D2Civilization2System
                 0.0
             );
             region.totalReprisals = Math.Max(0L, region.totalReprisals);
+            region.lastReprisalMemberLosses = Math.Max(
+                0L, region.lastReprisalMemberLosses);
             if (region.weakenedOperationId == null ||
                 (!string.IsNullOrEmpty(region.weakenedOperationId) &&
                  !IsOperationId(region.weakenedOperationId)))
@@ -1566,7 +1582,7 @@ public static class D2Civilization2System
             int eventGuard = 0;
             while (remainingSeconds > 0.000001 && eventGuard++ < 512)
             {
-                if (region.threat >= 100.0 - 0.000001)
+                if (region.threat >= ReprisalThreatThreshold - 0.000001)
                 {
                     TriggerReprisal(state, region);
                     continue;
@@ -1584,7 +1600,7 @@ public static class D2Civilization2System
                 {
                     secondsToReprisal = Math.Max(
                         0.0,
-                        (100.0 - region.threat) /
+                        (ReprisalThreatThreshold - region.threat) /
                         rates.threatChangePerMinute * 60.0
                     );
                 }
@@ -1623,7 +1639,7 @@ public static class D2Civilization2System
                     ClearExpiredWeakening(region);
                 }
 
-                if (region.threat >= 100.0 - 0.000001)
+                if (region.threat >= ReprisalThreatThreshold - 0.000001)
                     TriggerReprisal(state, region);
             }
         }
@@ -1747,6 +1763,8 @@ public static class D2Civilization2System
         region.nextReprisalEspionageReduction = 0.0;
         region.threat = ThreatAfterReprisal;
         region.totalReprisals = SaturatingAdd(region.totalReprisals, 1L);
+        region.hasLastReprisalResult = true;
+        region.lastReprisalMemberLosses = losses;
         state.totalReprisals = SaturatingAdd(state.totalReprisals, 1L);
         long fragmentsReward = state.alertActive
             ? AlertControlFragmentsPerReprisal

@@ -1,0 +1,16 @@
+REFERENCIA: ARTE ELEGIDO PARA ANILLO DE RESTOS
+================================================
+
+Fecha: 21 de agosto de 2026.
+Origen: propuesta gráfica 1 generada durante la revisión de la cabecera Explorar.
+Decisión: elegida explícitamente por el usuario.
+Archivo funcional asociado:
+Assets/Project/UI/Dimension1/Generated/Candidates/DebrisRing/
+d1_debris_ring_option_1_dense_orbit.png
+
+Uso vigente:
+- Cabecera dinámica de Explorar cuando el sector activo es Anillo de Restos.
+- Nodo Anillo de Restos de Carta Galáctica.
+- Arte del Planeta 3 en el detalle del Sector 2.
+
+Estado: arte elegido e integrado; aprobación perceptual final de las pantallas pendiente.

@@ -1,0 +1,120 @@
+QUANTUM FORGE — CONTINUIDAD DEL MONOLITO 2D
+Fecha: 2026-08-26
+
+OBJETIVO ACTUAL
+
+Terminar la pantalla 2D de la Máquina usando el Monolito alienígena, sin cubos ni
+representaciones 3D. Primero se aprueba la composición estática; después se corrigen
+interacción y animación.
+
+AUTORIDAD Y REGLAS IMPORTANTES
+
+- Leer `REGLAS_DE_TRABAJO_Y_CONTINUIDAD.md`, las instrucciones maestras y las dos
+  guías de pantallas antes de continuar.
+- Inspeccionar el proyecto real. Este resumen no sustituye los archivos ni las capturas.
+- No inventar assets, símbolos, nombres, mecánicas ni adornos.
+- El Monolito es un artefacto alienígena; el laboratorio que lo contiene sí es humano.
+- No volver a usar el cubo ni tecnología humana dentro del diseño del Monolito.
+- Mantener escena y reconstructor canónico sincronizados.
+
+ESTADO DE LA VISTA GENERAL
+
+- Fondo aprobado: laboratorio humano abandonado después de un accidente, con escala de
+  cuarto y no de hangar.
+- Asset vigente:
+  `Assets/Project/UI/Vertical/Machine/Monolith2D/machine_destroyed_lab_visible_support_square_v08.png`.
+- V08 reemplazó la plataforma central que quedaba tapada. Usa dos guías laterales y un
+  borde frontal visibles alrededor del Monolito para que no parezca flotante.
+- La vista general sólo muestra cuatro luces de entrada. No debe mostrar nodos, símbolos,
+  nombres, mensajes, círculos, cuadros ni `???`.
+- Las luces usan la textura aprobada de pulso/fisura cian-blanca misteriosa:
+  `machine_monolith_entry_light_depth_pulse_emission_v01.png`.
+- Últimas posiciones instaladas, en orden sectores 1, 2, 3 y 4:
+  `(0.39, 0.71)`, `(0.725, 0.36)`, `(0.69, 0.71)`, `(0.325, 0.36)`.
+- Estas posiciones corresponden a la corrección V17 y están sincronizadas con
+  `Main.unity` mediante `MachineMonolith2DSetup`.
+- La validación funcional V17 pasó en 1080×1920 y 720×1280, pero el centrado de las
+  luces todavía requiere aprobación visual explícita del usuario. No declararlo final
+  únicamente por el PASS automático.
+- Captura real vigente:
+  `Logs/VisualQA/MachineMonolith2D/01_overview_initial_1080x1920.png`.
+- Evidencia:
+  `Logs/machine_monolith_surface_centers_v17_capture.log`.
+
+MAPA Y CONTENIDO DE LAS CUATRO CARAS
+
+- Sector 1: cara superior izquierda, 7 nodos.
+- Sector 2: cara inferior derecha, 11 nodos.
+- Sector 3: cara superior derecha, 7 nodos.
+- Sector 4: cara inferior izquierda, accesible, más oscura, 0 nodos y `???` solamente
+  dentro de su vista cercana.
+- Las tres caras con nodos mantienen sus progresiones y firmas alienígenas canónicas.
+- Los nodos conservan dos estados visuales: dañado con emisión baja y reparado con el
+  símbolo alienígena plenamente iluminado.
+- La selección debe coincidir con la posición exacta de la firma tocada.
+- La ficha inferior conserva nombre, estado, descripción funcional, efecto, requisitos,
+  coste, progreso y acción real.
+
+PROBLEMA PENDIENTE DE LAS VISTAS CERCANAS
+
+- La implementación actual acerca la cara, pero deja el mismo plano lejano del laboratorio.
+  El resultado parece una fotografía o placa separada colocada delante del fondo.
+- El usuario rechazó que el laboratorio permanezca exactamente inmóvil durante todo el
+  acercamiento.
+- Propuesta estática V09: el mismo laboratorio visto desde una cámara adelantada; fondo
+  más oscuro y con profundidad, mesas y puerta más lejanas/desenfocadas, rieles hacia los
+  extremos y la cara apoyada físicamente en el suelo mediante sombra de contacto.
+- La cara debe conservar su silueta completa y medidas coherentes; no debe quedar recortada,
+  flotando, encerrada en un nicho ni dentro de un marco rectangular.
+- Mockup pendiente de aprobación:
+  `mockup_sector_1_close_lab_dolly_candidate_v09.png`.
+- V09 es concepto visual, no captura de Unity ni asset final. No está aplicado todavía.
+
+TRANSICIÓN PENDIENTE
+
+- La entrada sigue siendo un acercamiento 2D, nunca un giro de cubo.
+- Después de aprobar la composición cercana estática, la animación debe mover el Monolito
+  y también adelantar el laboratorio con un paralaje moderado.
+- Un fundido oscuro contenido puede cubrir el cambio entre la vista general y la cara,
+  evitando costuras, barras y el efecto de libro o fotografía ampliada.
+- El viewport debe recortar sólo su contenido y no invadir encabezado, ficha ni navegación.
+
+INTERFAZ QUE SE CONSERVA
+
+- Encabezado metálico de Máquina, recursos y progreso.
+- Pestañas NODOS y MEZCLAS.
+- Navegación inferior existente.
+- Botón VOLVER visible en las caras.
+- MEZCLAS reutiliza el encabezado y permite regresar físicamente a NODOS.
+- Marcos y ficha deben reutilizar el lenguaje visual de Generación/Mejoras; no usar marcos
+  genéricos o minimalistas.
+
+ARCHIVOS PRINCIPALES
+
+- Reconstructor canónico:
+  `Assets/Project/Scripts/Editor/MachineMonolith2DSetup.cs`.
+- Control visual y animación:
+  `Assets/Project/Scripts/UI/MachineMonolith2DVisualUI.cs`.
+- Captura y recorrido QA:
+  `Assets/Project/Scripts/Editor/MachineMonolith2DCapture.cs`.
+- Registro detallado de decisiones:
+  `SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/MAQUINA/MONOLITO_2D_CORRECCIONES_INTERACCION_2026-08-26_V02/LEEME.txt`.
+
+LÁMINA DE ENTREGA
+
+- `comparativa_vista_general_y_cara_cercana_v10.png` reúne:
+  izquierda, la captura real actual de Unity; derecha, el mockup conceptual V09.
+- Esta lámina es referencia de continuidad. Para implementar deben usarse los assets
+  canónicos, no recortar imágenes desde la lámina.
+
+SIGUIENTES PASOS
+
+1. Confirmar visualmente el centrado V17 de las cuatro luces.
+2. Aprobar o corregir la composición cercana V09 usando primero una sola cara.
+3. Crear el fondo cercano definitivo como asset separado del fondo general.
+4. Aplicar la misma envolvente física a las caras 1, 2 y 3; después adaptar la cara 4
+   conservando oscuridad, ausencia de nodos y `???` central.
+5. Sólo después modificar la animación para mover objeto y fondo con paralaje.
+6. Validar estados, toque real, transición, regreso, 1080×1920 y 720×1280; archivar
+   capturas únicamente después de aprobación visual.
+

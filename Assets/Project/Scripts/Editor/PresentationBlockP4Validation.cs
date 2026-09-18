@@ -184,8 +184,8 @@ public static class PresentationBlockP4Validation
         try
         {
             D2Civilization1State c1 = state.dimension2.civilization1;
-            Check(D2Civilization1PresentationRules.GetVisibleAltarIds(c1).Length == 2,
-                "Altares iniciales revelan nombres futuros.", failures);
+            Check(D2Civilization1PresentationRules.GetVisibleAltarIds(c1).Length == 5,
+                "La cuadrícula de Altares no conserva sus cinco espacios canónicos.", failures);
             Check(D2Civilization1PresentationRules.GetVisibleRiteIds(c1).Length == 2,
                 "Ritos iniciales revelan el catálogo completo.", failures);
             Check(D2Civilization1PresentationRules.GetVisiblePactIds(c1).Length == 1,

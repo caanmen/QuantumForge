@@ -1,0 +1,70 @@
+QUANTUM FORGE — MONOLITO 2D
+Fecha: 2026-08-24
+
+DECISIÓN POSTERIOR — 2026-08-25
+- La distribución funcional 7/7/10/11 y el cuarto sector normal de estas láminas
+  quedan superados por la decisión registrada en
+  `10_PANTALLAS/MAQUINA/DECISIONES.txt`.
+- El sector 4 será una reserva oscura para Prestigio 2, con `???` y cuatro posiciones
+  decorativas sin información ni interacción.
+- Estas imágenes siguen sirviendo para estudiar silueta, escala y apertura, pero no
+  autorizan implementar Semillas ni nodos funcionales en el cuarto sector.
+
+Archivo:
+- concepto_monolito_cerrado_tapa_superior_izquierda_abierta_v01.png
+- concepto_monolito_tapa_superior_derecha_7_nodos_v01.png
+- concepto_monolito_tapa_inferior_izquierda_10_nodos_v01.png
+- concepto_monolito_tapa_inferior_izquierda_10_nodos_v02.png
+- concepto_monolito_tapa_inferior_derecha_11_nodos_v01.png
+- concepto_transicion_vista_lejana_a_circuito_7_nodos_v01.png
+
+Clasificación:
+- Concepto maestro en revisión.
+- No es un asset final.
+- No es una captura de Unity.
+- No está integrado en la escena Main.
+
+Control de versiones:
+- La versión v01 de la tapa inferior izquierda queda descartada como referencia
+  de composición porque el nodo hexagonal desbordaba el marco izquierdo.
+- La versión v02 corrige el desbordamiento y es la variante vigente para revisión.
+- La v01 se conserva sólo como historial del concepto; no debe implementarse.
+
+Objetivo de esta lámina:
+- Comparar el mismo monolito cerrado y con una sola tapa abierta.
+- Fijar una silueta común antes de separar las piezas del asset.
+- Comprobar que la apertura respeta los límites del monolito.
+- Probar siete posiciones de nodo irregulares para el circuito superior izquierdo.
+- Registro histórico: probar las cuatro aperturas con las cantidades simultáneas que
+  tenía la UI antes de la decisión del 2026-08-25:
+  7 nodos arriba izquierda, 7 arriba derecha, 10 abajo izquierda y
+  11 abajo derecha.
+- Probar el flujo visual propuesto para celular: monolito lejano sin nodos,
+  acercamiento con circuito todavía apagado y vista cercana con nodos activos.
+
+Decisiones representadas:
+- Máquina 2D frontal, inmóvil y perteneciente a un laboratorio experimental.
+- Cuatro tapas: dos superiores y dos inferiores.
+- La tapa superior izquierda se retrae como una sola pieza.
+- La silueta exterior, la base y la columna central no cambian al abrirla.
+- Estado inicial de reparación aproximado: 0–20 %.
+- Paleta controlada: blanco frío, cian apagado y ámbar tenue.
+- Sin morado, rojo, verde ni efecto de portal.
+- El circuito abierto contiene exactamente siete posiciones visuales.
+- Sólo una tapa se muestra abierta en cada variante.
+- Los nodos representados son posiciones conceptuales. Los símbolos definitivos,
+  sus identificadores y sus estados serán elementos dinámicos en Unity; no deben
+  quedar horneados en la imagen de fondo.
+- En la vista general cerrada no se muestran nodos. Sólo se muestran cuando el
+  acercamiento al sector termina; durante la transición permanecen apagados.
+
+Pendiente antes de tratarlo como referencia aprobada:
+- Aprobación explícita del usuario sobre forma, apertura y escala de los nodos.
+- Separación en capas: cuerpo, cuatro tapas, cuatro circuitos, daño, luces y nodos.
+- Revisión conjunta de las cuatro vistas abiertas y sus límites.
+- Composición estática dentro de la pantalla real de Unity.
+
+Origen visual:
+- Generado mediante la herramienta integrada de creación de imágenes.
+- Basado en los conceptos elegidos durante la conversación y en las referencias
+  previas del monolito, su paleta y sus estados de reparación.

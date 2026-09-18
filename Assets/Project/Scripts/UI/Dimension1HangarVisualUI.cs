@@ -115,6 +115,16 @@ public sealed class Dimension1HangarVisualUI : MonoBehaviour
     public void UpgradeSelected()
     {
         if (panel == null || referencePreviewForVisualQa) return;
+        GameState state = GameState.I;
+        D1ShipState selected = FindShip(state, ShipIds[selectedShipIndex]);
+        if (selected == null) return;
+        if (!selected.unlocked)
+        {
+            panel.TryUnlockHangarShipForUi(selected.shipId);
+            refreshTimer = 0f;
+            Refresh();
+            return;
+        }
         switch (selectedPartIndex)
         {
             case 0: panel.OnClickUpgradeHangarShipCargo(); break;
@@ -130,7 +140,7 @@ public sealed class Dimension1HangarVisualUI : MonoBehaviour
     {
         // Si Hangar se abrió desde Explorar, cerrar primero su raíz visual evita que
         // ambas pantallas conserven simultáneamente la autoridad sobre la navegación.
-        if (commandCenter != null) commandCenter.ShowCommandCenterScreen();
+        if (commandCenter != null) commandCenter.HideExploreScreenForSecondaryUi();
         if (verticalNavigation == null)
             verticalNavigation = FindFirstObjectByType<VerticalNavigationUI>(FindObjectsInactive.Include);
         if (verticalNavigation != null) verticalNavigation.SetNavigationSuppressed(true, this);
@@ -193,18 +203,7 @@ public sealed class Dimension1HangarVisualUI : MonoBehaviour
         GameState state = GameState.I;
         if (state == null) return;
         state.EnsureDimension1State();
-
-        string[] metalIds =
-        {
-            Dimension1System.MetalIron,
-            Dimension1System.MetalAluminum,
-            Dimension1System.MetalNickel
-        };
-        for (int i = 0; i < metalIds.Length; i++)
-        {
-            Set(metalAmounts, i, FormatAmount(state.GetD1MetalAmount(metalIds[i])));
-            Set(metalRates, i, "+" + FormatAmount(Dimension1System.GetMetalProductionPerSecond(state, metalIds[i])) + "/s");
-        }
+        Dimension1HeaderMetalsUI.Refresh(transform, state, state.dimension1SelectedSectorId);
 
         bool[] unlocked = new bool[ShipIds.Length];
         for (int i = 0; i < ShipIds.Length; i++)
@@ -226,7 +225,7 @@ public sealed class Dimension1HangarVisualUI : MonoBehaviour
         {
             int level = Mathf.Clamp(levels[i], 0, Dimension1System.Dimension1ShipPartMaxLevel);
             Set(partLevels, i, "NIVEL " + level + "/" + Dimension1System.Dimension1ShipPartMaxLevel);
-            Set(partValues, i, level >= Dimension1System.Dimension1ShipPartMaxLevel ? "MÁXIMO" : "NIVEL " + level);
+            Set(partValues, i, BuildPartValue(ShipIds[selectedShipIndex], i, level));
             SetBar(i, level / (float)Dimension1System.Dimension1ShipPartMaxLevel);
         }
         RefreshPartCards();
@@ -243,13 +242,16 @@ public sealed class Dimension1HangarVisualUI : MonoBehaviour
             Set(metalRates, i, rates[i]);
         }
         RefreshShipCards(new[] { true, true, true, true });
-        string[] levels = { "NIVEL 2/4", "NIVEL 2/4", "NIVEL 1/4", "NIVEL 2/4" };
-        string[] values = { "120 / 200", "120 UA/s", "80 / 150", "3.5 UA" };
+        int[] previewLevels = { 2, 2, 1, 2 };
         float[] bars = { .53f, .62f, .48f, .55f };
         for (int i = 0; i < 4; i++)
         {
-            Set(partLevels, i, levels[i]);
-            Set(partValues, i, values[i]);
+            Set(partLevels, i, "NIVEL " + previewLevels[i] + "/4");
+            Set(partValues, i, BuildPartValue(
+                Dimension1System.ShipLightProbe,
+                i,
+                previewLevels[i]
+            ));
             SetBar(i, bars[i]);
         }
         RefreshPartCards();
@@ -257,9 +259,15 @@ public sealed class Dimension1HangarVisualUI : MonoBehaviour
         Set(costValues, 0, "45K");
         Set(costNames, 1, "MATRIZ");
         Set(costValues, 1, "12");
-        if (upgradeButtonLabel != null) upgradeButtonLabel.text = "MEJORAR\nVELOCIDAD";
+        if (upgradeButtonLabel != null)
+            upgradeButtonLabel.text = "MEJORAR\n" + PartNames[selectedPartIndex];
         if (upgradeButton != null) upgradeButton.interactable = true;
-        if (missionBonus != null) missionBonus.text = "+12% VELOCIDAD DE EXPLORACIÓN";
+        if (missionBonus != null)
+            missionBonus.text = BuildPartEffectDescription(
+                Dimension1System.ShipLightProbe,
+                selectedPartIndex,
+                previewLevels[selectedPartIndex]
+            );
     }
 
     private void RefreshShipCards(bool[] unlocked)
@@ -308,9 +316,7 @@ public sealed class Dimension1HangarVisualUI : MonoBehaviour
         if (upgradeButtonLabel != null) upgradeButtonLabel.text = "MEJORAR\n" + PartNames[selectedPartIndex];
         if (selected == null || !selected.unlocked)
         {
-            SetCost("BLOQUEADA", "—", "REQUISITOS", "PENDIENTES");
-            if (upgradeButton != null) upgradeButton.interactable = false;
-            SetMissionBonus("NAVE NO DISPONIBLE");
+            RefreshUnlock(state, shipId);
             return;
         }
 
@@ -345,12 +351,63 @@ public sealed class Dimension1HangarVisualUI : MonoBehaviour
             if (upgradeButton != null) upgradeButton.interactable = false;
         }
 
-        switch (selectedPartIndex)
+        int currentLevel = GetPartLevel(selected, selectedPartIndex);
+        SetMissionBonus(BuildPartEffectDescription(
+            shipId,
+            selectedPartIndex,
+            currentLevel));
+    }
+
+    private void RefreshUnlock(GameState state, string shipId)
+    {
+        if (upgradeButtonLabel != null) upgradeButtonLabel.text = "DESBLOQUEAR\nNAVE";
+        if (!Dimension1System.TryGetShipUnlockCost(
+            shipId,
+            out string metal1, out double amount1,
+            out string metal2, out double amount2,
+            out string metal3, out double amount3,
+            out string metal4, out double amount4,
+            out int matrixCost))
         {
-            case 0: SetMissionBonus("MEJORA LAS RECOMPENSAS DE CARGA"); break;
-            case 1: SetMissionBonus("REDUCE EL TIEMPO DE EXPLORACIÓN"); break;
-            case 2: SetMissionBonus("MEJORA LA CONSERVACIÓN DE RECOMPENSAS"); break;
-            default: SetMissionBonus("MEJORA HALLAZGOS Y MATRICES"); break;
+            SetCost("NAVE", "NO DISPONIBLE", "REQUISITOS", "—");
+            if (upgradeButton != null) upgradeButton.interactable = false;
+            SetMissionBonus("NAVE FUERA DE LA FLOTA ACTIVA");
+            return;
+        }
+
+        string secondName = MetalName(metal2);
+        string secondValue = FormatAmount(amount2);
+        if (!string.IsNullOrEmpty(metal3))
+        {
+            secondName += " + " + MetalName(metal3);
+            secondValue += " + " + FormatAmount(amount3);
+        }
+        if (!string.IsNullOrEmpty(metal4))
+        {
+            secondName += " + " + MetalName(metal4);
+            secondValue += " + " + FormatAmount(amount4);
+        }
+        if (matrixCost > 0)
+        {
+            secondName += " + MATRIZ";
+            secondValue += " + " + matrixCost;
+        }
+        SetCost(MetalName(metal1), FormatAmount(amount1), secondName, secondValue);
+        if (upgradeButton != null)
+            upgradeButton.interactable = Dimension1System.CanUnlockShip(state, shipId);
+
+        if (Dimension1System.UsesSpecificShipMatricesForUnlock(shipId) && matrixCost > 0)
+        {
+            int owned = Dimension1System.GetOwnedRequiredSpecificShipMatrixCount(state, shipId);
+            SetMissionBonus("MATRICES DE NAVE: " + owned + " / " + matrixCost);
+        }
+        else if (matrixCost > 0)
+        {
+            SetMissionBonus("MATRICES COMPLETADAS REQUERIDAS: " + matrixCost);
+        }
+        else
+        {
+            SetMissionBonus("REÚNE LOS METALES PARA CONSTRUIR ESTA NAVE");
         }
     }
 
@@ -365,6 +422,142 @@ public sealed class Dimension1HangarVisualUI : MonoBehaviour
     private void SetMissionBonus(string value)
     {
         if (missionBonus != null) missionBonus.text = value;
+    }
+
+    private static int GetPartLevel(D1ShipState ship, int partIndex)
+    {
+        if (ship == null) return 0;
+        switch (partIndex)
+        {
+            case 0: return ship.cargoLevel;
+            case 1: return ship.speedLevel;
+            case 2: return ship.armorLevel;
+            default: return ship.sensorsLevel;
+        }
+    }
+
+    private static string BuildPartValue(string shipId, int partIndex, int level)
+    {
+        switch (partIndex)
+        {
+            case 0:
+                return "HASTA ×" + FormatEffect(MaxCargoMultiplier(shipId, level));
+            case 1:
+                return "TIEMPO ×" + FormatEffect(
+                    Dimension1System.GetShipSpeedDurationMultiplierPreview(level));
+            case 2:
+                return "METALES +" + FormatEffect(
+                    Mathf.Max(0f, (float)((MaxArmorMultiplier(shipId, level) - 1d) * 100d))) + "%";
+            default:
+                return "FRAGMENTOS +" + FormatEffect(
+                    MaxSensorBonus(shipId, level) * 100f) + "%";
+        }
+    }
+
+    private static string BuildPartEffectDescription(
+        string shipId,
+        int partIndex,
+        int currentLevel)
+    {
+        int maxLevel = Dimension1System.Dimension1ShipPartMaxLevel;
+        int safeLevel = Mathf.Clamp(currentLevel, 0, maxLevel);
+        int nextLevel = Mathf.Min(maxLevel, safeLevel + 1);
+        string separator = safeLevel < maxLevel ? " → " : " · MÁXIMO";
+
+        switch (partIndex)
+        {
+            case 0:
+                return "MATERIALES: HASTA ×" + FormatEffect(MaxCargoMultiplier(shipId, safeLevel)) +
+                    (safeLevel < maxLevel
+                        ? separator + "×" + FormatEffect(MaxCargoMultiplier(shipId, nextLevel))
+                        : separator) + " SEGÚN DESTINO";
+            case 1:
+                return "TIEMPO: ×" + FormatEffect(
+                    Dimension1System.GetShipSpeedDurationMultiplierPreview(safeLevel)) +
+                    (safeLevel < maxLevel
+                        ? separator + "×" + FormatEffect(
+                            Dimension1System.GetShipSpeedDurationMultiplierPreview(nextLevel))
+                        : separator) + " EN RUTAS COMPATIBLES";
+            case 2:
+                float currentArmor = Mathf.Max(0f,
+                    (float)((MaxArmorMultiplier(shipId, safeLevel) - 1d) * 100d));
+                float nextArmor = Mathf.Max(0f,
+                    (float)((MaxArmorMultiplier(shipId, nextLevel) - 1d) * 100d));
+                return "METALES OBTENIDOS: HASTA +" + FormatEffect(currentArmor) + "%" +
+                    (safeLevel < maxLevel
+                        ? separator + "+" + FormatEffect(nextArmor) + "%"
+                        : separator) + " SEGÚN DESTINO";
+            default:
+                string sensorText = "PROB. DE FRAGMENTO: +" +
+                    FormatEffect(MaxSensorBonus(shipId, safeLevel) * 100f) + "%" +
+                    (safeLevel < maxLevel
+                        ? separator + "+" +
+                            FormatEffect(MaxSensorBonus(shipId, nextLevel) * 100f) + "%"
+                        : separator);
+                sensorText += " · MATRIZ ESPECÍFICA: +" +
+                    FormatEffect(MaxSpecificSensorBonus(shipId, safeLevel) * 100f) + "%";
+                if (safeLevel < maxLevel)
+                    sensorText += " → +" +
+                        FormatEffect(MaxSpecificSensorBonus(shipId, nextLevel) * 100f) + "%";
+                if (shipId == Dimension1System.ShipAnalyticProbe)
+                {
+                    sensorText += " · BARRIDO: " +
+                        Dimension1System.GetAnalyticProbeScanDurationPreviewSeconds(safeLevel).ToString("0.0") + "s";
+                    if (safeLevel < maxLevel)
+                        sensorText += " → " +
+                            Dimension1System.GetAnalyticProbeScanDurationPreviewSeconds(nextLevel).ToString("0.0") + "s";
+                }
+                return sensorText;
+        }
+    }
+
+    private static double MaxCargoMultiplier(string shipId, int level)
+    {
+        double maximum = 1d;
+        foreach (string sectorId in Dimension1System.Dimension1SectorIds)
+            foreach (string destinationId in Dimension1System.GetDimension1SectorDestinationIds(sectorId))
+                maximum = System.Math.Max(maximum,
+                    Dimension1System.GetShipCargoRewardMultiplierPreview(
+                        shipId, destinationId, level));
+        return maximum;
+    }
+
+    private static double MaxArmorMultiplier(string shipId, int level)
+    {
+        double maximum = 1d;
+        foreach (string sectorId in Dimension1System.Dimension1SectorIds)
+            foreach (string destinationId in Dimension1System.GetDimension1SectorDestinationIds(sectorId))
+                maximum = System.Math.Max(maximum,
+                    Dimension1System.GetShipArmorRewardMultiplierPreview(
+                        shipId, destinationId, level));
+        return maximum;
+    }
+
+    private static float MaxSensorBonus(string shipId, int level)
+    {
+        float maximum = 0f;
+        foreach (string sectorId in Dimension1System.Dimension1SectorIds)
+            foreach (string destinationId in Dimension1System.GetDimension1SectorDestinationIds(sectorId))
+                maximum = Mathf.Max(maximum,
+                    Dimension1System.GetShipSensorBlueprintFragmentBonusPreview(
+                        shipId, destinationId, level));
+        return maximum;
+    }
+
+    private static float MaxSpecificSensorBonus(string shipId, int level)
+    {
+        float maximum = 0f;
+        foreach (string sectorId in Dimension1System.Dimension1SectorIds)
+            foreach (string destinationId in Dimension1System.GetDimension1SectorDestinationIds(sectorId))
+                maximum = Mathf.Max(maximum,
+                    Dimension1System.GetShipSensorSpecificBlueprintBonusPreview(
+                        shipId, destinationId, level));
+        return maximum;
+    }
+
+    private static string FormatEffect(double value)
+    {
+        return value.ToString("0.##");
     }
 
     private void SetBar(int index, float amount)

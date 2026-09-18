@@ -378,8 +378,8 @@ public static class Dimension2PactPrototypeSetup
         text.alignment = alignment;
         text.fontStyle = style;
         text.characterSpacing = spacing;
-        text.enableWordWrapping = false;
-        text.overflowMode = TextOverflowModes.Ellipsis;
+        text.textWrappingMode = TextWrappingModes.NoWrap;
+        text.overflowMode = TextOverflowModes.Truncate;
         text.raycastTarget = false;
         text.outlineColor = new Color(.02f, .018f, .012f, .88f);
         text.outlineWidth = .12f;

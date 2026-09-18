@@ -1,0 +1,68 @@
+FICHA DE PANTALLA: REGISTRO DE EXPEDICIONES
+===========================================
+
+ID: D1_REGISTRO_EXPEDICIONES
+Dimensión: 1
+Tipo: subpantalla superpuesta sobre Explorar
+Estado: IMPLEMENTADA Y VALIDADA; PENDIENTE DE APROBACIÓN VISUAL DEL USUARIO
+Referencia: 05_REFERENCIAS/DIMENSION_1/REGISTRO_EXPEDICIONES/referencia_registro_expediciones_v1.png
+Escena: Assets/Project/Scenes/Main.unity
+Resolución base: 1080×1920 vertical
+
+FUNCIÓN
+Mostrar hasta las 20 expediciones recientes conservadas por el juego. Cada entrada lee
+el destino, sector, nave principal, apoyo coordinado, sinergia, metales, matrices y
+reliquias del `D1ExplorationRecordEntry` real.
+
+ESTADOS Y FILTROS
+- Todas.
+- Con reliquias.
+- Coordinadas.
+- Por sector, recorriendo únicamente los cuatro sectores de exploración D1.
+- Historial vacío.
+- Registro fijo de acceso central cuando la partida lo haya obtenido.
+
+NAVEGACIÓN
+- Entrada: botón REGISTRO de la pantalla Explorar.
+- Atrás y VOLVER A EXPLORAR: cierran la subpantalla sin cambiar selección ni guardado.
+- 10 METALES: abre el inventario compartido de metales.
+
+REUTILIZACIÓN OBLIGATORIA
+- Marco, relleno, campo estelar, fuente y paleta D1 existentes.
+- Thumbnails canónicos/candidatos ya usados en Detalle de Sectores y Órbitas Antiguas.
+- Blueprints y material del Hangar.
+- Sprites v5 del inventario de metales.
+- Sprites de Reliquias y Matriz ya conectados en Expedición Completada.
+- Material black key canónico D1 para recortar los tres candidatos específicos del
+  resumen sin alterar sus colores.
+
+VALIDACIÓN
+- Cero y veinte entradas.
+- Filtros con y sin resultados.
+- Entrada normal, coordinada, con reliquia y con matriz.
+- Compatibilidad con registros antiguos válidos.
+- Scroll hasta la entrada final.
+- Regreso superior e inferior sin raycasts residuales.
+- Capturas 1080×1920 y 720×1280.
+- Tres iconos específicos del resumen, sin sustitutos de identidad distinta y con
+  lectura comprobada a tamaño real.
+- No modificar el guardado durante QA.
+
+EVIDENCIA ACTUAL
+- Instalación: `[D1 Expedition Record] INSTALL_PASS`.
+- QA: `[D1 Expedition Record Capture] PASS`.
+- Se probaron 0 y 20 entradas, 0 y 4 metales por fila, los cuatro filtros, los cuatro
+  sectores, 20 expediciones + ARK, scroll completo y cierre sin raycasts.
+- Capturas candidatas: `CAPTURA_CANDIDATA_1080x1920.png` y
+  `CAPTURA_CANDIDATA_720x1280.png`.
+ACTUALIZACIÓN VALIDADA 2026-08-22
+- Densidad móvil reducida: filas de 240 px, contenido de 252 px por registro.
+- Iconos propios para Clave de Acceso Central y retorno a Explorar.
+- Evidencia nueva PASS a 1080×1920 y 720×1280.
+
+REVISIÓN NUEVA — 2026-09-08
+Se auditó código, escena, navegación física y capturas de Unity en 1080×1920 y
+720×1280. La evidencia anterior se conserva como historial. Consultar
+07_REGISTROS/AUDITORIA_DIMENSION_1_2026-09-08.md y
+08_PRUEBAS/AUDITORIA_D1_2026-09-08 para resultados y correcciones actuales.
+Las capturas nuevas son candidatas; no constituyen aprobación perceptual del usuario.

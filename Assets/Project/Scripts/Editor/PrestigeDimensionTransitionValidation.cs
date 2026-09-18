@@ -40,10 +40,14 @@ public static class PrestigeDimensionTransitionValidation
                 "El recurso no preserva la referencia vertical.", failures);
             Check(resourceConfig.laboratoryBackground != null,
                 "El recurso no referencia el fondo del laboratorio.", failures);
-            Check(resourceConfig.cube2DTexture != null,
-                "El recurso no referencia el cubo ilustrado 2D.", failures);
-            Check(resourceConfig.characterTexture != null,
-                "El recurso no referencia la silueta 2D.", failures);
+            Check(resourceConfig.monolithTexture != null,
+                "El recurso no referencia el Monolito reparado.", failures);
+            Check(resourceConfig.monolithCutoutMaterial != null,
+                "El recurso no referencia el recorte transparente del Monolito.",
+                failures);
+            Check(resourceConfig.entryLightTexture != null &&
+                    resourceConfig.entryLightAdditiveMaterial != null,
+                "El recurso no conserva las luces de acceso integradas.", failures);
             Check(resourceConfig.portalRingTexture != null,
                 "El recurso no referencia el aro ligero de los portales.", failures);
         }
@@ -55,14 +59,22 @@ public static class PrestigeDimensionTransitionValidation
                 "No está preservada la referencia vertical aprobada.", failures);
             Check(transition.LaboratoryBackground != null,
                 "No está asignado el fondo del laboratorio.", failures);
-            Check(transition.Cube2DTexture != null,
-                "No está asignado el cubo ilustrado 2D.", failures);
-            Check(transition.CharacterTexture != null,
-                "No está asignada la silueta 2D.", failures);
+            Check(transition.MonolithTexture != null,
+                "No está asignado el Monolito reparado.", failures);
+            Check(transition.MonolithCutoutMaterial != null,
+                "No está asignado el material que elimina el fondo del Monolito.",
+                failures);
             Check(transition.PortalRingTexture != null,
                 "No está asignado el aro de los portales.", failures);
             Check(transition.ConfirmationResetSeconds >= 2f,
                 "La ventana de confirmación es demasiado corta.", failures);
+            Check(transition.MonolithPlateCount == 4 &&
+                    transition.EntryLightCount == 4,
+                "Los recursos de reemplazo no preservan cuatro placas y cuatro luces.",
+                failures);
+            Check(!transition.PlayOpeningAnimation,
+                "La apertura cinematica interna debe permanecer omitida hasta recibir el video externo.",
+                failures);
         }
 
         Check(PrestigeDimensionTransitionUI.RequiredConfirmationPresses == 3,
@@ -86,7 +98,7 @@ public static class PrestigeDimensionTransitionValidation
                 string.Join("\n- ", failures));
 
         Debug.Log(
-            "[Prestige Dimension Validation] PASS | cinemática completa 2D | " +
+            "[Prestige Dimension Validation] PASS | apertura interna omitida | " +
             "carrusel I-II-III | volver sin reset | 1/3 + 2/3 + 3/3 | timeout 5s");
     }
 

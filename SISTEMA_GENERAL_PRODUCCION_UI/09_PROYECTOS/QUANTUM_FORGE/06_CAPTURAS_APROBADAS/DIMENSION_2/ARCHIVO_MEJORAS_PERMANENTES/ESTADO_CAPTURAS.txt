@@ -1,0 +1,21 @@
+CAPTURAS APROBADAS — ARCHIVO IV / MEJORAS PERMANENTES
+
+Fecha: 3 de septiembre de 2026.
+Aprobación explícita del usuario: «quedó perfecto».
+
+- archivo_mejoras_permanentes_aprobada_1080x1920.png
+  Similitud percibida AA: 97.42 %.
+
+- archivo_mejoras_permanentes_aprobada_720x1280.png
+  Similitud percibida AA: 97.68 %.
+
+Validación de Unity:
+- STRUCTURE_PASS.
+- STATE_PASS.
+- ACTIONS_PASS.
+- ROUTE_PASS.
+- SAVE_INTACT_PASS.
+- TEXT_GEOMETRY_PASS.
+
+Referencia comparada:
+05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/18_Archivo_Mejoras_Permanentes_Corregido_V4.png

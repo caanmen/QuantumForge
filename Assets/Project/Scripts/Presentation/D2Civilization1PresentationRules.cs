@@ -81,32 +81,18 @@ public static class D2Civilization1PresentationRules
 
     public static string[] GetVisibleAltarIds(D2Civilization1State state)
     {
-        var ids = new List<string>
-        {
-            D2AltarSystem.WaxAltarId,
-            D2AltarSystem.RitualBreadAltarId
-        };
-        if (state == null) return ids.ToArray();
-        for (int i = 0; i < D2AltarSystem.AltarIds.Length; i++)
-        {
-            string id = D2AltarSystem.AltarIds[i];
-            D2AltarState altar = D2AltarSystem.GetAltar(state, id);
-            if (!ids.Contains(id) && altar != null &&
-                (altar.unlocked || altar.followersAssigned > 0L ||
-                 altar.offeringAmount > 0.0 || altar.totalOfferingProduced > 0.0))
-                ids.Add(id);
-        }
-        return ids.ToArray();
+        // El catálogo canónico conserva la cuadrícula 3+2: los cinco espacios se
+        // muestran desde el inicio y cada Altar decide por separado si es interactivo.
+        return (string[])D2AltarSystem.AltarIds.Clone();
     }
 
     public static string[] GetVisibleRiteIds(D2Civilization1State state)
     {
-        var ids = new List<string>();
+        if (D2RiteSystem.AreRitesUnlocked(state))
+            return (string[])D2RiteSystem.RiteIds.Clone();
         int baseCount = Math.Min(2, D2RiteSystem.RiteIds.Length);
+        var ids = new List<string>(baseCount);
         for (int i = 0; i < baseCount; i++) ids.Add(D2RiteSystem.RiteIds[i]);
-        if (D2RiteSystem.GetActiveRiteCount(state) > 0)
-            for (int i = baseCount; i < D2RiteSystem.RiteIds.Length; i++)
-                ids.Add(D2RiteSystem.RiteIds[i]);
         return ids.ToArray();
     }
 

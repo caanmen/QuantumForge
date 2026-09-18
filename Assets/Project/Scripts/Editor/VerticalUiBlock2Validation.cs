@@ -189,9 +189,12 @@ public static class VerticalUiBlock2Validation
 
         string source = File.ReadAllText(
             "Assets/Project/Scripts/UI/Vertical/VerticalNavigationUI.cs");
+        string machineSource = File.ReadAllText(
+            "Assets/Project/Scripts/UI/MachinePanelUI.cs");
         Check(source.Contains("Dimension2System.CanAccessDimension2(state)") &&
             source.Contains("Dimension3System.CanAccessDimension3(state)") &&
-            source.Contains("TabsUI.ShouldShowPrestige1Button(state, machine)") &&
+            source.Contains("prestige = false;") &&
+            machineSource.Contains("ShowPrestigeFromMachine()") &&
             source.Contains("QaRuntimeService.IsAvailable"),
             "La navegacion no reutiliza todos los gates canonicos.", failures);
     }

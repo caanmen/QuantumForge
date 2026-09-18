@@ -1,0 +1,96 @@
+FICHA DE PANTALLA: EXPLORAR
+===========================
+
+ID: D1_EXPLORAR
+Dimensión: 1
+Estado: LISTA PARA REVISIÓN DEL USUARIO
+Referencia de composición vigente: 05_REFERENCIAS/DIMENSION_1/EXPLORAR/concepto_elegido_redisenio_2026-08-21.png
+Escena principal: Assets/Project/Scenes/Main.unity
+Controlador funcional existente: Assets/Project/Scripts/UI/Dimension1PanelUI.cs
+Resolución base: 1080 x 1920 vertical
+
+FUNCIÓN
+Mostrar escáner, destino, nave, apoyo, expedición activa, inicio de expedición,
+registro y navegación local de Dimensión 1 usando los datos reales existentes.
+
+COMPOSICIÓN VIGENTE
+- Encabezado compacto con regreso a Centro de Mando y recursos.
+- Título EXPLORAR centrado.
+- Cabecera visual del sector actual con planeta canónico, escáner y cambio de sector.
+- La ilustración de esa cabecera cambia por ID junto con el sector actual; Anillo de
+  Restos usa `d1_debris_ring_option_1_dense_orbit.png`.
+- Cuatro tarjetas de destinos escaneados filtradas por el sector actual.
+- Nave principal y apoyo en dos paneles paralelos.
+- Selector explícito SIMPLE/COORDINADA.
+- Panel horizontal de expediciones activas con recorrido y tiempo restante.
+- Botones Iniciar expedición y Registro.
+- Navegación local inferior con Explorar seleccionado en ámbar.
+
+DATOS Y PROPIEDAD
+- Dimension1PanelUI conserva la autoridad funcional sobre escaneo y expediciones.
+- El controlador visual nuevo sólo representa el estado y reenvía acciones públicas.
+- Los valores de la referencia son un escenario de captura, no constantes del juego.
+
+IMPLEMENTACIÓN
+- Raíz visual: D1_ExploreVisualRoot.
+- Controlador visual: Assets/Project/Scripts/UI/Dimension1ExploreVisualUI.cs.
+- Instalador reproducible: Dimension1ExploreReferenceSetup.Install.
+- Captura determinista: Dimension1ExploreReferenceCapture.Run.
+- Evidencia candidata: CAPTURA_CANDIDATA_1080x1920.png.
+- Evidencia responsiva: CAPTURA_CANDIDATA_720x1280.png.
+
+VALIDACIÓN ACTUAL
+- Compilación Unity: PASS.
+- Instalación y jerarquía: PASS.
+- Captura 1080 × 1920: PASS.
+- Captura 720 × 1280: PASS.
+- Comparación interna con referencia: nueva revisión geométrica completada; aprobación
+  perceptual del usuario pendiente.
+- Marcos, radar, materiales y navegación inferior: pulidos.
+- Nave y dron extractor: ilustraciones ráster sólidas con alfa, superficies rellenas,
+  volumen y tamaño/centro medidos en la referencia; ya no se construyen como esqueletos
+  de líneas.
+- Sonda analítica: conserva la versión técnica estrecha que el usuario señaló como la
+  mejor de las tres; revisión final todavía pendiente.
+- Cobertura completa sin franjas de la interfaz anterior: PASS.
+- Navegación global suprimida: PASS.
+- Datos reales separados del escenario visual de referencia: PASS.
+- Flujo real escanear -> seleccionar destino -> seleccionar nave -> iniciar: PASS.
+- Selección distinta del primer destino y de la primera nave: PASS.
+- Misión coordinada con selección de apoyo y sinergia real: PASS.
+- Recorrido de varias expediciones activas: IMPLEMENTADO.
+- Mejora del escáner desde la composición visual: IMPLEMENTADA.
+- Prueba reproducible: Dimension1ExploreHangarFunctionalValidation.Run.
+- Resultado del 20 de agosto de 2026: `[D1 Explore+Hangar Functional] PASS`.
+- Aprobación final del usuario: PENDIENTE.
+
+REVALIDACIÓN FUNCIONAL — 21 DE AGOSTO DE 2026
+- Modal de resultado estable durante cuatro autoselecciones y dos resultados consecutivos: PASS.
+- CTA coordinado y resumen de multiplicadores reales: PASS.
+- Regreso físico al Centro de Mando moderno sin superposición: PASS.
+- Capturas nuevas 1080 x 1920 y 720 x 1280: PASS.
+- Rediseño gráfico elegido aplicado con assets D1 existentes: PASS.
+- Regla compartida antigua que recolocaba Scanner/Destino detectada por captura y corregida: PASS.
+- Capturas candidatas finales 1080 x 1920 y 720 x 1280: PASS.
+- Aprobación perceptual final del rediseño: PENDIENTE.
+
+REVALIDACIÓN DE CAMBIO DE SECTOR — 21 DE AGOSTO DE 2026
+- CAMBIAR SECTOR -> Carta -> EXPLORAR ESTE SECTOR -> Explorar: PASS físico.
+- El sector elegido aparece inmediatamente en Explorar: PASS.
+- No se abre ni queda visible el detalle de planetas en esa ruta: PASS.
+- GALAXIA inferior -> Carta -> ENTRAR AL SECTOR -> detalle de planetas: PASS físico.
+- Prueba reproducible: Dimension1ExploreChangeSectorRouteValidation.Run.
+- Resultado: `[D1 Explore Change Sector] PASS | Cambiar sector vuelve a Explorar |
+  arte sectorial dinámico 4/4 | Galaxia normal abre planetas`.
+- Capturas específicas de Anillo de Restos 1080 x 1920 y 720 x 1280: PASS.
+ACTUALIZACIÓN VALIDADA 2026-08-22
+- Modal DETALLES visible y desplazable con datos funcionales reales.
+- Selector de destinos mediante cuatro tarjetas, sin flechas duplicadas.
+- Prueba física de apertura, contenido, cierre y conservación de selecciones: PASS.
+
+REVISIÓN NUEVA — 2026-09-08
+Se auditó código, escena, navegación física y capturas de Unity en 1080×1920 y
+720×1280. La evidencia anterior se conserva como historial. Consultar
+07_REGISTROS/AUDITORIA_DIMENSION_1_2026-09-08.md y
+08_PRUEBAS/AUDITORIA_D1_2026-09-08 para resultados y correcciones actuales.
+Las capturas nuevas son candidatas; no constituyen aprobación perceptual del usuario.

@@ -1,0 +1,59 @@
+QUANTUM FORGE — CONTINUIDAD DEL MONOLITO 2D V10
+Fecha: 2026-08-27
+
+ESTADO CANDIDATO V28
+
+- El Monolito y sus caras siguen siendo composiciones 2D; no existe cubo ni representación
+  3D.
+- La vista general conserva el laboratorio V08, muestra sólo cuatro luces de entrada y no
+  contiene nodos, firmas, textos explicativos ni `???`.
+- El Monolito general usa escala 0,80 y posición `(-22, 6)`. Su base coincide con el apoyo
+  frontal y aprovecha más el espacio sin invadir el marco.
+- Los cuatro centros compartidos por luces y animación son `(0.379, 0.722)`,
+  `(0.671, 0.330)`, `(0.667, 0.708)` y `(0.334, 0.335)`.
+- Las cuatro caras conservan la composición V25 aprobada: escala 0,78 y elevación 11 %.
+  No se modificó su ancho ni su apoyo dentro del marco de suelo.
+- Sectores 1, 2 y 3 mantienen 7, 11 y 7 nodos. El sector 4 continúa accesible, oscuro,
+  sin nodos y con `???` sólo dentro de su arte.
+- Las firmas usan presentación 72 px e hitbox 104 px. El sector 2 separa posición visual y
+  muestreo UV para contener los símbolos sin deformarlos.
+- Alfa de firma: 0,12 dañada, 0,26 dañada seleccionada y 1,00 reparada.
+- La vista cercana usa V27, un asset separado derivado directamente de V08 mediante edición
+  raster integrada. V18 permanece como historial.
+- La transición dura 1 segundo, conserva avance 1,25 del Monolito, avance 1,07 del
+  laboratorio y desplazamiento de fondo al 10 %. El destino se prepara antes del cruce,
+  V08 permanece opaco mientras entra V27 y no existe un segundo reinicio de opacidad.
+- El estado final deja activos únicamente V27 y la cara cercana.
+
+VALIDACIÓN Y EVIDENCIA
+
+- Unity: VALIDATION PASS en `Logs/machine_monolith_continuity_v28_setup.log`.
+- Unity: CAPTURE PASS en `Logs/machine_monolith_continuity_v28_capture.log`.
+- Se generaron 32 capturas en 1080×1920 y 720×1280.
+- La transición se capturó en 0 %, 25 %, 50 %, 75 % y 100 %; nunca quedan simultáneamente
+  por debajo de 0,50 las capas del Monolito general y de la cara cercana.
+- Se validaron opacidades monotónicas de ambos objetos y de V27, estado final exacto,
+  navegación, regreso, Mezclas, sector 4, firmas dañadas/reparadas y guardado restaurado.
+- La revisión directa de las capturas reales no detectó recortes ni fotogramas vacíos en
+  las dos resoluciones.
+- Estado del registro: `candidata`. No alcanza aprobación perceptual ni 95 % hasta recibir
+  confirmación visual explícita del usuario.
+
+RECURSOS V27
+
+- Producción:
+  `Assets/Project/UI/Vertical/Machine/Monolith2D/machine_destroyed_lab_close_dolly_square_v27.png`.
+- Referencia permanente:
+  `machine_lab_close_background_derived_from_v08_candidate_v27.png`.
+- Resolución: 1254×1254.
+- SHA-256: `4DF168384175214D09C3936868DD293D2436BC420467F43CC13EEABBF70A427E`.
+- Método: edición raster con el generador integrado, usando V08 como objetivo estricto y
+  V18 sólo como referencia de distancia de cámara.
+
+SIGUIENTE PASO
+
+- Presentar al usuario las capturas reales V28 y solicitar aprobación o una corrección
+  visual concreta.
+- Sólo después de aprobación, archivar la evidencia V28 en capturas aprobadas y registrar
+  el 95 %.
+- No modificar la composición aprobada V25 de las caras salvo nueva petición explícita.

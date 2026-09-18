@@ -119,9 +119,10 @@ public static class PrestigeDimensionTransitionCapture
         if (!failed)
         {
             Debug.Log(
-                "[Prestige Dimension Capture] PASS | cinemática 2D | tres portales | " +
+                "[Prestige Dimension Capture] PASS | Monolito abierto | cuatro luces | " +
+                "tres portales | " +
                 "selección vertical | " +
-                "confirmación 2/3 | 1080x1920 | save restaurado");
+                "confirmación 2/3 | 1080x1920 + 720x1280 | save restaurado");
         }
         bool exitWhenDone = SessionState.GetBool(ExitWhenDoneKey, false);
         SessionState.SetBool(ExitWhenDoneKey, false);
@@ -143,38 +144,50 @@ public static class PrestigeDimensionTransitionCapture
                     break;
                 case 1 when elapsed >= 0.8:
                     PreparePrestigePanel();
-                    FindFlow().PreviewTransitionForCapture();
+                    FindFlow().PreviewOpenMonolithForCapture();
                     Advance(2);
                     break;
-                case 2 when elapsed >= 1.65:
-                    Capture("01_interaccion_personaje_maquina_2d.png", 1080, 1920);
+                case 2 when elapsed >= 1.5:
+                    Capture("01_monolito_abierto_estatico.png", 1080, 1920);
+                    Capture("01b_monolito_abierto_estatico_720x1280.png", 720, 1280);
+                    FindFlow().PreviewTransitionForCapture();
                     Advance(3);
                     break;
-                case 3 when elapsed >= 1.45:
-                    Capture("02_energia_maquina_hacia_portales_2d.png", 1080, 1920);
+                case 3 when elapsed >= 1.55:
+                    Capture("02_monolito_reparado_luces_secuenciales.png", 1080, 1920);
                     Advance(4);
                     break;
-                case 4 when elapsed >= 1.85:
-                    Capture("03_apertura_tres_portales_2d.png", 1080, 1920);
+                case 4 when elapsed >= 1.4:
+                    Capture("03_energia_converge_al_nucleo.png", 1080, 1920);
                     Advance(5);
                     break;
-                case 5 when elapsed >= 3.7:
-                    FindFlow().PreviewSelectionForCapture(2, 0);
+                case 5 when elapsed >= 0.95:
+                    Capture("04_placas_abiertas_nucleo_visible.png", 1080, 1920);
+                    FindFlow().PreviewPortalsForCapture();
                     Advance(6);
                     break;
-                case 6 when elapsed >= 0.4:
-                    Capture("04_seleccion_dimensional_vertical.png", 1080, 1920);
+                case 6 when elapsed >= 0.45:
+                    Capture("05_tres_portales_emergen.png", 1080, 1920);
                     Advance(7);
                     break;
-                case 7 when elapsed >= 0.6:
-                    FindFlow().PreviewSelectionForCapture(2, 2);
+                case 7 when elapsed >= 1.7:
+                    FindFlow().PreviewSelectionForCapture(2, 0);
                     Advance(8);
                     break;
                 case 8 when elapsed >= 0.4:
-                    Capture("05_confirmacion_sintonizar_2_de_3.png", 1080, 1920);
+                    Capture("06_seleccion_dimensional_vertical.png", 1080, 1920);
+                    Capture("06b_seleccion_dimensional_720x1280.png", 720, 1280);
                     Advance(9);
                     break;
-                case 9 when elapsed >= 0.5:
+                case 9 when elapsed >= 0.6:
+                    FindFlow().PreviewSelectionForCapture(2, 2);
+                    Advance(10);
+                    break;
+                case 10 when elapsed >= 0.4:
+                    Capture("07_confirmacion_sintonizar_2_de_3.png", 1080, 1920);
+                    Advance(11);
+                    break;
+                case 11 when elapsed >= 0.5:
                     EditorApplication.update -= Tick;
                     EditorApplication.isPlaying = false;
                     break;

@@ -41,6 +41,7 @@ public static class Dimension1AncientOrbitsSetup
         public Dimension1AncientOrbitsUI.PlanetCardView planet4;
         public Dimension1AncientOrbitsUI.PlanetCardView planet5;
         public readonly List<Button> destinations = new List<Button>();
+        public readonly List<TMP_Text> destinationStatuses = new List<TMP_Text>();
         public readonly List<Button> navigation = new List<Button>();
     }
 
@@ -67,24 +68,14 @@ public static class Dimension1AncientOrbitsSetup
             MetalPath + "/d1_metal_aluminum_v5.png",
             MetalPath + "/d1_metal_nickel_v5.png",
             MetalPath + "/d1_metal_lithium_v5.png",
-            MetalPath + "/d1_metal_platinum_v5.png",
-            DestinationPath + "/d1_destination_abandoned_ship_v2.png",
-            DestinationPath + "/d1_destination_orbital_ruin_v2.png",
-            DestinationPath + "/d1_destination_laboratory_v2.png",
-            DestinationPath + "/d1_destination_abandoned_station_v2.png"
+            MetalPath + "/d1_metal_platinum_v5.png"
         };
-        foreach (string path in importPaths) PrepareSprite(path);
         Sprite planet4 = LoadSprite(importPaths[0]);
         Sprite planet5 = LoadSprite(importPaths[1]);
         Sprite[] headers = { LoadSprite(importPaths[2]), LoadSprite(importPaths[3]), LoadSprite(importPaths[4]) };
         Sprite[] production = { LoadSprite(importPaths[5]), LoadSprite(importPaths[6]) };
-        Sprite[] destinations =
-        {
-            LoadSprite(importPaths[7]), LoadSprite(importPaths[8]),
-            LoadSprite(importPaths[9]), LoadSprite(importPaths[10])
-        };
         if (font == null || frame == null || fill == null || starfield == null ||
-            planet4 == null || planet5 == null || HasNull(headers) || HasNull(production) || HasNull(destinations))
+            planet4 == null || planet5 == null || HasNull(headers) || HasNull(production))
             throw new InvalidOperationException("Faltan assets canónicos de Órbitas Antiguas.");
 
         Transform previous = FindSceneTransform(scene, RootName);
@@ -109,7 +100,7 @@ public static class Dimension1AncientOrbitsSetup
 
         Image background = Image("Background", root, null, Void);
         Stretch(background.rectTransform, new Vector2(-22f, -26f), new Vector2(-22f, -26f));
-        background.raycastTarget = true;
+        background.raycastTarget = false;
         Image stars = Image("Starfield", root, starfield, Hex("6DC9E6", 10));
         Stretch(stars.rectTransform);
         Image outer = Image("OuterFrame", root, frame, Hex("087FA9", 220));
@@ -125,22 +116,17 @@ public static class Dimension1AncientOrbitsSetup
         refs.planet5 = BuildPlanet(root, "Planet5", frame, fill, starfield, planet5,
             production[1], font, new Vector2(26f, 766f), "PLANETA 5", "PLATINO / NÍQUEL",
             Dimension1System.Planet05, Dimension1System.MetalPlatinum, Dimension1System.MetalNickel);
-        BuildDestinations(root, frame, fill, font, destinations, refs);
         BuildBackToMap(root, frame, fill, font, refs);
         BuildNavigation(root, frame, fill, font, refs);
 
         visual.Configure(panel, commandCenter, metals, group, refs.back, refs.backToMap,
             refs.allMetals, refs.amounts.ToArray(), refs.rates.ToArray(), refs.planet4, refs.planet5,
-            refs.destinations.ToArray(), refs.navigation.ToArray());
+            refs.destinations.ToArray(), refs.destinationStatuses.ToArray(), refs.navigation.ToArray());
         AddPersistent(refs.back.onClick, visual.CloseToGalaxy);
         AddPersistent(refs.backToMap.onClick, visual.CloseToGalaxy);
         AddPersistent(refs.allMetals.onClick, visual.OpenMetals);
         AddPersistent(refs.planet4.actionButton.onClick, visual.ActOnPlanet4);
         AddPersistent(refs.planet5.actionButton.onClick, visual.ActOnPlanet5);
-        AddPersistent(refs.destinations[0].onClick, visual.OpenDestination0);
-        AddPersistent(refs.destinations[1].onClick, visual.OpenDestination1);
-        AddPersistent(refs.destinations[2].onClick, visual.OpenDestination2);
-        AddPersistent(refs.destinations[3].onClick, visual.OpenDestination3);
         AddPersistent(refs.navigation[0].onClick, visual.OpenGalaxy);
         AddPersistent(refs.navigation[1].onClick, visual.OpenExplore);
         AddPersistent(refs.navigation[2].onClick, visual.OpenHangar);
@@ -162,8 +148,7 @@ public static class Dimension1AncientOrbitsSetup
             EditorUtility.SetDirty(globalBackground);
         }
 
-        Dimension1PremiumNavigationApply.PrepareAssets();
-        Dimension1PremiumNavigationApply.ApplyToRoot(root, 0);
+        Dimension1SharedShellApply.ApplyToRoot(root);
         EditorUtility.SetDirty(visual);
         EditorUtility.SetDirty(panel);
         EditorSceneManager.MarkSceneDirty(scene);
@@ -244,7 +229,7 @@ public static class Dimension1AncientOrbitsSetup
         Image wellStars = Image("Starfield", well, starfield, Hex("B8E9FF", 175));
         Stretch(wellStars.rectTransform, new Vector2(6f, 6f), new Vector2(6f, 6f));
         Image planet = Image("PlanetArt", well, planetSprite, Color.white);
-        Top(planet.rectTransform, 24f, 52f, 342f, 342f);
+        Center(planet.rectTransform, Vector2.zero, new Vector2(342f, 342f));
         planet.preserveAspect = true;
 
         TMP_Text title = Text("PlanetTitle", card, font, titleValue, 40f, FontStyles.Bold, Primary);
@@ -318,7 +303,7 @@ public static class Dimension1AncientOrbitsSetup
             new Vector2(1028f, 242f), Fill, CyanMuted, out _, out _);
         Segment(panel, "TitleLineL", new Vector2(-392f, 96f), new Vector2(-210f, 96f), 2f, CyanMuted);
         Segment(panel, "TitleLineR", new Vector2(210f, 96f), new Vector2(392f, 96f), 2f, CyanMuted);
-        TMP_Text title = Text("Title", panel, font, "DESTINOS DISPONIBLES", 25f, FontStyles.Normal, Cyan);
+        TMP_Text title = Text("Title", panel, font, "DESTINOS DEL SECTOR", 25f, FontStyles.Normal, Cyan);
         Top(title.rectTransform, 286f, 10f, 456f, 38f);
         title.alignment = TextAlignmentOptions.Center;
         title.characterSpacing = 1.3f;
@@ -333,17 +318,22 @@ public static class Dimension1AncientOrbitsSetup
             icon.preserveAspect = true;
             TMP_Text label = Text("Label", button.transform, font, names[i], 20f, FontStyles.Normal, Secondary);
             Top(label.rectTransform, 10f, 114f, 206f, 52f);
-            label.enableWordWrapping = true;
+            label.textWrappingMode = TextWrappingModes.Normal;
             label.overflowMode = TextOverflowModes.Overflow;
             label.alignment = TextAlignmentOptions.Center;
+            TMP_Text status = Text("Status", button.transform, font, "NO ESCANEADO", 17f,
+                FontStyles.Bold, Amber);
+            Top(status.rectTransform, 12f, 86f, 202f, 28f);
+            status.alignment = TextAlignmentOptions.Center;
             refs.destinations.Add(button);
+            refs.destinationStatuses.Add(status);
         }
     }
 
     private static void BuildBackToMap(Transform root, Sprite frame, Sprite fill, TMP_FontAsset font, BuildRefs refs)
     {
         refs.backToMap = ButtonPanel("BackToGalaxyMap", root, frame, fill,
-            new Vector2(240f, 1533f), new Vector2(600f, 84f), FillRaised, CyanMuted, out _, out _);
+            new Vector2(240f, 1314f), new Vector2(600f, 92f), FillRaised, CyanMuted, out _, out _);
         Segment(refs.backToMap.transform, "ArrowShaft", new Vector2(-242f, 0f), new Vector2(-222f, 0f), 4f, Cyan);
         Segment(refs.backToMap.transform, "ArrowUpper", new Vector2(-242f, 0f), new Vector2(-232f, 10f), 4f, Cyan);
         Segment(refs.backToMap.transform, "ArrowLower", new Vector2(-242f, 0f), new Vector2(-232f, -10f), 4f, Cyan);
@@ -386,13 +376,33 @@ public static class Dimension1AncientOrbitsSetup
             throw new InvalidOperationException("Falta la raíz o controlador de Órbitas Antiguas.");
         string[] required =
         {
-            "Heading", "AllMetals", "Planet4", "Planet5", "Destinations",
-            "Destination_0", "Destination_3", "BackToGalaxyMap", "BottomNavigation"
+            "Heading", "AllMetals", "Planet4", "Planet5",
+            "BackToGalaxyMap", "BottomNavigation"
         };
         foreach (string name in required)
             if (FindChild(root, name) == null) throw new InvalidOperationException("Falta " + name + ".");
-        if (root.GetComponentsInChildren<Button>(true).Length < 13)
+        if (root.GetComponentsInChildren<Button>(true).Length < 9)
             throw new InvalidOperationException("Faltan interacciones de Órbitas Antiguas.");
+
+        Image background = FindDirectChild(root, "Background")?.GetComponent<Image>();
+        if (background == null || background.raycastTarget)
+            throw new InvalidOperationException("El fondo de Órbitas Antiguas no puede interceptar clics.");
+
+        ValidateCenteredPlanet(root, "Planet4");
+        ValidateCenteredPlanet(root, "Planet5");
+    }
+
+    private static void ValidateCenteredPlanet(Transform root, string cardName)
+    {
+        Transform card = FindDirectChild(root, cardName);
+        Transform well = FindDirectChild(card, "PlanetWell");
+        RectTransform art = FindDirectChild(well, "PlanetArt") as RectTransform;
+        if (art == null || art.anchorMin != new Vector2(.5f, .5f) ||
+            art.anchorMax != new Vector2(.5f, .5f) || art.pivot != new Vector2(.5f, .5f) ||
+            art.anchoredPosition.sqrMagnitude > .0001f)
+        {
+            throw new InvalidOperationException("El planeta no está centrado dentro de " + cardName + ".");
+        }
     }
 
     private static RectTransform Panel(string name, Transform parent, Sprite frame, Sprite fill,
@@ -458,7 +468,7 @@ public static class Dimension1AncientOrbitsSetup
         text.fontStyle = style;
         text.color = color;
         text.alignment = TextAlignmentOptions.Left;
-        text.enableWordWrapping = false;
+        text.textWrappingMode = TextWrappingModes.NoWrap;
         text.overflowMode = TextOverflowModes.Truncate;
         text.raycastTarget = false;
         return text;
@@ -470,6 +480,14 @@ public static class Dimension1AncientOrbitsSetup
         rect.pivot = new Vector2(0f, 1f);
         rect.anchoredPosition = new Vector2(x, -y);
         rect.sizeDelta = new Vector2(width, height);
+    }
+
+    private static void Center(RectTransform rect, Vector2 position, Vector2 size)
+    {
+        rect.anchorMin = rect.anchorMax = new Vector2(.5f, .5f);
+        rect.pivot = new Vector2(.5f, .5f);
+        rect.anchoredPosition = position;
+        rect.sizeDelta = size;
     }
 
     private static void Stretch(RectTransform rect, Vector2 insetMin = default, Vector2 insetMax = default)

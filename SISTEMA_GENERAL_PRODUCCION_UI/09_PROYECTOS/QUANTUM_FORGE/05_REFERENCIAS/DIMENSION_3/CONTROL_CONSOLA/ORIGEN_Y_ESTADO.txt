@@ -1,0 +1,20 @@
+REFERENCIA — CONTROL DE CONSOLA · DIMENSIÓN 3
+=============================================
+
+Archivo canónico:
+- referencia_control_consola_final_1080x1920.png
+
+Origen:
+- copia exacta de ENTREGABLES/Dimension3_11_Pantallas_Finales_1080x1920_ORDENADAS_01-11/07_Control_Consola.png;
+- seleccionada por el usuario el 7 de septiembre de 2026 mediante captura del chat;
+- SHA-256: E54FB70BAF0204A489988629DA17A5A10EC1E5F039C4503D8CFEF58301311286.
+
+Estado:
+- autoridad visual vigente para la composición estática;
+- todavía no es captura de Unity aprobada;
+- exige captura nueva 1080x1920 y 720x1280, validación real y aprobación del usuario.
+
+Autoridad funcional:
+- D3ConsolePanelUI, D3ConsoleSystem y D3FacilitySystem;
+- escenario: Consola N2, Equilibrio, reserva 10K LE y 100 T,
+  Higgs/Tetra autorizados y registro del Triángulo bloqueado hasta N5.

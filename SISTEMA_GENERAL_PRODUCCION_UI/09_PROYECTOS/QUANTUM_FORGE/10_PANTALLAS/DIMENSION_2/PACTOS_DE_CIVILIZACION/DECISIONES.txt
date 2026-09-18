@@ -1,0 +1,33 @@
+DECISIONES — PACTOS DE CIVILIZACIÓN
+
+31 de agosto de 2026
+
+1. La referencia V4 permanente es la autoridad visual; el marco del visor y los
+   tiradores blancos del adjunto temporal no forman parte de la pantalla.
+2. D2CivilizationPactsPanelUI es el propietario único de textos, selección,
+   ranuras, acciones y navegación. D2CivilizationPactSystem conserva la propiedad
+   exclusiva de costes, límites, requisitos, mantenimiento y efectos.
+3. Los cinco Pactos se muestran al desbloquear legítimamente la sección. La regla
+   progresiva anterior al desbloqueo no se modifica y sigue cubierta por P4.
+4. El indicador 1/2 representa la capacidad visual potencial de la referencia.
+   Mientras el segundo espacio siga bloqueado, el límite funcional real es uno.
+5. La selección usa IDs estables y overlays que no interceptan raycasts. Hospedaje
+   parte seleccionado porque ese es el estado neutral de la referencia V4.
+6. Los recursos y textos funcionales se renderizan con TMP y cultura invariante;
+   no se hornean cifras cambiantes dentro de la imagen base.
+7. El segundo espacio bloqueado siempre permanece visible. Al desbloquearlo se
+   reemplaza el interior por su overlay de estado completado sin duplicar reglas.
+8. La ranura de Hospedaje horneada en la composición neutral se cubre con un
+   overlay cuando deja de ser el primer Pacto activo; los demás medallones se
+   renderizan dinámicamente mediante el mismo catálogo de IDs.
+9. La captura QA usa botones reales a través de EventSystem y restaura el estado
+   V4 después de probar selección, cancelación, activación y límite de ranuras.
+10. La captura no se archiva como aprobada hasta recibir confirmación visual del
+    usuario, aunque los gates técnicos y el 95 % ya hayan pasado.
+11. El círculo vacío del segundo espacio no es un faltante: representa una ranura
+    potencial todavía sin Pacto. El panel contiguo comunica su bloqueo. Tras comprar
+    la ranura y activar un segundo Pacto, el controlador coloca allí su medallón.
+12. Los botones de acción y los pictogramas de detalle/requisitos son capas estáticas
+    recuperadas de la V4; sus textos y estados continúan siendo dinámicos.
+13. Los títulos Consagración y Voto Silencioso usan la coordenada vertical 710 para
+    conservar separación respecto de sus medallones sin alterar iconos ni hit areas.

@@ -1,0 +1,27 @@
+ORIGEN Y USO — RUINAS SEPULTADAS / ARQUEOLOGÍA
+
+Asset:
+- D2_RuinsArchaeology_CleanBasePlate_v1.png
+
+Referencia visual autorizada:
+- SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/16_Ruinas_Sepultadas_Arqueologia_Corregida_V4.png
+- Resolución de referencia: 941 x 1672.
+- SHA-256 de la referencia: 26564F6CE769FC2A5C0EB1B9769F87B91375324ADEA36C3149B68CE854551C8E
+
+Herramienta y modo:
+- OpenAI ImageGen, edición precisa sobre la referencia V4.
+- La salida se conservó a 941 x 1672 y se usa como placa estructural sin tipografía ni estados variables.
+
+Prompt exacto:
+Use case: precise-object-edit.
+Asset type: production clean base plate for the Unity screen Ruinas Sepultadas — Arqueología.
+Input images: Image 1 is the exact V4 edit target and sole authority for composition.
+Primary request: Create a clean 941x1672 base plate from Image 1. Preserve exactly the outer frame, back and help button plates, all panel borders and dividers, the three archaeological zone illustrations (arched entrance, inscription tablet, sealed circular sanctuary), all empty diamond number plaques, all empty research bar frames, the three fixed resource diamond icons, the header icons, the four detail-row pictorial icons, the bottom navigation pictorial icons and plates, stone/metal textures, scratches, lighting, spacing and geometry.
+Remove ONLY every letter, word, numeral, percentage and typographic glyph; remove every colored research-progress fill while keeping each empty bar frame; remove the purple selected border and purple glow from Zone 3, converting its frame to the same neutral teal/bronze treatment as Zones 1 and 2; remove the complete right-side vertical progress rail, its dashed segments and both diamond markers; remove the purple fill/glow from the main action button while preserving its empty structural button plate.
+Reconstruct removed areas seamlessly from the immediately surrounding local material.
+Constraints: Keep the original full portrait canvas and pixel-aligned layout. Do not crop, resize, redesign, move, recolor, simplify or add any object. Do not alter the three zone illustrations or any fixed pictorial icon. No text, numbers, glyphs, watermark, green screen or checkerboard. Output one complete clean production plate.
+
+Reglas de integración:
+- La placa no es dueña de textos, cifras, porcentajes, selección, barras ni estados interactivos.
+- Unity superpone esos elementos desde D2Civilization3PanelUI y Dimension2Block1UISetup.
+- La navegación ANALIZAR se mantiene visual y no se conecta hasta implementar su pantalla específica.

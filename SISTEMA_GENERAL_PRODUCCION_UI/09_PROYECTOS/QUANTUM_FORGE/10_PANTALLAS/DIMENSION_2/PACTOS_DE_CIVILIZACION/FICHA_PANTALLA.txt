@@ -1,0 +1,44 @@
+FICHA DE PANTALLA — DIMENSIÓN 2 / PACTOS DE CIVILIZACIÓN
+
+Estado: APROBADA VISUALMENTE POR EL USUARIO; EVIDENCIA 1080/720 REGISTRADA.
+Fecha: 31 de agosto de 2026.
+Raíz Unity: D2_Civ1_PactsSection.
+Constructor canónico: Dimension2Block1UISetup.BuildCivilization1Placeholder.
+Controlador único: D2CivilizationPactsPanelUI.
+Reglas y datos: D2CivilizationPactSystem y D2Civilization1PresentationRules.
+
+Referencia:
+05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/07_Pactos_De_Civilizacion_Corregidos_V4.png
+SHA-256: D874A14CD77F56412AFE5FC2F624630DFE53D560055FF6CE8A31F035EBB68746.
+
+Composición:
+- Cabecera con Atrás, Confianza, Acólitos, Cera y Pan ritual dinámicos.
+- Cinco tarjetas seleccionables por ID estable: Hospedaje, Camino Abierto,
+  Consagración, Voto Silencioso y Puerta Interior.
+- Dos espacios visuales; el segundo permanece bloqueado hasta su compra real.
+- Detalle dinámico con beneficio, compromiso, estado y acciones.
+- Aviso permanente de que cancelar no devuelve el coste de activación.
+- Navegación inferior de siete rutas con Pactos seleccionado.
+
+Escenario QA V4:
+- Confianza 280/500; 1,280 Acólitos; Cera y Pan ritual 3,450.
+- Hospedaje seleccionado y activo.
+- Beneficio +35 % llegada de Seguidores.
+- Compromiso: consume 1 Pan ritual por minuto.
+- Un Pacto activo de dos espacios visuales potenciales.
+- Segundo espacio bloqueado: 400 Confianza, Noviciado 4, 10 Acólitos,
+  300 Cera y 300 Pan ritual.
+
+Evidencia:
+- STRUCTURE_PASS, STATE_PASS, ACTIONS_PASS y ROUTE_PASS.
+- Selección de tarjetas, cancelación sin reembolso, reactivación con descuento
+  60 Cera/90 Pan y rechazo de un segundo Pacto con una sola ranura utilizable.
+- Capturas reales 1080x1920 y 720x1280.
+- Similitud percibida AA oficial tras pulido: 95.59 % en 1080 y 95.96 % en 720.
+- Los títulos Consagración y Voto Silencioso se ubican en la franja inferior segura
+  de sus tarjetas, separados de la huella visual de los medallones.
+- El segundo espacio vacío se probó bloqueado y, después de desbloquearlo y activar
+  Camino Abierto, recibió correctamente su medallón dinámico.
+- Regresión P4/P3/P2/P1 exitosa; Pactos validado dentro de D2-6.
+- La evidencia fue aprobada por el usuario con el cierre de Dimensión 2 el
+  4 de septiembre de 2026.

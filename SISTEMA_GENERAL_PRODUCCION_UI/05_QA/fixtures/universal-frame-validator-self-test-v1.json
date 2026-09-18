@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "source_project": "SolitarioUnity",
+  "archived_at": "2026-09-14T20:55:00Z",
+  "valid_fixture": {"expected": "PASS", "actual": "PASS", "failures": []},
+  "negative_fixtures": [
+    {"name": "translated_numeric_pattern", "expected": "FAIL", "actual": "FAIL", "failures": ["theme override forbidden: translation"]},
+    {"name": "scaled_numeric_pattern", "expected": "FAIL", "actual": "FAIL", "failures": ["theme override forbidden: scale"]},
+    {"name": "moved_index_center", "expected": "FAIL", "actual": "FAIL", "failures": ["theme override forbidden: index_centers"]},
+    {"name": "reduced_numeric_pip_size", "expected": "FAIL", "actual": "FAIL", "failures": ["theme override forbidden: numeric_pip_size"]},
+    {"name": "reduced_index_suit_size", "expected": "FAIL", "actual": "FAIL", "failures": ["theme override forbidden: index_suit_size"]},
+    {"name": "frame_reserved_zone_too_small", "expected": "FAIL", "actual": "FAIL", "failures": ["frame clear region does not contain universal central_numeric zone"]},
+    {"name": "frame_art_intrudes_reserved_zone", "expected": "FAIL", "actual": "FAIL", "failures": ["frame art intrudes a universal reserved zone"]},
+    {"name": "unapproved_universal_geometry", "expected": "FAIL", "actual": "FAIL", "failures": ["universal geometry is not LOCKED by explicit user approval"]},
+    {"name": "modified_locked_geometry_without_reapproval", "expected": "FAIL", "actual": "FAIL", "failures": ["geometry_sha256 does not match canonical geometry", "locked geometry requires a matching sha256", "locked geometry hash lacks matching explicit user approval"]}
+  ],
+  "required_fixture_coverage": [
+    "frame_art_intrudes_reserved_zone",
+    "frame_reserved_zone_too_small",
+    "modified_locked_geometry_without_reapproval",
+    "moved_index_center",
+    "reduced_index_suit_size",
+    "reduced_numeric_pip_size",
+    "scaled_numeric_pattern",
+    "translated_numeric_pattern",
+    "unapproved_universal_geometry"
+  ],
+  "produced_fixture_coverage": [
+    "frame_art_intrudes_reserved_zone",
+    "frame_reserved_zone_too_small",
+    "modified_locked_geometry_without_reapproval",
+    "moved_index_center",
+    "reduced_index_suit_size",
+    "reduced_numeric_pip_size",
+    "scaled_numeric_pattern",
+    "translated_numeric_pattern",
+    "unapproved_universal_geometry"
+  ],
+  "self_test_failures": []
+}

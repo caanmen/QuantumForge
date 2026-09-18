@@ -32,6 +32,7 @@ public static class UpgradeStudyValidation
             ValidateTriangleEnergyEconomy(state);
             ValidateSingleActiveAndConclusion(state);
             ValidateIndependentProgressAndTuning(state);
+            ValidateGlobalTraceResonance(state, manager);
             ValidateSynchronizationMemory(state);
             ValidateKeycardProject(state);
             ValidateStateRoundTrip(state);
@@ -90,9 +91,9 @@ public static class UpgradeStudyValidation
 
     private static void ValidateTriangleEnergyEconomy(GameState state)
     {
-        state.triangleSystemUnlocked = true;
-        state.triangleActiveCircuit = TriangleCircuitType.Energy;
-        state.triangleSynchronization = 1f;
+        state.triangleSystemUnlocked = false;
+        state.triangleActiveCircuit = TriangleCircuitType.None;
+        state.triangleSynchronization = 0f;
         state.triangleSynchronizationBaseRatePerSecond = 0.0;
         state.triangleEnergy = 0.0;
         state.LE = 1000.0;
@@ -102,7 +103,7 @@ public static class UpgradeStudyValidation
         Require(generator != null && generator.level == 1,
             "El Modulador no quedó como primer nivel del Captador.");
         Require(Math.Abs(state.CalculateTriangleEnergyPerSecond() - 1.0) < 0.0001,
-            "La producción base de Energía no es 1/s.");
+            "El Captador comprado no produce 1 Energía/s antes de Acople.");
         double preview = state.GetBuildingNextLevelTriangleEnergyPerSecond(generator);
         double leCost = state.GetTriangleEnergyGeneratorLECost();
         double traceCost = state.GetTriangleEnergyGeneratorTraceCost();
@@ -114,16 +115,31 @@ public static class UpgradeStudyValidation
         Require(Math.Abs(state.LE - (leBefore - leCost)) < 0.0001 &&
             Math.Abs(state.Traces - (tracesBefore - traceCost)) < 0.0001,
             "El Captador no descontó LE y Trazas de forma atómica.");
-        Require(Math.Abs(preview - 0.1) < 0.0001 &&
-            Math.Abs(state.CalculateTriangleEnergyPerSecond() - 1.1) < 0.0001,
+        Require(Math.Abs(preview - 0.05) < 0.0001 &&
+            Math.Abs(state.CalculateTriangleEnergyPerSecond() - 1.05) < 0.0001,
             "La ganancia mostrada del Captador no coincide con la producción real.");
+        Require(!state.CanUseTriangleCircuits() &&
+                state.triangleActiveCircuit == TriangleCircuitType.None,
+            "Producir Energía antes de Acople desbloqueó circuitos por accidente.");
+
+        MethodInfo generateEnergy = typeof(GameState).GetMethod(
+            "GenerateTriangleEnergy", BindingFlags.Instance | BindingFlags.NonPublic);
+        Require(generateEnergy != null,
+            "No se encontró la ruta real de generación de Energía.");
+        generateEnergy.Invoke(state, new object[] { 20.0 });
+        Require(Math.Abs(state.triangleEnergy - 21.0) < 0.0001,
+            "El Captador nivel 2 no acumuló 21 de Energía en 20 segundos.");
+
+        state.triangleSystemUnlocked = true;
+        state.triangleActiveCircuit = TriangleCircuitType.Energy;
+        state.triangleSynchronization = 1f;
 
         Require(state.SetTriangleCircuit(TriangleCircuitType.Phase),
             "No se pudo elegir el enfoque Energía.");
         Require(Math.Abs(state.triangleSynchronization - 0.5f) < 0.0001,
             "Cambiar de enfoque no reinició la sincronización al 50%.");
         state.triangleSynchronization = 1f;
-        Require(Math.Abs(state.CalculateTriangleEnergyPerSecond() - 1.43) < 0.0001,
+        Require(Math.Abs(state.CalculateTriangleEnergyPerSecond() - 1.365) < 0.0001,
             "El enfoque Energía no aplica su 30% a la producción real.");
 
         state.triangleEnergy = 0.0;
@@ -159,9 +175,15 @@ public static class UpgradeStudyValidation
         Require(Math.Abs(state.upgradeStudies.activeProgressSeconds - 200.0) < 0.001,
             "Cambiar de enfoque pausó una investigación ya iniciada.");
         UpgradeStudySystem.GetTuningTarget(state, out float amplitude, out float frequency);
+        UpgradeStudySystem.SetTuningValues(state, amplitude, frequency < 0.5f ? 1f : 0f);
+        Require(!UpgradeStudySystem.IsTuningReady(state) &&
+            !UpgradeStudySystem.TryApplyActiveTuning(state, out _, out _),
+            "Una sola barra correcta permitió estabilizar la firma.");
         UpgradeStudySystem.SetTuningValues(state, amplitude, frequency);
         Require(UpgradeStudySystem.TryApplyActiveTuning(state, out double accuracy,
-            out double secondsApplied) && accuracy >= 0.86 && secondsApplied > 0.0,
+            out double secondsApplied) &&
+            accuracy >= UpgradeStudySystem.TuningMinimumChannelAccuracy &&
+            secondsApplied > 0.0,
             "La sintonización activa correcta no aceleró el estudio.");
         Require(UpgradeStudySystem.TryRevealConclusion(state, out _),
             "La aceleración activa no permitió concluir el estudio de LE.");
@@ -186,6 +208,10 @@ public static class UpgradeStudyValidation
             "Memoria no exigió un cambio de circuito.");
         UpgradeStudySystem.RecordCircuitSwitch(state,
             TriangleCircuitType.Energy, TriangleCircuitType.Experimental);
+        UpgradeStudySystem.RecordCircuitSynchronized(state,
+            TriangleCircuitType.Energy);
+        UpgradeStudySystem.RecordCircuitSynchronized(state,
+            TriangleCircuitType.Experimental);
         Require(UpgradeStudySystem.TryStartStudy(state,
             "study_triangle_persistence_anchor"),
             "Memoria no aceptó un circuito cambiado y sincronizado.");
@@ -202,6 +228,29 @@ public static class UpgradeStudyValidation
         UpgradeStudySystem.Advance(state, 300.0);
         Require(UpgradeStudySystem.TryRevealConclusion(state, out _),
             "No reveló Captación Resonante.");
+    }
+
+    private static void ValidateGlobalTraceResonance(
+        GameState state, F2UpgradeManager manager)
+    {
+        state.triangleSystemUnlocked = true;
+        state.triangleSynchronization = 1f;
+        state.Traces = 1000.0;
+        Require(manager.TryBuy("triangle_synergy_resonance"),
+            "No se pudo comprar Rastreo Resonante tras revelarlo.");
+
+        state.triangleActiveCircuit = TriangleCircuitType.Experimental;
+        Require(Math.Abs(state.GetTriangleTracesMultiplier() - 1.243) < 0.0001,
+            "Rastreo Resonante no sumó +13% global al circuito de Trazas.");
+        state.triangleActiveCircuit = TriangleCircuitType.Energy;
+        Require(Math.Abs(state.GetTriangleTracesMultiplier() - 1.017) < 0.0001,
+            "Rastreo Resonante dejó de actuar al cambiar al circuito de LE.");
+
+        Require(manager.TryBuy("triangle_synergy_resonance"),
+            "No se pudo comprar el segundo nivel de Rastreo Resonante.");
+        state.triangleActiveCircuit = TriangleCircuitType.Experimental;
+        Require(Math.Abs(state.GetTriangleTracesMultiplier() - 1.265) < 0.0001,
+            "Rastreo Resonante no aplicó su +15% global final.");
     }
 
     private static void ValidateKeycardProject(GameState state)

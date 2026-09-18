@@ -1,0 +1,56 @@
+RESUMEN DE CONTINUIDAD — MONOLITO 2D V13 — 2026-08-27
+
+AUTORIDAD ACTUAL
+
+- No se usa ningún cubo ni representación 3D.
+- El Monolito es alienígena; el laboratorio humano quedó abandonado tras un accidente.
+- La composición general aprobada V26 vuelve a ser inmutable: escala 0,72 y posición `(0, 34)`.
+- El fondo V31 es propietario exclusivo del marco de suelo. El Monolito no se mueve para
+  compensar el marco.
+- Vista general: sólo cuatro luces de entrada en los centros canónicos; sin nodos, símbolos,
+  textos explicativos ni `???`.
+
+ASSETS ACTIVOS V31
+
+- Fondo general:
+  `Assets/Project/UI/Vertical/Machine/Monolith2D/machine_destroyed_lab_monolith_fit_square_v31.png`.
+- Fondo cercano común V27:
+  `Assets/Project/UI/Vertical/Machine/Monolith2D/machine_destroyed_lab_close_dolly_square_v27.png`.
+- Caras:
+  `monolith_sector_1_surface_progression_v31.png`,
+  `monolith_sector_2_surface_progression_v31.png`,
+  `monolith_sector_3_surface_progression_v31.png`,
+  `monolith_sector_4_surface_progression_v31.png`.
+- Los candidatos permanentes están duplicados en `CANDIDATOS_V31`; no dependen de rutas
+  temporales del chat.
+
+CARAS Y ESTADOS
+
+- Sector 1: superior izquierdo, 7 nodos.
+- Sector 2: inferior derecho, 11 nodos.
+- Sector 3: superior derecho, 7 nodos.
+- Sector 4: inferior izquierdo, accesible, oscuro, sin nodos y con un único `???` como capa
+  Unity separada dentro de la cara.
+- Las cuatro hojas usan alfa real y geometría propia. No incluyen huecos de nodo, sockets,
+  cráteres, relieves, montículos ni símbolos horneados.
+- Los símbolos siguen separados: 64 px visibles, 104 px táctiles; alfa 0,16 dañado, 0,30
+  dañado seleccionado y 1,00 reparado.
+- Las caras 1 y 3 usan ancho cercano 10 % mayor y posiciones propias para mantener sus siete
+  firmas dentro de la superficie útil. No existen offsets por etapa.
+
+TRANSICIÓN Y PRUEBAS
+
+- La transición V28/V31 mantiene origen y destino preparados, mismo laboratorio por capas,
+  paralaje y ningún fotograma vacío.
+- Reconstrucción PASS: `Logs/machine_monolith_v31_setup_2.log`.
+- Captura completa PASS: `Logs/machine_monolith_v31_capture_2.log`.
+- Evidencia actual: 32 PNG en `Logs/VisualQA/MachineMonolith2D`, 1080×1920 y 720×1280;
+  general inicial/reparado, cuatro caras, tres caras reparadas, Mezclas, regreso y transición
+  0/25/50/75/100.
+- Las capturas son candidatas. No archivarlas en `06_CAPTURAS_APROBADAS` ni declarar 95 %
+  hasta aprobación visual explícita del usuario.
+
+SIGUIENTE DECISIÓN
+
+- El usuario debe aprobar o corregir visualmente: encaje del marco V31, anchura de las cuatro
+  caras, posición de símbolos y lectura de desgaste. Sólo después se archivan capturas.

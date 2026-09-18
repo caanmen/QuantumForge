@@ -1,0 +1,20 @@
+QUANTUM FORGE — MÁQUINA / PRESTIGIO 1
+
+Estado: REFERENCIA VISUAL APROBADA POR EL USUARIO
+Fecha: 2026-09-09
+
+La imagen 01 define la composición estática de la entrada a Prestigio 1 a 1080×1920.
+La imagen 02 es su reducción de comprobación a 720×1280.
+
+Autoridad visual exclusiva de esta pantalla:
+- Cabecera y recursos de la familia MÁQUINA.
+- Tres pestañas contextuales centradas; PRESTIGIO activo.
+- Encabezado ancho y centrado del protocolo.
+- Monolito visible sin que el panel inferior tape su silueta principal.
+- Panel inferior alto, limpio y jerárquico: progreso, requisitos en filas,
+  efectos en lista y acción principal superpuesta al borde inferior.
+- Navegación vertical existente debajo del contenido.
+
+La imagen es referencia visual, no captura de Unity ni asset único de producción.
+Debe descomponerse en arte canónico, marcos, textos y controles reales.
+

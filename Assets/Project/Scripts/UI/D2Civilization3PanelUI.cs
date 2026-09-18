@@ -9,12 +9,14 @@ public class D2Civilization3PanelUI : MonoBehaviour
 
     public Dimension2PanelUI dimension2PanelUI;
     public GameObject archaeologySectionRoot;
+    public GameObject analysisSectionRoot;
     public GameObject archiveSectionRoot;
     public GameObject entityResearchSectionRoot;
     public D2ArchivePanelUI archivePanelUI;
     public D2EntityResearchPanelUI entityResearchPanelUI;
     public Button showEntityResearchButton;
     public Button showArchiveButton;
+    public Button showAnalysisButton;
     public TMP_Text zoneText;
     public TMP_Text lockedZonesText;
     public TMP_Text excavationText;
@@ -43,12 +45,91 @@ public class D2Civilization3PanelUI : MonoBehaviour
     public Button readAnomalyButton;
     public Button backToMapButton;
 
+    [Header("Ruinas Sepultadas — composición V4")]
+    public TMP_Text ancientKnowledgeHeaderText;
+    public TMP_Text ancientKnowledgeHeaderValueText;
+    public TMP_Text archiveHeaderText;
+    public TMP_Text entityKnowledgeHeaderText;
+    public TMP_Text entityKnowledgeHeaderValueText;
+    public TMP_Text[] zoneNumberTexts;
+    public TMP_Text[] zoneNameTexts;
+    public TMP_Text[] zoneResearchValueTexts;
+    public TMP_Text[] zoneResourceNameTexts;
+    public TMP_Text[] zoneResourceValueTexts;
+    public Image[] zoneResearchFillImages;
+    public GameObject[] zoneSelectionOverlays;
+    public GameObject[] zoneRailMarkers;
+    public TMP_Text detailTitleText;
+    public TMP_Text detailExcavationText;
+    public TMP_Text remainsLowText;
+    public TMP_Text remainsMediumText;
+    public TMP_Text remainsHighText;
+    public TMP_Text detailAnalysisText;
+    public TMP_Text clueTitleText;
+    public TMP_Text cluePatternText;
+    public TMP_Text clueAccumulationText;
+    public TMP_Text excavationActionText;
+    public Image excavationActionHighlight;
+
+    [Header("Analizar Restos — composición V4")]
+    public Button analysisBackButton;
+    public Button analysisExcavateButton;
+    public Button analysisArchiveButton;
+    public Button analysisEntityButton;
+    public Button[] analysisQualityButtons;
+    public Button analysisActionButton;
+    public GameObject[] analysisQualitySelectionOverlays;
+    public TMP_Text analysisZoneTitleText;
+    public TMP_Text analysisAncientKnowledgeValueText;
+    public TMP_Text analysisResourceNameText;
+    public TMP_Text analysisResourceValueText;
+    public TMP_Text[] analysisQualityNameTexts;
+    public TMP_Text[] analysisQualityCountTexts;
+    public TMP_Text analysisTotalRemainsText;
+    public TMP_Text analysisAvailabilityText;
+    public TMP_Text analysisSelectedQualityText;
+    public TMP_Text analysisDurationText;
+    public TMP_Text analysisRewardsText;
+    public TMP_Text[] analysisRewardLineTexts;
+    public TMP_Text analysisActionText;
+    public TMP_Text analysisScholarTitleText;
+    public TMP_Text analysisScholarNextText;
+    public TMP_Text analysisScholarUpgradeText;
+    public TMP_Text analysisResearchTitleText;
+    public TMP_Text analysisResearchValueText;
+    public Image analysisResearchFillImage;
+    public TMP_Text[] analysisCivilization1ResourceValueTexts;
+
+    private string _selectedAnalysisQualityId = D2Civilization3System.MediumQualityId;
+
     private void Awake()
     {
         if (showEntityResearchButton != null)
             showEntityResearchButton.onClick.AddListener(ShowEntityResearch);
         if (showArchiveButton != null)
             showArchiveButton.onClick.AddListener(ShowArchive);
+        if (showAnalysisButton != null)
+            showAnalysisButton.onClick.AddListener(ShowAnalysis);
+        if (analysisBackButton != null)
+            analysisBackButton.onClick.AddListener(ShowArchaeology);
+        if (analysisExcavateButton != null)
+            analysisExcavateButton.onClick.AddListener(ShowArchaeology);
+        if (analysisArchiveButton != null)
+            analysisArchiveButton.onClick.AddListener(ShowArchive);
+        if (analysisEntityButton != null)
+            analysisEntityButton.onClick.AddListener(ShowEntityResearch);
+        if (analysisQualityButtons != null)
+        {
+            for (int i = 0; i < analysisQualityButtons.Length; i++)
+            {
+                int qualityIndex = i;
+                if (analysisQualityButtons[i] != null)
+                    analysisQualityButtons[i].onClick.AddListener(
+                        () => SelectAnalysisQuality(qualityIndex));
+            }
+        }
+        if (analysisActionButton != null)
+            analysisActionButton.onClick.AddListener(StartSelectedAnalysis);
         if (excavateButton != null)
             excavateButton.onClick.AddListener(StartExcavation);
         if (zone1Button != null)
@@ -121,8 +202,10 @@ public class D2Civilization3PanelUI : MonoBehaviour
             D2Civilization3PresentationRules.HasExcavationProgress(state);
         bool hasAnalyzed =
             D2Civilization3PresentationRules.HasAnalysisProgress(state);
-        SetActive(showEntityResearchButton, entityFeature.IsVisible);
-        SetActive(showArchiveButton, archiveFeature.IsVisible);
+        // Las cuatro pestañas forman parte permanente del marco de navegación.
+        // Su disponibilidad se expresa con interactabilidad, no ocultando la placa.
+        SetActive(showEntityResearchButton, true);
+        SetActive(showArchiveButton, true);
         SetInteractable(showEntityResearchButton, entityFeature.CanOpen);
         SetInteractable(showArchiveButton, archiveFeature.CanOpen);
         SetButtonLabel(showEntityResearchButton,
@@ -429,6 +512,257 @@ public class D2Civilization3PanelUI : MonoBehaviour
             entityResearchPanelUI.Refresh();
         if (archivePanelUI != null)
             archivePanelUI.Refresh();
+
+        RefreshRuinsReferenceVisual(state, zone);
+        RefreshAnalyzeReferenceVisual(gameState, state, zone);
+    }
+
+    private void RefreshRuinsReferenceVisual(
+        D2Civilization3State state, D2C3ZoneState selectedZone)
+    {
+        SetText(ancientKnowledgeHeaderText, "CONOCIMIENTO ANTIGUO");
+        SetText(ancientKnowledgeHeaderValueText,
+            state.ancientKnowledge.ToString("0.##"));
+        SetText(archiveHeaderText, "ARCHIVO " + ToRomanArchiveLevel(state.archiveLevel));
+        SetText(entityKnowledgeHeaderText, "CONOCIMIENTO DEL ENTE");
+        SetText(entityKnowledgeHeaderValueText,
+            state.entityKnowledge.ToString("0.##") + " / 6");
+
+        string[] zoneIds =
+        {
+            D2Civilization3System.Zone1Id,
+            D2Civilization3System.Zone2Id,
+            D2Civilization3System.Zone3Id
+        };
+        Color bronze = Hex("B18A5C");
+        Color teal = Hex("65C5C5");
+        Color purple = Hex("B286C1");
+
+        for (int i = 0; i < zoneIds.Length; i++)
+        {
+            D2C3ZoneState current = D2Civilization3System.GetZone(state, zoneIds[i]);
+            if (current == null)
+                continue;
+
+            bool selected = current.zoneId == selectedZone.zoneId;
+            Color accent = selected ? purple : bronze;
+            SetTextAt(zoneNumberTexts, i, (i + 1).ToString());
+            SetTextAt(zoneNameTexts, i,
+                "ZONA " + (i + 1) + " · " +
+                D2Civilization3System.GetZoneName(current.zoneId).ToUpperInvariant());
+            SetTextAt(zoneResearchValueTexts, i,
+                current.researchProgress.ToString("0.##") + "%");
+            SetTextAt(zoneResourceNameTexts, i,
+                D2Civilization3System.GetZoneResourceName(current.zoneId).ToUpperInvariant());
+            SetTextAt(zoneResourceValueTexts, i,
+                current.zoneResourceAmount.ToString("N0"));
+
+            SetColorAt(zoneNumberTexts, i, accent);
+            SetColorAt(zoneNameTexts, i, accent);
+            SetActiveAt(zoneSelectionOverlays, i, selected);
+            SetActiveAt(zoneRailMarkers, i, selected);
+            if (zoneResearchFillImages != null && i < zoneResearchFillImages.Length &&
+                zoneResearchFillImages[i] != null)
+            {
+                float progress = Mathf.Clamp01((float)(current.researchProgress / 100.0));
+                zoneResearchFillImages[i].fillAmount = progress;
+                RectTransform fillRect = zoneResearchFillImages[i].rectTransform;
+                Vector2 fillSize = fillRect.sizeDelta;
+                fillSize.x = 289f / 941f * 1080f * progress;
+                fillRect.sizeDelta = fillSize;
+                zoneResearchFillImages[i].color = selected ? purple : teal;
+            }
+        }
+
+        SetText(detailTitleText,
+            D2Civilization3System.GetZoneName(selectedZone.zoneId).ToUpperInvariant());
+        SetText(detailExcavationText,
+            selectedZone.excavationActive
+                ? "EXCAVACIÓN EN CURSO · " +
+                  FormatDuration(selectedZone.excavationRemainingSeconds)
+                : "EXCAVACIÓN DISPONIBLE · DURACIÓN " +
+                  FormatDuration(D2Civilization3System.GetExcavationDuration(state)));
+        SetText(remainsLowText, selectedZone.lowQualityRemains.ToString("N0"));
+        SetText(remainsMediumText, selectedZone.mediumQualityRemains.ToString("N0"));
+        SetText(remainsHighText, selectedZone.highQualityRemains.ToString("N0"));
+        SetText(detailAnalysisText,
+            selectedZone.scholarHired
+                ? "ANÁLISIS DISPONIBLE · " +
+                  D2Civilization3System.GetScholarName(selectedZone.zoneId).ToUpperInvariant() +
+                  " NIVEL " + selectedZone.scholarLevel + "/3"
+                : "ANÁLISIS BLOQUEADO · REQUIERE " +
+                  D2Civilization3System.GetScholarName(selectedZone.zoneId).ToUpperInvariant());
+        SetText(clueTitleText,
+            D2Civilization3System.GetClueName(selectedZone.zoneId).ToUpperInvariant());
+        long clueRequirement =
+            D2Civilization3System.GetAnomalyClueRequirement(selectedZone.zoneId);
+        SetText(cluePatternText,
+            "PATRÓN        " + selectedZone.anomalyClues.ToString("N0") + " / " +
+            clueRequirement.ToString("N0"));
+        SetText(clueAccumulationText,
+            "ACUMULACIÓN        " +
+            (selectedZone.anomalyClueProgress * 100.0).ToString("0.##") + "%");
+        SetText(excavationActionText,
+            selectedZone.excavationActive ? "EXCAVACIÓN EN CURSO" : "INICIAR EXCAVACIÓN");
+        if (excavationActionHighlight != null)
+            excavationActionHighlight.gameObject.SetActive(!selectedZone.excavationActive);
+    }
+
+    private void RefreshAnalyzeReferenceVisual(
+        GameState gameState,
+        D2Civilization3State state,
+        D2C3ZoneState zone)
+    {
+        if (analysisSectionRoot == null)
+            return;
+
+        string[] qualityIds =
+        {
+            D2Civilization3System.LowQualityId,
+            D2Civilization3System.MediumQualityId,
+            D2Civilization3System.HighQualityId
+        };
+        long[] counts =
+        {
+            zone.lowQualityRemains,
+            zone.mediumQualityRemains,
+            zone.highQualityRemains
+        };
+        Color bronze = Hex("B18A5C");
+        Color purple = Hex("B286C1");
+
+        SetText(analysisZoneTitleText,
+            "ZONA " + GetZoneNumber(zone.zoneId) + " — " +
+            D2Civilization3System.GetZoneName(zone.zoneId).ToUpperInvariant());
+        SetText(analysisAncientKnowledgeValueText,
+            state.ancientKnowledge.ToString("0.##"));
+        SetText(analysisResourceNameText,
+            "Recurso Propio:\n" +
+            D2Civilization3System.GetZoneResourceName(zone.zoneId));
+        SetText(analysisResourceValueText, zone.zoneResourceAmount.ToString("N0"));
+
+        for (int i = 0; i < qualityIds.Length; i++)
+        {
+            bool selected = qualityIds[i] == _selectedAnalysisQualityId;
+            SetTextAt(analysisQualityNameTexts, i,
+                D2Civilization3System.GetQualityName(qualityIds[i]).ToUpperInvariant());
+            SetTextAt(analysisQualityCountTexts, i, counts[i].ToString("N0"));
+            SetColorAt(analysisQualityNameTexts, i, selected ? purple : bronze);
+            SetColorAt(analysisQualityCountTexts, i, selected ? purple : bronze);
+            SetActiveAt(analysisQualitySelectionOverlays, i, selected);
+            if (analysisQualityButtons != null && i < analysisQualityButtons.Length &&
+                analysisQualityButtons[i] != null)
+            {
+                analysisQualityButtons[i].interactable = counts[i] > 0L &&
+                    zone.scholarHired && !zone.analysisActive;
+            }
+        }
+
+        SetText(analysisTotalRemainsText,
+            "TOTAL " + D2Civilization3System.GetTotalRemains(zone).ToString("N0"));
+        SetText(analysisAvailabilityText,
+            zone.analysisActive
+                ? "ANÁLISIS EN CURSO — " +
+                  D2Civilization3System.GetQualityName(zone.analysisQualityId).ToUpperInvariant() +
+                  " " + FormatDuration(zone.analysisRemainingSeconds)
+                : zone.scholarHired
+                    ? "ANÁLISIS DISPONIBLE — SELECCIONA UNA CALIDAD"
+                    : "ANÁLISIS BLOQUEADO — REQUIERE ERUDITO");
+
+        string qualityName =
+            D2Civilization3System.GetQualityName(_selectedAnalysisQualityId).ToUpperInvariant();
+        SetText(analysisSelectedQualityText, "CALIDAD " + qualityName);
+        SetText(analysisDurationText,
+            "DURACIÓN\n" + FormatDuration(D2Civilization3System.GetAnalysisDuration(state, zone)));
+        SetTextAt(analysisRewardLineTexts, 0,
+            D2Civilization3System.GetAncientKnowledgeReward(
+                state, _selectedAnalysisQualityId, zone).ToString("0.##") +
+            "  CONOCIMIENTO ANTIGUO");
+        SetTextAt(analysisRewardLineTexts, 1,
+            D2Civilization3System.GetZoneResourceReward(
+                _selectedAnalysisQualityId).ToString("N0") + "  " +
+            D2Civilization3System.GetZoneResourceName(zone.zoneId).ToUpperInvariant());
+        SetTextAt(analysisRewardLineTexts, 2,
+            "+" + D2Civilization3System.GetResearchReward(
+                _selectedAnalysisQualityId).ToString("0.##") + "%  INVESTIGACIÓN");
+        SetTextAt(analysisRewardLineTexts, 3,
+            "+" + (D2Civilization3System.GetClueProgressReward(
+                _selectedAnalysisQualityId) * 100.0).ToString("0.##") +
+            "%  ACUMULACIÓN DE INDICIOS");
+        SetText(analysisActionText, "ANALIZAR\n" + qualityName);
+        SetInteractable(analysisActionButton,
+            D2Civilization3System.CanStartAnalysis(
+                gameState, zone.zoneId, _selectedAnalysisQualityId));
+
+        SetText(analysisScholarTitleText,
+            D2Civilization3System.GetScholarName(zone.zoneId).ToUpperInvariant() +
+            " — NIVEL " + (zone.scholarHired ? zone.scholarLevel : 0) + "/3");
+        if (zone.scholarHired && zone.scholarLevel < D2Civilization3System.MaxScholarLevel)
+        {
+            int nextLevel = zone.scholarLevel + 1;
+            SetText(analysisScholarNextText,
+                "SIGUIENTE\n" +
+                D2Civilization3System.GetScholarUpgradeKnowledgeCost(
+                    zone.zoneId, nextLevel).ToString("0.##") +
+                "  CONOCIMIENTO\n" +
+                D2Civilization3System.GetScholarUpgradeResourceCost(
+                    zone.zoneId, nextLevel).ToString("N0") + "  " +
+                D2Civilization3System.GetZoneResourceName(zone.zoneId).ToUpperInvariant() +
+                "\nUMBRAL DEL ENTE: " +
+                D2Civilization3System.GetScholarUpgradeEntityKnowledgeRequirement(
+                    nextLevel).ToString("N0"));
+        }
+        else
+        {
+            SetText(analysisScholarNextText,
+                zone.scholarHired ? "NIVEL MÁXIMO" : "ERUDITO NO CONTRATADO");
+        }
+        bool canChangeScholar = zone.scholarHired
+            ? D2Civilization3System.CanUpgradeScholar(gameState, zone.zoneId)
+            : D2Civilization3System.CanHireScholar(gameState, zone.zoneId);
+        SetInteractable(hireScholarButton, canChangeScholar);
+        SetText(analysisScholarUpgradeText,
+            zone.scholarHired ? "MEJORAR ERUDITO" : "CONTRATAR ERUDITO");
+        if (analysisScholarUpgradeText != null)
+            analysisScholarUpgradeText.color = canChangeScholar
+                ? bronze : Hex("6E6861");
+
+        SetText(analysisResearchTitleText,
+            "INVESTIGACIÓN DE ZONA " + GetZoneNumber(zone.zoneId));
+        SetText(analysisResearchValueText, zone.researchProgress.ToString("0.##") + "%");
+        if (analysisResearchFillImage != null)
+        {
+            float progress = Mathf.Clamp01((float)(zone.researchProgress / 100.0));
+            Vector2 fillSize = analysisResearchFillImage.rectTransform.sizeDelta;
+            fillSize.x = 698f / 941f * 1080f * progress;
+            analysisResearchFillImage.rectTransform.sizeDelta = fillSize;
+        }
+
+        D2AltarState wax = D2AltarSystem.GetAltar(
+            gameState.dimension2.civilization1, D2AltarSystem.WaxAltarId);
+        D2AltarState bread = D2AltarSystem.GetAltar(
+            gameState.dimension2.civilization1, D2AltarSystem.RitualBreadAltarId);
+        D2AltarState incense = D2AltarSystem.GetAltar(
+            gameState.dimension2.civilization1, D2AltarSystem.IncenseAltarId);
+        D2AltarState cloth = D2AltarSystem.GetAltar(
+            gameState.dimension2.civilization1, D2AltarSystem.SacredClothAltarId);
+        D2AltarState stone = D2AltarSystem.GetAltar(
+            gameState.dimension2.civilization1, D2AltarSystem.CarvedStoneAltarId);
+        double[] values =
+        {
+            wax != null ? wax.offeringAmount : 0.0,
+            bread != null ? bread.offeringAmount : 0.0,
+            incense != null ? incense.offeringAmount : 0.0,
+            cloth != null ? cloth.offeringAmount : 0.0,
+            stone != null ? stone.offeringAmount : 0.0
+        };
+        for (int i = 0; i < values.Length; i++)
+            SetTextAt(analysisCivilization1ResourceValueTexts, i,
+                values[i].ToString("N0"));
+
+        SetInteractable(showAnalysisButton,
+            D2PresentationRules.GetFeatureState(
+                gameState, PresentationFeatureIds.D2C3Analysis).IsVisible);
     }
 
     private void StartExcavation()
@@ -447,6 +781,21 @@ public class D2Civilization3PanelUI : MonoBehaviour
             GetSelectedZoneId(),
             qualityId
         );
+        Refresh();
+    }
+
+    private void StartSelectedAnalysis()
+    {
+        StartAnalysis(_selectedAnalysisQualityId);
+    }
+
+    private void SelectAnalysisQuality(int qualityIndex)
+    {
+        _selectedAnalysisQualityId = qualityIndex == 0
+            ? D2Civilization3System.LowQualityId
+            : qualityIndex == 2
+                ? D2Civilization3System.HighQualityId
+                : D2Civilization3System.MediumQualityId;
         Refresh();
     }
 
@@ -502,6 +851,8 @@ public class D2Civilization3PanelUI : MonoBehaviour
         RecognizeSection(PresentationFeatureIds.D2C3Archaeology);
         if (archaeologySectionRoot != null)
             archaeologySectionRoot.SetActive(true);
+        if (analysisSectionRoot != null)
+            analysisSectionRoot.SetActive(false);
         if (entityResearchSectionRoot != null)
             entityResearchSectionRoot.SetActive(false);
         if (archiveSectionRoot != null)
@@ -514,6 +865,8 @@ public class D2Civilization3PanelUI : MonoBehaviour
         RecognizeSection(PresentationFeatureIds.D2C3Archive);
         if (archaeologySectionRoot != null)
             archaeologySectionRoot.SetActive(false);
+        if (analysisSectionRoot != null)
+            analysisSectionRoot.SetActive(false);
         if (archiveSectionRoot != null)
             archiveSectionRoot.SetActive(true);
         if (entityResearchSectionRoot != null)
@@ -530,12 +883,28 @@ public class D2Civilization3PanelUI : MonoBehaviour
         RecognizeSection(PresentationFeatureIds.D2C3EntityResearch);
         if (archaeologySectionRoot != null)
             archaeologySectionRoot.SetActive(false);
+        if (analysisSectionRoot != null)
+            analysisSectionRoot.SetActive(false);
         if (archiveSectionRoot != null)
             archiveSectionRoot.SetActive(false);
         if (entityResearchSectionRoot != null)
             entityResearchSectionRoot.SetActive(true);
         if (entityResearchPanelUI != null)
             entityResearchPanelUI.Refresh();
+    }
+
+    public void ShowAnalysis()
+    {
+        RecognizeSection(PresentationFeatureIds.D2C3Analysis);
+        if (archaeologySectionRoot != null)
+            archaeologySectionRoot.SetActive(false);
+        if (analysisSectionRoot != null)
+            analysisSectionRoot.SetActive(true);
+        if (archiveSectionRoot != null)
+            archiveSectionRoot.SetActive(false);
+        if (entityResearchSectionRoot != null)
+            entityResearchSectionRoot.SetActive(false);
+        Refresh();
     }
 
     private static void RecognizeSection(string featureId)
@@ -564,6 +933,39 @@ public class D2Civilization3PanelUI : MonoBehaviour
     {
         if (zoneId == D2Civilization3System.Zone3Id) return "3";
         return zoneId == D2Civilization3System.Zone2Id ? "2" : "1";
+    }
+
+    private static string ToRomanArchiveLevel(int level)
+    {
+        if (level >= 4) return "IV";
+        if (level == 3) return "III";
+        return level == 2 ? "II" : "I";
+    }
+
+    private static Color Hex(string rgb)
+    {
+        ColorUtility.TryParseHtmlString("#" + rgb, out Color color);
+        return color;
+    }
+
+    private static void SetTextAt(TMP_Text[] targets, int index, string value)
+    {
+        if (targets != null && index >= 0 && index < targets.Length)
+            SetText(targets[index], value);
+    }
+
+    private static void SetColorAt(TMP_Text[] targets, int index, Color color)
+    {
+        if (targets != null && index >= 0 && index < targets.Length &&
+            targets[index] != null)
+            targets[index].color = color;
+    }
+
+    private static void SetActiveAt(GameObject[] targets, int index, bool active)
+    {
+        if (targets != null && index >= 0 && index < targets.Length &&
+            targets[index] != null)
+            targets[index].SetActive(active);
     }
 
     private static string GetObjective(

@@ -1,0 +1,69 @@
+FICHA DE PANTALLA: CENTRO DE MANDO
+==================================
+
+ID: D1_CENTRO_DE_MANDO
+Dimensión: 1
+Estado: APROBADA POR EL USUARIO Y ARCHIVADA.
+Referencia: 05_REFERENCIAS/DIMENSION_1/CENTRO_DE_MANDO/referencia_centro_de_mando.png
+Escena principal: Assets/Project/Scenes/Main.unity
+Constructor conocido: Dimension1CommandCenterSetup
+Controlador conocido: Assets/Project/Scripts/UI/Dimension1CommandCenterUI.cs
+Resolución objetivo: vertical 1080 x 1920
+
+Antes de modificar esta pantalla se deben revisar la referencia original, las
+dos guías centrales y el perfil de estilo de Dimensión 1.
+
+VALIDACIÓN ACTUAL — 20 DE AGOSTO DE 2026
+- Construcción reproducible en Main.unity: `[D1 Command Center] INSTALL_PASS`.
+- Validación desde una sesión nueva de Unity: `[D1 Command Center] VALIDATION_PASS`.
+- Cajón: cerrado → abierto → cerrado sin superposición y con navegación localizada dentro
+  de su raíz propietaria: `[D1 Command Drawer Runtime] PASS`.
+- OBJETIVO ACTUAL y PROGRESO GLOBAL respetan el espacio de sus iconos: PASS visual.
+- Capturas neutrales y con cajón abierto en 1080 x 1920 y 720 x 1280: PASS.
+- Raíz protegida por un `Dimension1VisualSkinRoot` persistente después de recargar: PASS.
+- Similitud mínima del 95 %: pendiente de aprobación explícita del usuario.
+
+CORRECCIÓN Y REVALIDACIÓN — 21 DE AGOSTO DE 2026
+- RECOMENDACIÓN ACTUAL y PROGRESO PRESTIGIO 1 describen sus datos reales: PASS.
+- El usuario reprodujo de nuevo Explorar -> Centro y demostró que el PASS anterior era
+  insuficiente: sólo confirmaba la raíz moderna visible y no exigía la raíz legacy inactiva.
+- La transición usa ahora una propiedad explícita de visibilidad y la prueba exige Centro
+  moderno activo, Explorar inactivo e interfaz legacy inactiva: PASS.
+- Causa final confirmada: `ExplorationRewardsPanel` conservaba `activeSelf=true` dentro de
+  la rama legacy inactiva; sólo `activeInHierarchy` puede bloquear una pantalla moderna.
+- Clic físico Explorar -> Centro, comprobación inmediata y sostenida: PASS.
+- Ruta física completa 14/14 con regreso final al Centro moderno exclusivo: PASS.
+- Capturas nuevas 1080 x 1920 y 720 x 1280: PASS.
+
+REDISEÑO VISUAL ELEGIDO — 21 DE AGOSTO DE 2026
+- La primera pasada sustituyó los glifos por arte D1, pero el usuario rechazó esa lectura
+  dentro de las tarjetas. La revisión vigente vuelve a iconos lineales UGUI detallados:
+  radar sectorial, escáner, nave, reliquia, árbol y brújula de expedición: PASS visual.
+- El emblema ambiguo del encabezado se reemplazó por una baliza de mando conectada a tres
+  nodos tácticos, integrada dentro del hexágono existente: PASS visual.
+- El instrumento central conserva el cristal funcional y añade profundidad con el campo
+  estelar canónico; datos, recomendaciones y navegación no cambiaron: PASS.
+- El cristal y su fondo no fueron modificados en la revisión de iconos: PASS.
+- Capturas candidatas de revisión
+  `CAPTURA_CANDIDATA_REVISION_ICONOS_2026-08-21_1080x1920.png` y
+  `CAPTURA_CANDIDATA_REVISION_ICONOS_2026-08-21_720x1280.png`: PASS.
+- Ruta física 14/14 después del rediseño: PASS.
+- Regresión física Explorar -> Centro moderno exclusivo: PASS.
+- Aprobación perceptual final del rediseño: PENDIENTE.
+
+REVISIÓN NUEVA — 2026-09-08
+Se auditó código, escena, navegación física y capturas de Unity en 1080×1920 y
+720×1280. La evidencia anterior se conserva como historial. Consultar
+07_REGISTROS/AUDITORIA_DIMENSION_1_2026-09-08.md y
+08_PRUEBAS/AUDITORIA_D1_2026-09-08 para resultados y correcciones actuales.
+Las capturas nuevas son candidatas; no constituyen aprobación perceptual del usuario.
+
+AJUSTE APROBADO — 2026-09-08
+- El selector DIMENSIONES aumentó a 360×68 en la base 1080×1920 y usa texto de 18 px.
+- En 720×1280 conserva aproximadamente 240×45 px de superficie táctil.
+- Recomendación y Progreso se compactaron para mantener 8 px de margen y no invadir la navegación.
+- Estados cerrado, abierto y cerrado de nuevo: PASS en ambas resoluciones.
+- Quince muestras de pulsación por resolución: 15/15 correctas.
+- Aprobación del usuario: pantalla completa aprobada explícitamente el 8 de septiembre de 2026.
+- Capturas finales neutral y selector abierto archivadas en 1080×1920 y 720×1280 dentro de
+  06_CAPTURAS_APROBADAS/DIMENSION_1/CENTRO_DE_MANDO.

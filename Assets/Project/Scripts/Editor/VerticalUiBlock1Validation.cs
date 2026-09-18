@@ -81,6 +81,18 @@ public static class VerticalUiBlock1Validation
             Check(layout.secondaryNavigationSlot != null &&
                 !layout.secondaryNavigationSlot.gameObject.activeSelf,
                 "La barra secundaria debe iniciar ausente.", failures);
+            layout.ApplyLayout();
+            Check(Mathf.Approximately(layout.horizontalMargin, 24f),
+                "Las barras perdieron su margen horizontal canonico de 24 px.",
+                failures);
+            Check(Mathf.Approximately(layout.contentHorizontalMargin, 0f) &&
+                Mathf.Approximately(layout.contentSlot.offsetMin.x, 0f) &&
+                Mathf.Approximately(layout.contentSlot.offsetMax.x, 0f),
+                "ContentSlot deja visible el fondo tecnico por los laterales.",
+                failures);
+            Check(Mathf.Approximately(layout.primaryNavigationSlot.sizeDelta.x, -48f),
+                "La correccion del contenido altero el margen de navegacion.",
+                failures);
         }
 
         ValidateTheme(skin != null ? skin.theme : null, failures);
@@ -125,6 +137,8 @@ public static class VerticalUiBlock1Validation
         Check(gridImage != null && !gridImage.raycastTarget &&
             gridImage.type == Image.Type.Tiled,
             "La reticula modular falta o intercepta raycasts.", failures);
+        Check(grid != null && !grid.gameObject.activeSelf,
+            "BackgroundGrid vuelve a quedar visible como borde tecnico.", failures);
     }
 
     private static void ValidateSafeAreaMath(List<string> failures)

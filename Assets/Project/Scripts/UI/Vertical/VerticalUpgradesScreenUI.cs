@@ -33,6 +33,8 @@ public sealed class VerticalUpgradesScreenUI : MonoBehaviour
     public KeycardPurchaseUI keycardRow;
     public Button hideCompletedButton;
     public TMP_Text hideCompletedLabel;
+    public GameObject emptyCompletedStateRoot;
+    public TMP_Text emptyCompletedStateLabel;
 
     private const float RefreshInterval = 0.20f;
     private float _nextRefresh;
@@ -72,8 +74,10 @@ public sealed class VerticalUpgradesScreenUI : MonoBehaviour
             }
         }
 
-        SetSectionVisible(productionSection, HasAnyVisible(manager, ProductionIds));
-        SetSectionVisible(tracesSection, HasAnyVisible(manager, TraceIds));
+        bool productionVisible = HasAnyVisible(manager, ProductionIds);
+        bool tracesVisible = HasAnyVisible(manager, TraceIds);
+        SetSectionVisible(productionSection, productionVisible);
+        SetSectionVisible(tracesSection, tracesVisible);
         bool keycardVisible = GameState.I != null &&
             UpgradeStudySystem.ShouldShowStudyOpportunity(GameState.I,
                 UpgradeStudySystem.KeycardProjectUnlockId) &&
@@ -81,8 +85,11 @@ public sealed class VerticalUpgradesScreenUI : MonoBehaviour
         if (keycardRow != null && keycardRow.gameObject.activeSelf != keycardVisible)
             keycardRow.gameObject.SetActive(keycardVisible);
 
-        SetSectionVisible(triangleSection,
-            HasAnyVisible(manager, TriangleIds) || keycardVisible);
+        bool triangleVisible = HasAnyVisible(manager, TriangleIds) || keycardVisible;
+        SetSectionVisible(triangleSection, triangleVisible);
+
+        RefreshEmptyCompletedState(
+            !productionVisible && !tracesVisible && !triangleVisible);
 
         if (content != null)
             LayoutRebuilder.MarkLayoutForRebuild(content);
@@ -146,6 +153,28 @@ public sealed class VerticalUpgradesScreenUI : MonoBehaviour
         hideCompletedLabel.SetText(string.IsNullOrEmpty(localized) || localized == key
             ? fallback
             : localized);
+    }
+
+    private void RefreshEmptyCompletedState(bool noVisibleContent)
+    {
+        UpgradeStudyState state = GameState.I != null
+            ? UpgradeStudySystem.EnsureState(GameState.I)
+            : null;
+        bool show = state != null && state.hideCompletedUpgrades && noVisibleContent;
+        if (emptyCompletedStateRoot != null &&
+            emptyCompletedStateRoot.activeSelf != show)
+            emptyCompletedStateRoot.SetActive(show);
+        if (!show || emptyCompletedStateLabel == null) return;
+
+        const string key = "upgrades.hide_completed.on";
+        const string fallback = "Completadas: ocultas";
+        string localized = LocalizationManager.I != null
+            ? LocalizationManager.I.T(key)
+            : fallback;
+        emptyCompletedStateLabel.SetText(
+            string.IsNullOrEmpty(localized) || localized == key
+                ? fallback
+                : localized);
     }
 
     private void EnsureKeycardBinding()

@@ -1,0 +1,20 @@
+REFERENCIA — INSTALACIONES CONECTADAS / NÚCLEO · DIMENSIÓN 3
+============================================================
+
+Archivo canónico:
+- referencia_instalaciones_nucleo_final_1080x1920.png
+
+Origen:
+- copia exacta de ENTREGABLES/Dimension3_11_Pantallas_Finales_1080x1920_ORDENADAS_01-11/03_Instalaciones_Nucleo.png;
+- confirmada por el usuario el 7 de septiembre de 2026 mediante captura del chat;
+- SHA-256: 1B1CF519E0109102DFA2649336802542A888399A9B04BA438994699B26EE57B8.
+
+Estado:
+- autoridad visual vigente para la composición estática;
+- todavía no es captura de Unity aprobada;
+- exige captura nueva 1080x1920 y 720x1280, validación real y aprobación del usuario.
+
+Autoridad funcional:
+- D3FacilitiesPanelUI, D3FacilitySystem, Dimension3Catalog y la matriz D3;
+- escenario: Núcleo de Automatización N2, MK4 Normal, canal Coordinación,
+  1 asignado estable, capacidad efectiva 5.92 y siguiente nivel N3.

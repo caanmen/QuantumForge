@@ -1,0 +1,23 @@
+PAQUETE VISUAL — EL SANTUARIO / REFUGIO
+
+Fecha: 30 de agosto de 2026.
+Referencia de composición:
+SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/02_El_Santuario_Refugio_Corregido_V4.png
+
+D2_Sanctuary_CleanBasePlate_v1.png
+- Creada con la herramienta integrada ImageGen en modo precise-object-edit.
+- Solicitud final: conservar geometría, bosque, sendero, santuario, marcos, paneles,
+  selección y placas; retirar todo texto, cifra, icono y glifo.
+- Asset de producción de esta pantalla. No contiene valores de estado.
+
+D2_Sanctuary_StaticIconOverlay_v1.png
+- Derivada mecánicamente de la referencia permanente.
+- Conserva sólo iconos estáticos y glifos canónicos, con bordes suavizados.
+- No contiene etiquetas, cifras, requisitos ni estados dinámicos.
+
+Propiedad:
+- Los textos, recursos, nivel, asignaciones, multiplicador, llegada, coste,
+  objetivo, botones y disponibilidad pertenecen a UGUI/TMP y al controlador
+  D2Civilization1PanelUI.
+- El constructor único es Dimension2Block1UISetup.BuildCivilization1Placeholder.
+

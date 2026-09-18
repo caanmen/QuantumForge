@@ -1,0 +1,11 @@
+ORIGEN Y ESTADO — GESTIÓN DE COLAS
+==================================
+
+Origen canónico:
+ENTREGABLES/Dimension3_11_Pantallas_Finales_1080x1920_ORDENADAS_01-11/11_Gestion_Colas.png
+
+SHA256:
+7F7DF7C69DB7405958DC2A3D028FC05FEEA39B7C3324BDC1D9CA119C0C8601E1
+
+Estado:
+Referencia final permanente para implementación y comparación visual.

@@ -85,6 +85,10 @@ public static class VerticalUiBlock5Validation
             "Mejoras no usa un ScrollRect vertical.", failures);
         Check(scroll != null && scroll.content != null && scroll.viewport != null,
             "El ScrollRect de Mejoras no tiene viewport/content.", failures);
+        Check(scroll != null &&
+            scroll.movementType == ScrollRect.MovementType.Clamped,
+            "La lista de Mejoras permite sobrepasar el primer o ultimo elemento.",
+            failures);
         if (scroll != null && scroll.content != null)
         {
             Check(scroll.content.GetComponent<VerticalLayoutGroup>() != null,

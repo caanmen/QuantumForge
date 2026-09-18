@@ -1,0 +1,111 @@
+FICHA DE PANTALLA: HANGAR
+=========================
+
+ID: D1_HANGAR
+Dimensión: 1
+Tipo: pantalla secundaria de gestión de flota
+Estado: APROBADA POR EL USUARIO
+Referencia: 05_REFERENCIAS/DIMENSION_1/HANGAR/referencia_hangar.png
+Escena principal: Assets/Project/Scenes/Main.unity
+Controlador funcional existente: Assets/Project/Scripts/UI/Dimension1PanelUI.cs
+Resolución base: 1080 x 1920 vertical
+
+FUNCIÓN
+Seleccionar una de las cuatro naves activas de Dimensión 1, inspeccionar sus cuatro
+partes, desbloquear una nave bloqueada y comprar la siguiente mejora disponible con
+las reglas reales del juego.
+
+ENTRADA Y SALIDA
+- Entrada: botones Hangar de Centro de Mando, Carta Galáctica, Explorar y navegación D1.
+- Salida: Centro de Mando o navegación local hacia Galaxia, Explorar, Reliquias y Árbol.
+- Acción principal: mejorar la parte actualmente seleccionada de la nave seleccionada.
+- Si la nave está bloqueada, la misma acción principal cambia a desbloquearla con sus
+  costes reales; después vuelve automáticamente al modo de mejora.
+
+DATOS Y LORE
+- Naves oficiales: Sonda Ligera, Dron Extractor, Sonda Analítica y Nave de Carga.
+- Partes oficiales: Carga, Velocidad, Blindaje y Sensores.
+- Autoridad: GameState, Dimension1System y Dimension1PanelUI.
+- Los niveles, disponibilidad, costes y capacidad de compra deben salir del estado real.
+- Los números de la referencia son un escenario de captura, no constantes de juego.
+
+COMPOSICIÓN
+- Encabezado compacto D1 con regreso a Centro de Mando y tres metales.
+- Título HANGAR y subtítulo FLOTA ACTIVA.
+- Cuatro tarjetas de nave en una fila; selección ámbar.
+- Plano técnico grande de la nave a la izquierda.
+- Cuatro tarjetas de parte a la derecha; parte seleccionada en ámbar.
+- Coste de mejora, botón principal y bonificación de misión.
+- Navegación local inferior con Hangar seleccionado en ámbar.
+
+ASSETS
+- Marcos, rellenos, campo estelar y navegación D1 existentes.
+- Ilustraciones de vehículos: sprites blueprint V2 independientes, reconstruidos desde
+  recortes individuales de la referencia permanente y tratados por un material UI que
+  conserva el tint cyan/ámbar sin mostrar el fondo de generación.
+- No se autorizan recortes directos de la captura ni placeholders genéricos.
+
+ESTADOS MÍNIMOS
+- Nave desbloqueada y seleccionada.
+- Nave bloqueada.
+- Parte normal, seleccionada y en nivel máximo.
+- Recursos suficientes e insuficientes.
+- Estado de referencia determinista para QA visual.
+
+PROPIETARIOS
+- Layout y visuales: D1_HangarVisualRoot y su instalador reproducible.
+- Textos visibles y selección visual: Dimension1HangarVisualUI.
+- Reglas, costes, progreso y guardado: Dimension1PanelUI / Dimension1System.
+- Navegación: métodos públicos existentes y navegación local de la raíz visual.
+
+RECONSTRUCCIÓN
+- Raíz visual prevista: D1_HangarVisualRoot, dentro de HangarPanel.
+- Instalador previsto: Dimension1HangarReferenceSetup.Install.
+- Captura prevista: Dimension1HangarReferenceCapture.Run.
+
+PRUEBAS
+- Capturas 1080 x 1920 y 720 x 1280.
+- Jerarquía, referencias serializadas y ausencia de navegación mezclada.
+- Selección de las cuatro naves y cuatro partes sin desplazamiento del layout.
+- Mejora sólo mediante las reglas reales; sin escrituras durante QA visual.
+- Comparación perceptual contra la referencia permanente.
+
+APROBACIÓN
+Similitud visual objetivo: 95 % mínimo.
+Aprobación final del usuario: recibida el 19 de agosto de 2026.
+
+VALIDACIÓN ACTUAL — 19 DE AGOSTO DE 2026
+- Instalación reproducible en Main.unity: PASS.
+- Compilación Unity sin errores: PASS.
+- Captura determinista 1080 × 1920: PASS.
+- Captura responsiva 720 × 1280: PASS.
+- Informe de ausencia y navegación global aislados: PASS.
+- Barras con longitudes diferentes verificadas: PASS.
+- Comparación interna contra la referencia: composición, escala y jerarquía pulidas.
+- Primera versión de vehículos procedurales: RECHAZADA por simplificación excesiva.
+- Vehículos V2: siluetas reconstruidas individualmente, densidad mecánica y lectura a
+  tamaño final corregidas; sin rectángulos ni granulado residual en la captura.
+- Aprobación perceptual mínima del 95 % por el usuario: APROBADA.
+
+VALIDACIÓN FUNCIONAL — 20 DE AGOSTO DE 2026
+- Desbloqueo de Sonda Analítica desde la composición visual: PASS.
+- Consumo de los metales definidos por `TryGetShipUnlockCost`: PASS.
+- Escritura del guardado suprimida durante QA: PASS.
+- Capturas posteriores 1080 × 1920 y 720 × 1280: PASS; el diseño aprobado no cambió.
+- Prueba reproducible: Dimension1ExploreHangarFunctionalValidation.Run.
+
+REVALIDACIÓN FUNCIONAL — 21 DE AGOSTO DE 2026
+- Carga, Velocidad, Blindaje y Sensores muestran magnitudes reales: PASS.
+- Comparación actual -> siguiente nivel y estado máximo: IMPLEMENTADA.
+- Blindaje nombra los metales adicionales y Sensores separa probabilidad de fragmento y
+  matriz específica sin la abreviatura PP: PASS funcional.
+- Flujo funcional Explorar + Hangar, incluidos textos exactos de Blindaje y Sensores: PASS.
+- Capturas nuevas de Velocidad, Blindaje y Sensores en 1080 x 1920 y 720 x 1280: PASS;
+  composición aprobada conservada.
+
+REVISIÓN NUEVA — 2026-09-08
+Se auditó código, escena, navegación física y capturas de Unity en 1080×1920 y
+720×1280. La evidencia anterior se conserva como historial. Consultar
+07_REGISTROS/AUDITORIA_DIMENSION_1_2026-09-08.md y
+08_PRUEBAS/AUDITORIA_D1_2026-09-08 para resultados y correcciones actuales.
+Las capturas nuevas son candidatas; no constituyen aprobación perceptual del usuario.

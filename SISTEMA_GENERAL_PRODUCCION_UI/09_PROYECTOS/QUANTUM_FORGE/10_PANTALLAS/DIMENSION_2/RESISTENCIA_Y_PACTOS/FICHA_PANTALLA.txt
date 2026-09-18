@@ -1,0 +1,81 @@
+FICHA DE PANTALLA — RESISTENCIA Y PACTOS
+
+Fecha: 1 de septiembre de 2026
+Estado: APROBADA VISUALMENTE POR EL USUARIO; CAPTURAS ARCHIVADAS
+
+IDENTIDAD Y FUNCIÓN
+- Sección Resistencia de Civilización 2.
+- Presenta Miembros disponibles, Fragmentos de Control y Miembros agotados.
+- Permite comprar las cuatro mejoras de Resistencia y consultar su nivel y coste.
+- Permite seleccionar, activar, reforzar y cancelar los tres Pactos de Resistencia.
+- Muestra el detalle del Pacto seleccionado, su compromiso, desgaste y penalización.
+- Entrada: pestaña RESISTENCIA desde cualquier sección de Civilización 2.
+- Salida: botón Atrás al Mapa de los Pactos o cualquier pestaña hermana visible.
+
+REFERENCIA DE AUTORIDAD
+- Ruta: 05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/12_Resistencia_Y_Pactos_Corregida_V4.png
+- Tipo: referencia visual candidata permanente V4.
+- Resolución: 941×1672; composición objetivo 1080×1920.
+- SHA-256: 7D7BE8AA8D19B16D7B535F55412B6E8AA2537C49C9CA2EEF168794F05565D997
+- El marco de selección del archivo temporal del chat no pertenece a la pantalla.
+
+PUERTA 0 — AUDITORÍA Y REUTILIZACIÓN
+- Escena Main.unity, constructor, controlador provisional, sistema de Civilización 2,
+  estado serializable, referencias V4 y pantallas hermanas fueron inspeccionados.
+
+Concepto | origen | ruta exacta | estado | decisión
+- Armazón D2 Resistencia | pantallas Regiones/Operaciones/Defensa | Dimension2Block1UISetup.cs | producción | reutilizar Canvas, navegación, Cinzel y coordenadas 1080×1920.
+- Datos y reglas | sistema Civ 2 | D2Civilization2System.cs y Dimension2State.cs | producción | autoridad funcional única.
+- Controlador | placeholder previo | D2ResistancePanelUI.cs | producción | ampliar sin duplicar reglas.
+- Placa neutral | referencia V4 12 | Assets/Project/UI/Dimension2/Resistance/Generated/D2_ResistancePacts_CleanBasePlate_v1.png | candidato | fondo adaptable para estados no seleccionados.
+- Placa de fidelidad | referencia V4 12 | Assets/Project/UI/Dimension2/Resistance/Generated/D2_ResistancePacts_CleanBasePlate_v2.png | candidato | recortes estructurales de cabecera, mejoras, pacto seleccionado, detalle y navegación.
+- Iconos aislados | referencia V4 12 | Assets/Project/UI/Dimension2/Resistance/Generated/D2_ResistancePacts_StaticIconOverlay_v1.png | candidato | usar sólo el símbolo interior cuando el aro ya pertenece a la placa.
+- Símbolos interiores completos | referencia V4 12 | Assets/Project/UI/Dimension2/Resistance/Generated/D2_ResistancePacts_InnerSymbolsChroma_v2.png | candidato | mejoras y Pactos; conservar silueta fuente y definir escala/centro en Unity.
+- Iconos dinámicos | referencia V4 12 | Assets/Project/UI/Dimension2/Resistance/Generated/D2_ResistancePacts_IconSheetChroma_v1.png | candidato | recursos, miembros, cierres, efectos y desgaste.
+
+Simplificaciones prohibidas:
+- No hornear saldos, niveles, costes, actividad, compromiso, desgaste ni penalizaciones.
+- No confundir Pacto activo con Pacto seleccionado; pueden existir varios activos.
+- No reducir la pantalla a desplegables ni ocultar tarjetas visibles de la referencia.
+- No superponer un segundo aro al medallón ya presente en la placa.
+
+DATOS Y PROPIETARIOS
+- D2Civilization2System: costes, niveles, activación, refuerzo, cancelación,
+  desgaste, recuperación, penalizaciones y conservación total de Miembros.
+- Dimension2State: niveles y estados serializables de mejoras y Pactos.
+- D2ResistancePanelUI: selección visual por ID estable y formato de los datos reales.
+- D2Civilization2PanelUI: navegación entre secciones y refresco periódico.
+- Dimension2Block1UISetup: geometría, tipografía, capas, assets y referencias.
+
+ESTADOS
+- Mejora comprable, sin Fragmentos suficientes y nivel máximo.
+- Pacto inactivo disponible, inactivo sin Miembros suficientes, activo y seleccionado.
+- Selección independiente para cada una de las tres tarjetas.
+- Detalle activo con +1, +10 y Cancelar; detalle inactivo con Activar.
+- Desgaste visible y estado sin penalizaciones como NINGUNA.
+
+RECONSTRUCCIÓN Y QA
+- Escena: Assets/Project/Scenes/Main.unity.
+- Constructor canónico: Dimension2Block1UISetup.ConfigureBlock1UI.
+- Captura y pruebas: Dimension2ResistancePactsCapture.Run.
+- Comparación: UIReferenceComparison.RunDimension2ResistancePacts.
+- Resoluciones: 1080×1920 y 720×1280.
+- Criterio: estructura, estado, acciones, rutas, desgaste, guardado intacto,
+  geometría de texto y similitud perceptual AA ≥95 % en ambas resoluciones.
+
+EVIDENCIA DEL 1 DE SEPTIEMBRE DE 2026
+- Captura 1080×1920: CAPTURAS_CANDIDATAS/D2_Resistencia_Y_Pactos_1080x1920.png
+- Captura 720×1280: CAPTURAS_CANDIDATAS/D2_Resistencia_Y_Pactos_720x1280.png
+- Log de captura: Logs/dimension2_resistance_pacts_capture.log
+- Log de comparación: Logs/dimension2_resistance_pacts_comparison.log
+- Resultado: STRUCTURE_PASS | STATE_PASS | ACTIONS_PASS | ROUTE_PASS |
+  WEAR_PASS | SAVE_INTACT_PASS | TEXT_GEOMETRY_PASS.
+- Comparación perceptual AA: 95.08 % a 1080×1920 y 95.51 % a 720×1280.
+- Todos los TMP activos fueron comprobados por desbordamiento, tamaño preferido,
+  límites de malla y permanencia dentro del lienzo.
+- Los recortes internos de mejoras y Pactos conservan un solo propietario para
+  el aro y eliminan fragmentos de circunferencia o duplicaciones.
+- Las cuatro filas de coste separan etiqueta, icono y cifra con cajas y márgenes
+  propios; la captura valida que no se invadan entre sí.
+
+Evidencia aprobada por el usuario y archivada el 4 de septiembre de 2026.

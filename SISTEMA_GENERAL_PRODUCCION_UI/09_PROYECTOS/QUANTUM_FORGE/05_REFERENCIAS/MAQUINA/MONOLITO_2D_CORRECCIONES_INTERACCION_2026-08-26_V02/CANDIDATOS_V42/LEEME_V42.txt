@@ -1,0 +1,33 @@
+QUANTUM FORGE — CANDIDATO V42 — CUATRO CARAS BASADAS EN S1
+Fecha: 2026-08-28
+Estado: concepto comparativo; no implementado en Unity; aprobación del usuario pendiente.
+
+AUTORIDAD VISUAL
+- referencia_usuario_cara_superior_izquierda_v42.png
+- Corresponde a S1 / cara superior izquierda.
+
+SALIDA
+- concepto_cuatro_caras_diseno_superior_izquierda_v42.png
+- Generada con la herramienta integrada de generación de imágenes.
+
+DISTRIBUCIÓN DE LA LÁMINA
+- Arriba izquierda: S1 / superior izquierda; columna interior derecha; daño exterior izquierdo.
+- Arriba derecha: S3 / superior derecha; columna interior izquierda; daño exterior derecho.
+- Abajo izquierda: S4 / inferior izquierda; columna interior derecha; daño exterior izquierdo; superficie oscura; sólo ???.
+- Abajo derecha: S2 / inferior derecha; columna interior izquierda; daño exterior derecho.
+
+PROMPT FINAL RESUMIDO
+Conservar el diseño ancho y legible de S1: piedra oscura estriada continua, una sola banda
+de cascajo irregular en el perímetro exterior, columna mecánica acanalada hacia el centro y
+base escalonada. Mantener coronas rotas propias en las caras superiores. Diferenciar las
+caras inferiores mediante unión superior truncada y una base más pesada, sin convertirlas
+en copias altas de las superiores. Mantener fondo, cámara, escala y luz coherentes. Los
+símbolos cian deben permanecer dentro de la piedra con margen completo; S4 no lleva símbolos
+y conserva únicamente ???. No añadir tapas, paneles cerrados, huecos, relieves internos,
+degradados, UI, adornos ni texto adicional.
+
+NOTAS
+- La lámina sirve para escoger dirección visual, no como asset de producción.
+- El fondo y los símbolos no deben hornearse en las láminas finales.
+- Si el usuario aprueba la dirección, habrá que producir cuatro hojas independientes con
+  cuatro estados de reparación y validarlas en Unity a 1080x1920 y 720x1280.

@@ -50,24 +50,60 @@ public sealed class Dimension1CommandCenterUI : MonoBehaviour
     private bool listenersBound;
     private bool commandCenterDrawerModeApplied;
     private bool dimensionDrawerExpanded;
+    private bool commandCenterRequested = true;
 
     public void ConfigureExploreScreen(GameObject configuredExploreScreenRoot)
     {
         exploreScreenRoot = configuredExploreScreenRoot;
+        Dimension1ExploreVisualUI exploreVisual =
+            exploreScreenRoot != null
+                ? exploreScreenRoot.GetComponent<Dimension1ExploreVisualUI>()
+                : null;
+        if (exploreVisual != null)
+            exploreVisual.ConfigureCommandCenter(this);
     }
 
     public void ShowCommandCenterScreen()
     {
+        commandCenterRequested = true;
+        Dimension1PanelUI functionalPanel =
+            GetComponentInParent<Dimension1PanelUI>(true);
+        if (functionalPanel != null)
+            functionalPanel.PrepareCommandCenterForUi();
+
         if (exploreScreenRoot != null)
             exploreScreenRoot.SetActive(false);
+
+        transform.SetAsLastSibling();
         RefreshVisibility();
     }
 
     public void ShowExploreScreen()
     {
-        if (exploreScreenRoot == null)
+        if (!ResolveExploreScreen())
             return;
+
+        commandCenterRequested = false;
+        exploreScreenRoot.transform.SetAsLastSibling();
         exploreScreenRoot.SetActive(true);
+
+        Dimension1PanelUI functionalPanel =
+            GetComponentInParent<Dimension1PanelUI>(true);
+        if (functionalPanel != null)
+            functionalPanel.PrepareExploreForUi();
+
+        Dimension1ExploreVisualUI exploreVisual =
+            exploreScreenRoot.GetComponent<Dimension1ExploreVisualUI>();
+        if (exploreVisual != null)
+            exploreVisual.PrepareForPresentationForUi();
+
+        RefreshVisibility();
+    }
+
+    public void HideExploreScreenForSecondaryUi()
+    {
+        if (exploreScreenRoot != null && exploreScreenRoot.activeSelf)
+            exploreScreenRoot.SetActive(false);
         RefreshVisibility();
     }
 
@@ -141,9 +177,35 @@ public sealed class Dimension1CommandCenterUI : MonoBehaviour
 
     private void OnEnable()
     {
+        ResolveExploreScreen();
         BindListeners();
+        if (exploreScreenRoot != null && exploreScreenRoot.activeSelf)
+            commandCenterRequested = false;
+        else if (commandCenterRequested)
+        {
+            Dimension1PanelUI functionalPanel =
+                GetComponentInParent<Dimension1PanelUI>(true);
+            if (functionalPanel != null)
+                functionalPanel.SetModernCommandCenterPresentedForUi(true);
+            transform.SetAsLastSibling();
+        }
         RefreshVisibility();
         RefreshData();
+    }
+
+    private bool ResolveExploreScreen()
+    {
+        if (exploreScreenRoot != null)
+            return true;
+
+        Dimension1ExploreVisualUI exploreVisual =
+            FindFirstObjectByType<Dimension1ExploreVisualUI>(FindObjectsInactive.Include);
+        if (exploreVisual == null)
+            return false;
+
+        exploreScreenRoot = exploreVisual.gameObject;
+        exploreVisual.ConfigureCommandCenter(this);
+        return true;
     }
 
     private void OnDisable()
@@ -175,14 +237,16 @@ public sealed class Dimension1CommandCenterUI : MonoBehaviour
     {
         if (canvasGroup == null) return;
 
-        bool visible = legacyMainContent == null || legacyMainContent.activeSelf;
+        bool visible = commandCenterRequested;
+        if (commandCenterRequested && legacyMainContent != null && legacyMainContent.activeSelf)
+            legacyMainContent.SetActive(false);
         if (exploreScreenRoot != null && exploreScreenRoot.activeSelf)
             visible = false;
         if (blockingPanels != null)
         {
             foreach (GameObject panel in blockingPanels)
             {
-                if (panel != null && panel.activeSelf)
+                if (panel != null && panel.activeInHierarchy)
                 {
                     visible = false;
                     break;
@@ -247,24 +311,7 @@ public sealed class Dimension1CommandCenterUI : MonoBehaviour
         if (state == null) return;
 
         state.EnsureDimension1State();
-        string[] headerMetals =
-        {
-            Dimension1System.MetalIron,
-            Dimension1System.MetalAluminum,
-            Dimension1System.MetalNickel
-        };
-
-        for (int i = 0; i < headerMetals.Length; i++)
-        {
-            string metalId = headerMetals[i];
-            if (metalValueTexts != null && i < metalValueTexts.Length && metalValueTexts[i] != null)
-                metalValueTexts[i].text = FormatAmount(state.GetD1MetalAmount(metalId));
-            if (metalRateTexts != null && i < metalRateTexts.Length && metalRateTexts[i] != null)
-            {
-                double rate = Dimension1System.GetMetalProductionPerSecond(state, metalId);
-                metalRateTexts[i].text = "+" + FormatAmount(rate) + "/s";
-            }
-        }
+        Dimension1HeaderMetalsUI.Refresh(transform, state, state.dimension1SelectedSectorId);
 
         if (drawerMetalValueTexts != null)
         {
@@ -342,7 +389,8 @@ public sealed class Dimension1CommandCenterUI : MonoBehaviour
     {
         if (listenersBound) return;
         listenersBound = true;
-        if (metalsButton != null) metalsButton.onClick.AddListener(ToggleMetalsDrawer);
+        if (metalsButton != null && !HasPersistentMetalsRoute(metalsButton))
+            metalsButton.onClick.AddListener(ToggleMetalsDrawer);
         if (dimensionDrawerToggle != null) dimensionDrawerToggle.onClick.AddListener(ToggleDimensionDrawer);
         BindGroup(galaxyButtons, OpenGalaxy);
         BindGroup(exploreButtons, OpenExplore);
@@ -385,6 +433,19 @@ public sealed class Dimension1CommandCenterUI : MonoBehaviour
             return;
         }
         if (metalsDrawer != null) metalsDrawer.SetActive(!metalsDrawer.activeSelf);
+    }
+
+    private static bool HasPersistentMetalsRoute(Button button)
+    {
+        if (button == null) return false;
+        for (int i = 0; i < button.onClick.GetPersistentEventCount(); i++)
+        {
+            string method = button.onClick.GetPersistentMethodName(i);
+            if (button.onClick.GetPersistentTarget(i) != null &&
+                (method == "Open" || method == "OpenMetals" || method == "ToggleMetalsDrawer"))
+                return true;
+        }
+        return false;
     }
 
     private void OpenGalaxy()

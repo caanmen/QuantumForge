@@ -1,0 +1,28 @@
+ESTADO DE CAPTURAS — MAPA DE LOS PACTOS
+
+Fecha: 30 de agosto de 2026.
+Pantalla: D2_PactMap / MAPA DE LOS PACTOS.
+Estado: APROBADA PARA COMPOSICIÓN ESTÁTICA.
+
+Evidencia:
+- mapa_de_los_pactos_aprobada_1080x1920.png
+  SHA-256: 0BD28558C978AEE3811253F70C9E6342BB125C5F18886749A5FCC17BDD3604D4
+- mapa_de_los_pactos_aprobada_720x1280.png
+  SHA-256: A645073D078E30358277CD7A89D5141C9866BF76883FF0254921A5884DA7965F
+- BUILD_PASS del constructor canónico.
+- STRUCTURE_PASS y STATE_PASS en recorrido real ABRIR MAPA.
+- Similitud RGB estricta auxiliar: 94,20 %.
+- Similitud percibida normalizada por antialiasing 3x3: 95,14 %.
+- Píxeles dentro de tolerancia RGB del 10 %: 80,53 %.
+
+Referencia de autoridad:
+05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/
+01_Mapa_De_Los_Pactos_Corregido_V5.png
+
+Alcance de aprobación:
+- Composición estática, jerarquía, tipografía, datos y estados iniciales.
+- Los textos, cifras, estados, requisitos, iconos y controles son dinámicos.
+- No autoriza todavía animaciones nuevas ni cambios creativos de contenido.
+
+Informe técnico:
+Logs/UIProductionSystem/Comparisons/Dimension2/MapaDeLosPactos/comparison_report.txt

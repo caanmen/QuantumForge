@@ -1,0 +1,22 @@
+CAPTURAS APROBADAS — EL SANTUARIO / REFUGIO
+
+Fecha: 30 de agosto de 2026.
+
+- santuario_refugio_aprobada_1080x1920.png
+  Similitud objetiva RGB: 95.02 %.
+  Similitud percibida AA 3x3: 95.59 %.
+
+- santuario_refugio_aprobada_720x1280.png
+  Similitud objetiva RGB: 95.01 %.
+  Similitud percibida AA 3x3: 95.95 %.
+
+Validación de Unity:
+- BUILD_PASS.
+- STRUCTURE_PASS.
+- STATE_PASS.
+- ROUTE_PASS desde el botón real ENTRAR AL SANTUARIO.
+- Guardado suprimido durante QA visual.
+
+Referencia comparada:
+05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/02_El_Santuario_Refugio_Corregido_V4.png
+

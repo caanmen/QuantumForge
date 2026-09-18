@@ -1,0 +1,59 @@
+FICHA DE PANTALLA — INVESTIGACIÓN DEL ENTE
+
+Fecha: 3 de septiembre de 2026
+Estado: APROBADA POR CONTINUIDAD DEL USUARIO; CAPTURAS ARCHIVADAS
+
+IDENTIDAD Y FUNCIÓN
+- Subvista Ente de Civilización 3 en Dimensión 2.
+- Presenta progreso, consumo de Conocimiento Antiguo, próximo hito,
+  recursos de las tres zonas, Datos Anómalos y Conocimiento del Ente.
+- Permite pausar/reanudar la investigación y aportar recursos al hito alcanzado.
+- Atrás y EXCAVAR regresan a Ruinas; ANALIZAR y ARCHIVO abren sus subáreas.
+
+REFERENCIA DE AUTORIDAD
+- Ruta: 05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/19_Investigacion_Del_Ente_Corregida_V5.png
+- Versión: V5, sustituyó V4 para separar Último resultado y Objetivo actual.
+- Resolución: 941×1672; composición objetivo 1080×1920.
+- SHA-256: BE4FEF9C6AE205139A9A5EB50E650916CC8A689646EC7269825DA1ED00C6E5D7.
+
+ARQUITECTURA Y PROPIETARIOS
+- D2Civilization3System: avance 1%/30 s, consumo 1:1, costes y recompensas.
+- Dimension2State: persistencia de progreso, hitos, recursos y conocimiento.
+- D2EntityResearchPanelUI: presentación dinámica, estados y acciones.
+- Dimension2Block1UISetup: geometría V5, placa, capas y áreas táctiles.
+- Placa limpia: Assets/Project/UI/Dimension2/EntityResearch/Generated/D2_EntityResearch_CleanBasePlate_v1.png
+- Procedencia y prompt: Assets/Project/UI/Dimension2/EntityResearch/Generated/ORIGEN_Y_USO.txt
+
+ESTADOS CUBIERTOS
+- Investigación desbloqueada, activa, pausada y esperando Conocimiento Antiguo.
+- Progreso radial y próximo hito 30/60/85/100.
+- Aportar recursos siempre visible; deshabilitado antes de alcanzar el hito.
+- Pago real del hito 30%, descuento y recompensa.
+- Seis indicadores discretos de Conocimiento del Ente.
+- Resultado y objetivo con propietarios independientes.
+- La fase posterior de Pacto conserva una raíz visual separada para la pantalla 20.
+
+RECONSTRUCCIÓN Y QA
+- Escena: Assets/Project/Scenes/Main.unity.
+- Constructor: Dimension2Block1UISetup.ConfigureBlock1UI.
+- Captura y pruebas: Dimension2EntityResearchCapture.Run.
+- Comparación: UIReferenceComparison.RunDimension2EntityResearch.
+- Captura 1080: CAPTURAS_CANDIDATAS/D2_InvestigacionDelEnte_1080x1920.png
+- Captura 720: CAPTURAS_CANDIDATAS/D2_InvestigacionDelEnte_720x1280.png
+- Log de captura: Logs/dimension2_entity_research_capture_final.log
+- Log de comparación: Logs/dimension2_entity_research_comparison.log
+
+EVIDENCIA ACTUALIZADA EL 3 DE SEPTIEMBRE DE 2026
+- STRUCTURE_PASS | STATE_PASS | ACTIONS_PASS | ROUTE_PASS |
+  SAVE_INTACT_PASS | TEXT_GEOMETRY_PASS.
+- Similitud perceptual AA: 96.75 % a 1080×1920 y 97.03 % a 720×1280.
+- Fixture: progreso 24%, Conocimiento Antiguo 76, recursos 40/35/45,
+  Datos 1/1/1 y Conocimiento del Ente 0/6.
+- La prueba pulsa Pausar y Reanudar, valida avance/consumo 1:1,
+  paga físicamente el hito 30% y restaura el fixture.
+- La prueba valida Atrás, Excavar, Analizar y Archivo.
+
+APROBACIÓN VISUAL
+- El usuario continuó explícitamente a la pantalla siguiente después de revisar
+  la corrección de centrado de hitos.
+- Capturas archivadas en 06_CAPTURAS_APROBADAS/DIMENSION_2/INVESTIGACION_DEL_ENTE.

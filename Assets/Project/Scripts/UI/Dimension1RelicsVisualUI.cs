@@ -119,6 +119,9 @@ public sealed class Dimension1RelicsVisualUI : MonoBehaviour
     }
 
     public int CurrentPage => currentPage;
+    public string SelectedRelicId => selectedRelicIndex >= 0 && selectedRelicIndex < RelicIds.Length
+        ? RelicIds[selectedRelicIndex]
+        : "";
 
     public void ShowPageForVisualQa(int page)
     {
@@ -259,18 +262,7 @@ public sealed class Dimension1RelicsVisualUI : MonoBehaviour
         GameState state = GameState.I;
         if (state == null) return;
         state.EnsureDimension1State();
-
-        string[] metalIds =
-        {
-            Dimension1System.MetalIron,
-            Dimension1System.MetalAluminum,
-            Dimension1System.MetalNickel
-        };
-        for (int i = 0; i < metalIds.Length; i++)
-        {
-            Set(metalAmounts, i, FormatAmount(state.GetD1MetalAmount(metalIds[i])));
-            Set(metalRates, i, "+" + FormatAmount(Dimension1System.GetMetalProductionPerSecond(state, metalIds[i])) + "/s");
-        }
+        Dimension1HeaderMetalsUI.Refresh(transform, state, state.dimension1SelectedSectorId);
 
         int discovered = 0;
         foreach (string relicId in Dimension1System.Dimension1RelicIds)
@@ -430,23 +422,32 @@ public sealed class Dimension1RelicsVisualUI : MonoBehaviour
 
         double primary = Dimension1System.GetDimension1RelicPrimaryBonusForLevel(relicId, level);
         double secondary = Dimension1System.GetDimension1RelicSecondaryBonusForLevel(relicId, level);
-        string pendingImpact = PendingRelicImpact(relicId);
-        if (!string.IsNullOrEmpty(pendingImpact))
-        {
-            if (effectPrimary != null)
-                effectPrimary.text = "Impacto previsto: <color=#F4A70B>" + pendingImpact + "</color>";
-            if (effectSecondary != null)
-                effectSecondary.text = "Valores numéricos pendientes de definición;\nno aplica bonus por ahora.";
-        }
-        else
-        {
-            if (effectPrimary != null) effectPrimary.text = "Bonificación primaria de reliquia: <color=#F4A70B>+" + FormatPercentPoints(primary) + " pp</color>";
-            if (effectSecondary != null) effectSecondary.text = "Bonificación secundaria de reliquia: <color=#F4A70B>+" + FormatPercentPoints(secondary) + " pp</color>";
-        }
+        ApplySharedEffectText(Dimension1PanelUI.GetRelicEffectTextForUi(
+            relicId, primary, secondary));
         if (relicId == Dimension1System.RelicAnalyticCrystal)
         {
             if (effectPrimary != null) effectPrimary.text = "Fragmentos y matrices con\nSonda Analítica: <color=#F4A70B>+" + FormatPercentPoints(primary) + " pp</color>";
             if (effectSecondary != null) effectSecondary.text = "Reliquias en destinos de\ninvestigación: <color=#F4A70B>+" + FormatPercentPoints(secondary) + " pp</color>";
+        }
+        else if (relicId == Dimension1System.RelicFracturedAntenna)
+        {
+            if (effectPrimary != null) effectPrimary.text = "Destino adicional al escanear:\n<color=#F4A70B>+" + FormatPercentPoints(primary) + " pp</color>";
+            if (effectSecondary != null) effectSecondary.text = "Duración del escaneo:\n<color=#F4A70B>-" + FormatPercentPoints(secondary) + "%</color>";
+        }
+        else if (relicId == Dimension1System.RelicTracesResonator)
+        {
+            if (effectPrimary != null) effectPrimary.text = "Generación de Trazas:\n<color=#F4A70B>+" + FormatPercentPoints(primary) + "%</color>";
+            if (effectSecondary != null) effectSecondary.text = "Costes de Trazas en Mejoras y Captador:\n<color=#F4A70B>-" + FormatPercentPoints(secondary) + "%</color>";
+        }
+        else if (relicId == Dimension1System.RelicCalibrationFragment)
+        {
+            if (effectPrimary != null) effectPrimary.text = "Sincronización del Triángulo:\n<color=#F4A70B>+" + FormatPercentPoints(primary) + "%</color>";
+            if (effectSecondary != null) effectSecondary.text = "Avance por sintonización de estudios:\n<color=#F4A70B>+" + FormatPercentPoints(secondary) + " pp</color>";
+        }
+        else if (relicId == Dimension1System.RelicTriangularSeal)
+        {
+            if (effectPrimary != null) effectPrimary.text = "Potencia relativa del protocolo activo:\n<color=#F4A70B>+" + FormatPercentPoints(primary) + "%</color>";
+            if (effectSecondary != null) effectSecondary.text = "Generación de Energía del Triángulo:\n<color=#F4A70B>+" + FormatPercentPoints(secondary) + "%</color>";
         }
 
         bool hasCost = Dimension1System.TryGetNextDimension1RelicUpgradeCost(state, relicId,
@@ -472,15 +473,25 @@ public sealed class Dimension1RelicsVisualUI : MonoBehaviour
         if (upgradeButtonLabel != null) upgradeButtonLabel.text = hasCost ? "MEJORAR RELIQUIA" : unlocked ? "NIVEL MÁXIMO" : "RELIQUIA BLOQUEADA";
     }
 
-    private static string PendingRelicImpact(string relicId)
+    private void ApplySharedEffectText(string sharedText)
     {
-        if (relicId == Dimension1System.RelicIncompleteStarMap) return "variedad de destinos";
-        if (relicId == Dimension1System.RelicTracesResonator) return "Trazas";
-        if (relicId == Dimension1System.RelicCalibrationFragment) return "Modulador de Fase";
-        if (relicId == Dimension1System.RelicRareFrequencySensor) return "puntos especiales";
-        if (relicId == Dimension1System.RelicTriangularSeal) return "Triángulo";
-        if (relicId == Dimension1System.RelicMachineMemory) return "Máquina / Cuarto 2";
-        return null;
+        string[] lines = string.IsNullOrEmpty(sharedText)
+            ? System.Array.Empty<string>()
+            : sharedText.Split('\n');
+        if (effectPrimary != null)
+            effectPrimary.text = lines.Length > 0 ? FormatSharedEffectLine(lines[0]) : "Efecto no disponible.";
+        if (effectSecondary != null)
+            effectSecondary.text = lines.Length > 1 ? FormatSharedEffectLine(lines[1]) : "Efecto no disponible.";
+    }
+
+    private static string FormatSharedEffectLine(string line)
+    {
+        string value = (line ?? "").Trim();
+        if (value.StartsWith("- ")) value = value.Substring(2);
+        int separator = value.LastIndexOf(": ", System.StringComparison.Ordinal);
+        if (separator < 0) return value;
+        return value.Substring(0, separator + 1) +
+            " <color=#F4A70B>" + value.Substring(separator + 2) + "</color>";
     }
 
     private void SetCost(int index, string name, string required, string owned)

@@ -1,0 +1,23 @@
+DECISIONES — RITOS DEL SANTUARIO
+
+31 de agosto de 2026
+
+1. La referencia V4 permanente es la autoridad visual; el margen, marco del visor y
+   tiradores blancos del adjunto temporal no pertenecen a la pantalla.
+2. D2RitesPanelUI es el propietario único de textos, selección, acciones y navegación.
+3. D2RitesSystem conserva la propiedad de asignaciones, límites, espacios, requisitos y
+   cálculo de efectos; la UI no replica esas reglas.
+4. Los cinco ritos permanecen visibles al desbloquear la sección. Antes de desbloquearla,
+   la regla de presentación inicial conserva solamente los dos ritos previstos por P4.
+5. El signo del Rito del Camino es positivo porque aumenta recompensas materiales. Solo
+   el Rito de Noviciado representa una reducción y utiliza signo negativo.
+6. Los valores y estados se renderizan como campos TMP dinámicos con cultura invariante;
+   la imagen base no contiene contenido funcional aplanado.
+7. La selección usa IDs estables y overlays separados. Los overlays no interceptan
+   raycasts y la placa base conserva la composición estática aprobable.
+8. La placa limpia se produjo mediante edición con ImageGen y una composición mecánica
+   reproducible; los iconos canónicos se derivan de la referencia V4 permanente.
+9. La captura QA usa un estado real alcanzable y restaura seguidores y acólitos después
+   de probar menos, más, liberación y cambio de rito.
+10. La composición estática y los estados funcionales quedan listos antes de añadir
+    animación o variantes no documentadas.

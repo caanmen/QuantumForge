@@ -450,6 +450,12 @@ public static class D3AutomationSystem
         return applied;
     }
 
+    // Una transacción en el extremo de un bloque completo, sin volver a avanzar D1.
+    public static void EvaluateOfflineBlock(GameState gameState)
+    {
+        Tick(gameState, 60.0, true);
+    }
+
     private static void Tick(GameState gameState, double dt, bool offline)
     {
         if (gameState == null || gameState.dimension3 == null || dt <= 0.0)

@@ -200,8 +200,12 @@ public static class MachineFusionPanelCapture
         panel.Refresh();
 
         Button mixes = panel.transform.Find(
-            "MachineCubeVisualRoot/MachineContextTabs/MixesTab")
+            "MachineMonolith2DRoot/MachineContextTabs/MixesTab")
             ?.GetComponent<Button>();
+        if (mixes == null)
+            mixes = panel.transform.Find(
+                "MachineCubeVisualRoot/MachineContextTabs/MixesTab")
+                ?.GetComponent<Button>();
         Require(mixes != null, "No se encontró la pestaña MEZCLAS.");
         mixes.onClick.Invoke();
         panel.Refresh();

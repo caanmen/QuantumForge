@@ -117,7 +117,8 @@ public static class D2PilgrimageSystem
 
         Dimension2System.EnsureState(gameState);
         D2Civilization1State state = gameState.dimension2.civilization1;
-        if (state.activePilgrimage.active ||
+        if (!IsUnlocked(state, pilgrimageId) ||
+            state.activePilgrimage.active ||
             state.followersAvailable < GetFollowersRequired(pilgrimageId) +
                 state.pilgrimageSupportFollowersSelected ||
             state.acolytesAvailable < GetAcolytesRequired(pilgrimageId))
@@ -258,6 +259,28 @@ public static class D2PilgrimageSystem
     {
         return id == ShortId || id == MediumId || id == LongId ||
             id == GuidedLongId || id == SacredId;
+    }
+
+    public static bool IsUnlocked(D2Civilization1State state, string id)
+    {
+        if (state == null || !IsPilgrimageId(id))
+            return false;
+
+        switch (id)
+        {
+            case ShortId:
+                return true;
+            case MediumId:
+                return state.shortPilgrimagesCompleted > 0L;
+            case LongId:
+                return state.mediumPilgrimagesCompleted > 0L;
+            case GuidedLongId:
+                return state.totalAcolytesCreated > 0L;
+            case SacredId:
+                return state.totalAcolytesCreated >= 2L;
+            default:
+                return false;
+        }
     }
 
     public static string GetDisplayName(string id)

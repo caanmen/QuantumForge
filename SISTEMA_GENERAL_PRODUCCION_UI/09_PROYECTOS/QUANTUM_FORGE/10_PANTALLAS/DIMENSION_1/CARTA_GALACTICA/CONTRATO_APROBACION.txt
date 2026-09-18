@@ -1,0 +1,25 @@
+CONTRATO DE APROBACIÓN: CARTA GALÁCTICA V12
+===========================================
+
+Referencia de composición: CONCEPTO_APROBADO_SISTEMA_ORBITAL_V12_2026-08-21.png
+Resolución objetivo: 1080×1920 vertical.
+Resolución secundaria obligatoria: 720×1280 vertical.
+Estado: implementación, pruebas y revisión perceptual aprobadas.
+Meta visual: 95 % de parecido percibido con la referencia aprobada.
+
+Comprobaciones obligatorias:
+- Se ven siete cuerpos y siete trayectorias orbitales diferenciables.
+- Elysia, Vulkar, Corona de Tántalo, Mnemos, Orpheon, Nyxara y Erebon mantienen su ID.
+- Ningún cuerpo cambia de posición, ancla, pivote o escala al seleccionar.
+- Los siete cuerpos procesan clic físico y abren uno de los cuatro sectores correctos.
+- Las órbitas son estáticas; sólo los cuerpos giran sobre su eje.
+- El Centro Galáctico no revela un borde cuadrado ni gira como bitmap completo.
+- El Centro no muestra anillo técnico ni halo exterior y su luminosidad no domina el mapa.
+- El mapa no muestra totales históricos rotulados como expediciones.
+- Estados neutral, actual, disponible, seleccionado y bloqueado permanecen legibles.
+- La barra de navegación global externa queda oculta en esta vista.
+- V12 se archivó después de la confirmación visual explícita del usuario del 8 de septiembre de 2026.
+
+Resultado: APROBADA Y CERRADA.
+Aprobada por: usuario.
+Fecha: 8 de septiembre de 2026.

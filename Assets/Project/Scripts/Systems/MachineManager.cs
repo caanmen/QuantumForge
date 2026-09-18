@@ -4,8 +4,10 @@ using UnityEngine;
 public class MachineManager : MonoBehaviour
 {
     private const float MaxAcceptedFrameDeltaSeconds = 0.5f;
+    public const int SeedRetirementMigrationVersion = 2;
     public static MachineManager I { get; private set; }
     private readonly Dictionary<string, MachineNodeDef> _defsById = new();
+    private readonly Dictionary<string, MachineNodeDef> _retiredDefsById = new();
     private readonly List<MachineNodeDef> _allNodes = new();
     private readonly HashSet<string> _repairedNodeIds = new();
     private readonly HashSet<string> _analyzedNodeIds = new();
@@ -18,6 +20,7 @@ public class MachineManager : MonoBehaviour
     private double _analysisRemainingSeconds;
 
     public const double BaseNodeAnalysisDurationSeconds = 3.0;
+    public const double NodeAnalysisEnergyCost = 25.0;
 
     private void Awake()
     {
@@ -40,6 +43,7 @@ public class MachineManager : MonoBehaviour
 
     private void AdvanceOnlineFrame(float unscaledDeltaTime)
     {
+        if (SaveService.I != null && SaveService.I.HasLoadFailure) return;
         if (float.IsNaN(unscaledDeltaTime) ||
             float.IsInfinity(unscaledDeltaTime) || unscaledDeltaTime < 0f)
         {
@@ -57,6 +61,7 @@ public class MachineManager : MonoBehaviour
     private void LoadDefs()
     {
         _defsById.Clear();
+        _retiredDefsById.Clear();
         _allNodes.Clear();
 
         TextAsset json = Resources.Load<TextAsset>("Data/machine_nodes");
@@ -80,9 +85,15 @@ public class MachineManager : MonoBehaviour
             if (def == null || string.IsNullOrWhiteSpace(def.id))
                 continue;
 
-            if (_defsById.ContainsKey(def.id))
+            if (_defsById.ContainsKey(def.id) || _retiredDefsById.ContainsKey(def.id))
             {
                 Debug.LogWarning("[MachineManager] Nodo duplicado ignorado: " + def.id);
+                continue;
+            }
+
+            if (def.retired)
+            {
+                _retiredDefsById[def.id] = def;
                 continue;
             }
 
@@ -90,7 +101,8 @@ public class MachineManager : MonoBehaviour
             _allNodes.Add(def);
         }
 
-        Debug.Log("[MachineManager] Nodos cargados: " + _allNodes.Count);
+        Debug.Log("[MachineManager] Nodos activos: " + _allNodes.Count +
+            " | retirados: " + _retiredDefsById.Count);
     }
 
     private void EnsureDefsLoaded()
@@ -234,6 +246,8 @@ public class MachineManager : MonoBehaviour
         if (data == null)
             return;
 
+        ApplySeedRetirementMigration(data);
+
         if (data.machineRepairedNodeIds != null)
         {
             foreach (string nodeId in data.machineRepairedNodeIds)
@@ -311,6 +325,88 @@ public class MachineManager : MonoBehaviour
         data.machineSelectedFaceIndex = _selectedMachineFaceIndex;
         data.machineAnalysisNodeId = _analysisNodeId;
         data.machineAnalysisRemainingSeconds = _analysisRemainingSeconds;
+        data.machineSeedRetirementMigrationVersion = SeedRetirementMigrationVersion;
+    }
+
+    /// <summary>
+    /// Retira una sola vez los nodos obsoletos y devuelve el coste nominal
+    /// completo de cualquier nodo comprado. Las definiciones históricas
+    /// permanecen sólo para calcular una devolución determinista.
+    /// </summary>
+    public bool ApplySeedRetirementMigration(SaveData data)
+    {
+        if (data == null ||
+            data.machineSeedRetirementMigrationVersion >= SeedRetirementMigrationVersion)
+        {
+            return false;
+        }
+
+        EnsureDefsLoaded();
+        HashSet<string> refundedNodeIds = new();
+
+        if (data.machineRepairedNodeIds != null)
+        {
+            foreach (string nodeId in data.machineRepairedNodeIds)
+            {
+                if (string.IsNullOrWhiteSpace(nodeId) ||
+                    !_retiredDefsById.TryGetValue(nodeId, out MachineNodeDef retiredDef) ||
+                    !refundedNodeIds.Add(nodeId))
+                {
+                    continue;
+                }
+
+                RefundRetiredNodeCost(data, retiredDef.cost);
+            }
+
+            data.machineRepairedNodeIds.RemoveAll(nodeId =>
+                !string.IsNullOrWhiteSpace(nodeId) &&
+                _retiredDefsById.ContainsKey(nodeId));
+        }
+
+        if (data.machineAnalyzedNodeIds != null)
+        {
+            data.machineAnalyzedNodeIds.RemoveAll(nodeId =>
+                !string.IsNullOrWhiteSpace(nodeId) &&
+                _retiredDefsById.ContainsKey(nodeId));
+        }
+
+        if (!string.IsNullOrWhiteSpace(data.machineAnalysisNodeId) &&
+            _retiredDefsById.ContainsKey(data.machineAnalysisNodeId))
+        {
+            data.machineAnalysisNodeId = "";
+            data.machineAnalysisRemainingSeconds = 0.0;
+        }
+
+        data.machineSeedRetirementMigrationVersion = SeedRetirementMigrationVersion;
+
+        if (refundedNodeIds.Count > 0)
+        {
+            Debug.Log("[MachineManager] Migración de nodos retirados aplicada. " +
+                "Nodos retirados reembolsados: " + refundedNodeIds.Count + ".");
+        }
+
+        return true;
+    }
+
+    private static void RefundRetiredNodeCost(SaveData data, MachineNodeCostDef cost)
+    {
+        if (data == null || cost == null)
+            return;
+
+        data.LE += System.Math.Max(0.0, cost.le);
+        data.Traces += System.Math.Max(0.0, cost.traces);
+        data.experimentalHallazgos += Mathf.Max(0, cost.hallazgo);
+        data.experimentalMuestras += Mathf.Max(0, cost.muestra);
+        data.experimentalLecturasIncompletas += Mathf.Max(0, cost.lecturaIncompleta);
+        data.experimentalCompuestosUtiles += Mathf.Max(0, cost.compuestoUtil);
+
+        int pure = Mathf.Max(0, cost.pureInstant);
+        int stable = Mathf.Max(0, cost.stableInstant);
+        int forced = Mathf.Max(0, cost.forcedInstant);
+        data.chronalPureInstants += pure;
+        data.chronalStableInstants += stable;
+        data.chronalForcedInstants += forced;
+        data.chronalArchivedInstants += pure + stable + forced;
     }
 
     public bool IsNodeRepaired(string nodeId)
@@ -425,6 +521,12 @@ public class MachineManager : MonoBehaviour
             reason = "Ya existe un análisis en curso.";
             return false;
         }
+        if (GameState.I == null ||
+            GameState.I.triangleEnergy + 0.0000001 < NodeAnalysisEnergyCost)
+        {
+            reason = "Energía insuficiente: el diagnóstico requiere 25 Energía.";
+            return false;
+        }
         return true;
     }
 
@@ -433,6 +535,11 @@ public class MachineManager : MonoBehaviour
         out string reason)
     {
         if (!CanAnalyzeNode(nodeId, requireAutomatable, out reason)) return false;
+        if (!GameState.I.TrySpendTriangleEnergy(NodeAnalysisEnergyCost))
+        {
+            reason = "Energía insuficiente: el diagnóstico requiere 25 Energía.";
+            return false;
+        }
         _analysisNodeId = nodeId;
         _analysisRemainingSeconds = System.Math.Max(0.1, durationSeconds);
         if (SaveService.I != null) SaveService.I.Save();
@@ -549,25 +656,25 @@ public class MachineManager : MonoBehaviour
 
         if (cost.hallazgo > 0 && GameState.I.experimentalHallazgos < cost.hallazgo)
         {
-            missingMaterialName = "Hallazgo";
+            missingMaterialName = "Anomalía";
             return true;
         }
 
         if (cost.muestra > 0 && GameState.I.experimentalMuestras < cost.muestra)
         {
-            missingMaterialName = "Muestra";
+            missingMaterialName = "Condensado";
             return true;
         }
 
         if (cost.lecturaIncompleta > 0 && GameState.I.experimentalLecturasIncompletas < cost.lecturaIncompleta)
         {
-            missingMaterialName = "Lectura Incompleta";
+            missingMaterialName = "Vestigio";
             return true;
         }
 
         if (cost.compuestoUtil > 0 && GameState.I.experimentalCompuestosUtiles < cost.compuestoUtil)
         {
-            missingMaterialName = "Compuesto Útil";
+            missingMaterialName = "Compuesto";
             return true;
         }
 
@@ -649,8 +756,7 @@ public class MachineManager : MonoBehaviour
         {
             MachineZoneType.Room1Link,
             MachineZoneType.FusionSector,
-            MachineZoneType.InternalSupport,
-            MachineZoneType.InstantChamber
+            MachineZoneType.InternalSupport
         };
 
         MachineZoneType leastZone = MachineZoneType.None;
@@ -678,8 +784,7 @@ public class MachineManager : MonoBehaviour
         return
             def.id == "z1_room1_synchronizer" ||
             def.id == "z2_synthesis_core" ||
-            def.id == "z3_convergence_channel" ||
-            def.id == "z4_pure_materialization_2";
+            def.id == "z3_structural_reinforcement";
     }
 
     private bool ShouldApplyCompensationCircuitToNode(MachineNodeDef def)
@@ -799,7 +904,7 @@ public class MachineManager : MonoBehaviour
         {
             reason = FormatMissingAmount(
                 cost.hallazgo - GameState.I.experimentalHallazgos,
-                "Hallazgo", "Hallazgos");
+                "Anomalía", "Anomalías");
             return false;
         }
 
@@ -807,7 +912,7 @@ public class MachineManager : MonoBehaviour
         {
             reason = FormatMissingAmount(
                 cost.muestra - GameState.I.experimentalMuestras,
-                "Muestra", "Muestras");
+                "Condensado", "Condensados");
             return false;
         }
 
@@ -815,7 +920,7 @@ public class MachineManager : MonoBehaviour
         {
             reason = FormatMissingAmount(
                 cost.lecturaIncompleta - GameState.I.experimentalLecturasIncompletas,
-                "Lectura Incompleta", "Lecturas Incompletas");
+                "Vestigio", "Vestigios");
             return false;
         }
 
@@ -823,7 +928,7 @@ public class MachineManager : MonoBehaviour
         {
             reason = FormatMissingAmount(
                 cost.compuestoUtil - GameState.I.experimentalCompuestosUtiles,
-                "Compuesto Útil", "Compuestos Útiles");
+                "Compuesto", "Compuestos");
             return false;
         }
 
@@ -968,7 +1073,38 @@ public class MachineManager : MonoBehaviour
             total += def.effectValue;
         }
 
+        if (total != 0.0 && IsScalableMachineNodeEffect(effectType))
+        {
+            total *= Dimension1System.GetMachineMemoryNodeEffectMultiplier(GameState.I);
+        }
+
         return total;
+    }
+
+    private static bool IsScalableMachineNodeEffect(MachineNodeEffectType effectType)
+    {
+        switch (effectType)
+        {
+            case MachineNodeEffectType.GlobalLEBonus:
+            case MachineNodeEffectType.TracesBonus:
+            case MachineNodeEffectType.TriangleBonus:
+            case MachineNodeEffectType.ArtifactBonus:
+            case MachineNodeEffectType.Room1GlobalBonus:
+            case MachineNodeEffectType.TriangleEnergyBaseBonus:
+            case MachineNodeEffectType.FusionFailureReduction:
+            case MachineNodeEffectType.FusionUsefulResultBonus:
+            case MachineNodeEffectType.FusionTimeReduction:
+            case MachineNodeEffectType.InternalSupportBonus:
+            case MachineNodeEffectType.SeedReadingBonus:
+            case MachineNodeEffectType.InstantInitialStabilityBonus:
+            case MachineNodeEffectType.SynchronizeStabilityBonus:
+            case MachineNodeEffectType.TensionContainmentBonus:
+            case MachineNodeEffectType.SafeRewindBonus:
+            case MachineNodeEffectType.PureMaterialThresholdReduction:
+                return true;
+            default:
+                return false;
+        }
     }
 
     public bool HasZoneProgressSyncCore()
@@ -1009,19 +1145,17 @@ public class MachineManager : MonoBehaviour
 
         double progress = GetZoneRepairProgress01(zone);
 
+        double bonus = 0.0;
         if (progress >= 1.0)
-            return 0.08;
+            bonus = 0.08;
+        else if (progress >= 0.75)
+            bonus = 0.06;
+        else if (progress >= 0.50)
+            bonus = 0.04;
+        else if (progress >= 0.25)
+            bonus = 0.02;
 
-        if (progress >= 0.75)
-            return 0.06;
-
-        if (progress >= 0.50)
-            return 0.04;
-
-        if (progress >= 0.25)
-            return 0.02;
-
-        return 0.0;
+        return bonus * Dimension1System.GetMachineMemoryRepairImpactMultiplier(GameState.I);
     }
 
     private double GetStructuralReinforcementDiscount()
@@ -1096,8 +1230,10 @@ public class MachineManager : MonoBehaviour
             SaveService.I.Save();
     }
 
-    public bool Prestige1Prepared =>
-        GetTotalEffectValue(MachineNodeEffectType.EnablePrestige1) > 0.0;
+    // Compatibilidad con los consumidores del ciclo posterior: el antiguo
+    // Canal de Convergencia fue retirado y el umbral real ahora es la
+    // reparación global de la Máquina.
+    public bool Prestige1Prepared => HasEnoughRepairForPrestige1();
         
 
     public double GetTotalMachineRepairProgress01()

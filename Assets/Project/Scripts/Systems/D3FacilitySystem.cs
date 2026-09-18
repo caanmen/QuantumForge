@@ -299,7 +299,7 @@ public static class D3FacilitySystem
 
     public static void AdvanceStabilization(Dimension3State state, double seconds)
     {
-        if (state == null || state.assignments == null || seconds <= 0.0) return;
+        if (state == null || state.assignments == null || seconds < 0.0) return;
         for (int i = state.assignments.Count - 1; i >= 0; i--)
         {
             D3AssignmentState assignment = state.assignments[i];

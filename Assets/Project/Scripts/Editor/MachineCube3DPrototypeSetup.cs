@@ -470,13 +470,12 @@ public static class MachineCube3DPrototypeSetup
         VerticalSettingsPanelUI settings =
             UnityEngine.Object.FindFirstObjectByType<VerticalSettingsPanelUI>(
                 FindObjectsInactive.Include);
-        Require(settings != null && settings.lowQualityButton != null &&
-            settings.balancedQualityButton != null &&
-            settings.highQualityButton != null && settings.currentQualityText != null,
-            "Faltan los controles de calidad del cubo en Ajustes.");
+        Require(settings != null &&
+            settings.transform.Find("Machine3DGraphicsCard") == null,
+            "La tarjeta obsoleta de calidad 3D reaparecio en Ajustes.");
         Debug.Log("[Machine Cube Modular 3D] PASS | real modular geometry | " +
             "4 faces | 7 + 11 + 7 + 10 public sockets | 8 prepared secrets | " +
-            "progressive damage | 3 quality profiles");
+            "progressive damage | perfiles internos sin tarjeta en Ajustes");
     }
 
     private static void ValidateNodeCoverage(GameObject root)
@@ -2860,49 +2859,36 @@ public static class MachineCube3DPrototypeSetup
         Transform existing = settings.transform.Find("Machine3DGraphicsCard");
         if (existing != null)
             UnityEngine.Object.DestroyImmediate(existing.gameObject);
-
-        GameObject card = CreateRect("Machine3DGraphicsCard", settings.transform,
-            new Vector2(0.5f, 0.27f), new Vector2(0.5f, 0.27f),
-            new Vector2(-410f, -185f), new Vector2(410f, 185f));
-        Image languageCard = settings.transform.Find("LanguageCard")
-            ?.GetComponent<Image>();
-        Image cardImage = card.AddComponent<Image>();
-        cardImage.sprite = languageCard != null ? languageCard.sprite : null;
-        cardImage.type = cardImage.sprite != null ? Image.Type.Sliced : Image.Type.Simple;
-        cardImage.color = languageCard != null
-            ? languageCard.color
-            : new Color(0.025f, 0.055f, 0.070f, 0.96f);
-
-        TMP_FontAsset font = settings.currentLanguageText != null
-            ? settings.currentLanguageText.font
-            : TMP_Settings.defaultFontAsset;
-        TMP_Text title = CreateSettingsText("Machine3DQualityTitle", card.transform,
-            "CALIDAD DEL CUBO 3D", font, 28f, new Color(0.15f, 0.86f, 1f),
-            new Vector2(0.5f, 0.82f), new Vector2(720f, 54f));
-        title.fontStyle = FontStyles.Bold;
-        TMP_Text status = CreateSettingsText("CurrentMachine3DQuality", card.transform,
-            "Calidad del cubo: Equilibrada", font, 22f, Color.white,
-            new Vector2(0.5f, 0.63f), new Vector2(720f, 48f));
-        CreateSettingsText("Machine3DQualityDescription", card.transform,
-            "BAJA conserva el modelo 3D y reduce resolucion, sombras y refresco.",
-            font, 16f, new Color(0.64f, 0.74f, 0.79f),
-            new Vector2(0.5f, 0.49f), new Vector2(720f, 42f));
-
-        Sprite buttonSprite = settings.spanishButton != null
-            ? settings.spanishButton.GetComponent<Image>()?.sprite
-            : null;
-        Button low = CreateQualityButton("Machine3DQualityLow", card.transform,
-            "BAJA", font, buttonSprite, new Vector2(0.19f, 0.22f));
-        Button balanced = CreateQualityButton("Machine3DQualityBalanced", card.transform,
-            "EQUILIBRADA", font, buttonSprite, new Vector2(0.50f, 0.22f));
-        Button high = CreateQualityButton("Machine3DQualityHigh", card.transform,
-            "ALTA", font, buttonSprite, new Vector2(0.81f, 0.22f));
-
-        settings.lowQualityButton = low;
-        settings.balancedQualityButton = balanced;
-        settings.highQualityButton = high;
-        settings.currentQualityText = status;
         EditorUtility.SetDirty(settings);
+    }
+
+    [MenuItem("Tools/Quantum Forge/Machine/Remove Obsolete 3D Graphics Settings")]
+    public static void RemoveGraphicsSettingsCard()
+    {
+        Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        ConfigureGraphicsSettingsUI();
+        EditorSceneManager.MarkSceneDirty(scene);
+        Require(EditorSceneManager.SaveScene(scene),
+            "No se pudo guardar Main.unity sin la tarjeta 3D obsoleta.");
+        AssetDatabase.SaveAssets();
+        Require(UnityEngine.Object.FindFirstObjectByType<VerticalSettingsPanelUI>(
+                FindObjectsInactive.Include)?.transform.Find("Machine3DGraphicsCard") == null,
+            "La tarjeta de graficos 3D sigue presente en Ajustes.");
+        Debug.Log("[Machine Settings] PASS | tarjeta 3D obsoleta eliminada");
+    }
+
+    public static void RemoveGraphicsSettingsCardBatch()
+    {
+        try
+        {
+            RemoveGraphicsSettingsCard();
+            EditorApplication.Exit(0);
+        }
+        catch (Exception exception)
+        {
+            Debug.LogException(exception);
+            EditorApplication.Exit(1);
+        }
     }
 
     private static TMP_Text CreateSettingsText(string name, Transform parent,

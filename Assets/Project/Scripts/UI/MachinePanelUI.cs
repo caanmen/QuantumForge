@@ -6,6 +6,8 @@ using UnityEngine.UI;
 
 public class MachinePanelUI : MonoBehaviour
 {
+    private const float DynamicRefreshInterval = 0.1f;
+
     [Header("Textos principales")]
     [SerializeField] private TextMeshProUGUI machineTitleText;
     [SerializeField] private TextMeshProUGUI machineStateText;
@@ -22,11 +24,13 @@ public class MachinePanelUI : MonoBehaviour
     [SerializeField] private Button btnFusionPanel;
     [SerializeField] private Button btnNodesTab;
     [SerializeField] private Button btnSeedsTab;
+    [SerializeField] private Button btnPrestigeTab;
     
     [Header("Vistas")]
     [SerializeField] private GameObject machineRepairViewRoot;
     [SerializeField] private GameObject machineNodeViewRoot;
     [SerializeField] private MachineCubeVisualUI cubeVisual;
+    [SerializeField] private MachineMonolith2DVisualUI monolithVisual;
 
     [Header("Selección de nodos")]
     [SerializeField] private TextMeshProUGUI selectedNodeText;
@@ -60,6 +64,7 @@ public class MachinePanelUI : MonoBehaviour
     private int _selectedNodeIndex = 0;
     private bool _fusionPanelVisible;
     private bool _wasAnalyzingNode;
+    private float _nextDynamicRefreshTime;
     private readonly Dictionary<MachineZoneType, int> _selectedNodeIndexByZone =
     
     new Dictionary<MachineZoneType, int>();
@@ -105,6 +110,9 @@ public class MachinePanelUI : MonoBehaviour
         if (btnSeedsTab != null)
             btnSeedsTab.onClick.AddListener(OpenSeedsView);
 
+        if (btnPrestigeTab != null)
+            btnPrestigeTab.onClick.AddListener(OpenPrestigePanel);
+
         if (btnBackToNodesFromFusion != null)
             btnBackToNodesFromFusion.onClick.AddListener(CloseFusionPanel);
 
@@ -138,6 +146,7 @@ public class MachinePanelUI : MonoBehaviour
 
     private void OnEnable()
     {
+        _nextDynamicRefreshTime = 0f;
         if (MachineManager.I != null)
             _currentZone = (MachineZoneType)(MachineManager.I.SelectedMachineFaceIndex + 1);
 
@@ -146,6 +155,9 @@ public class MachinePanelUI : MonoBehaviour
 
     private void Update()
     {
+        if (Time.unscaledTime < _nextDynamicRefreshTime)
+            return;
+        _nextDynamicRefreshTime = Time.unscaledTime + DynamicRefreshInterval;
 
         if (instantSeedsViewRoot != null && instantSeedsViewRoot.activeSelf)
         {
@@ -188,6 +200,9 @@ public class MachinePanelUI : MonoBehaviour
 
         if (cubeVisual != null)
             cubeVisual.RefreshNow();
+
+        if (monolithVisual != null)
+            monolithVisual.RefreshNow();
     }
 
     private void EnsureCurrentZoneIsAccessible()
@@ -305,25 +320,8 @@ public class MachinePanelUI : MonoBehaviour
                 break;
 
             case MachineZoneType.InstantChamber:
-                SetText(zoneTitleText, "Cámara de Anclajes");
-
-                if (MachineManager.I.InstantChamberCoreUnlocked)
-                {
-                    SetText(
-                        zoneDescriptionText,
-                        "Cámara Básica activa.\n" +
-                        "Semillas Dimensionales, Anclajes y Archivo quedan preparados."
-                    );
-                }
-                else
-                {
-                    SetText(
-                        zoneDescriptionText,
-                        "Sistema inactivo.\n" +
-                        "Repara Cámara Básica para iniciar la Cámara de Anclajes."
-                    );
-                }
-
+                SetText(zoneTitleText, "???");
+                SetText(zoneDescriptionText, "");
                 break;
 
             default:
@@ -466,6 +464,8 @@ public class MachinePanelUI : MonoBehaviour
         instantSeedsViewRoot != null && instantSeedsViewRoot.activeSelf;
     public bool HasAuxiliaryViewOpen =>
         _fusionPanelVisible || SeedsPanelVisible;
+    private bool HasPrimaryMachineVisual =>
+        monolithVisual != null || cubeVisual != null;
 
     public void SelectZoneFromCube(MachineZoneType zone)
     {
@@ -593,16 +593,6 @@ public class MachinePanelUI : MonoBehaviour
             return;
         }
 
-        if (repairedNode.id == "z3_convergence_channel")
-        {
-            AchievementPopupUI.I.ShowPopup(
-                "Convergencia detectada",
-                "El Canal de Convergencia está activo.\n\n" +
-                "Cuando la reparación total alcance el 80%, podrás ejecutar manualmente " +
-                "el Prestigio 1 desde su pestaña."
-            );
-            return;
-        }
     }
 
     private void RefreshSelectedNodeControls()
@@ -664,6 +654,11 @@ public class MachinePanelUI : MonoBehaviour
         if (node.id == "z3_machine_memory" && repaired)
         {
             return BuildMachineMemoryProgressSummary();
+        }
+
+        if (!node.damaged && !repaired)
+        {
+            return "Nodo intacto. Puede repararse directamente; no requiere diagnóstico.";
         }
 
         return "";
@@ -983,7 +978,7 @@ public class MachinePanelUI : MonoBehaviour
         if (btnAnalyzeNode != null)
         {
             bool showAnalyze = showActions && requiresAnalysis;
-            string analyzeLabel = "ANALIZAR";
+            string analyzeLabel = "ANALIZAR · 25 ENERGÍA";
             if (isSelectedNodeBeingAnalyzed)
             {
                 int seconds = Mathf.Max(1,
@@ -1026,7 +1021,7 @@ public class MachinePanelUI : MonoBehaviour
         if (requiresAnalysis)
         {
             nodeAnalysisText.text = canAnalyzeSelectedNode
-                ? "Nodo dañado. Pulsa ANALIZAR para revelar sus requisitos de reparación."
+                ? "Nodo dañado. Diagnosticar revela sus requisitos y consume 25 Energía."
                 : analyzeBlockedReason;
             return;
         }
@@ -1148,7 +1143,7 @@ public class MachinePanelUI : MonoBehaviour
                 return "Soporte Interno";
 
             case MachineZoneType.InstantChamber:
-                return "Cámara de Anclajes";
+                return "???";
 
             default:
                 return "Zona desconocida";
@@ -1174,10 +1169,8 @@ public class MachinePanelUI : MonoBehaviour
 
         if (MachineManager.I.Prestige1Prepared)
         {
-            double repairPct = MachineManager.I.GetTotalMachineRepairProgress01() * 100.0;
-            machineNoticeText.text = MachineManager.I.HasEnoughRepairForPrestige1()
-                ? "Convergencia estable: Prestigio 1 disponible en su pestaña."
-                : $"Canal de Convergencia activo. Reparación total: {repairPct:0}% / 80%.";
+            machineNoticeText.text =
+                "Reparación suficiente: Prestigio 1 disponible en su pestaña.";
             return;
         }
 
@@ -1190,7 +1183,7 @@ public class MachinePanelUI : MonoBehaviour
         if (MachineManager.I.MachineFusionPanelUnlocked)
         {
             machineNoticeText.text =
-                "Mezclas operativas: combina fragmentos para obtener Hallazgos, Muestras, Lecturas Incompletas y Compuestos Útiles.";
+                "Mezclas operativas: combina fragmentos para obtener Anomalías, Condensados, Vestigios y Compuestos.";
             return;
         }
 
@@ -1222,10 +1215,10 @@ public class MachinePanelUI : MonoBehaviour
         }
 
         if (machineRepairViewRoot != null)
-            machineRepairViewRoot.SetActive(cubeVisual == null && !_fusionPanelVisible);
+            machineRepairViewRoot.SetActive(!HasPrimaryMachineVisual && !_fusionPanelVisible);
 
         if (machineNodeViewRoot != null)
-            machineNodeViewRoot.SetActive(cubeVisual == null && !_fusionPanelVisible);
+            machineNodeViewRoot.SetActive(!HasPrimaryMachineVisual && !_fusionPanelVisible);
 
         bool seedsViewOpen = instantSeedsViewRoot != null && instantSeedsViewRoot.activeSelf;
         bool seedsUnlocked = MachineManager.I != null &&
@@ -1282,14 +1275,31 @@ public class MachinePanelUI : MonoBehaviour
                 new Color(0f, 0.84f, 0.76f, 1f));
         }
 
+        if (btnPrestigeTab != null)
+        {
+            btnPrestigeTab.gameObject.SetActive(showContextTabs);
+            btnPrestigeTab.interactable = showContextTabs;
+
+            TextMeshProUGUI labelText =
+                btnPrestigeTab.GetComponentInChildren<TextMeshProUGUI>();
+            if (labelText != null)
+                labelText.text = "PRESTIGIO";
+
+            ApplyContextTabVisual(btnPrestigeTab, false,
+                new Color(0.53f, 0.66f, 0.72f, 1f));
+        }
+
         if (btnBackToNodesFromFusion != null)
         {
-            btnBackToNodesFromFusion.gameObject.SetActive(false);
+            btnBackToNodesFromFusion.gameObject.SetActive(
+                machineAvailable && _fusionPanelVisible);
+            btnBackToNodesFromFusion.interactable =
+                machineAvailable && _fusionPanelVisible;
 
             TextMeshProUGUI labelText = btnBackToNodesFromFusion.GetComponentInChildren<TextMeshProUGUI>();
 
             if (labelText != null)
-                labelText.text = "NODOS";
+                labelText.text = "‹  VOLVER";
         }
     }
 
@@ -1334,8 +1344,29 @@ public class MachinePanelUI : MonoBehaviour
         RectTransform seedsRect = btnSeedsTab != null
             ? btnSeedsTab.transform as RectTransform
             : null;
+        RectTransform prestigeRect = btnPrestigeTab != null
+            ? btnPrestigeTab.transform as RectTransform
+            : null;
         if (nodesRect == null || mixesRect == null)
             return;
+
+        if (showSeedsTab && seedsRect != null && prestigeRect != null)
+        {
+            SetContextTabRect(nodesRect, 0f, 0.235f);
+            SetContextTabRect(mixesRect, 0.255f, 0.49f);
+            SetContextTabRect(seedsRect, 0.51f, 0.745f);
+            SetContextTabRect(prestigeRect, 0.765f, 1f);
+            return;
+        }
+
+        if (prestigeRect != null)
+        {
+            SetContextTabRect(nodesRect, 0f, 0.32f);
+            SetContextTabRect(mixesRect, 0.34f, 0.66f);
+            SetContextTabRect(prestigeRect, 0.68f, 1f);
+            return;
+        }
+
 
         if (showSeedsTab && seedsRect != null)
         {
@@ -1382,6 +1413,48 @@ public class MachinePanelUI : MonoBehaviour
         Refresh();
     }
 
+    private void OpenPrestigePanel()
+    {
+        if (MachineManager.I == null || !MachineManager.I.MachineUnlocked)
+            return;
+
+        _fusionPanelVisible = false;
+        if (instantSeedsViewRoot != null)
+            instantSeedsViewRoot.SetActive(false);
+
+        if (TabsUI.Instance != null)
+            TabsUI.Instance.ShowPrestigeFromMachine();
+        else
+            Debug.LogWarning("[MachinePanelUI] TabsUI no está disponible para abrir Prestigio.");
+    }
+
+    public void ShowNodesFromPrestige()
+    {
+        if (MachineManager.I == null || !MachineManager.I.MachineUnlocked)
+            return;
+
+        _fusionPanelVisible = false;
+        if (instantSeedsViewRoot != null)
+            instantSeedsViewRoot.SetActive(false);
+
+        TabsUI.Instance?.ShowRoom2();
+        monolithVisual?.ShowOverviewImmediate();
+        Refresh();
+    }
+
+    public void ShowMixesFromPrestige()
+    {
+        if (MachineManager.I == null || !MachineManager.I.MachineUnlocked)
+            return;
+
+        _fusionPanelVisible = true;
+        if (instantSeedsViewRoot != null)
+            instantSeedsViewRoot.SetActive(false);
+
+        TabsUI.Instance?.ShowRoom2();
+        Refresh();
+    }
+
     private void CloseFusionPanel()
     {
         _fusionPanelVisible = false;
@@ -1407,20 +1480,20 @@ public class MachinePanelUI : MonoBehaviour
                 (System.Math.Abs(cost.traces - 1.0) < 0.000001 ? " Traza" : " Trazas"));
 
         if (cost.hallazgo > 0)
-            parts.Add(cost.hallazgo + (cost.hallazgo == 1 ? " Hallazgo" : " Hallazgos"));
+            parts.Add(cost.hallazgo + (cost.hallazgo == 1 ? " Anomalía" : " Anomalías"));
 
         if (cost.muestra > 0)
-            parts.Add(cost.muestra + (cost.muestra == 1 ? " Muestra" : " Muestras"));
+            parts.Add(cost.muestra + (cost.muestra == 1 ? " Condensado" : " Condensados"));
 
         if (cost.lecturaIncompleta > 0)
             parts.Add(cost.lecturaIncompleta + (cost.lecturaIncompleta == 1
-                ? " Lectura Incompleta"
-                : " Lecturas Incompletas"));
+                ? " Vestigio"
+                : " Vestigios"));
 
         if (cost.compuestoUtil > 0)
             parts.Add(cost.compuestoUtil + (cost.compuestoUtil == 1
-                ? " Compuesto Útil"
-                : " Compuestos Útiles"));
+                ? " Compuesto"
+                : " Compuestos"));
 
         if (cost.pureInstant > 0)
             parts.Add(cost.pureInstant + (cost.pureInstant == 1
@@ -1744,7 +1817,7 @@ public class MachinePanelUI : MonoBehaviour
             instantSeedsViewRoot.SetActive(false);
 
         if (machineRepairViewRoot != null)
-            machineRepairViewRoot.SetActive(cubeVisual == null);
+            machineRepairViewRoot.SetActive(!HasPrimaryMachineVisual);
 
         if (btnInstantChamberHelp != null)
             btnInstantChamberHelp.gameObject.SetActive(false);

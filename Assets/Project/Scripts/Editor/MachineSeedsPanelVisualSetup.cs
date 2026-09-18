@@ -725,7 +725,7 @@ public static class MachineSeedsPanelVisualSetup
         text.color = color;
         text.alignment = alignment;
         text.raycastTarget = false;
-        text.overflowMode = TextOverflowModes.Ellipsis;
+        text.overflowMode = TextOverflowModes.Truncate;
         return text;
     }
 

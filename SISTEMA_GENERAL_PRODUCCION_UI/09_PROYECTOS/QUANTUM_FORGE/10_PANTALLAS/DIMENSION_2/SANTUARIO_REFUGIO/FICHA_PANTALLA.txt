@@ -1,0 +1,34 @@
+FICHA DE PANTALLA — DIMENSIÓN 2 / EL SANTUARIO / REFUGIO
+
+Estado: IMPLEMENTADA Y VALIDADA SOBRE 95 %.
+Fecha: 30 de agosto de 2026.
+Raíz Unity: D2_Civilization1.
+Constructor canónico: Dimension2Block1UISetup.BuildCivilization1Placeholder.
+Controlador: D2Civilization1PanelUI.
+
+Referencia:
+05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/02_El_Santuario_Refugio_Corregido_V4.png
+La referencia es concepto estático; las capturas archivadas son evidencia real de Unity.
+
+Composición aprobada:
+- Encabezado EL SANTUARIO con Atrás y Ayuda reales.
+- Cuatro recursos dinámicos: Seguidores disponibles, Confianza, Cera y Pan ritual.
+- Siete rutas laterales: Refugio, Altares, Peregrinaciones, Noviciado, Ritos,
+  Pactos y Umbral.
+- Refugio seleccionado con glow dorado; Umbral visible pero no interactuable
+  antes de 500 de Confianza.
+- Panel funcional con nivel, disponibles, asignados, multiplicador, llegada/minuto,
+  −1, +1, +10, Todos, Liberar y Mejorar Refugio.
+- Objetivo inferior dinámico, con prioridad de fortalecer el Refugio antes de 300.
+
+Escenario QA de referencia:
+- Seguidores disponibles 3,845; Confianza 280/500; Cera 3,450; Pan ritual 3,450.
+- Refugio nivel 4/10; asignados 1,280; multiplicador ×6.367; coste 76.
+- Llegada interna conservada con precisión completa y presentada redondeada por
+  minuto como 68.00 / MIN.
+
+Evidencia:
+- STRUCTURE_PASS, STATE_PASS y ROUTE_PASS.
+- Capturas reales 1080x1920 y 720x1280.
+- Similitud percibida AA: 95.59 % en 1080 y 95.95 % en 720.
+

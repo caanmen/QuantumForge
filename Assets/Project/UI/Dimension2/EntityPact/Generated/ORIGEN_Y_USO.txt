@@ -1,0 +1,27 @@
+PLACA LIMPIA — PACTO CON EL ENTE
+
+Fecha: 3 de septiembre de 2026
+Modo: herramienta integrada ImageGen, edición precisa de la referencia permanente V5.
+Referencia:
+SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/20_Pacto_Opcional_Con_El_Ente_Corregido_V5.png
+
+Salida:
+D2_EntityPact_CleanBasePlate_v1.png
+
+Uso:
+- Placa estática para EntityPactPhaseV5.
+- Unity conserva la propiedad de todos los textos, cifras, niveles, selección,
+  detalle elegido, costes, inventario, estados de botones y resultado.
+- Las cuatro ilustraciones pequeñas permanecen en la placa; el detalle grande se
+  construye en Unity recortando la ilustración correspondiente de la misma placa.
+- Crónica del Primer Umbral no aparece en esta vista V5.
+
+PROMPT FINAL
+Use case: precise-object-edit
+Asset type: clean production base plate for a portrait Unity game interface
+Input images: Image 1 is the exact edit target and composition authority.
+Primary request: remove every word, number, numeral, percentage, level label, status, resource value, result message and button caption from the interface. Also remove the purple selected-state glow/border from the first pact card and the purple active fill from both action buttons, leaving their ornamental frames neutral. Remove the large selected pact emblem/artwork from the circular detail medallion in the lower-middle panel, but preserve that empty circular ornamental frame so Unity can place a dynamic emblem there. Preserve all four smaller pact-card emblem artworks exactly where they are, preserve the top spiral icon, the two small top-stat icons, the three resource icons, the entity-knowledge icon, the result-row icon, the four bottom navigation icons, the back arrow, every panel, border, divider, carved relief, texture, spacing and geometry.
+Style/medium: exact dark gothic archaeological fantasy UI plate, faithful pixel-level restoration of the supplied image.
+Composition/framing: keep the original 941 x 1672 portrait composition and all element positions unchanged.
+Constraints: change only the listed dynamic text and selected-state elements; keep all non-text artwork unchanged; do not redesign, simplify, crop, stretch, add, remove or move any panel, frame, icon, ornament or divider; no replacement text, no pseudo-text, no glyph-like marks, no watermark.
+Avoid: letters, digits, stray typography, invented symbols, extra decoration, altered icon identities, changed palette, changed lighting, changed framing.

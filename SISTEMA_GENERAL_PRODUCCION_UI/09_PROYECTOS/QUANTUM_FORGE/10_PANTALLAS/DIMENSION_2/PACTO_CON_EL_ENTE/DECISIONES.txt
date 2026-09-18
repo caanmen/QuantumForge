@@ -1,0 +1,22 @@
+DECISIONES — PACTO CON EL ENTE
+
+Fecha: 3 de septiembre de 2026
+
+1. La referencia canónica de construcción es la V5.
+2. La pantalla es una fase posterior de Ente y usa EntityPactPhaseV5, separada de
+   EntityResearchPhaseV5 dentro de la misma subvista.
+3. Solo se muestran Expedición Resonante, Archivo Inagotable, Memoria Compartida
+   y Resonancia del Modulador.
+4. Crónica del Primer Umbral sigue persistida por compatibilidad, pero no tiene
+   botón, selección ni presencia visual.
+5. Selección, nivel, detalle, costes, umbral, inventario, acciones y resultado
+   son capas dinámicas de Unity.
+6. El gran icono de detalle cambia con la línea seleccionada.
+7. Establecer Pacto y Mejorar Línea usan transacciones reales del sistema.
+8. Atrás y Excavar abren Ruinas; Analizar y Archivo abren sus subvistas reales.
+9. La placa limpia fue generada de forma no destructiva desde la V5 y no contiene
+   texto ni estados seleccionados.
+10. La selección visible usa un marco violeta móvil que no tapa ni duplica el
+    emblema de la tarjeta.
+11. La etiqueta inferior cambia a ENTE antes de establecer el pacto y a
+    PACTO OPCIONAL después de establecerlo.

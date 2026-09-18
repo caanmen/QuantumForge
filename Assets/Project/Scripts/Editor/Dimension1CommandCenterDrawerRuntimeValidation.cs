@@ -116,24 +116,29 @@ public static class Dimension1CommandCenterDrawerRuntimeValidation
 
     private static void ValidateState(bool expanded)
     {
+        Transform commandRoot = Find("D1CommandCenterProductionRoot").transform;
         GameObject primary = Find("PrimaryNavigationSlot");
         GameObject secondary = Find("SecondaryNavigationSlot");
         if (primary.activeSelf)
             throw new InvalidOperationException("La navegación principal invadió el Centro de Mando.");
         if (secondary.activeSelf != expanded)
             throw new InvalidOperationException("El carrusel global no coincide con el estado de la bandeja.");
+        if (expanded && secondary.GetComponentsInChildren<Button>(false).Length == 0)
+            throw new InvalidOperationException("La bandeja está abierta pero no muestra controles globales.");
 
         foreach (string name in new[]
         {
             "Nav_GALAXIA", "Nav_EXPLORAR", "Nav_HANGAR", "Nav_RELIQUIAS", "Nav_ÁRBOL"
         })
         {
-            if (Find(name).activeSelf == expanded)
+            GameObject commandCard = FindCommandChild(commandRoot, name).gameObject;
+            if (commandCard.activeSelf == expanded)
                 throw new InvalidOperationException(name + " se mezcló con el carrusel global.");
         }
 
-        TMP_Text tmpLabel = Find("DimensionDrawerToggle").GetComponentInChildren<TMP_Text>(true);
-        Text label = Find("DimensionDrawerToggle").GetComponentInChildren<Text>(true);
+        GameObject drawerToggle = FindCommandChild(commandRoot, "DimensionDrawerToggle").gameObject;
+        TMP_Text tmpLabel = drawerToggle.GetComponentInChildren<TMP_Text>(true);
+        Text label = drawerToggle.GetComponentInChildren<Text>(true);
         string value = tmpLabel != null ? tmpLabel.text : label != null ? label.text : "";
         string expected = expanded ? "CENTRO DE MANDO ▲" : "DIMENSIONES ▼";
         if (value != expected)
@@ -146,6 +151,13 @@ public static class Dimension1CommandCenterDrawerRuntimeValidation
         {
             throw new InvalidOperationException("El botón visible de Dimensión 2 no está conectado.");
         }
+    }
+
+    private static Transform FindCommandChild(Transform root, string name)
+    {
+        foreach (Transform current in root.GetComponentsInChildren<Transform>(true))
+            if (current.name == name) return current;
+        throw new InvalidOperationException("No se encontró " + root.name + "/" + name + ".");
     }
 
     private static GameObject Find(string name)

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -37,12 +38,28 @@ public class D2Civilization2PanelUI : MonoBehaviour
     public TMP_Text assignmentText;
     public TMP_Text lastResultText;
     public TMP_Text objectiveText;
+    [Header("Red de regiones — presentación V4")]
+    public TMP_Text availableMembersValueText;
+    public TMP_Text assignedMembersValueText;
+    public TMP_Text totalMembersValueText;
+    public TMP_Text totalDominanceValueText;
+    public TMP_Text[] regionNameTexts;
+    public TMP_Text[] regionDominanceValueTexts;
+    public TMP_Text[] regionThreatValueTexts;
+    public TMP_Text[] regionMembersValueTexts;
+    public Button[] regionButtons;
+    public TMP_Text detailTitleText;
+    public TMP_Text detailDominanceValueText;
+    public TMP_Text detailThreatValueText;
+    public TMP_Text detailMembersValueText;
+    public TMP_Text detailIdleValueText;
     public Button assignOneButton;
     public Button assignTenButton;
     public Button assignAllButton;
     public Button releaseOneButton;
     public Button releaseAllButton;
     public Button backToMapButton;
+    public Button helpButton;
 
     private readonly List<string> _selectableRegionIds = new List<string>();
 
@@ -74,6 +91,17 @@ public class D2Civilization2PanelUI : MonoBehaviour
             releaseAllButton.onClick.AddListener(ReleaseAll);
         if (backToMapButton != null)
             backToMapButton.onClick.AddListener(BackToMap);
+        if (helpButton != null && dimension2PanelUI != null)
+            helpButton.onClick.AddListener(dimension2PanelUI.OpenContextualHelp);
+        if (regionButtons != null)
+        {
+            for (int i = 0; i < regionButtons.Length; i++)
+            {
+                int captured = i;
+                if (regionButtons[i] != null)
+                    regionButtons[i].onClick.AddListener(() => SelectRegionCard(captured));
+            }
+        }
 
         ShowRegions();
     }
@@ -107,16 +135,29 @@ public class D2Civilization2PanelUI : MonoBehaviour
         RefreshProgressivePresentation(gameState, state, selectedRegion);
 
         long assigned = D2Civilization2System.GetAssignedMembers(state);
-        SetText(
-            membersText,
-            "MIEMBROS DE RESISTENCIA — Disponibles: " +
-            state.membersAvailable.ToString("N0") + " | Asignados: " +
-            assigned.ToString("N0") + " | Total: " +
-            D2Civilization2System.GetTotalMembers(state).ToString("N0")
-        );
+        long totalMembers = D2Civilization2System.GetTotalMembers(state);
+        bool usesRegionsV4 = availableMembersValueText != null;
+        if (usesRegionsV4)
+        {
+            SetText(availableMembersValueText, FormatInteger(state.membersAvailable));
+            SetText(assignedMembersValueText, FormatInteger(assigned));
+            SetText(totalMembersValueText, FormatInteger(totalMembers));
+        }
+        else
+        {
+            SetText(
+                membersText,
+                "MIEMBROS DE RESISTENCIA — Disponibles: " +
+                state.membersAvailable.ToString("N0") + " | Asignados: " +
+                assigned.ToString("N0") + " | Total: " + totalMembers.ToString("N0")
+            );
+        }
 
         double totalDominance = D2Civilization2System.GetTotalDominance(state);
-        SetText(dominanceText, "DOMINIO TOTAL: " + totalDominance.ToString("0.##") + "%");
+        if (usesRegionsV4)
+            SetText(totalDominanceValueText, FormatPercent(totalDominance));
+        else
+            SetText(dominanceText, "DOMINIO TOTAL: " + totalDominance.ToString("0.##") + "%");
         if (dominanceSlider != null)
         {
             dominanceSlider.minValue = 0f;
@@ -124,38 +165,54 @@ public class D2Civilization2PanelUI : MonoBehaviour
             dominanceSlider.value = (float)totalDominance;
         }
 
-        SetText(region1Text, BuildRegionText(state, D2Civilization2System.Region1Id, 0.0));
-        SetText(
-            region2Text,
-            BuildRegionText(
-                state,
-                D2Civilization2System.Region2Id,
-                D2Civilization2System.Region2UnlockDominance
-            )
-        );
-        SetText(
-            region3Text,
-            BuildRegionText(
-                state,
-                D2Civilization2System.Region3Id,
-                D2Civilization2System.Region3UnlockDominance
-            )
-        );
+        if (usesRegionsV4)
+        {
+            RefreshRegionCard(state, 0, D2Civilization2System.Region1Id);
+            RefreshRegionCard(state, 1, D2Civilization2System.Region2Id);
+            RefreshRegionCard(state, 2, D2Civilization2System.Region3Id);
+        }
+        else
+        {
+            SetText(region1Text, BuildRegionText(state, D2Civilization2System.Region1Id, 0.0));
+            SetText(region2Text, BuildRegionText(state, D2Civilization2System.Region2Id,
+                D2Civilization2System.Region2UnlockDominance));
+            SetText(region3Text, BuildRegionText(state, D2Civilization2System.Region3Id,
+                D2Civilization2System.Region3UnlockDominance));
+        }
         SetText(region4Text, "");
-        SetText(
-            assignmentText,
-            "Asignación regional — " +
-            D2Civilization2System.GetRegionDisplayName(selectedRegion.regionId) + ": " +
-            selectedRegion.membersAssigned.ToString("N0") +
-            " Miembro(s) | Sin destinar: " +
-            D2Civilization2System.GetRegionIdleMembers(selectedRegion).ToString("N0")
-        );
-        SetText(
-            lastResultText,
-            string.IsNullOrEmpty(state.lastResult)
-                ? "La Resistencia está preparada para organizar sus primeras operaciones."
-                : state.lastResult
-        );
+        if (usesRegionsV4)
+        {
+            SetText(detailTitleText,
+                D2Civilization2System.GetRegionDisplayName(selectedRegion.regionId).ToUpperInvariant() +
+                " — DISPONIBLE");
+            SetText(detailDominanceValueText, FormatPercent(selectedRegion.dominance));
+            SetText(detailThreatValueText, FormatPercent(selectedRegion.threat));
+            SetText(detailMembersValueText, FormatInteger(selectedRegion.membersAssigned));
+            SetText(detailIdleValueText,
+                FormatInteger(D2Civilization2System.GetRegionIdleMembers(selectedRegion)));
+            SetText(assignmentText, "ASIGNACIÓN REGIONAL · SIN DESTINAR");
+            SetText(lastResultText, "DISTRIBUYE MIEMBROS EN LAS REGIONES.");
+        }
+        else
+        {
+            SetText(
+                assignmentText,
+                "Asignación regional — " +
+                D2Civilization2System.GetRegionDisplayName(selectedRegion.regionId) + ": " +
+                selectedRegion.membersAssigned.ToString("N0") +
+                " Miembro(s) | Sin destinar: " +
+                D2Civilization2System.GetRegionIdleMembers(selectedRegion).ToString("N0")
+            );
+        }
+        if (!usesRegionsV4)
+        {
+            SetText(
+                lastResultText,
+                string.IsNullOrEmpty(state.lastResult)
+                    ? "La Resistencia está preparada para organizar sus primeras operaciones."
+                    : state.lastResult
+            );
+        }
 
         SetInteractable(assignOneButton, state.membersAvailable >= 1L);
         SetInteractable(assignTenButton, state.membersAvailable >= 1L);
@@ -224,10 +281,18 @@ public class D2Civilization2PanelUI : MonoBehaviour
         string[] visibleRegions =
             D2Civilization2PresentationRules.GetVisibleRegionIds(state);
         SetActive(region1Text, true);
-        SetActive(region2Text, ArrayContains(
-            visibleRegions, D2Civilization2System.Region2Id));
-        SetActive(region3Text, ArrayContains(
-            visibleRegions, D2Civilization2System.Region3Id));
+        if (availableMembersValueText != null)
+        {
+            SetActive(region2Text, true);
+            SetActive(region3Text, true);
+        }
+        else
+        {
+            SetActive(region2Text, ArrayContains(
+                visibleRegions, D2Civilization2System.Region2Id));
+            SetActive(region3Text, ArrayContains(
+                visibleRegions, D2Civilization2System.Region3Id));
+        }
         SetActive(region4Text, false);
         bool learnedAssignment =
             D2Civilization2PresentationRules.HasRegionalAssignment(state);
@@ -403,6 +468,25 @@ public class D2Civilization2PanelUI : MonoBehaviour
         return region != null ? region.regionId : D2Civilization2System.Region1Id;
     }
 
+    public void CycleSelectedRegion(int direction)
+    {
+        D2Civilization2State state = GameState.I?.dimension2?.civilization2;
+        if (state == null)
+            return;
+
+        PopulateRegionDropdown(state);
+        if (_selectableRegionIds.Count <= 1)
+            return;
+
+        int currentIndex = _selectableRegionIds.IndexOf(state.selectedRegionId);
+        if (currentIndex < 0)
+            currentIndex = 0;
+        int step = direction < 0 ? -1 : 1;
+        int nextIndex = (currentIndex + step + _selectableRegionIds.Count) %
+            _selectableRegionIds.Count;
+        SelectRegionFromDropdown(nextIndex);
+    }
+
     private void PopulateRegionDropdown(D2Civilization2State state)
     {
         if (regionDropdown == null)
@@ -463,6 +547,51 @@ public class D2Civilization2PanelUI : MonoBehaviour
                 "d2.c2.regional_risk_help");
         }
         Refresh();
+    }
+
+    private void SelectRegionCard(int index)
+    {
+        if (index < 0 || index > 2)
+            return;
+        string regionId = index == 0
+            ? D2Civilization2System.Region1Id
+            : index == 1
+                ? D2Civilization2System.Region2Id
+                : D2Civilization2System.Region3Id;
+        if (!D2Civilization2System.TrySelectRegion(GameState.I, regionId))
+            return;
+        PopulateRegionDropdown(GameState.I.dimension2.civilization2);
+        Refresh();
+    }
+
+    private void RefreshRegionCard(D2Civilization2State state, int index, string regionId)
+    {
+        if (index < 0 || index >= 3)
+            return;
+        D2RegionState region = D2Civilization2System.GetRegion(state, regionId);
+        bool visible = region != null && region.unlocked;
+        if (regionNameTexts != null && index < regionNameTexts.Length)
+            SetText(regionNameTexts[index], visible
+                ? D2Civilization2System.GetRegionDisplayName(regionId).ToUpperInvariant()
+                : "REGIÓN BLOQUEADA");
+        if (regionDominanceValueTexts != null && index < regionDominanceValueTexts.Length)
+            SetText(regionDominanceValueTexts[index], visible ? FormatPercent(region.dominance) : "—");
+        if (regionThreatValueTexts != null && index < regionThreatValueTexts.Length)
+            SetText(regionThreatValueTexts[index], visible ? FormatPercent(region.threat) : "—");
+        if (regionMembersValueTexts != null && index < regionMembersValueTexts.Length)
+            SetText(regionMembersValueTexts[index], visible ? FormatInteger(region.membersAssigned) : "—");
+        if (regionButtons != null && index < regionButtons.Length && regionButtons[index] != null)
+            regionButtons[index].interactable = visible;
+    }
+
+    private static string FormatInteger(long value)
+    {
+        return value.ToString("N0", CultureInfo.InvariantCulture);
+    }
+
+    private static string FormatPercent(double value)
+    {
+        return value.ToString("0.##", CultureInfo.InvariantCulture) + "%";
     }
 
     private static string BuildRegionText(

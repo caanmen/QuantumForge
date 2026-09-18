@@ -1,0 +1,20 @@
+DECISIONES — EL SANTUARIO / REFUGIO
+
+30 de agosto de 2026
+
+1. La petición actual del usuario adopta la vista 02 V4 como autoridad de esta
+   composición y exige una similitud mínima de 95 %.
+2. Los tiradores blancos y el borde negro del archivo temporal pertenecen al visor
+   de imagen y no forman parte del diseño.
+3. UMBRAL permanece visible como destino bloqueado antes de 500 de Confianza. La
+   visibilidad no altera el requisito ni habilita la acción.
+4. La llegada conserva el cálculo real en segundos; la cabecera funcional la muestra
+   redondeada a unidad por minuto con dos decimales para reproducir 68.00 / MIN.
+5. A menos de 300 de Confianza, el objetivo del Refugio prioriza fortalecerlo y luego
+   continuar hacia la localización del siguiente territorio.
+6. Fondo, marcos e iconos estáticos no interceptan raycasts. Datos y controles son
+   objetos reales con un solo propietario: D2Civilization1PanelUI.
+7. No se añadieron animaciones; la composición estática queda cerrada primero.
+8. El constructor legado no se usa. Toda reconstrucción nace del constructor canónico
+   y conserva escena y herramienta sincronizadas.
+

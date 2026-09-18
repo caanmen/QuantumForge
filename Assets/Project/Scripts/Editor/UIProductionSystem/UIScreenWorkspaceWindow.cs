@@ -39,10 +39,10 @@ public sealed class UIScreenWorkspaceWindow : EditorWindow
         string safeDimension = Sanitize(dimensionId);
         string safeScreen = Sanitize(screenId);
         string root = Directory.GetParent(Application.dataPath).FullName;
-        string folder = Path.Combine(root, "SISTEMA_UI_QUANTUM_FORGE", "10_PANTALLAS", safeDimension, safeScreen);
+        string folder = Path.Combine(root, "SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE", "10_PANTALLAS", safeDimension, safeScreen);
         Directory.CreateDirectory(folder);
 
-        string templateRoot = Path.Combine(root, "SISTEMA_UI_QUANTUM_FORGE", "02_PLANTILLAS");
+        string templateRoot = Path.Combine(root, "SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE", "02_PLANTILLAS");
         CopyOnce(
             Path.Combine(templateRoot, "FICHA_NUEVA_PANTALLA.txt"),
             Path.Combine(folder, "FICHA_PANTALLA.txt"));

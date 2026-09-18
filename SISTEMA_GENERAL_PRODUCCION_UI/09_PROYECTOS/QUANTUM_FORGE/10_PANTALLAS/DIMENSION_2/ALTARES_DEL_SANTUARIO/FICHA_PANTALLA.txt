@@ -1,0 +1,37 @@
+FICHA DE PANTALLA — DIMENSIÓN 2 / ALTARES DEL SANTUARIO
+
+Estado: APROBADA VISUALMENTE POR EL USUARIO; CAPTURAS ARCHIVADAS.
+Fecha: 30 de agosto de 2026.
+Raíz Unity: D2_Civ1_AltarsSection.
+Constructor canónico: Dimension2Block1UISetup.BuildCivilization1Placeholder.
+Controlador único: D2AltarsPanelUI.
+
+Referencia:
+05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/03_Altares_Del_Santuario_Corregido_V4.png
+SHA-256: 7E6B064C42C7C1A8AEF25734786498225375F1442E331CC6F5CFC3502E481B4B.
+
+Composición:
+- Cabecera con Atrás y recursos dinámicos Seguidores, Cera y Pan ritual.
+- Cinco tarjetas persistentes en cuadrícula 3+2: Cera, Pan Ritual, Incienso,
+  Tela Sagrada y Piedra Tallada.
+- Cera seleccionada en el escenario canónico; Piedra Tallada visible bloqueada.
+- Detalle dinámico de ofrenda, producción por segundo/minuto, seguidores y
+  multiplicador.
+- Acciones reales −1, +1, +10, Asignar todos y Liberar todos.
+- Navegación inferior de siete rutas con Altares seleccionado.
+
+Escenario QA:
+- 3,845 seguidores disponibles; Cera y Pan ritual 3,450.
+- Cera con 120 seguidores: ×4.834, 0.242 / S y 14.50 / MIN.
+- Confianza 280, Noviciado 2 y un Acólito: Incienso/Tela desbloqueados;
+  Piedra Tallada continúa bloqueada hasta 500 o contacto de entidad.
+
+Evidencia requerida:
+- STRUCTURE_PASS, STATE_PASS, ACTIONS_PASS y ROUTE_PASS.
+- Capturas reales 1080x1920 y 720x1280.
+- Similitud percibida AA >=95.00 % en ambas resoluciones.
+
+Resultado final:
+- STRUCTURE_PASS, STATE_PASS, ACTIONS_PASS y ROUTE_PASS.
+- Similitud percibida AA: 95.74 % en 1080 y 96.06 % en 720.
+- Capturas archivadas en 06_CAPTURAS_APROBADAS/DIMENSION_2/ALTARES_DEL_SANTUARIO.

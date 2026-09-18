@@ -1,0 +1,72 @@
+FICHA DE PANTALLA: EXPEDICIÓN COMPLETADA
+========================================
+
+ID: D1_EXPEDICION_COMPLETADA
+Dimensión: 1
+Tipo: resultado superpuesto de una expedición terminada
+Estado: LISTA PARA REVISIÓN DEL USUARIO
+Referencia: 05_REFERENCIAS/DIMENSION_1/EXPEDICION_COMPLETADA/referencia_expedicion_completada_v1.png
+Escena principal: Assets/Project/Scenes/Main.unity
+Controlador funcional existente: Assets/Project/Scripts/UI/Dimension1PanelUI.cs
+Resolución base: 1080 x 1920 vertical
+
+FUNCIÓN
+Presentar el resultado real de la última expedición: destino, nave, duración,
+metales, fragmentos y matrices específicas, reliquia y punto especial cuando
+correspondan. Permite recoger el resultado o abrir la Cámara de Reliquias.
+
+COMPOSICIÓN DE REFERENCIA
+- Modal técnico oscuro a viewport completo, sin navegación inferior.
+- Título EXPEDICIÓN COMPLETADA e insignia de navegación ámbar.
+- Destino y nave utilizados en el bloque superior.
+- Secciones separadas para metales, matrices y reliquia.
+- Aviso ámbar sólo cuando la expedición utilizó un punto especial real.
+- Acción principal RECOGER Y CONTINUAR y acción secundaria VER EN RELIQUIAS.
+
+DATOS Y PROPIEDAD
+- Dimension1PanelUI conserva la autoridad sobre la detección y cierre del resultado.
+- Dimension1ExpeditionResultUI sólo representa el último D1ExplorationRecordEntry.
+- Los valores de la referencia son un escenario visual, no constantes del juego.
+- Los bloques ausentes se muestran como estado vacío real; no se fabrican premios.
+
+VALIDACIÓN REQUERIDA
+- Resultado normal, con matriz, con reliquia nueva, con reliquia duplicada y con punto especial.
+- Resultados con cero, uno, dos, tres y cuatro metales sin omisiones ni solapamientos.
+- Con dos recompensas, Metales y Matrices deben compartir las mismas columnas exactas.
+- Botón principal cierra sin alterar recompensas ya concedidas.
+- Botón secundario abre Reliquias y no deja el modal bloqueando raycasts.
+- Capturas 1080×1920 y 720×1280.
+- Aprobación perceptual del usuario antes de archivar como captura aprobada.
+
+IMPLEMENTACIÓN ACTUAL
+- Raíz visual: D1_ExpeditionResultVisualRoot.
+- Controlador visual: Assets/Project/Scripts/UI/Dimension1ExpeditionResultUI.cs.
+- Instalador reproducible: Dimension1ExpeditionResultSetup.Install.
+- Captura determinista: Dimension1ExpeditionResultCapture.Run.
+- Se conserva duración y punto especial en D1ExplorationRecordEntry para presentar
+  datos reales después de que la nave termina y limpia su estado activo.
+
+VALIDACIÓN ACTUAL
+- Compilación e instalación Unity: PASS.
+- Validación estructural: PASS.
+- Captura 1080×1920: PASS.
+- Captura 720×1280: PASS.
+- Cierre sin CanvasGroup ni raycasts bloqueantes: PASS.
+- Estado sin metales/matrices/reliquia y sin punto especial: PASS.
+- Estado de reliquia duplicada convertida a metal: PASS.
+- Cardinalidad real de cero a cuatro metales: PASS.
+- Columnas de Metales y Matrices alineadas por posición y ancho: PASS.
+- Vista previa de recompensas antes de iniciar una expedición: conservada.
+- La sincronización programática de los dropdowns actualiza también sus valores observados;
+  ya no se interpreta como una nueva selección física ni cierra el resultado.
+- Ruta física 14/14: la modal permaneció visible e interactiva durante 12 fotogramas reales
+  consecutivos y sólo cerró mediante RECOGER Y CONTINUAR: PASS.
+- Capturas posteriores a la corrección en 1080×1920 y 720×1280: PASS.
+- Aprobación visual del usuario: PENDIENTE.
+
+REVISIÓN NUEVA — 2026-09-08
+Se auditó código, escena, navegación física y capturas de Unity en 1080×1920 y
+720×1280. La evidencia anterior se conserva como historial. Consultar
+07_REGISTROS/AUDITORIA_DIMENSION_1_2026-09-08.md y
+08_PRUEBAS/AUDITORIA_D1_2026-09-08 para resultados y correcciones actuales.
+Las capturas nuevas son candidatas; no constituyen aprobación perceptual del usuario.

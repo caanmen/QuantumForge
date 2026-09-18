@@ -1,0 +1,77 @@
+FICHA DE PANTALLA — ALERTA DEL ENTE
+
+Fecha: 1 de septiembre de 2026
+Estado: APROBADA VISUALMENTE POR EL USUARIO; CAPTURAS ARCHIVADAS
+
+IDENTIDAD Y FUNCIÓN
+- Sección Alerta de Civilización 2.
+- Se activa permanentemente al alcanzar 30 % o menos de Dominio total.
+- Muestra Dominio total, tiempo hasta la próxima marca y marcas realizadas.
+- Explica el aumento de Amenaza y la recompensa de Fragmentos durante Alerta.
+- Presenta por región la marca vigente y si Protección está activa.
+- Comunica el desbloqueo de Civilización 3 y Contención y el último resultado.
+- Entrada: pestaña ALERTA desde cualquier sección de Civilización 2.
+- Salida: botón Atrás al Mapa de los Pactos o cualquier pestaña hermana visible.
+
+REFERENCIA DE AUTORIDAD
+- Ruta: 05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/13_Alerta_Del_Ente_Corregida_V4.png
+- Tipo: referencia visual candidata permanente V4.
+- Resolución: 941×1672; composición objetivo 1080×1920.
+- SHA-256: 3D699708D6A36FCDACA923369E38EA882E4EED34B492F94C2DF41B348016BBB6
+- El marco de selección del archivo temporal del chat no pertenece a la pantalla.
+
+PUERTA 0 — AUDITORÍA Y REUTILIZACIÓN
+- Main.unity, constructor, controlador anterior, sistema de Civilización 2,
+  estado serializable, referencia V4 y pantallas hermanas fueron inspeccionados.
+
+Concepto | origen | ruta exacta | estado | decisión
+- Armazón D2 Resistencia | Regiones/Operaciones/Defensa/Resistencia | Dimension2Block1UISetup.cs | producción | reutilizar Canvas, navegación, Cinzel y lienzo 1080×1920.
+- Datos y reglas | sistema Civ 2 | D2Civilization2System.cs y Dimension2State.cs | producción | autoridad funcional única.
+- Controlador | placeholder previo | D2AlertPanelUI.cs | producción | ampliar sin duplicar reglas.
+- Placa limpia | referencia V4 13 | Assets/Project/UI/Dimension2/Resistance/Generated/D2_ResistanceAlert_CleanBasePlate_v1.png | candidato | conservar estructura sin hornear datos ni iconos.
+- Hoja cromática | referencia V4 13 | Assets/Project/UI/Dimension2/Resistance/Generated/D2_ResistanceAlert_IconSheetChroma_v1.png | candidato | aislar iconos canónicos y reutilizarlos por capas.
+- Medidor segmentado | pantalla Defensa | D2SegmentedGaugeGraphic.cs | producción | representar Dominio real sin hornear el 30 %.
+
+Simplificaciones prohibidas:
+- No hornear Dominio, temporizador, conteo, marcas, Protección ni último resultado.
+- No presentar una región protegida como marcada por una nueva elección del Ente.
+- No ocultar las tres regiones ni el desbloqueo de Civilización 3.
+- No sustituir los iconos canónicos por glifos o geometría improvisada.
+
+DATOS Y PROPIETARIOS
+- D2Civilization2System: umbral, temporizador, selección de región, marcas,
+  mitigación por Protección, Fragmentos y finalización de Alerta.
+- Dimension2State: Alerta permanente, progreso, conteo, marcas regionales y resultado.
+- D2AlertPanelUI: formato y visibilidad de los datos reales.
+- D2Civilization2PanelUI: navegación y refresco periódico.
+- Dimension2Block1UISetup: geometría, tipografía, capas, assets y referencias.
+
+ESTADOS
+- Alerta inactiva, activa y finalizada por Contención.
+- Región sin marca, marcada, protegida e inactiva/bloqueada.
+- Último resultado vacío, marca aplicada, marca mitigada y Ente contenido.
+- Civilización 3 bloqueada, nueva/desbloqueada y cierre posterior.
+
+RECONSTRUCCIÓN Y QA
+- Escena: Assets/Project/Scenes/Main.unity.
+- Constructor canónico: Dimension2Block1UISetup.ConfigureBlock1UI.
+- Captura y pruebas: Dimension2ResistanceAlertCapture.Run.
+- Comparación: UIReferenceComparison.RunDimension2ResistanceAlert.
+- Resoluciones: 1080×1920 y 720×1280.
+- Criterio: estructura, estado, rutas físicas, guardado intacto, geometría de texto
+  y similitud perceptual AA ≥95 % en ambas resoluciones.
+
+EVIDENCIA DEL 1 DE SEPTIEMBRE DE 2026
+- Captura 1080×1920: CAPTURAS_CANDIDATAS/D2_Alerta_Del_Ente_1080x1920.png
+- Captura 720×1280: CAPTURAS_CANDIDATAS/D2_Alerta_Del_Ente_720x1280.png
+- Log de captura: Logs/dimension2_resistance_alert_capture.log
+- Log de comparación: Logs/dimension2_resistance_alert_comparison.log
+- Resultado: STRUCTURE_PASS | STATE_PASS | ROUTE_PASS | SAVE_INTACT_PASS |
+  TEXT_GEOMETRY_PASS.
+- Comparación perceptual AA: 95.19 % a 1080×1920 y 95.60 % a 720×1280.
+- La navegación ALERTA, RESISTENCIA, regreso al mapa y reapertura se ejercitaron
+  mediante botones UGUI reales.
+- El fixture conserva 30 %, 06:18, dos elecciones, Región 1 marcada y Protección
+  activa sin modificar save.json ni save.json.bak.
+
+Evidencia aprobada por el usuario y archivada el 4 de septiembre de 2026.

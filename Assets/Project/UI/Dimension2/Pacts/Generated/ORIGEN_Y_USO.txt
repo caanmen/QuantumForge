@@ -1,0 +1,35 @@
+ORIGEN Y USO — ASSETS DE PACTOS DE CIVILIZACIÓN
+
+Referencia permanente:
+SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/07_Pactos_De_Civilizacion_Corregidos_V4.png
+SHA-256: D874A14CD77F56412AFE5FC2F624630DFE53D560055FF6CE8A31F035EBB68746
+
+Edición raster con ImageGen:
+Archivo: D2_Pacts_ImageGenNeutralClean_v1.png
+SHA-256: 1C36BDC1FA8DDA18DDFFD61BF01C2866754E059B2E7F6584700F4D9B5D85CC0F
+Modo: edición precisa de objeto sobre la referencia V4 mediante la herramienta
+integrada imagegen.
+
+Prompt final:
+Use case precise-object-edit. Preserve the exact 941x1672 composition, geometry,
+crop, charcoal stone, bronze frames, all five illustrations, resource icons and
+navigation icons. Remove every letter, word, number and all selected glows.
+Change only text, numbers and glow. Add nothing.
+
+Proceso reproducible:
+- Tools/VisualQA/PrepareD2PactsAssets.ps1 combina únicamente regiones limpias con
+  la referencia permanente y produce la placa canónica y los overlays de estado.
+- Dimension2Block1UISetup importa esos PNG y reconstruye la escena Main.
+- La imagen generada no contiene datos funcionales; TMP y el controlador son los
+  propietarios de texto, cifras, selección e interacción.
+
+Uso:
+- D2_Pacts_CleanBasePlate_v1.png: composición estática neutral.
+- D2_Pacts_*SelectionOverlay_v1.png: selección por ID.
+- D2_Pacts_HospitalityNeutralOverlay_v1.png: neutraliza la selección inicial.
+- D2_Pacts_HospitalitySlotNeutralOverlay_v1.png: neutraliza la ranura horneada.
+- D2_Pacts_SecondSlotUnlockedOverlay_v1.png: estado comprado del segundo espacio.
+- D2_Pacts_StaticDetailIconsOverlay_v1.png: iconos de Beneficio, Compromiso y Estado.
+- D2_Pacts_LockRequirementIconsOverlay_v1.png: requisitos visibles sólo mientras
+  el segundo espacio permanece bloqueado.
+- D2_Pacts_ActionButtonsOverlay_v1.png: placas neutra y roja sin texto horneado.

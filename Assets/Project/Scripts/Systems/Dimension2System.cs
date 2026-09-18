@@ -5,6 +5,7 @@ using UnityEngine;
 public static class Dimension2System
 {
     public const int ProgressVersion = 1;
+    public const int FirstEntryVisualVersion = 2;
     public const int Civilization1ProgressVersion = 9;
     public const int Civilization2ProgressVersion = 9;
     public const int Civilization3ProgressVersion = 11;
@@ -64,6 +65,7 @@ public static class Dimension2System
         {
             progressVersion = ProgressVersion,
             firstEntrySeen = false,
+            firstEntryVisualVersionSeen = 0,
             selectedTerritoryId = Civilization1TerritoryId,
             civilization1Unlocked = true,
             civilization2Unlocked = false,
@@ -139,6 +141,16 @@ public static class Dimension2System
 
         EnsureState(state);
         state.dimension2.firstEntrySeen = true;
+        state.dimension2.firstEntryVisualVersionSeen = FirstEntryVisualVersion;
+    }
+
+    public static bool HasSeenCurrentFirstEntry(GameState state)
+    {
+        if (state == null || state.dimension2 == null)
+            return false;
+
+        return state.dimension2.firstEntrySeen &&
+               state.dimension2.firstEntryVisualVersionSeen >= FirstEntryVisualVersion;
     }
 
     public static string GetTerritoryDisplayName(string territoryId)

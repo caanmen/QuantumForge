@@ -11,7 +11,7 @@ public sealed class MobileQaFriendlyLayout : MonoBehaviour
     private const float PortraitBottomContentClearance = 170f;
     private const float PortraitNavigationHeight = 112f;
     private const float ButtonAuditInterval = 1f;
-    private const float MobileButtonMinimumFontSize = 10f;
+    private const float MobileButtonMinimumFontSize = 14f;
     private const float MobileButtonMaximumFontSize = 28f;
     private const float MobileButtonTextMargin = 4f;
 
@@ -142,14 +142,16 @@ public sealed class MobileQaFriendlyLayout : MonoBehaviour
         float currentSize = label.fontSize > 0f
             ? label.fontSize
             : MobileButtonMaximumFontSize;
+        float maximumSize = Mathf.Max(1f,
+            Mathf.Min(currentSize, MobileButtonMaximumFontSize));
         float minimumSize = label.fontSizeMin > 0f
-            ? Mathf.Min(label.fontSizeMin, MobileButtonMinimumFontSize)
+            ? Mathf.Max(label.fontSizeMin, MobileButtonMinimumFontSize)
             : MobileButtonMinimumFontSize;
+        minimumSize = Mathf.Min(minimumSize, maximumSize);
 
         label.enableAutoSizing = true;
         label.fontSizeMin = minimumSize;
-        label.fontSizeMax = Mathf.Max(minimumSize,
-            Mathf.Min(currentSize, MobileButtonMaximumFontSize));
+        label.fontSizeMax = Mathf.Max(minimumSize, maximumSize);
         label.textWrappingMode = TextWrappingModes.Normal;
         label.margin = new Vector4(
             Mathf.Max(label.margin.x, MobileButtonTextMargin),
@@ -164,10 +166,11 @@ public sealed class MobileQaFriendlyLayout : MonoBehaviour
             return;
 
         int currentSize = Mathf.Max(1, label.fontSize);
-        label.resizeTextForBestFit = true;
-        label.resizeTextMinSize = Mathf.Min(
-            Mathf.Max(1, label.resizeTextMinSize),
+        int desiredMinimum = Mathf.Max(label.resizeTextMinSize,
             Mathf.RoundToInt(MobileButtonMinimumFontSize));
+        desiredMinimum = Mathf.Min(desiredMinimum, currentSize);
+        label.resizeTextForBestFit = true;
+        label.resizeTextMinSize = desiredMinimum;
         label.resizeTextMaxSize = Mathf.Max(
             label.resizeTextMinSize,
             Mathf.Min(currentSize, Mathf.RoundToInt(MobileButtonMaximumFontSize)));

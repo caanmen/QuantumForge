@@ -105,6 +105,8 @@ public class D1ExplorationRecordEntry
     public bool coordinatedMission;
     public string supportShipId;
     public string synergyId;
+    public double totalSeconds;
+    public string specialPointId;
 }
 
 [System.Serializable]
@@ -833,6 +835,23 @@ public static class Dimension1System
     public const string Planet06 = "planet_06";
     public const string Planet07 = "planet_07";
 
+    // Nombres visibles aprobados para la Carta Galáctica. Los IDs de guardado
+    // permanecen intactos para conservar compatibilidad con partidas existentes.
+    public static string GetDimension1PlanetVisualName(string planetId)
+    {
+        switch (planetId)
+        {
+            case Planet01: return "Elysia";
+            case Planet02: return "Vulkar";
+            case Planet03: return "Corona de Tántalo";
+            case Planet04: return "Mnemos";
+            case Planet05: return "Orpheon";
+            case Planet06: return "Nyxara";
+            case Planet07: return "Erebon";
+            default: return planetId ?? "";
+        }
+    }
+
     // Naves de Dimensión 1
     public const string ShipLightProbe = "ship_light_probe";
     public const string ShipExtractorDrone = "ship_extractor_drone";
@@ -1047,7 +1066,8 @@ public static class Dimension1System
     public const float Dimension1Tier3CargoShipBonus = 0.0075f;
     public const float Dimension1Tier3RelicChanceCap = 0.045f;
     public const float Dimension1RelicEchoChanceBonus = 0.01f;
-    public const int Dimension1Prestige1PreviewPointCap = 12;
+    // Presupuesto acumulado aprobado D1; no limita ni multiplica el saldo restante.
+    public const int Dimension1Prestige1PreviewPointCap = 27;
 
     // Reliquias de Exploración
     public const string RelicDriftCompass = "relic_drift_compass";
@@ -2072,6 +2092,23 @@ public static class Dimension1System
         }
     }
 
+    public static bool MeetsDimension1TreeNodePrerequisite(
+        GameState state,
+        string nodeId,
+        int targetTier
+    )
+    {
+        if (state == null || !IsDimension1TreeNodeId(nodeId))
+            return false;
+
+        int maxTier = GetDimension1TreeNodeMaxTier(nodeId);
+        if (targetTier <= 0 || targetTier > maxTier)
+            return false;
+
+        state.EnsureDimension1State();
+        return HasDimension1TreeNodePrerequisite(state, nodeId, targetTier);
+    }
+
     public static string GetDimension1TreeNodeDescription(string nodeId)
     {
         switch (nodeId)
@@ -2470,6 +2507,7 @@ public static class Dimension1System
 
         chance += GetSimpleScannerSpecialPointChanceBonus(state);
         chance += GetD1TreeSpecialDestinationDetectionBonus(state);
+        chance += GetRareFrequencySensorSpecialPointChanceBonus(state);
 
         return Mathf.Clamp(chance, 0.0f, Dimension1SpecialPointScanChanceCap);
     }
@@ -2541,6 +2579,17 @@ public static class Dimension1System
 
     public static int CalculateD1TreePointsFromProgress(GameState state)
     {
+        // Duplicar las fuentes existentes antes del cap, nunca el saldo ni el baseline.
+        return Mathf.Min(CalculateRawD1TreePoints(state) * 2, Dimension1Prestige1PreviewPointCap);
+    }
+
+    public static int CalculateLegacyD1TreePointsBaseline(GameState state)
+    {
+        return Mathf.Min(CalculateRawD1TreePoints(state), 12);
+    }
+
+    private static int CalculateRawD1TreePoints(GameState state)
+    {
         if (state == null || !state.dimension01Unlocked)
             return 0;
 
@@ -2551,7 +2600,7 @@ public static class Dimension1System
             CalculatePrestige1PointsFromD1Tree(state) +
             CalculatePrestige1PointsFromD1Scanner(state);
 
-        return Mathf.Min(rawPoints, Dimension1Prestige1PreviewPointCap);
+        return rawPoints;
     }
 
     [System.Obsolete("Usar CalculateD1TreePointsFromProgress.")]
@@ -2885,6 +2934,24 @@ public static class Dimension1System
                 secondaryPerMilestone = 0.005;
                 break;
 
+            case RelicTracesResonator:
+                // +0.75 % de generación y -0.25 % de coste de Trazas por hito.
+                primaryPerMilestone = 0.0075;
+                secondaryPerMilestone = 0.0025;
+                break;
+
+            case RelicCalibrationFragment:
+                // +1 % de sincronización y +0.25 pp al avance de sintonización por hito.
+                primaryPerMilestone = 0.01;
+                secondaryPerMilestone = 0.0025;
+                break;
+
+            case RelicTriangularSeal:
+                // +0.75 % relativo al protocolo y +0.25 % de Energía por hito.
+                primaryPerMilestone = 0.0075;
+                secondaryPerMilestone = 0.0025;
+                break;
+
             case RelicRememberedAlloy:
                 primaryPerMilestone = 0.0075;
                 secondaryPerMilestone = 0.0075;
@@ -2902,7 +2969,28 @@ public static class Dimension1System
 
             case RelicFracturedAntenna:
                 primaryPerMilestone = 0.00375;
-                secondaryPerMilestone = 0.0;
+                // El efecto ya existente reduce hasta 6 % la duración del escaneo.
+                // Se expresa aquí como 1.5 % por hito para que UI, preview y cálculo
+                // compartan una única progresión 25/50/75/100.
+                secondaryPerMilestone = 0.015;
+                break;
+
+            case RelicIncompleteStarMap:
+                // -1 % de repetición y +0.5 % de variedad por hito.
+                primaryPerMilestone = 0.01;
+                secondaryPerMilestone = 0.005;
+                break;
+
+            case RelicRareFrequencySensor:
+                // +0.5 pp de aparición y +0.2 pp de promoción por hito.
+                primaryPerMilestone = 0.005;
+                secondaryPerMilestone = 0.002;
+                break;
+
+            case RelicMachineMemory:
+                // +0.5 % a efectos numéricos y +0.25 % al impacto de reparación por hito.
+                primaryPerMilestone = 0.005;
+                secondaryPerMilestone = 0.0025;
                 break;
 
             case RelicMatrixArchive:
@@ -3046,6 +3134,70 @@ public static class Dimension1System
     public static double GetRoom1EchoArtifactLEBonus(GameState state)
     {
         return GetDimension1RelicSecondaryBonus(state, RelicRoom1Echo);
+    }
+
+    public static double GetTracesResonatorProductionMultiplier(GameState state)
+    {
+        return 1.0 + GetDimension1RelicPrimaryBonus(state, RelicTracesResonator);
+    }
+
+    public static double GetTracesResonatorRoom1TraceCostMultiplier(GameState state)
+    {
+        double reduction = GetDimension1RelicSecondaryBonus(
+            state,
+            RelicTracesResonator
+        );
+        return System.Math.Max(0.50, 1.0 - reduction);
+    }
+
+    public static double GetCalibrationFragmentSynchronizationMultiplier(GameState state)
+    {
+        return 1.0 + GetDimension1RelicPrimaryBonus(state, RelicCalibrationFragment);
+    }
+
+    public static double GetCalibrationFragmentStudyTuningBonus(GameState state)
+    {
+        return GetDimension1RelicSecondaryBonus(state, RelicCalibrationFragment);
+    }
+
+    public static double GetTriangularSealProtocolEffectMultiplier(GameState state)
+    {
+        return 1.0 + GetDimension1RelicPrimaryBonus(state, RelicTriangularSeal);
+    }
+
+    public static double GetTriangularSealEnergyProductionMultiplier(GameState state)
+    {
+        return 1.0 + GetDimension1RelicSecondaryBonus(state, RelicTriangularSeal);
+    }
+
+    public static float GetIncompleteStarMapRepetitionReduction(GameState state)
+    {
+        return (float)GetDimension1RelicPrimaryBonus(state, RelicIncompleteStarMap);
+    }
+
+    public static float GetIncompleteStarMapVarietyBonus(GameState state)
+    {
+        return (float)GetDimension1RelicSecondaryBonus(state, RelicIncompleteStarMap);
+    }
+
+    public static float GetRareFrequencySensorSpecialPointChanceBonus(GameState state)
+    {
+        return (float)GetDimension1RelicPrimaryBonus(state, RelicRareFrequencySensor);
+    }
+
+    public static float GetRareFrequencySensorCategoryPromotionChance(GameState state)
+    {
+        return (float)GetDimension1RelicSecondaryBonus(state, RelicRareFrequencySensor);
+    }
+
+    public static double GetMachineMemoryNodeEffectMultiplier(GameState state)
+    {
+        return 1.0 + GetDimension1RelicPrimaryBonus(state, RelicMachineMemory);
+    }
+
+    public static double GetMachineMemoryRepairImpactMultiplier(GameState state)
+    {
+        return 1.0 + GetDimension1RelicSecondaryBonus(state, RelicMachineMemory);
     }
 
     private static bool IsLongExplorationDestination(string destinationId)
@@ -3996,6 +4148,72 @@ public static class Dimension1System
     public static double GetSimpleExplorationDurationPreviewSeconds(string destinationId, D1ShipState ship)
     {
         return GetSimpleExplorationDurationPreviewSeconds(null, destinationId, ship);
+    }
+
+    public static double GetShipCargoRewardMultiplierPreview(
+        string shipId,
+        string destinationId,
+        int cargoLevel
+    )
+    {
+        var ship = new D1ShipState
+        {
+            shipId = shipId,
+            cargoLevel = ClampDimension1ShipPartLevel(cargoLevel)
+        };
+        return GetShipMaterialRewardMultiplier(null, destinationId, ship);
+    }
+
+    public static double GetShipArmorRewardMultiplierPreview(
+        string shipId,
+        string destinationId,
+        int armorLevel
+    )
+    {
+        var ship = new D1ShipState
+        {
+            shipId = shipId,
+            armorLevel = ClampDimension1ShipPartLevel(armorLevel)
+        };
+        return GetShipArmorRewardPreservationMultiplier(null, destinationId, ship);
+    }
+
+    public static double GetShipSpeedDurationMultiplierPreview(int speedLevel)
+    {
+        return GetSpeedMultiplierByLevel(speedLevel);
+    }
+
+    public static float GetShipSensorBlueprintFragmentBonusPreview(
+        string shipId,
+        string destinationId,
+        int sensorsLevel
+    )
+    {
+        var ship = new D1ShipState
+        {
+            shipId = shipId,
+            sensorsLevel = ClampDimension1ShipPartLevel(sensorsLevel)
+        };
+        return GetShipSensorBlueprintFragmentBonus(destinationId, ship);
+    }
+
+    public static float GetShipSensorSpecificBlueprintBonusPreview(
+        string shipId,
+        string destinationId,
+        int sensorsLevel
+    )
+    {
+        var ship = new D1ShipState
+        {
+            shipId = shipId,
+            sensorsLevel = ClampDimension1ShipPartLevel(sensorsLevel)
+        };
+        return GetShipSensorSpecificBlueprintBonus(destinationId, ship);
+    }
+
+    public static double GetAnalyticProbeScanDurationPreviewSeconds(int sensorsLevel)
+    {
+        return GetAnalyticProbeScanBaseDurationSeconds(sensorsLevel);
     }
 
 
@@ -7898,9 +8116,45 @@ public static class Dimension1System
             return false;
 
         ClearAllD1SpecialPoints(state);
-        selected.specialPointId = pool[Random.Range(0, pool.Length)];
+        selected.specialPointId = PickD1SpecialPointFromPool(state, pool);
 
         return true;
+    }
+
+    private static string PickD1SpecialPointFromPool(GameState state, string[] pool)
+    {
+        if (pool == null || pool.Length == 0)
+            return "";
+
+        if (ShouldRareFrequencySensorPromoteCategory(state, Random.value))
+        {
+            List<string> preferred = new List<string>();
+            foreach (string specialPointId in pool)
+            {
+                if (IsD1HigherCategorySpecialPoint(specialPointId))
+                    preferred.Add(specialPointId);
+            }
+
+            if (preferred.Count > 0)
+                return preferred[Random.Range(0, preferred.Count)];
+        }
+
+        return pool[Random.Range(0, pool.Length)];
+    }
+
+    public static bool ShouldRareFrequencySensorPromoteCategory(
+        GameState state,
+        float roll01
+    )
+    {
+        float chance = GetRareFrequencySensorCategoryPromotionChance(state);
+        return Mathf.Clamp01(roll01) < chance;
+    }
+
+    public static bool IsD1HigherCategorySpecialPoint(string specialPointId)
+    {
+        return specialPointId == D1SpecialPointRelicEcho ||
+            specialPointId == D1SpecialPointMatrixTrace;
     }
 
     private static int GetAvailableDestinationIndex(
@@ -8630,7 +8884,9 @@ public static class Dimension1System
             state.dimension1LastExplorationRelics,
             false,
             "",
-            ""
+            "",
+            ship != null ? ship.explorationTotalSeconds : 0.0,
+            ship != null ? ship.activeSpecialPointId : ""
         );
 
         ClearD1SpecialPointForDestination(state, destinationId);
@@ -8763,7 +9019,9 @@ public static class Dimension1System
             state.dimension1LastExplorationRelics,
             true,
             supportShip.shipId,
-            synergyId
+            synergyId,
+            mainShip.explorationTotalSeconds,
+            mainShip.activeSpecialPointId
         );
 
         ClearD1SpecialPointForDestination(state, destinationId);
@@ -8795,7 +9053,9 @@ public static class Dimension1System
         List<D1RelicRewardEntry> relicRewards,
         bool coordinatedMission,
         string supportShipId,
-        string synergyId
+        string synergyId,
+        double totalSeconds,
+        string specialPointId
     )
     {
         if (state == null)
@@ -8816,7 +9076,9 @@ public static class Dimension1System
             relicRewards = CloneRelicRewards(relicRewards),
             coordinatedMission = coordinatedMission,
             supportShipId = supportShipId ?? "",
-            synergyId = synergyId ?? ""
+            synergyId = synergyId ?? "",
+            totalSeconds = System.Math.Max(0.0, totalSeconds),
+            specialPointId = specialPointId ?? ""
         };
 
         if (rewards != null)
@@ -11397,32 +11659,29 @@ public static class Dimension1System
         D1ShipState analyticProbe = FindShipState(state, ShipAnalyticProbe);
 
         if (analyticProbe != null && analyticProbe.unlocked)
-        {
-            int sensorsLevel = ClampDimension1ShipPartLevel(analyticProbe.sensorsLevel);
-
-            if (sensorsLevel >= 6)
-                baseDuration = 2.1;
-            else if (sensorsLevel >= 5)
-                baseDuration = 2.4;
-            else if (sensorsLevel >= 4)
-                baseDuration = 2.7;
-            else if (sensorsLevel >= 3)
-                baseDuration = 3.0;
-            else if (sensorsLevel >= 2)
-                baseDuration = 3.5;
-            else if (sensorsLevel >= 1)
-                baseDuration = 4.0;
-        }
+            baseDuration = GetAnalyticProbeScanBaseDurationSeconds(
+                analyticProbe.sensorsLevel);
 
         return baseDuration * GetRelicScanDurationMultiplier(state);
     }
 
+    private static double GetAnalyticProbeScanBaseDurationSeconds(int sensorsLevel)
+    {
+        sensorsLevel = ClampDimension1ShipPartLevel(sensorsLevel);
+        if (sensorsLevel >= 6) return 2.1;
+        if (sensorsLevel >= 5) return 2.4;
+        if (sensorsLevel >= 4) return 2.7;
+        if (sensorsLevel >= 3) return 3.0;
+        if (sensorsLevel >= 2) return 3.5;
+        if (sensorsLevel >= 1) return 4.0;
+        return SimpleScanDurationSeconds;
+    }
+
     private static double GetRelicScanDurationMultiplier(GameState state)
     {
-        double reduction = GetDimension1RelicScaledBonus(
+        double reduction = GetDimension1RelicSecondaryBonus(
             state,
-            RelicFracturedAntenna,
-            0.06
+            RelicFracturedAntenna
         );
 
         return System.Math.Max(0.75, 1.0 - reduction);
@@ -11549,6 +11808,7 @@ public static class Dimension1System
         while (selected.Count < count && validPool.Count > 0)
         {
             int index = PickDestinationIndexWithScanMemory(
+                state,
                 sectorId,
                 validPool,
                 previousDestinationIds,
@@ -11563,6 +11823,7 @@ public static class Dimension1System
     }
 
     private static int PickDestinationIndexWithScanMemory(
+        GameState state,
         string sectorId,
         List<string> validPool,
         List<string> previousDestinationIds,
@@ -11576,10 +11837,8 @@ public static class Dimension1System
 
         for (int i = 0; i < validPool.Count; i++)
         {
-            float sectorWeight = GetDimension1SectorDestinationWeight(
-                sectorId,
-                validPool[i]
-            );
+            float sectorWeight = GetDimension1AdjustedScanDestinationWeight(
+                state, sectorId, validPool[i]);
             float memoryWeight = GetScanMemoryDestinationWeight(
                 validPool[i],
                 previousDestinationIds,
@@ -11597,10 +11856,8 @@ public static class Dimension1System
 
         for (int i = 0; i < validPool.Count; i++)
         {
-            float sectorWeight = GetDimension1SectorDestinationWeight(
-                sectorId,
-                validPool[i]
-            );
+            float sectorWeight = GetDimension1AdjustedScanDestinationWeight(
+                state, sectorId, validPool[i]);
             float memoryWeight = GetScanMemoryDestinationWeight(
                 validPool[i],
                 previousDestinationIds,
@@ -11622,8 +11879,28 @@ public static class Dimension1System
 
         reduction += GetD1TreeScanMemoryRepetitionReduction(state);
         reduction += GetLostNavigationRecordRepetitionReduction(state);
+        reduction += GetIncompleteStarMapRepetitionReduction(state);
 
         return Mathf.Clamp(reduction, 0.0f, 0.75f);
+    }
+
+    public static float GetDimension1AdjustedScanDestinationWeight(
+        GameState state,
+        string sectorId,
+        string destinationId
+    )
+    {
+        float baseWeight = GetDimension1SectorDestinationWeight(sectorId, destinationId);
+        if (baseWeight <= 0.0f)
+            return 0.0f;
+
+        string[] sectorDestinations = GetDimension1SectorDestinationIds(sectorId);
+        if (sectorDestinations == null || sectorDestinations.Length == 0)
+            return baseWeight;
+
+        float uniformWeight = 1.0f / sectorDestinations.Length;
+        float variety = Mathf.Clamp01(GetIncompleteStarMapVarietyBonus(state));
+        return Mathf.Lerp(baseWeight, uniformWeight, variety);
     }
 
     private static float GetScanMemoryDestinationWeight(

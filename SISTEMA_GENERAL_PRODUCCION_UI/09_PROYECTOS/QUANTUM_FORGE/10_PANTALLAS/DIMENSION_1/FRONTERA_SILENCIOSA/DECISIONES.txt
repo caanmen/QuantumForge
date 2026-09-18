@@ -1,0 +1,15 @@
+DECISIONES ESPECÍFICAS: FRONTERA SILENCIOSA
+==========================================
+
+- Es una subpantalla del Sector 4; no añade otra opción a la navegación inferior.
+- Conserva el armazón, márgenes, centrado y navegación de la familia Órbitas Antiguas.
+- Los planetas 6 y 7 reutilizan el mismo asset silencioso con los tratamientos visuales
+  ya presentes en Carta Galáctica; no se inventan planetas nuevos.
+- El Planeta 7 conserva sus tres metales oficiales en el rótulo y en el cálculo real.
+- Ruina orbital se reutiliza; los otros tres destinos permanecen como candidatos V2.
+- Cada destino se enlaza por ID oficial y queda deshabilitado si aún no fue escaneado.
+- No se añade animación antes de aprobar la composición estática.
+- La pantalla no se considera aprobada al 95 % hasta la revisión expresa del usuario.
+- Desde 2026-08-22 la pantalla planetaria no repite DESTINOS DEL SECTOR. Los destinos y
+  su escaneo pertenecen exclusivamente a EXPLORAR; esta pantalla conserva planetas,
+  extractores y regreso a Carta Galáctica.

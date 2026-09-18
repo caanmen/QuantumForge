@@ -1,0 +1,27 @@
+DECISIONES — MAPA DE LOS PACTOS
+
+Fecha: 30 de agosto de 2026.
+Estado: composición estática APROBADA. BUILD_PASS, STRUCTURE_PASS y STATE_PASS
+confirmados el 30 de agosto de 2026. Comparación RGB estricta auxiliar: 94,20 %.
+Similitud percibida normalizada por antialiasing 3x3: 95,14 %.
+
+- La autoridad visual es 01_Mapa_De_Los_Pactos_Corregido_V5.png.
+- La imagen temporal adjunta coincide con V5, pero sus tiradores y borde no son diseño.
+- Los tres territorios permanecen visibles desde el estado inicial.
+- Ruinas Sepultadas no se oculta mientras esté bloqueada.
+- No se usan líneas ni nodos entre territorios.
+- Confianza se expresa sobre 500; 300 es el desbloqueo del segundo territorio.
+- Ruinas se desbloquea con Dominio total 30 % o menos.
+- No se hornean textos, cifras, estados, requisitos ni botones en el arte raster.
+- Las tres masas territoriales, sus medallones, la cabecera y el shell son capas separadas.
+- La composición estática se aprueba antes de implementar animaciones.
+- El constructor canónico continúa siendo Dimension2Block1UISetup; no se crea un
+  segundo reconstructor ejecutable para la misma raíz.
+- El nombre estable de la raíz será D2_PactMap.
+- El cierre exige capturas nuevas 1080 x 1920 y 720 x 1280, comparación por bloques y
+  aprobación visual explícita de al menos 95 %.
+- Dimension2FirstEntryCapture.Run prepara el estado real 3,845 / 280, valida la raíz
+  D2_PactMap y generó correctamente ambas capturas con la licencia activa.
+- Unity Personal quedó activa, asignada y sin caducidad.
+- La placa D2_Map_CleanBasePlate_v1 conserva únicamente arte estático; textos,
+  cifras, estados, requisitos, iconos y controles continúan como objetos dinámicos.

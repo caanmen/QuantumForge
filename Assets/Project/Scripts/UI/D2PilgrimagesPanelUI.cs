@@ -1,212 +1,242 @@
 using System;
+using System.Globalization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-
 public class D2PilgrimagesPanelUI : MonoBehaviour
 {
-    public TMP_Text trustText;
-    public Slider trustSlider;
-    public TMP_Text resourcesText;
+    public TMP_Text headerTrustText;
+    public TMP_Text headerFollowersText;
+    public TMP_Text headerWaxText;
+    public TMP_Text headerBreadText;
+    public TMP_Text shortBodyText;
+    public TMP_Text shortRewardText;
+    public TMP_Text mediumBodyText;
+    public TMP_Text mediumRewardText;
+    public TMP_Text longBodyText;
+    public TMP_Text longRewardText;
+    public TMP_Text guidedLongBodyText;
+    public TMP_Text guidedLongRewardText;
+    public TMP_Text sacredBodyText;
+    public TMP_Text sacredRewardText;
+    public TMP_Text selectedTitleText;
     public TMP_Text activePilgrimageText;
     public TMP_Text supportText;
-    public Button addSupportButton;
-    public Button removeSupportButton;
+    public TMP_Text materialBonusText;
     public TMP_Text lastResultText;
+    public TMP_Text primaryActionButtonText;
+    public GameObject shortSelectionOverlay;
+
+    // Los cinco botones son selectores de tarjeta; iniciar pertenece únicamente al CTA.
     public Button startShortButton;
     public Button startMediumButton;
     public Button startLongButton;
     public Button startGuidedLongButton;
     public Button startSacredButton;
+    public Button primaryActionButton;
+    public Button addSupportButton;
+    public Button removeSupportButton;
     public Button cancelButton;
+    public Button backButton;
+    public Button refugeNavButton;
+    public Button altarsNavButton;
+    public Button novitiateNavButton;
+    public Button ritesNavButton;
+    public Button pactsNavButton;
+    public Button thresholdNavButton;
 
+    // Compatibilidad con escenas anteriores; el constructor canónico ya no los muestra.
+    public TMP_Text trustText;
+    public Slider trustSlider;
+    public TMP_Text resourcesText;
+
+    private string _selectedPilgrimageId = D2PilgrimageSystem.ShortId;
     private float _refreshTimer;
     private bool _showOfflineExplanation;
     private const string OfflineHelpId = "d2.c1.pilgrimages.offline_help";
 
+    public string SelectedPilgrimageId => _selectedPilgrimageId;
+
     private void Awake()
     {
-        if (startShortButton != null)
-            startShortButton.onClick.AddListener(StartShort);
-        if (startMediumButton != null)
-            startMediumButton.onClick.AddListener(StartMedium);
-        if (startLongButton != null)
-            startLongButton.onClick.AddListener(StartLong);
-        if (startGuidedLongButton != null)
-            startGuidedLongButton.onClick.AddListener(StartGuidedLong);
-        if (startSacredButton != null)
-            startSacredButton.onClick.AddListener(StartSacred);
-        if (cancelButton != null)
-            cancelButton.onClick.AddListener(CancelActive);
-        if (addSupportButton != null)
-            addSupportButton.onClick.AddListener(() => ChangeSupport(1L));
-        if (removeSupportButton != null)
-            removeSupportButton.onClick.AddListener(() => ChangeSupport(-1L));
+        Add(startShortButton, () => SelectPilgrimage(D2PilgrimageSystem.ShortId));
+        Add(startMediumButton, () => SelectPilgrimage(D2PilgrimageSystem.MediumId));
+        Add(startLongButton, () => SelectPilgrimage(D2PilgrimageSystem.LongId));
+        Add(startGuidedLongButton, () => SelectPilgrimage(D2PilgrimageSystem.GuidedLongId));
+        Add(startSacredButton, () => SelectPilgrimage(D2PilgrimageSystem.SacredId));
+        Add(primaryActionButton, PerformPrimaryAction);
+        Add(cancelButton, CancelActive);
+        Add(addSupportButton, () => ChangeSupport(1L));
+        Add(removeSupportButton, () => ChangeSupport(-1L));
+        Add(backButton, ShowMap);
+        Add(refugeNavButton, () => Parent()?.ShowRefugeSection());
+        Add(altarsNavButton, () => Parent()?.ShowAltarsSection());
+        Add(novitiateNavButton, () => Parent()?.ShowNovitiateSection());
+        Add(ritesNavButton, () => Parent()?.ShowRitesSection());
+        Add(pactsNavButton, () => Parent()?.ShowPactsSection());
+        Add(thresholdNavButton, () => Parent()?.ShowVeiledThresholdSection());
     }
 
     private void OnEnable()
     {
         _refreshTimer = 0f;
-        _showOfflineExplanation = GameState.I != null &&
-            GameState.I.dimension2 != null &&
-            GameState.I.dimension2.civilization1.shortPilgrimagesCompleted > 0L &&
+        D2Civilization1State state = GameState.I?.dimension2?.civilization1;
+        if (state?.activePilgrimage != null && state.activePilgrimage.active &&
+            D2PilgrimageSystem.IsPilgrimageId(state.activePilgrimage.pilgrimageId))
+            _selectedPilgrimageId = state.activePilgrimage.pilgrimageId;
+        _showOfflineExplanation = state != null && state.shortPilgrimagesCompleted > 0L &&
             !PresentationStateUtility.Contains(
-                GameState.I.dimension2.presentation.acknowledgedFeatureIds,
-                OfflineHelpId);
+                GameState.I.dimension2.presentation.acknowledgedFeatureIds, OfflineHelpId);
         Refresh();
     }
 
     private void OnDisable()
     {
-        if (_showOfflineExplanation && GameState.I != null &&
-            GameState.I.dimension2 != null)
-            PresentationStateUtility.Acknowledge(
-                GameState.I.dimension2.presentation, OfflineHelpId);
+        if (_showOfflineExplanation && GameState.I?.dimension2 != null)
+            PresentationStateUtility.Acknowledge(GameState.I.dimension2.presentation, OfflineHelpId);
         _showOfflineExplanation = false;
     }
 
     private void Update()
     {
         _refreshTimer -= Time.unscaledDeltaTime;
-        if (_refreshTimer > 0f)
-            return;
-
+        if (_refreshTimer > 0f) return;
         _refreshTimer = 0.2f;
+        Refresh();
+    }
+
+    public void SelectPilgrimage(string pilgrimageId)
+    {
+        GameState gameState = GameState.I;
+        if (!Dimension2System.CanAccessDimension2(gameState) ||
+            !D2PilgrimageSystem.IsPilgrimageId(pilgrimageId)) return;
+        Dimension2System.EnsureState(gameState);
+        D2Civilization1State state = gameState.dimension2.civilization1;
+        if (state.activePilgrimage.active ||
+            !D2PilgrimageSystem.IsUnlocked(state, pilgrimageId)) return;
+        _selectedPilgrimageId = pilgrimageId;
         Refresh();
     }
 
     public void Refresh()
     {
         GameState gameState = GameState.I;
-        if (!Dimension2System.CanAccessDimension2(gameState))
-            return;
-
+        if (!Dimension2System.CanAccessDimension2(gameState)) return;
         Dimension2System.EnsureState(gameState);
         D2Civilization1State state = gameState.dimension2.civilization1;
         D2AltarState wax = D2AltarSystem.GetAltar(state, D2AltarSystem.WaxAltarId);
-        D2AltarState bread = D2AltarSystem.GetAltar(
-            state,
-            D2AltarSystem.RitualBreadAltarId
-        );
+        D2AltarState bread = D2AltarSystem.GetAltar(state, D2AltarSystem.RitualBreadAltarId);
+        D2PilgrimageState active = state.activePilgrimage;
 
-        if (trustText != null)
-        {
-            trustText.text = "CONFIANZA: " + state.trust.ToString("0") +
-                "/300 · meta: localizar otro territorio";
-        }
+        if (!D2PilgrimageSystem.IsPilgrimageId(_selectedPilgrimageId))
+            _selectedPilgrimageId = D2PilgrimageSystem.ShortId;
+        if (active.active) _selectedPilgrimageId = active.pilgrimageId;
 
+        Set(headerTrustText, Number(state.trust) + " / 500");
+        Set(headerFollowersText, state.followersAvailable.ToString("N0", CultureInfo.InvariantCulture));
+        Set(headerWaxText, (wax?.offeringAmount ?? 0d).ToString("N0", CultureInfo.InvariantCulture));
+        Set(headerBreadText, (bread?.offeringAmount ?? 0d).ToString("N0", CultureInfo.InvariantCulture));
+        Set(trustText, "CONFIANZA: " + Number(state.trust) + "/500");
         if (trustSlider != null)
         {
             trustSlider.minValue = 0f;
             trustSlider.maxValue = (float)D2PilgrimageSystem.MaxTrust;
             trustSlider.value = (float)state.trust;
         }
+        Set(resourcesText, "SEGUIDORES " + state.followersAvailable.ToString("N0", CultureInfo.InvariantCulture) +
+            " · CERA " + (wax?.offeringAmount ?? 0d).ToString("N0", CultureInfo.InvariantCulture) +
+            " · PAN RITUAL " + (bread?.offeringAmount ?? 0d).ToString("N0", CultureInfo.InvariantCulture));
 
-        if (resourcesText != null)
+        RefreshCard(state, D2PilgrimageSystem.ShortId, shortBodyText, shortRewardText);
+        RefreshCard(state, D2PilgrimageSystem.MediumId, mediumBodyText, mediumRewardText);
+        RefreshCard(state, D2PilgrimageSystem.LongId, longBodyText, longRewardText);
+        RefreshCard(state, D2PilgrimageSystem.GuidedLongId, guidedLongBodyText, guidedLongRewardText);
+        RefreshCard(state, D2PilgrimageSystem.SacredId, sacredBodyText, sacredRewardText);
+
+        long support = active.active
+            ? active.supportFollowersCommitted
+            : state.pilgrimageSupportFollowersSelected;
+        Set(supportText, support.ToString(CultureInfo.InvariantCulture) + " / 4\nSEGUIDORES");
+        Set(materialBonusText, "+" +
+            (D2PilgrimageSystem.GetSupportRewardBonus(support) * 100d)
+                .ToString("0.#", CultureInfo.InvariantCulture) + "%");
+        Set(selectedTitleText, D2PilgrimageSystem.GetDisplayName(_selectedPilgrimageId).ToUpperInvariant());
+
+        if (active.active)
         {
-            resourcesText.text =
-                "Disponibles — Seguidores: " + state.followersAvailable.ToString("N0") +
-                "   |   Cera: " + (wax?.offeringAmount ?? 0.0).ToString("N2") +
-                "   |   Pan ritual: " + (bread?.offeringAmount ?? 0.0).ToString("N2");
+            Set(activePilgrimageText,
+                D2PilgrimageSystem.GetDisplayName(active.pilgrimageId).ToUpperInvariant() +
+                "\nRESTANTE " + FormatTime(active.remainingSeconds));
+            Set(primaryActionButtonText, "CANCELAR\nPEREGRINACIÓN");
+        }
+        else
+        {
+            Set(activePilgrimageText, "NO HAY UNA\nPEREGRINACIÓN ACTIVA");
+            Set(primaryActionButtonText, "INICIAR\n" +
+                D2PilgrimageSystem.GetDisplayName(_selectedPilgrimageId).ToUpperInvariant());
         }
 
-        D2PilgrimageState active = state.activePilgrimage;
-        if (supportText != null)
-        {
-            long support = active.active
-                ? active.supportFollowersCommitted
-                : state.pilgrimageSupportFollowersSelected;
-            supportText.text = "Apoyo adicional: " + support.ToString("N0") +
-                "/4 Seguidores — Bonus material: +" +
-                (D2PilgrimageSystem.GetSupportRewardBonus(support) * 100.0)
-                    .ToString("0.#") + "%";
-        }
-        if (activePilgrimageText != null)
-        {
-            activePilgrimageText.text = active.active
-                ? D2PilgrimageSystem.GetDisplayName(active.pilgrimageId) +
-                  " en curso — Restante: " + FormatTime(active.remainingSeconds) +
-                  " — Seguidores ocupados: " + active.followersCommitted.ToString("N0") +
-                  (active.supportFollowersCommitted > 0L
-                      ? " + " + active.supportFollowersCommitted.ToString("N0") + " de apoyo"
-                      : "") +
-                  (active.acolytesCommitted > 0L
-                      ? " — Acólitos ocupados: " + active.acolytesCommitted.ToString("N0")
-                      : "")
-                : "No hay una Peregrinación activa.";
-        }
+        string result = state.lastPilgrimageResult ?? string.Empty;
+        if (_showOfflineExplanation)
+            result += (result.Length > 0 ? "\n" : string.Empty) +
+                "Las Peregrinaciones continúan durante una ausencia.";
+        Set(lastResultText, result);
 
-        if (lastResultText != null)
-        {
-            lastResultText.text = string.IsNullOrEmpty(state.lastPilgrimageResult)
-                ? "Las recompensas se entregan automáticamente al completar."
-                : state.lastPilgrimageResult;
-            if (_showOfflineExplanation)
-                lastResultText.text +=
-                    "\nLas Peregrinaciones continúan durante una ausencia y se reanudan al volver.";
-        }
-
-        RefreshButtonLabel(state, startShortButton, D2PilgrimageSystem.ShortId);
-        RefreshButtonLabel(state, startMediumButton, D2PilgrimageSystem.MediumId);
-        RefreshButtonLabel(state, startLongButton, D2PilgrimageSystem.LongId);
-        RefreshButtonLabel(state, startGuidedLongButton, D2PilgrimageSystem.GuidedLongId);
-        RefreshButtonLabel(state, startSacredButton, D2PilgrimageSystem.SacredId);
-
-        SetInteractable(
-            startShortButton,
-            D2PilgrimageSystem.CanStart(gameState, D2PilgrimageSystem.ShortId)
-        );
-        SetInteractable(
-            startMediumButton,
-            D2PilgrimageSystem.CanStart(gameState, D2PilgrimageSystem.MediumId)
-        );
-        SetInteractable(
-            startLongButton,
-            D2PilgrimageSystem.CanStart(gameState, D2PilgrimageSystem.LongId)
-        );
-        SetInteractable(
-            startGuidedLongButton,
-            D2PilgrimageSystem.CanStart(gameState, D2PilgrimageSystem.GuidedLongId)
-        );
-        SetInteractable(
-            startSacredButton,
-            D2PilgrimageSystem.CanStart(gameState, D2PilgrimageSystem.SacredId)
-        );
-        SetInteractable(cancelButton, active.active);
+        bool selectionEnabled = !active.active;
+        SetInteractable(startShortButton, selectionEnabled &&
+            D2PilgrimageSystem.IsUnlocked(state, D2PilgrimageSystem.ShortId));
+        SetInteractable(startMediumButton, selectionEnabled &&
+            D2PilgrimageSystem.IsUnlocked(state, D2PilgrimageSystem.MediumId));
+        SetInteractable(startLongButton, selectionEnabled &&
+            D2PilgrimageSystem.IsUnlocked(state, D2PilgrimageSystem.LongId));
+        SetInteractable(startGuidedLongButton, selectionEnabled &&
+            D2PilgrimageSystem.IsUnlocked(state, D2PilgrimageSystem.GuidedLongId));
+        SetInteractable(startSacredButton, selectionEnabled &&
+            D2PilgrimageSystem.IsUnlocked(state, D2PilgrimageSystem.SacredId));
+        SetInteractable(primaryActionButton, active.active ||
+            D2PilgrimageSystem.CanStart(gameState, _selectedPilgrimageId));
         SetInteractable(addSupportButton, !active.active &&
             state.pilgrimageSupportFollowersSelected < D2PilgrimageSystem.MaxSupportFollowers &&
             state.pilgrimageSupportFollowersSelected < state.followersAvailable);
         SetInteractable(removeSupportButton, !active.active &&
             state.pilgrimageSupportFollowersSelected > 0L);
+        SetInteractable(cancelButton, active.active);
+        if (cancelButton != null) cancelButton.gameObject.SetActive(false);
+        if (shortSelectionOverlay != null)
+            shortSelectionOverlay.SetActive(!active.active &&
+                _selectedPilgrimageId == D2PilgrimageSystem.ShortId);
 
-        bool hasCompletedShort = state.shortPilgrimagesCompleted > 0L;
-        bool hasCompletedMedium = state.mediumPilgrimagesCompleted > 0L;
-        bool hasAcolyte = state.totalAcolytesCreated > 0L;
-        SetActive(trustText, state.totalPilgrimagesCompleted > 0L);
-        SetActive(trustSlider, state.totalPilgrimagesCompleted > 0L);
-        SetActive(startShortButton, !active.active);
-        SetActive(startMediumButton, !active.active && hasCompletedShort);
-        SetActive(startLongButton, !active.active && hasCompletedMedium);
-        SetActive(startGuidedLongButton, !active.active && hasAcolyte);
-        SetActive(startSacredButton, !active.active && hasAcolyte &&
-            (D2PilgrimageSystem.CanStart(gameState, D2PilgrimageSystem.SacredId) ||
-             state.trust >= 250.0));
-        SetActive(addSupportButton, !active.active && hasCompletedShort);
-        SetActive(removeSupportButton, !active.active && hasCompletedShort);
-        SetActive(cancelButton, active.active);
+        // Las cinco tarjetas conservan siempre su geometría, incluso bloqueadas.
+        SetActive(startShortButton, true);
+        SetActive(startMediumButton, true);
+        SetActive(startLongButton, true);
+        SetActive(startGuidedLongButton, true);
+        SetActive(startSacredButton, true);
     }
 
-    public void StartShort() => TryStartPilgrimage(D2PilgrimageSystem.ShortId);
-    public void StartMedium() => TryStartPilgrimage(D2PilgrimageSystem.MediumId);
-    public void StartLong() => TryStartPilgrimage(D2PilgrimageSystem.LongId);
-    public void StartGuidedLong() =>
-        TryStartPilgrimage(D2PilgrimageSystem.GuidedLongId);
-    public void StartSacred() => TryStartPilgrimage(D2PilgrimageSystem.SacredId);
+    public void StartShort() { _selectedPilgrimageId = D2PilgrimageSystem.ShortId; TryStartSelected(); }
+    public void StartMedium() { _selectedPilgrimageId = D2PilgrimageSystem.MediumId; TryStartSelected(); }
+    public void StartLong() { _selectedPilgrimageId = D2PilgrimageSystem.LongId; TryStartSelected(); }
+    public void StartGuidedLong() { _selectedPilgrimageId = D2PilgrimageSystem.GuidedLongId; TryStartSelected(); }
+    public void StartSacred() { _selectedPilgrimageId = D2PilgrimageSystem.SacredId; TryStartSelected(); }
 
     public void CancelActive()
     {
         D2PilgrimageSystem.TryCancel(GameState.I);
+        RefreshAll();
+    }
+
+    private void PerformPrimaryAction()
+    {
+        D2PilgrimageState active = GameState.I?.dimension2?.civilization1?.activePilgrimage;
+        if (active != null && active.active) CancelActive();
+        else TryStartSelected();
+    }
+
+    private void TryStartSelected()
+    {
+        D2PilgrimageSystem.TryStart(GameState.I, _selectedPilgrimageId);
         RefreshAll();
     }
 
@@ -216,65 +246,59 @@ public class D2PilgrimagesPanelUI : MonoBehaviour
         RefreshAll();
     }
 
-    private void TryStartPilgrimage(string pilgrimageId)
+    private static void RefreshCard(
+        D2Civilization1State state, string id, TMP_Text body, TMP_Text reward)
     {
-        D2PilgrimageSystem.TryStart(GameState.I, pilgrimageId);
-        RefreshAll();
+        long followers = D2PilgrimageSystem.GetFollowersRequired(id);
+        long acolytes = D2PilgrimageSystem.GetAcolytesRequired(id);
+        string bodyValue = FormatTime(D2PilgrimageSystem.GetDurationSeconds(id)) + "\n" +
+            followers.ToString(CultureInfo.InvariantCulture) +
+            (followers == 1L ? " SEGUIDOR" : " SEGUIDORES") + "\n";
+        if (acolytes > 0L)
+            bodyValue += acolytes.ToString(CultureInfo.InvariantCulture) +
+                (acolytes == 1L ? " ACÓLITO\n" : " ACÓLITOS\n");
+        bodyValue += Number(D2PilgrimageSystem.GetEffectiveWaxCost(state, id)) + " CERA\n" +
+            Number(D2PilgrimageSystem.GetEffectiveBreadCost(state, id)) + " PAN RITUAL\n+" +
+            Number(D2PilgrimageSystem.GetEffectiveTrustReward(state, id)) + " CONFIANZA";
+        Set(body, bodyValue);
+
+        string rewardValue = "RECOMPENSA: +" + Number(D2PilgrimageSystem.GetOfferingReward(id)) +
+            " CERA/PAN RITUAL";
+        if (id == D2PilgrimageSystem.MediumId)
+            rewardValue += "\n25% +1 SEGUIDOR";
+        else if (id == D2PilgrimageSystem.LongId || id == D2PilgrimageSystem.GuidedLongId)
+            rewardValue += "\n+1 SEGUIDOR";
+        else if (id == D2PilgrimageSystem.SacredId)
+            rewardValue += "\n+2 SEGUIDORES";
+        Set(reward, rewardValue);
     }
 
     private void RefreshAll()
     {
-        D2Civilization1PanelUI parent = GetComponentInParent<D2Civilization1PanelUI>(true);
-        if (parent != null)
-            parent.Refresh();
-        else
-            Refresh();
+        D2Civilization1PanelUI parent = Parent();
+        if (parent != null) parent.Refresh(); else Refresh();
+    }
+
+    private D2Civilization1PanelUI Parent() =>
+        GetComponentInParent<D2Civilization1PanelUI>(true);
+
+    private void ShowMap()
+    {
+        Dimension2PanelUI panel = GetComponentInParent<Dimension2PanelUI>(true);
+        if (panel != null) panel.ShowMap();
     }
 
     private static string FormatTime(double seconds)
     {
         int totalSeconds = Math.Max(0, (int)Math.Ceiling(seconds));
-        return (totalSeconds / 60).ToString("00") + ":" +
-            (totalSeconds % 60).ToString("00");
+        return (totalSeconds / 60).ToString("00", CultureInfo.InvariantCulture) + ":" +
+            (totalSeconds % 60).ToString("00", CultureInfo.InvariantCulture);
     }
 
-    private static void SetInteractable(Button button, bool interactable)
-    {
-        if (button != null)
-            button.interactable = interactable;
-    }
-
-    private static void RefreshButtonLabel(
-        D2Civilization1State state,
-        Button button,
-        string pilgrimageId
-    )
-    {
-        if (button == null)
-            return;
-
-        TMP_Text label = button.GetComponentInChildren<TMP_Text>(true);
-        if (label == null)
-            return;
-
-        string name = D2PilgrimageSystem.GetDisplayName(pilgrimageId)
-            .Replace("Peregrinación ", "").ToUpperInvariant();
-        long followers = D2PilgrimageSystem.GetFollowersRequired(pilgrimageId);
-        long acolytes = D2PilgrimageSystem.GetAcolytesRequired(pilgrimageId);
-        label.text = name + " · " +
-            FormatTime(D2PilgrimageSystem.GetDurationSeconds(pilgrimageId)) + "\n" +
-            followers.ToString("N0") + " Seg" +
-            (acolytes > 0L ? " · " + acolytes.ToString("N0") + " Acólito" : "") +
-            " · " + D2PilgrimageSystem.GetEffectiveWaxCost(state, pilgrimageId)
-                .ToString("0.##") + " Cera/Pan\n+" +
-            D2PilgrimageSystem.GetEffectiveTrustReward(state, pilgrimageId)
-                .ToString("0.##") + " Confianza" +
-            (pilgrimageId == D2PilgrimageSystem.ShortId
-                ? "\nCancelar devuelve Seguidores; las Ofrendas no se recuperan." : "");
-    }
-
-    private static void SetActive(Component component, bool active)
-    {
-        if (component != null) component.gameObject.SetActive(active);
-    }
+    private static string Number(double value) =>
+        value.ToString("0.##", CultureInfo.InvariantCulture);
+    private static void Set(TMP_Text text, string value) { if (text != null) text.text = value; }
+    private static void SetInteractable(Button button, bool value) { if (button != null) button.interactable = value; }
+    private static void SetActive(Component component, bool value) { if (component != null) component.gameObject.SetActive(value); }
+    private static void Add(Button button, UnityEngine.Events.UnityAction action) { if (button != null) button.onClick.AddListener(action); }
 }

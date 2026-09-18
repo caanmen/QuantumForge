@@ -68,6 +68,22 @@ using System.Collections.Generic;
         public int timesExecuted;
         public int accumulatedErrors;
         public bool discovered;
+        public bool unreadDiscovery;
+    }
+
+    [System.Serializable]
+    public class ExperimentalPendingFusionState
+    {
+        public bool active;
+        public int fragmentA;
+        public int fragmentB;
+        public int catalyst;
+        public int result;
+        public int rewardAmount;
+        public int instabilityGain;
+        public bool failureConverted;
+        public bool hadSynthesisCore;
+        public bool synthesisCoreWasCharged;
     }
 
     public enum TriangleSlotRole
@@ -126,6 +142,7 @@ using System.Collections.Generic;
 
 public class GameState : MonoBehaviour
 {
+    public const int FusionInstabilityMax = 20;
     public static GameState I { get; private set; }
 
     [Header("Recursos básicos")]
@@ -155,6 +172,8 @@ public class GameState : MonoBehaviour
     [Header("F3 / Cuarto 2 - Estado de Mezclas")]
     public int fusionInstability = 0;
     public double fusionCooldownRemainingSeconds = 0.0;
+    public ExperimentalPendingFusionState pendingFusion =
+        new ExperimentalPendingFusionState();
 
     [Header("Zona 4 - Semillas Dimensionales")]
     public double chronalSeedDurationSeconds = 5.0; // prueba temporal
@@ -422,6 +441,9 @@ public class GameState : MonoBehaviour
     [Tooltip("Se activa cuando el jugador compra el desbloqueo Acople de Vértices.")]
     public bool triangleSystemUnlocked = false;
 
+    [Tooltip("Evita repetir el tutorial breve después de activar el Triángulo.")]
+    public bool triangleActivationTutorialSeen = false;
+
     [Tooltip("Circuito activo del Triángulo rediseñado.")]
     public TriangleCircuitType triangleActiveCircuit = TriangleCircuitType.None;
 
@@ -446,7 +468,7 @@ public class GameState : MonoBehaviour
     public const double TriangleEnergyProductionPenalty = 0.10;
     public const double TriangleEnergyFocusBonus = 0.30;
     public const double TriangleEnergyBasePerSecond = 1.0;
-    public const double TriangleEnergyPerGeneratorLevel = 0.10;
+    public const double TriangleEnergyPerGeneratorLevel = 0.05;
     public const double TriangleEnergyGeneratorLEBaseCost = 120.0;
     public const double TriangleEnergyGeneratorTraceBaseCost = 3.0;
     public const double TriangleEnergyGeneratorLECostGrowth = 1.16;
@@ -520,11 +542,8 @@ public class GameState : MonoBehaviour
                     b.level = sb.level;
 
                     // Recalcular el coste correcto de la siguiente compra
-                    b.currentCost = b.def.baseCost;
-                    for (int i = 0; i < b.level; i++)
-                    {
-                        b.currentCost *= b.def.costMult;
-                    }
+                    b.currentCost = BuildingState.CalculateCostForLevel(
+                        b.def, b.level);
 
                     break;
                 }
@@ -755,6 +774,32 @@ public class GameState : MonoBehaviour
         while (chronalSeedSlots.Count > targetCount)
         {
             chronalSeedSlots.RemoveAt(chronalSeedSlots.Count - 1);
+        }
+    }
+
+    public int GetUnreadExperimentalRecipeCount()
+    {
+        if (experimentalMixLog == null)
+            return 0;
+
+        int count = 0;
+        foreach (ExperimentalMixLogEntry entry in experimentalMixLog)
+        {
+            if (entry != null && entry.discovered && entry.unreadDiscovery)
+                count++;
+        }
+        return count;
+    }
+
+    public void MarkExperimentalRecipesRead()
+    {
+        if (experimentalMixLog == null)
+            return;
+
+        foreach (ExperimentalMixLogEntry entry in experimentalMixLog)
+        {
+            if (entry != null)
+                entry.unreadDiscovery = false;
         }
     }
 
@@ -1244,6 +1289,28 @@ public class GameState : MonoBehaviour
                 fragmentResidualInterferenceProgress -= completed;
             }
         }
+    }
+
+    public double GetExperimentalFragmentSecondsPerUnit()
+    {
+        double multiplier = System.Math.Max(0.000001,
+            GetTriangleFragmentMultiplier());
+        return 30.0 / multiplier;
+    }
+
+    public bool IsExperimentalFragmentProducerActive(
+        ExperimentalFragmentType fragmentType)
+    {
+        string buildingId = fragmentType switch
+        {
+            ExperimentalFragmentType.Condensation => "vacuum_observer",
+            ExperimentalFragmentType.Confinement => "casimir_panel",
+            ExperimentalFragmentType.ResidualInterference =>
+                "fluctuation_antenna",
+            _ => string.Empty
+        };
+        return !string.IsNullOrEmpty(buildingId) &&
+            GetBuildingLevel(buildingId) > 0;
     }
 
         public void UnlockExperimentalChamber()
@@ -1750,6 +1817,8 @@ public class GameState : MonoBehaviour
                 );
             }
             entry.destinationId = entry.destinationId ?? "";
+            entry.totalSeconds = SanitizeD1NonNegative(entry.totalSeconds);
+            entry.specialPointId = entry.specialPointId ?? "";
             entry.sectorId = Dimension1System.IsDimension1ExplorationSectorId(
                 entry.sectorId
             )
@@ -2288,8 +2357,8 @@ public class GameState : MonoBehaviour
 
         if (refund > 0)
         {
-            long updatedPoints = (long)Mathf.Max(0, prestige1Points) + refund;
-            prestige1Points = updatedPoints > int.MaxValue
+            long updatedPoints = (long)Mathf.Max(0, d1TreePoints) + refund;
+            d1TreePoints = updatedPoints > int.MaxValue
                 ? int.MaxValue
                 : (int)updatedPoints;
         }
@@ -3239,7 +3308,6 @@ public class GameState : MonoBehaviour
     {
         if (machineManager == null || !machineManager.MachineUnlocked ||
             !machineManager.HasEnoughRepairForPrestige1() ||
-            !machineManager.Prestige1Prepared ||
             !HasAvailableDimensionForPrestige1Selection())
         {
             return false;
@@ -3967,7 +4035,7 @@ public class GameState : MonoBehaviour
         }
 
         int d1PrestigePoints =
-            Dimension1System.CalculatePrestige1PointsFromDimension1(this);
+            Dimension1System.CalculateD1TreePointsFromProgress(this);
 
         if (d1PrestigePoints < 0 ||
             d1PrestigePoints > Dimension1System.Dimension1Prestige1PreviewPointCap)
@@ -5282,12 +5350,12 @@ public class GameState : MonoBehaviour
     {
         EnsureDimension1State();
 
-        AddPrestige1Points(50);
+        AddD1TreePoints(50);
 
         if (SaveService.I != null)
             SaveService.I.Save();
 
-        Debug.Log("[D1] +50 Puntos de Prestigio 1 agregados. Total: " + prestige1Points);
+        Debug.Log("[D1] +50 Puntos de Prestigio 1 agregados. Total: " + d1TreePoints);
     }
 
     [ContextMenu("D1 DEBUG: Buy Destination Reading Node")]
@@ -5309,7 +5377,7 @@ public class GameState : MonoBehaviour
             " | Tier: " +
             GetD1TreeNodeTier(Dimension1System.D1TreeExplorationDestinationReading) +
             " | Puntos restantes: " +
-            prestige1Points
+            d1TreePoints
         );
     }
 
@@ -5334,7 +5402,7 @@ public class GameState : MonoBehaviour
             " | Tier: " +
             GetD1TreeNodeTier(Dimension1System.D1TreeRecoveryBlueprintPriority) +
             " | Puntos restantes: " +
-            prestige1Points
+            d1TreePoints
         );
     }
 
@@ -5359,7 +5427,7 @@ public class GameState : MonoBehaviour
             " | Bonus: +" +
             (Dimension1System.GetD1TreeHiddenFindQualityBonus(this) * 100f).ToString("0.#") +
             " puntos porcentuales | Puntos restantes: " +
-            prestige1Points
+            d1TreePoints
         );
     }
 
@@ -5384,7 +5452,7 @@ public class GameState : MonoBehaviour
             " | Reducción repetición: -" +
             (Dimension1System.GetD1TreeScanMemoryRepetitionReduction(this) * 100f).ToString("0.#") +
             "% | Puntos restantes: " +
-            prestige1Points
+            d1TreePoints
         );
     }
 
@@ -5411,7 +5479,7 @@ public class GameState : MonoBehaviour
             "% | Conversión actual: " +
             Dimension1System.GetD1DuplicateRelicConversionPreviewAmount(this).ToString("0") +
             " Hierro | Puntos restantes: " +
-            prestige1Points
+            d1TreePoints
         );
     }
 
@@ -5434,7 +5502,7 @@ public class GameState : MonoBehaviour
             " | Tier: " +
             GetD1TreeNodeTier(Dimension1System.D1TreeRelicReading) +
             "/3 | Puntos restantes: " +
-            prestige1Points
+            d1TreePoints
         );
     }
 
@@ -6003,7 +6071,7 @@ public class GameState : MonoBehaviour
             " | Comprada: " +
             Dimension1System.HasD1TreeFleetCoordination(this) +
             " | Puntos restantes: " +
-            prestige1Points
+            d1TreePoints
         );
     }
 
@@ -6037,7 +6105,7 @@ public class GameState : MonoBehaviour
             "% | Recupera: +" +
             (recoveredAmount * 100f).ToString("0.#") +
             "% | Puntos restantes: " +
-            prestige1Points
+            d1TreePoints
         );
     }
 
@@ -6064,7 +6132,7 @@ public class GameState : MonoBehaviour
             "% | Duración individual: -" +
             (Dimension1System.GetD1TreeSingleShipEfficiencyBonus(this) * 100f).ToString("0.#") +
             "% | Puntos restantes: " +
-            prestige1Points
+            d1TreePoints
         );
     }
 
@@ -6089,7 +6157,7 @@ public class GameState : MonoBehaviour
             " | Reducción de duración individual: -" +
             (Dimension1System.GetD1TreeSupportFormationValue(this) * 100f).ToString("0.#") +
             "% | Puntos restantes: " +
-            prestige1Points
+            d1TreePoints
         );
     }
 
@@ -6116,7 +6184,7 @@ public class GameState : MonoBehaviour
             "% | Conservación final: +" +
             (Dimension1System.GetD1TreeUnstableZoneRareRewardProtection(this) * 100f).ToString("0.#") +
             "% | Puntos restantes: " +
-            prestige1Points
+            d1TreePoints
         );
     }
 
@@ -6143,7 +6211,7 @@ public class GameState : MonoBehaviour
             " puntos porcentuales | Chance total puntos especiales: " +
             (Dimension1System.GetD1SpecialPointScanChance(this) * 100f).ToString("0.#") +
             "% | Puntos restantes: " +
-            prestige1Points
+            d1TreePoints
         );
     }
 
@@ -6154,7 +6222,7 @@ public class GameState : MonoBehaviour
 
         Debug.Log(
             "[D1 Tree] Estado actual | Puntos restantes: " +
-            prestige1Points
+            d1TreePoints
         );
 
         foreach (string nodeId in Dimension1System.Dimension1TreeNodeIds)
@@ -6535,7 +6603,7 @@ public class GameState : MonoBehaviour
             " | Tier: " +
             GetD1TreeNodeTier(nodeId) +
             " | Puntos restantes: " +
-            prestige1Points
+            d1TreePoints
         );
     }
 
@@ -6562,7 +6630,7 @@ public class GameState : MonoBehaviour
                     " | Tier: " +
                     GetD1TreeNodeTier(nodeId) +
                     " | Puntos restantes: " +
-                    prestige1Points
+                    d1TreePoints
                 );
 
                 continue;
@@ -6578,7 +6646,7 @@ public class GameState : MonoBehaviour
                 " | Tier: " +
                 GetD1TreeNodeTier(nodeId) +
                 " | Puntos restantes: " +
-                prestige1Points
+                d1TreePoints
             );
         }
 
@@ -6801,6 +6869,7 @@ public class GameState : MonoBehaviour
     /// </summary>
     public void Tick(double dt)
 {
+    if (SaveService.I != null && SaveService.I.HasLoadFailure) return;
     EM = 0.0;
     emMult = 0.0;
     ADP = 0.0;
@@ -6815,7 +6884,9 @@ public class GameState : MonoBehaviour
 
     GenerateLEFromBaseAndBuildings(dt);
     GenerateExperimentalFragments(dt);
-    UpdateChronalSeeds(dt);
+    // La mecánica activa de Semillas fue retirada. Conservamos sus datos
+    // históricos para compatibilidad y para los futuros resultados de Mezclas,
+    // pero ya no avanzan ni generan Anclajes por segundo.
 
     // Dimensión 1: minería planetaria y exploración por segundo.
     Dimension1System.Tick(this, dt);
@@ -6910,6 +6981,29 @@ public class GameState : MonoBehaviour
             effectiveCost = 0.0;
 
         return effectiveCost;
+    }
+
+    public static double GetArtifactLevelMilestoneMultiplier(
+        string buildingId, int level)
+    {
+        if (buildingId != "vacuum_observer" && buildingId != "casimir_panel")
+            return 1.0;
+        int safeLevel = System.Math.Max(0, level);
+        if (safeLevel >= 200) return 6.0;
+        if (safeLevel >= 100) return 5.0;
+        if (safeLevel >= 50) return 4.0;
+        if (safeLevel >= 25) return 3.0;
+        if (safeLevel >= 10) return 2.0;
+        return 1.0;
+    }
+
+    public static int GetNextArtifactMilestoneLevel(string buildingId, int level)
+    {
+        if (buildingId != "vacuum_observer" && buildingId != "casimir_panel")
+            return 0;
+        foreach (int milestone in new[] { 10, 25, 50, 100, 200 })
+            if (level < milestone) return milestone;
+        return 0;
     }
 
     public double GetMachineArtifactProductionMultiplier(string buildingId)
@@ -7144,7 +7238,9 @@ public class GameState : MonoBehaviour
     private double GetTrianglePositiveEffectScale()
     {
         return Mathf.Clamp01(triangleSynchronization) *
-            GetMachineTriangleBonusMultiplier() * GetDimension2TriangleEffectMultiplier();
+            GetMachineTriangleBonusMultiplier() *
+            GetDimension2TriangleEffectMultiplier() *
+            Dimension1System.GetTriangularSealProtocolEffectMultiplier(this);
     }
 
     private double GetEnergyBonus()
@@ -7152,14 +7248,6 @@ public class GameState : MonoBehaviour
         return F2UpgradeManager.I != null
             ? F2UpgradeManager.I.GetTriangleEnergyLEBonus(TriangleEnergyLEBonus)
             : TriangleEnergyLEBonus;
-    }
-
-    private double GetExperimentalTraceBonus()
-    {
-        return F2UpgradeManager.I != null
-            ? F2UpgradeManager.I.GetTriangleExperimentalTraceBonus(
-                TriangleExperimentalTraceBonus)
-            : TriangleExperimentalTraceBonus;
     }
 
     private double GetExperimentalFragmentBonus()
@@ -7182,13 +7270,23 @@ public class GameState : MonoBehaviour
     public double GetTriangleTracesMultiplier()
     {
         if (!IsTriangleSystemActive()) return 1.0;
+
+        double circuitMultiplier = 1.0;
         if (triangleActiveCircuit == TriangleCircuitType.Traces)
-            return 1.0 + GetExperimentalTraceBonus() * GetTrianglePositiveEffectScale();
-        if (triangleActiveCircuit == TriangleCircuitType.LE)
-            return 1.0 - TriangleEnergyTracePenalty;
-        if (triangleActiveCircuit == TriangleCircuitType.TriangleEnergy)
-            return 1.0 - TriangleEnergyProductionPenalty;
-        return 1.0;
+            circuitMultiplier = 1.0 +
+                TriangleExperimentalTraceBonus * GetTrianglePositiveEffectScale();
+        else if (triangleActiveCircuit == TriangleCircuitType.LE)
+            circuitMultiplier = 1.0 - TriangleEnergyTracePenalty;
+        else if (triangleActiveCircuit == TriangleCircuitType.TriangleEnergy)
+            circuitMultiplier = 1.0 - TriangleEnergyProductionPenalty;
+
+        // Rastreo Resonante es una mejora global de Trazas: una vez comprada
+        // permanece activa sin importar cual circuito este seleccionado. El
+        // circuito de Trazas conserva, por separado, su +10% sincronizado.
+        double globalBonus = F2UpgradeManager.I != null
+            ? F2UpgradeManager.I.GetTriangleExperimentalGlobalTraceBonus()
+            : 0.0;
+        return circuitMultiplier * (1.0 + globalBonus);
     }
 
     public double GetTriangleEnergyFocusMultiplier()
@@ -7201,7 +7299,10 @@ public class GameState : MonoBehaviour
 
     public double CalculateTriangleEnergyPerSecond()
     {
-        if (!triangleSystemUnlocked || GetBuildingLevel("fluctuation_antenna") < 1)
+        // El Captador es comprable antes de Acople. Su producción debe depender
+        // de que el artefacto exista, no de que los circuitos ya estén activos;
+        // de lo contrario el jugador puede pagar niveles que generan 0 E/s.
+        if (GetBuildingLevel("fluctuation_antenna") < 1)
             return 0.0;
 
         int generatorLevels = System.Math.Max(
@@ -7215,6 +7316,7 @@ public class GameState : MonoBehaviour
         }
         if (F2UpgradeManager.I != null)
             rate *= 1.0 + F2UpgradeManager.I.GetTriangleEnergyProductionBonus();
+        rate *= Dimension1System.GetTriangularSealEnergyProductionMultiplier(this);
         rate *= GetTriangleEnergyFocusMultiplier();
         return System.Math.Max(0.0, rate);
     }
@@ -7231,8 +7333,10 @@ public class GameState : MonoBehaviour
     {
         int paidLevels = System.Math.Max(
             0, GetBuildingLevel("fluctuation_antenna") - 1);
-        return TriangleEnergyGeneratorTraceBaseCost * System.Math.Pow(
+        double cost = TriangleEnergyGeneratorTraceBaseCost * System.Math.Pow(
             TriangleEnergyGeneratorTraceCostGrowth, paidLevels);
+        return cost *
+            Dimension1System.GetTracesResonatorRoom1TraceCostMultiplier(this);
     }
 
     public bool TrySpendTriangleEnergy(double amount)
@@ -7486,7 +7590,9 @@ public class GameState : MonoBehaviour
     private double GetTriangleSynchronizationRatePerSecond()
     {
         double dimensionalMultiplier = D2Civilization3System.GetModulatorCalibrationMultiplier(this);
-        return triangleSynchronizationBaseRatePerSecond * dimensionalMultiplier;
+        return triangleSynchronizationBaseRatePerSecond *
+            dimensionalMultiplier *
+            Dimension1System.GetCalibrationFragmentSynchronizationMultiplier(this);
     }
 
     public double GetTriangleSynchronizationRemainingSeconds()
@@ -7970,7 +8076,8 @@ private double CalculateEMMultiplier()
         if (casimirLevel <= 0)
             return 0.0;
 
-        double tracesPerSecond = 0.03 * casimirLevel;
+        double tracesPerSecond = 0.03 * casimirLevel *
+            GetArtifactLevelMilestoneMultiplier("casimir_panel", casimirLevel);
 
         tracesPerSecond *= GetTriangleTracesMultiplier();
         tracesPerSecond *= ConvergenceCircuitSystem.GetBaseTracesProductionMultiplier(this);
@@ -7993,6 +8100,7 @@ private double CalculateEMMultiplier()
         tracesPerSecond *= machineTracesFactor;
         tracesPerSecond *= GetMachineRoom1GlobalMultiplier();
         tracesPerSecond *= GetDimension2TraceMultiplier();
+        tracesPerSecond *= Dimension1System.GetTracesResonatorProductionMultiplier(this);
 
         return tracesPerSecond;
     }
@@ -8003,10 +8111,16 @@ private double CalculateEMMultiplier()
             return 0.0;
 
         BuildingDef def = building.def;
-        double perSecond = def.tickInterval > 0.0
+        double unitPerSecond = def.tickInterval > 0.0
             ? def.lePerTickBase / GetEffectiveBuildingTickInterval(
                 def.id, def.tickInterval)
             : def.baseLEps;
+        double currentBase = unitPerSecond * building.level *
+            GetArtifactLevelMilestoneMultiplier(def.id, building.level);
+        int nextLevel = building.level + 1;
+        double nextBase = unitPerSecond * nextLevel *
+            GetArtifactLevelMilestoneMultiplier(def.id, nextLevel);
+        double perSecond = nextBase - currentBase;
         if (perSecond <= 0.0) return 0.0;
 
         perSecond *= GetTriangleSynergyBuildingMultiplier(def.id);
@@ -8043,7 +8157,13 @@ private double CalculateEMMultiplier()
         if (building?.def == null || building.def.id != "casimir_panel")
             return 0.0;
 
-        double perSecond = 0.03;
+        int currentLevel = building.level;
+        int nextLevel = currentLevel + 1;
+        double currentBase = 0.03 * currentLevel *
+            GetArtifactLevelMilestoneMultiplier("casimir_panel", currentLevel);
+        double nextBase = 0.03 * nextLevel *
+            GetArtifactLevelMilestoneMultiplier("casimir_panel", nextLevel);
+        double perSecond = nextBase - currentBase;
         perSecond *= GetMachineArtifactProductionMultiplier("casimir_panel");
         perSecond *= GetDimension2ArtifactProductionMultiplier("casimir_panel");
         if (F2UpgradeManager.I != null)
@@ -8055,6 +8175,7 @@ private double CalculateEMMultiplier()
         perSecond *= GetDimension2TraceMultiplier();
         perSecond *= GetTriangleTracesMultiplier();
         perSecond *= ConvergenceCircuitSystem.GetBaseTracesProductionMultiplier(this);
+        perSecond *= Dimension1System.GetTracesResonatorProductionMultiplier(this);
         return System.Math.Max(0.0, perSecond);
     }
 
@@ -8066,6 +8187,7 @@ private double CalculateEMMultiplier()
         double gain = TriangleEnergyPerGeneratorLevel;
         if (F2UpgradeManager.I != null)
             gain *= 1.0 + F2UpgradeManager.I.GetTriangleEnergyProductionBonus();
+        gain *= Dimension1System.GetTriangularSealEnergyProductionMultiplier(this);
         gain *= GetTriangleEnergyFocusMultiplier();
         return System.Math.Max(0.0, gain);
     }
@@ -8224,9 +8346,6 @@ private double CalculateEMMultiplier()
         if (!machineManager.HasEnoughRepairForPrestige1())
             return $"Reparación de Máquina: {repairPct:0}% / 80%";
 
-        if (!machineManager.Prestige1Prepared)
-            return "Falta activar el Canal de Convergencia.";
-
         if (!HasAvailableDimensionForPrestige1Selection())
             return IsPrestige1CycleComplete()
                 ? "Las tres dimensiones están completas. Reconstruye la Máquina y el Receptor Dimensional para preparar la Convergencia."
@@ -8321,6 +8440,7 @@ private double CalculateEMMultiplier()
 
         // Triángulo
         triangleSystemUnlocked = false;
+        triangleActivationTutorialSeen = false;
         triangleActiveCircuit = TriangleCircuitType.None;
         triangleSynchronization = 0f;
         triangleSynchronizationBaseRatePerSecond = 0.0;
@@ -8351,6 +8471,7 @@ private double CalculateEMMultiplier()
         guidedSynthesisIntent = 0;
         fusionInstability = 0;
         fusionCooldownRemainingSeconds = 0.0;
+        pendingFusion = new ExperimentalPendingFusionState();
 
         // Zona 4 actual: Semillas Dimensionales / Anclajes.
         // Aunque internamente aún se llamen chronal, los reseteamos como sistema activo del run.
@@ -8573,7 +8694,8 @@ if (buildingStates != null)
 
             b.tickTimer -= ticks * interval;
 
-            double lePerTick = def.lePerTickBase * b.level;
+            double lePerTick = def.lePerTickBase * b.level *
+                GetArtifactLevelMilestoneMultiplier(def.id, b.level);
 
             // Sinergia del triángulo para Higgs / Tetra
             lePerTick *= GetTriangleSynergyBuildingMultiplier(def.id);
@@ -8613,7 +8735,8 @@ if (buildingStates != null)
 
             if (def.id == "casimir_panel")
             {
-                double tracesPerTick = 0.03 * b.level;
+                double tracesPerTick = 0.03 * b.level *
+                    GetArtifactLevelMilestoneMultiplier(def.id, b.level);
 
                 // Máquina / Zona 1: Calibración de Artefactos también afecta al Núcleo Tetraquark
                 tracesPerTick *= GetMachineArtifactProductionMultiplier(def.id);
@@ -8635,6 +8758,7 @@ if (buildingStates != null)
                 tracesPerTick *= GetDimension2TraceMultiplier();
                 tracesPerTick *= GetTriangleTracesMultiplier();
                 tracesPerTick *= ConvergenceCircuitSystem.GetBaseTracesProductionMultiplier(this);
+                tracesPerTick *= Dimension1System.GetTracesResonatorProductionMultiplier(this);
 
                 double tracesGain = tracesPerTick * ticks;
                 Traces += tracesGain;
@@ -8646,7 +8770,8 @@ if (buildingStates != null)
             // 3B) Edificios clásicos (LE/s continuo)
             if (def.baseLEps > 0.0)
             {
-                double leps = def.baseLEps * b.level;
+                double leps = def.baseLEps * b.level *
+                    GetArtifactLevelMilestoneMultiplier(def.id, b.level);
                 leps *= GetDimension2ArtifactProductionMultiplier(def.id);
                 leps *= GetRoom1EchoArtifactLEMultiplier(def.id);
                 LE += leps * worldMult * room1EchoGlobalFactor * dt;

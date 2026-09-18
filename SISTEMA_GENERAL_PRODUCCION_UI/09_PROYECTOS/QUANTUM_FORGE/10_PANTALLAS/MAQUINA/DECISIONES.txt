@@ -1,0 +1,597 @@
+QUANTUM FORGE — DECISIONES VIGENTES DE LA MÁQUINA
+Actualización: 2026-08-26
+
+RETIRO DE SEMILLAS Y RESERVA DEL SECTOR 4
+
+- La mecánica activa de Semillas queda retirada de la progresión actual.
+- Los sectores funcionales de reparación son 1, 2 y 3.
+- El catálogo activo contiene 37 nodos públicos y 6 secretos.
+- El 80 % requerido para Prestigio 1 equivale a 30 nodos públicos reparados.
+- Los 20 nodos históricos del sector 4 permanecen en el catálogo únicamente como
+  definiciones retiradas para migrar partidas; no cuentan, no aplican efectos y no
+  pueden comprarse, analizarse ni mostrarse como progreso activo.
+- Si una partida había reparado alguno de esos nodos, recibe una devolución única
+  de su coste nominal completo y el nodo vuelve a quedar fuera del progreso activo.
+- El avance y la creación automática de Semillas quedan desactivados.
+
+MATERIALES CONSERVADOS
+
+- Se conservan Anclaje Puro, Anclaje Estable y Anclaje Forzado en datos y guardado.
+- No tienen producción activa ni un consumidor nuevo en esta entrega.
+- En una etapa posterior podrán convertirse en resultados avanzados de Mezclas,
+  pero permanecerán ocultos hasta que exista un uso real aprobado.
+- Mezclas continúa siendo una mecánica exclusiva de la Máquina.
+
+RITMO DE REPARACIÓN
+
+- Los primeros nodos conservan sus costes suaves.
+- Los nodos medios absorben un aumento moderado y los finales absorben la mayor
+  parte del coste retirado del sector 4.
+- El total público activo queda en 35.100.000 LE y 32.695 Trazas, prácticamente
+  igual a los 35.080.000 LE y 32.785 Trazas de los 55 nodos públicos anteriores.
+- Los totales de materiales experimentales públicos se conservan exactamente:
+  29 Hallazgos, 27 Muestras, 21 Lecturas Incompletas y 9 Compuestos Útiles.
+
+MONOLITO 2D — RESERVA DEL SECTOR 4
+
+- El sector 4 se reserva para un sistema futuro asociado a Prestigio 2.
+- En el Monolito se verá oscuro, con `???` en el centro y cuatro posiciones
+  decorativas fijas, asimétricas y sin semejanza con los otros sectores.
+- Esas posiciones no mostrarán información, no responderán a interacción y no
+  contarán como nodos de reparación.
+- La cara completa sí permite entrada táctil. Al abrirse permanece más oscura que
+  las otras, muestra `???` centrado y no presenta ficha ni acciones de reparación.
+- La apertura actual es un cambio directo de composición 2D. La animación queda
+  fuera de este bloque y sólo podrá añadirse después de aprobar la composición.
+
+AUTORIDAD
+
+- Datos: Assets/Project/Resources/Data/machine_nodes.json
+- Progresión y migración: Assets/Project/Scripts/Systems/MachineManager.cs
+- Guardado: Assets/Project/Scripts/Systems/SaveService.cs
+- Decisión aprobada por el usuario durante la conversación del 2026-08-25.
+
+REDISEÑO VISUAL DEL MONOLITO Y LOS NODOS — 2026-08-26
+
+- Se aprueba como referencia visual vigente la carpeta:
+  `SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/MAQUINA/MONOLITO_2D_REDISENO_NODOS_2026-08-26_V01`.
+- El Monolito permanece 2D. No se reutiliza el diseño tridimensional anterior.
+- Las caras mantienen una correspondencia física exacta entre la vista completa y
+  el acercamiento: forma, inclinación, proporciones, posición y grosor del borde.
+- Ubicación de las caras:
+  - Sector 1: superior izquierda.
+  - Sector 2: inferior derecha.
+  - Sector 3: superior derecha.
+  - Sector 4: inferior izquierda.
+- Textura interior aprobada por sector:
+  - Sector 1: textura 1, capas tectónicas.
+  - Sector 2: textura 2, estratos plegados.
+  - Sector 3: textura 5, topografía de presión.
+  - Sector 4: textura 6, gradiente fracturado.
+- Los bordes, la estructura central y la base conservan el material canónico del
+  Monolito y no se presentan como placas independientes.
+- Los nodos sólo tienen dos estados visuales persistentes: dañado y reparado.
+- Un nodo dañado es una alteración compacta de la misma materia y no muestra
+  símbolo.
+- Un nodo reparado estabiliza esa alteración y revela una firma alienígena
+  original en bajorrelieve, integrada en la superficie.
+- Todas las firmas reparadas usan una única gama cian-blanca; la variedad procede
+  de su topología y relieve, no de colores diferentes.
+- La progresión visual de los nodos queda en 0/3/5/7 para los sectores 1 y 3, y
+  0/4/7/11 para el sector 2.
+- La vista completa del Monolito no muestra todos los nodos individuales a distancia.
+  Cada cara disponible puede usar una sola firma alienígena real, iluminada y
+  representativa, como señal táctil integrada en la materia.
+- El sector 4 conserva cero nodos, `???` centrado y exactamente cuatro marcas
+  decorativas oscuras y no interactivas en todas las etapas.
+- Estos mockups siguen siendo la autoridad conceptual de origen; no deben
+  confundirse con capturas reales de Unity.
+
+IMPLEMENTACIÓN EN UNITY — 2026-08-26
+
+- La composición 2D quedó instalada en `Assets/Project/Scenes/Main.unity` bajo
+  `MachineMonolith2DRoot`.
+- `MachineMonolith2DVisualUI` es el único propietario de la presentación visual
+  del Monolito. La escena ya no contiene `MachineCubeVisualRoot` ni
+  `MachineCubeVisualUI`.
+- Los cinco artes aprobados se importan desde
+  `Assets/Project/UI/Vertical/Machine/Monolith2D` y sus cuadrantes se muestran sin
+  recrear símbolos ni sustituir las texturas.
+- La vista general selecciona uno de cuatro estados según el progreso real. Los
+  sectores 1, 2 y 3 seleccionan su estado según los nodos visuales reparados.
+- Los sectores 1, 2 y 3 conservan 7, 11 y 7 puntos táctiles conectados a las
+  definiciones reales. El sector 4 conserva cero puntos táctiles.
+- La herramienta canónica de reconstrucción y validación es
+  `MachineMonolith2DSetup.ConfigureBatch`.
+- La validación estructural registró PASS en
+  `Logs/machine_monolith_2d_setup.log`.
+- Las capturas candidatas, todavía no archivadas como aprobadas, están en
+  `Logs/VisualQA/MachineMonolith2D` y cubren 1080×1920 y 720×1280.
+
+CORRECCIÓN DE INTERACCIÓN Y PRESENTACIÓN — 2026-08-26
+
+- La vista general no mostrará mensajes, nombres de sector, flechas, círculos,
+  cuadros ni marcos para explicar la interacción.
+- Cada cara disponible comunica que puede tocarse mediante una única luz
+  cian-blanca suave, integrada en una fisura natural de su material.
+- El sector 4 reservado se presenta más oscuro y permite entrar a su cara; sus
+  cuatro marcas internas permanecen decorativas y no responden individualmente.
+- Al seleccionar un nodo se ilumina la propia firma alienígena en la posición
+  exacta de la anomalía; no se dibuja un aro de selección separado.
+- El fondo debe integrarse con el Monolito sin borde rectangular de imagen pegada.
+- El daño exterior de una cara debe corresponder entre la vista general y su
+  acercamiento para cada etapa visual.
+- La entrada a una cara será un acercamiento 2D hacia la región tocada, sin giro
+  de cubo ni simulación tridimensional.
+- Referencia visual: `SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/MAQUINA/PROPUESTA_CORRECCION_MONOLITO_INTERACCION_2026-08-26_V01/01_referencia_aprobada_solo_luces_v02.png`.
+
+IMPLEMENTACIÓN DE LA CORRECCIÓN — 2026-08-26
+
+- Los sectores 1, 2 y 3 usan las hojas de progresión `v02` archivadas en
+  `MONOLITO_2D_CORRECCIONES_INTERACCION_2026-08-26_V02`.
+- La vista general recorta del arte la etiqueta y el marco blanco, de modo que el
+  campo oscuro se funda con el fondo de la pantalla.
+- Tres firmas alienígenas ramificadas y luminosas señalan los sectores con nodos.
+  La cuarta región usa un `???` tenue, permite entrar y no añade geometría de
+  selección ni nodos táctiles.
+- Los puntos táctiles se volvieron a medir sobre los artes `v02`. La selección se
+  presenta mediante una firma luminosa superpuesta al punto real, sin aro.
+- La transición de entrada escala y desplaza en 2D la vista completa hacia la cara
+  tocada y bloquea nuevas pulsaciones hasta terminar.
+- La escena y su herramienta de reconstrucción quedaron sincronizadas. La
+  validación y las capturas candidatas en 1080×1920 y 720×1280 registraron PASS en
+  `Logs/machine_monolith_2d_corrections_setup.log` y
+  `Logs/machine_monolith_2d_corrections_capture.log`.
+
+CORRECCIÓN VISUAL Y DE NAVEGACIÓN V02 — 2026-08-26
+
+- Las firmas de los nodos no se sustituyen por geometría procedural: se recortan
+  de las hojas finales del sector para conservar exactamente su dibujo aprobado.
+- El estado dañado muestra la misma firma con emisión tenue y el reparado con
+  emisión completa. No se añaden colores por nodo ni aros de selección.
+- La vista general y las caras comparten el fondo final de laboratorio alienígena
+  abandonado `machine_abandoned_alien_lab_background_v01.png`.
+- El fondo y las caras viven dentro de un viewport recortado; cualquier ajuste de
+  aspecto queda contenido y no invade el encabezado ni la ficha.
+- La ficha vuelve a presentar los datos reales completos del nodo: identidad,
+  estado, descripción, efecto, requisitos, coste y progreso del sector.
+- Se restituye la riqueza del encabezado mediante sus líneas y luces laterales,
+  sin alterar la identidad canónica de Máquina.
+- La transición de entrada conserva el acercamiento 2D y cubre el intercambio de
+  imagen con un velo de escaneo. No introduce cubo, giro ni volumen 3D.
+- Mezclas conserva recursos, encabezado y pestañas de Máquina. Su botón `VOLVER`
+  pertenece a la capa superior del propio panel y devuelve físicamente a Nodos.
+- La reconstrucción y la prueba final registraron PASS en
+  `Logs/machine_monolith_2d_full_corrections_setup_v02.log` y
+  `Logs/machine_monolith_2d_full_corrections_capture_v03.log`.
+- Las capturas de 1080×1920 y 720×1280 en
+  `Logs/VisualQA/MachineMonolith2D` son candidatas y no se archivan como aprobadas
+  hasta recibir aprobación perceptual del usuario.
+
+CORRECCIÓN DE COHERENCIA VISUAL Y TRANSICIÓN V03 — 2026-08-26
+
+- El fondo vigente es `machine_abandoned_alien_lab_background_v02.png`: un recinto
+  alienígena abandonado amplio y abierto, sin nicho, portal, pedestal ni marco que
+  haga parecer que el Monolito está encerrado dentro de otra pieza.
+- Fondo y Monolito son capas independientes. Durante la entrada a una cara sólo se
+  escala y desplaza la silueta recortada del Monolito; el entorno permanece estable.
+- El intercambio entre vista general y cara usa un fundido oscuro contenido. Se
+  eliminó la barra o costura cian central para evitar el aspecto de página, libro o
+  fotografía acercada.
+- Las tres señales táctiles de la vista general ya no usan chevrones procedurales.
+  Son recortes reales de las firmas alienígenas ramificadas de los sectores 1, 2 y
+  3, con su color, halo y relieve originales.
+- En las caras, la firma dañada es tenue y la reparada recupera la iluminación
+  completa. La capa luminosa se obtiene por diferencia entre el estado reparado y
+  el dañado del mismo arte, sin redibujar el símbolo.
+- Cabecera, recursos, ficha, placa de icono, pestañas y botones reutilizan los
+  marcos metálicos canónicos ya empleados por Generación y Mejoras; no usan los
+  contornos lineales provisionales del primer montaje.
+- Los textos de cabecera y ficha respetan el área interior útil de esos marcos y no
+  ocupan sus biseles ornamentales.
+- La escena y `MachineMonolith2DSetup.ConfigureBatch` permanecen sincronizados.
+  Reconstrucción y validación final: PASS en
+  `Logs/machine_monolith_2d_visual_corrections_v06_setup.log`.
+- Prueba completa de estados, navegación, transición y resoluciones: PASS en
+  `Logs/machine_monolith_2d_visual_corrections_v06_capture.log`.
+- Las capturas actuales de `Logs/VisualQA/MachineMonolith2D` siguen siendo
+  candidatas; no se consideran aprobadas hasta la revisión perceptual del usuario.
+
+OPACIDAD Y ACCESO A LA CUARTA CARA V04 — 2026-08-26
+
+- El Monolito completo y las cuatro caras son superficies sólidas. Sus materiales
+  contienen máscaras de materia por placa y por cara: el recorte elimina únicamente
+  el exterior, mientras sombras, grietas, piedra y metal conservan opacidad completa.
+- No se usan respaldos geométricos detrás del arte: fueron descartados porque podían
+  producir manchas rectangulares o polígonos negros alrededor del Monolito.
+- El sector 4 conserva cero nodos y continúa reservado para el sistema futuro, pero su
+  cara inferior izquierda sí puede tocarse y abrirse como las demás.
+- En el acercamiento permanece más oscuro que los sectores 1–3 y muestra `???`
+  centrado con cuatro marcas decorativas no interactivas.
+- La cuarta cara no muestra ficha, coste, efecto, botón de análisis ni reparación. El
+  viewport aprovecha ese espacio adicional sin modificar la navegación compartida.
+- Reconstrucción y validación vigente: PASS en
+  `Logs/machine_monolith_2d_solid_mask_v12_setup.log`.
+- Capturas y prueba de estados en 1080×1920 y 720×1280: PASS en
+  `Logs/machine_monolith_2d_solid_mask_v12_capture.log`.
+- Las capturas siguen siendo candidatas hasta la aprobación perceptual del usuario.
+
+SEÑALES DE ENTRADA DE LA VISTA GENERAL V05 — 2026-08-26
+
+- La vista general del Monolito no muestra firmas de nodos, símbolos reparados ni
+  el marcador `???`.
+- Cada una de las cuatro caras accesibles se reconoce únicamente mediante una luz
+  cian-blanca suave integrada sobre su superficie.
+- Las cuatro luces comunican entrada a una cara; no representan nodos, reparación
+  ni contenido interior.
+- El `???` pertenece exclusivamente al interior de la cuarta cara y aparece sólo
+  después de entrar en ella.
+- Las firmas alienígenas continúan reservadas para los nodos dentro de los sectores
+  1, 2 y 3.
+- Esta decisión actual reemplaza cualquier indicación anterior que mostrara tres
+  firmas o un `???` sobre el Monolito completo.
+- Reconstrucción y validación: PASS en
+  `Logs/machine_monolith_2d_entry_lights_v13_setup.log`.
+- Prueba completa y capturas en 1080×1920 y 720×1280: PASS en
+  `Logs/machine_monolith_2d_entry_lights_v13_capture.log`.
+- Las capturas continúan como candidatas hasta la aprobación perceptual del usuario.
+
+RECONSTRUCCIÓN DEL MONOLITO Y LABORATORIO INDUSTRIAL V06 — 2026-08-26
+
+- El laboratorio de contención V05 queda descartado. El fondo vigente es la opción 5
+  elegida por el usuario: un cuarto industrial humano abandonado, con bancos laterales,
+  consolas, cristales rotos, cables colgantes, emergencia roja y pasillo central libre.
+- El Monolito completo se reconstruye como una capa independiente del laboratorio. Su
+  hoja no aporta fondo negro y sus cuatro etapas conservan posición, escala y envolvente.
+- Las caras 1–3 separan progresión estructural y firmas de nodo. La geometría base proviene
+  de los nuevos artes limpios; las firmas y los 7/11/7 puntos táctiles siguen proviniendo
+  de las hojas canónicas V02. La cara 4 mantiene cero nodos y `???` sólo en el interior.
+- Debido a que el generador entregó un fondo claro horneado y no alfa real, el material
+  vigente elimina únicamente el exterior claro neutro. Nunca deriva opacidad del negro:
+  sombras, piedra, metal y grietas del artefacto permanecen sólidas.
+- Reconstrucción, estados, transición, cuarta cara y navegación registraron PASS en
+  `Logs/machine_monolith_industrial_lab_v11_capture.log`.
+- Se generaron 26 capturas candidatas en 1080×1920 y 720×1280. No se consideran aprobadas
+  hasta recibir la revisión perceptual del usuario.
+
+APOYO FÍSICO, ESCALA Y LUCES V07 — 2026-08-26
+
+- El fondo industrial V06 queda sustituido como producción porque su pasillo vacío no
+  conectaba físicamente con el Monolito y permitía leerlo como gigantesco o suspendido.
+- El fondo vigente `machine_destroyed_lab_grounded_cradle_square_v07.png` conserva el
+  laboratorio humano abandonado, pero incorpora una base de contención baja empotrada en
+  el suelo, con sombra de contacto y luz reflejada bajo el artefacto.
+- El Monolito mantiene una escala de reposo menor y una posición registrada. El controlador
+  restaura esos valores exactos después de refrescar o animar; ya no lo devuelve a escala uno.
+- Las cuatro luces de entrada se posicionan individualmente sobre el centro visible de cada
+  cara y el centro usado por la animación coincide con el de la señal táctil.
+- La ficha inferior continúa perteneciendo a las caras 1–3, donde existe un nodo seleccionable.
+  La vista general conserva únicamente las cuatro luces y no inventa un mensaje o nodo global.
+- Validación completa PASS en `Logs/machine_monolith_grounded_lab_v13_capture.log`: 26
+  capturas, 7 + 11 + 7 + 0 nodos, transición, cuarta cara, Mezclas y regreso en ambas
+  resoluciones.
+
+APROBACIÓN V17 Y PRIMER FONDO CERCANO V18/V19 — 2026-08-26
+
+- El usuario aprobó explícitamente el centrado perceptual V17 de las cuatro luces.
+- El usuario aprobó V19 como dirección de composición cercana para trabajar primero con
+  el sector 1. V19 permanece como mockup conceptual y nunca se usa como asset de runtime.
+- El fondo limpio V18 se promueve como primer fondo cercano de producción en
+  `Assets/Project/UI/Vertical/Machine/Monolith2D/machine_destroyed_lab_close_dolly_square_v18.png`.
+- V08 continúa siendo el fondo de la vista general. V18 aparece únicamente en el sector 1;
+  los sectores 2–4 conservan temporalmente V08 hasta aprobar la normalización de las cuatro
+  caras.
+- La cara, los nodos, las firmas y la ficha siguen siendo capas reales independientes. No
+  se recortó contenido desde V19 ni desde ninguna lámina comparativa.
+- Esta etapa aprueba la composición estática. El movimiento conjunto del laboratorio y el
+  Monolito con paralaje continúa pendiente y no se implementó todavía.
+- Reconstrucción y validación estructural: PASS en
+  `Logs/machine_monolith_close_background_v18_setup.log`.
+- Prueba completa y 26 capturas en 1080×1920 y 720×1280: PASS en
+  `Logs/machine_monolith_close_background_v18_capture.log`.
+- Las capturas reales nuevas continúan como candidatas hasta la aprobación perceptual del
+  usuario de la implementación dentro de Unity.
+
+INTENTO V22 DESCARTADO VISUALMENTE — 2026-08-26
+
+- Aunque V22 pasó la validación automática, el usuario lo rechazó visualmente. La cara 4
+  quedó demasiado pequeña y el fotograma intermedio agrandó el Monolito completo hasta
+  invadir casi toda la pantalla, alejándose de V19 y de la lámina entregada.
+- El PASS técnico V22 no constituye aprobación y sus capturas quedan descartadas.
+
+CORRECCIÓN INTERMEDIA V23 — 2026-08-26
+
+- V18 continúa como fondo separado de los cuatro sectores y V08 queda en la vista general.
+- V23 eliminó el Monolito gigante de la transición, pero su escala 0,90 se descartó al
+  contrastarla de nuevo con la lámina V10 completa: era mayor que la proporción entregada.
+- La cara 4 vuelve a ocupar su plano cercano; permanece oscura, sin nodos y con `???`
+  únicamente dentro del arte.
+- La transición deja de escalar el Monolito de 0,72 a 2,15. Ahora avanza de forma moderada
+  hasta 1,55 veces su escala de reposo, se desplaza hacia la cara seleccionada y mantiene
+  visible el laboratorio, que avanza a menor velocidad antes del cruce con V18.
+- V23 permanece como iteración intermedia y no es la candidata vigente.
+
+CORRECCIÓN FIEL A LA LÁMINA V10 V24 — 2026-08-26
+
+- Las cuatro caras usan escala 0,78, la proporción instalada y mostrada por el sector 1 en
+  la lámina entregada. La cara 4 conserva el mismo porcentaje de ocupación dentro de su
+  viewport ampliado y no vuelve a reducirse por una compensación adicional.
+- Se conserva la transición moderada de V23: avance relativo 1,55, desplazamiento hacia la
+  cara seleccionada y laboratorio visible con movimiento menor.
+- La prueba completa registró PASS en 1080×1920 y 720×1280, con 26 capturas, navegación,
+  estados, transición y guardado restaurado. Evidencia:
+  `Logs/machine_monolith_v10_proportion_v24_capture.log`.
+- V24 es la candidata que debe compararse visualmente con la lámina V10. El PASS técnico
+  no constituye aprobación perceptual ni autoriza archivar las capturas.
+
+CORRECCIÓN DEL MARCO DE SUELO V25 — 2026-08-26
+
+- El usuario señaló que V24 no respetaba el marco del suelo: la cara estaba centrada
+  verticalmente y su base descendía por delante del travesaño frontal.
+- V24 queda descartada como candidata perceptual aunque conserve su PASS técnico.
+- V25 mantiene la escala 0,78, pero eleva cada cara un 11 % de la altura útil de su viewport.
+  La base termina dentro del recinto, sobre el travesaño interior y entre las dos guías.
+- El desplazamiento es proporcional, por lo que conserva la relación física en ambas
+  resoluciones y en la cara 4, cuyo viewport es más alto por no mostrar ficha.
+- Prueba completa PASS con 26 capturas en 1080×1920 y 720×1280:
+  `Logs/machine_monolith_floor_frame_v25_capture.log`.
+- El usuario aprobó explícitamente las cuatro caras V25 y pidió continuar con el Monolito.
+  Escala, posición y apoyo de las caras quedan fijados.
+
+PARALAJE DE ENTRADA DEL MONOLITO V26 — 2026-08-26
+
+- El Monolito completo avanza hasta 1,25 veces su escala de reposo y se desplaza hacia la
+  luz de la cara tocada. Sustituye el avance relativo 1,55 de V24.
+- El laboratorio general avanza sólo 1,07 veces y con un 10 % del desplazamiento del
+  Monolito, conservando una diferencia de profundidad visible.
+- El cruce de V08 a V18 comienza antes de que el Monolito pueda dominar la sala; el velo
+  queda limitado a 0,18 y no oculta el marco del suelo.
+- La captura de transición completa espera ahora a que la cara esté totalmente opaca.
+- Prueba completa PASS con 26 capturas en ambas resoluciones:
+  `Logs/machine_monolith_grounded_parallax_v26_capture.log`.
+- El usuario aprobó explícitamente V26. El movimiento del Monolito y el laboratorio queda
+  fijado junto con las cuatro caras V25.
+- Se archivan 22 capturas aprobadas en
+  `SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/06_CAPTURAS_APROBADAS/COMUN/MAQUINA_MONOLITO_2D`.
+
+CORRECCIONES DE COMPOSICIÓN Y CONTINUIDAD V28 — 2026-08-27
+
+- Esta versión responde a una nueva solicitud explícita del usuario y conserva V25/V26
+  como historial aprobado. Las capturas V28 son candidatas hasta nueva aprobación visual.
+- El ancho, escala 0,78 y apoyo 11 % de las cuatro caras V25 no se modifican.
+- Las firmas visibles pasan de 114 px a 72 px sin reducir el área táctil de 104 px. El
+  sector 2 usa posiciones de presentación seguras independientes de las coordenadas UV
+  canónicas, por lo que el símbolo exterior vuelve al interior sin alterar su dibujo.
+- El estado dañado usa alfa 0,12; la rama dañada seleccionada, 0,26; y cualquier firma
+  reparada alcanza alfa 1,00. El estado inicial deja de ser casi imperceptible y sigue
+  claramente subordinado al reparado.
+- El Monolito general pasa de escala 0,72 y posición `(0, 34)` a escala 0,80 y posición
+  `(-22, 6)`. Ocupa mejor el recinto y su base coincide con el apoyo frontal visible.
+- Las luces y el destino de la animación comparten una única tabla de centros perceptuales:
+  `(0.379, 0.722)`, `(0.671, 0.330)`, `(0.667, 0.708)` y `(0.334, 0.335)`.
+- El fondo cercano V27 fue creado como edición raster integrada a partir de V08, manteniendo
+  la misma arquitectura humana y adelantando la cámara. Sustituye V18 en producción sin
+  borrar los archivos históricos.
+- La transición se convierte en un único cruce de 1 segundo: el destino se prepara antes
+  del desvanecimiento, V08 permanece opaco mientras V27 entra encima, la cara aparece entre
+  40–80 %, el Monolito general se retira entre 60–90 % y el velo conserva máximo 0,18.
+- Ya no existe el segundo bucle que volvía a poner V18 casi transparente y producía un
+  fotograma vacío. El estado final deja activos únicamente V27 y la cara cercana.
+- Reconstrucción y validación estructural PASS en
+  `Logs/machine_monolith_continuity_v28_setup.log`.
+- Prueba completa PASS con 32 capturas en 1080×1920 y 720×1280, incluyendo transición
+  0/25/50/75/100, opacidades monotónicas, estados, navegación y guardado restaurado:
+  `Logs/machine_monolith_continuity_v28_capture.log`.
+
+INTEGRACIÓN FÍSICA DEL SOPORTE Y DISTRIBUCIÓN DEL SECTOR 2 V29 — 2026-08-27
+
+- El usuario observó que desplazar el Monolito no resolvía el apoyo: como el marco V08 se
+  renderizaba detrás, el artefacto seguía leyéndose colocado encima de la base.
+- V29 añade `OverviewSupportForeground`, una segunda lectura exacta de V08 limitada al
+  travesaño inferior y renderizada delante del Monolito. El marco ahora oculta parcialmente
+  su base y produce una inserción física; el recorte respeta el viewport en ambas resoluciones.
+- Las caras cercanas pasan a escala horizontal 0,86 y conservan escala vertical 0,78 y
+  elevación 11 %. No cambia el fondo V27 ni el apoyo dentro del marco cercano.
+- Las once firmas del sector 2 dejan la distribución anterior y usan dos columnas
+  escalonadas con un último nodo centrado. El máximo horizontal baja a 0,57 y ninguna firma
+  alcanza la arista inclinada.
+- La firma visible baja a 64 px para aportar aire, mientras el área táctil permanece en
+  104 px. Emisión dañada 0,16, dañada seleccionada 0,30 y reparada 1,00.
+- Reconstrucción PASS: `Logs/machine_monolith_support_layout_v29_setup.log`.
+- Prueba completa PASS con 32 capturas en ambas resoluciones, transición 0/25/50/75/100,
+  navegación y guardado restaurado:
+  `Logs/machine_monolith_support_layout_v29_capture.log`.
+- V29 permanece como candidata hasta aprobación visual explícita del usuario.
+
+CORRECCIÓN DEL MARCO GENERAL Y CENTRADO POR ESTADO V30 — 2026-08-27
+
+- El usuario confirmó que la capa frontal V29 no resolvía la geometría: el soporte V08
+  era más estrecho que la base real del Monolito. V29 queda reemplazada como candidata.
+- V30 usa un fondo general separado que conserva el mismo laboratorio y cámara, pero
+  reconstruye únicamente las dos guías y el travesaño frontal según la huella real del
+  Monolito. El centro permanece vacío; el artefacto y la interfaz siguen siendo capas
+  independientes.
+- Asset activo:
+  `Assets/Project/UI/Vertical/Machine/Monolith2D/machine_destroyed_lab_monolith_fit_square_v30.png`.
+  V08 se conserva sin modificaciones como referencia histórica.
+- `OverviewSupportForeground` continúa recortando el travesaño del fondo activo y lo
+  renderiza delante del Monolito, por lo que la base queda contenida dentro del marco
+  geométricamente correcto.
+- Las hojas raster de cada cara tienen centros de silueta distintos entre sus cuatro
+  etapas. V30 compensa horizontalmente cada sector y cada etapa según la caja visible del
+  arte, sin cambiar el ancho 0,86, el alto 0,78 ni el apoyo vertical 11 %.
+- Se revisaron las cuatro caras en estado inicial y las caras 1–3 reparadas. La cara 4
+  permanece oscura, sin nodos y con `???` únicamente dentro de la superficie.
+- Reconstrucción PASS: `Logs/machine_monolith_frame_fit_v30_setup.log`.
+- Prueba completa PASS con 32 capturas en 1080×1920 y 720×1280:
+  `Logs/machine_monolith_frame_fit_v30_capture.log`.
+- V30 permanece como candidata hasta aprobación visual explícita del usuario; no se
+  archiva todavía como captura aprobada ni se declara el 95 %.
+
+CORRECCIÓN DE AUTORIDAD GEOMÉTRICA V31 — 2026-08-27
+
+- El usuario rechazó V30 porque intentaba hacer coincidir el marco desplazando y ampliando
+  el Monolito. Esa dirección queda anulada: el artefacto vuelve a la composición V26
+  aprobada, escala `0,72` y posición `(0, 34)`, y esos valores quedan bloqueados.
+- El fondo V31 modifica únicamente las dos guías del suelo y el travesaño frontal para
+  recibir la huella V26. El laboratorio, cámara, mobiliario, iluminación y centro vacío se
+  mantienen como capas humanas independientes. Asset activo:
+  `Assets/Project/UI/Vertical/Machine/Monolith2D/machine_destroyed_lab_monolith_fit_square_v31.png`.
+- Se reemplazan las cuatro placas V04 aproximadas por hojas V31 con alfa real. Cada hoja
+  conserva la silueta, proporción lateral y desgaste de su región canónica del Monolito.
+  No contiene huecos, cráteres, sockets, relieves, montículos ni símbolos de nodo horneados.
+- Las firmas continúan como capas Unity independientes: 64 px visibles, 104 px táctiles,
+  alfa 0,16 dañada, 0,30 seleccionada y 1,00 reparada. Los sectores 1 y 3 usan posiciones
+  de presentación propias dentro de su superficie y ancho cercano 10 % mayor; los sectores
+  2 y 4 conservan el ancho base 0,86.
+- La cuarta cara usa la masa y anchura propias del sector inferior izquierdo, permanece
+  oscura y sin nodos. `???` deja de estar horneado y existe como una única capa de texto
+  dentro de `SectorArtwork`.
+- Se eliminan las compensaciones horizontales por etapa: el centro de cada hoja V31 es el
+  único propietario del centrado y Unity no vuelve a corregir una silueta mediante offsets.
+- Reconstrucción PASS: `Logs/machine_monolith_v31_setup_2.log`.
+- Prueba completa PASS: `Logs/machine_monolith_v31_capture_2.log`; 32 capturas reales en
+  1080×1920 y 720×1280, cuatro caras, estados inicial/reparado, navegación, regreso y
+  transición 0/25/50/75/100 sin fotogramas vacíos.
+- V31 es candidata pendiente de aprobación visual explícita del usuario. No se copia aún a
+  capturas aprobadas ni se declara el 95 %.
+
+CORRECCIÓN V32 — ALOJAMIENTO REAL Y SUPERFICIE INTERIOR CONTINUA — 2026-08-27
+
+- V31 queda rechazada visualmente pese a su PASS técnico. El fondo conservaba un marco
+  genérico y el Monolito seguía leyéndose colocado encima. Las etapas dañadas de las caras
+  1 y 3 perdían demasiada superficie interior; la cara 2 concentraba sus símbolos hacia un
+  lado y la cara 4 conservaba una cavidad interior no solicitada.
+- El Monolito permanece bloqueado en la composición aprobada V26: escala 0,72 y posición
+  `(0, 34)`. No se modificó para compensar el fondo.
+- El fondo V32 sustituye únicamente el soporte de suelo por un alojamiento ancho,
+  trapezoidal y escalonado que sigue la huella real de la base. Sus guías laterales llegan
+  a los extremos del Monolito y el travesaño frontal se renderiza por delante.
+- Las cuatro hojas V32 conservan una superficie interior sólida y continua en todos los
+  estados. El deterioro se limita al perímetro; no existen huecos, cráteres, sockets,
+  relieves ni símbolos horneados dentro del área útil.
+- Los símbolos continúan como capas Unity separadas. Los sectores 1 y 3 usan siete firmas
+  centradas; el sector 2 distribuye sus once firmas en una malla central de varias columnas.
+  El estado dañado usa alfa 0,24, el dañado seleccionado 0,40 y el reparado 1,00.
+- Fondo activo:
+  `machine_destroyed_lab_exact_footprint_cradle_square_v32.png`.
+- Caras activas:
+  `monolith_sector_1_perimeter_damage_progression_v32.png` hasta
+  `monolith_sector_4_perimeter_damage_progression_v32.png`.
+- PASS estructural y visual-funcional:
+  `Logs/machine_monolith_v32_setup_2.log` y
+  `Logs/machine_monolith_v32_capture_2.log`.
+- Se generaron 32 capturas nuevas en 1080×1920 y 720×1280, incluidos cinco momentos de la
+  transición. Son candidatas y no se archivan como aprobadas hasta confirmación visual del
+  usuario.
+
+DISTRIBUCIÓN APROBADA DE FIRMAS V53 — 2026-09-09
+
+- El usuario aprobó explícitamente la distribución final de las firmas sobre las caras 1–3.
+- La cara física 1 presenta los once nodos de Fusión; la cara 2 presenta los siete nodos de
+  Enlace con el Cuarto 1; la cara 3 conserva los siete nodos de Soporte Interno. La cara 4
+  permanece reservada, sin nodos.
+- Las firmas ocupan las zonas superior, central e inferior de cada superficie de piedra,
+  con disposición irregular y margen completo frente a bordes, esquinas, daño y base.
+- El cambio es visual: IDs, costes, requisitos, efectos, progreso y guardado permanecen
+  asociados a sus zonas de datos originales.
+- La zona segura se calibra contra el contorno real de cada cara y valida la huella completa
+  de 40 px de cada firma. El área táctil continúa en 80 px.
+- Prueba completa PASS en `Logs/machine_monolith_v53_full_surface.log`: 36 capturas,
+  1080×1920 y 720×1280, estados inicial/reparado, navegación, transición y restauración
+  del guardado.
+- Se archivan trece evidencias V53 en `06_CAPTURAS_APROBADAS/COMUN/MAQUINA_MONOLITO_2D`.
+- Esta aprobación sustituye sólo las distribuciones de firmas anteriores. Mantiene las
+  decisiones aprobadas de escala, apoyo y transición del Monolito.
+
+REAPERTURA V53 Y CORRECCIÓN V54 — 2026-09-09
+
+- El usuario mostró firmas sobre el borde roto de la cara 1 y solicitó corregirlo.
+  Se reproduce también en la captura inicial V53 de Unity: no es evidencia de un fallo
+  exclusivo de Android. La lámina presentada para aprobación mostraba caras reparadas.
+- Queda invalidada la afirmación V53 de margen completo frente al daño. Sus capturas se
+  conservan como historial; esa aprobación no cierra el defecto reabierto.
+- V54 modifica únicamente las posiciones de presentación y las zonas de comprobación.
+  Conserva arte, escala, tamaño de 40 px, hitboxes de 80 px, brillo, IDs y mecánicas.
+- Cada zona conservadora se contrasta con los cuatro tiles canónicos y deja fuera
+  escombros, rieles y base. Se comprueban esquinas transformadas del símbolo completo,
+  margen de 4 px locales y alfa del tile visible después del render en ambas resoluciones.
+- La preparación de etapas intermedias completa ramas de tiers, no sólo un tier de cada
+  rama. El capturador exige 24 casos distintos (3 caras x 4 etapas x 2 resoluciones).
+- Evidencia candidata: Logs/VisualQA/MachineMonolith2D_V54. Las láminas dañada/reparada
+  contienen recortes sin retoque de la misma ejecución de Unity.
+- La referencia del defecto queda archivada en
+  05_REFERENCIAS/MAQUINA/MONOLITO_V54_BORDE_DANADO_2026-09-09.
+- V54 queda pendiente de aprobación visual del usuario y de comprobación en una APK
+  que incluya este cambio. No se genera APK en este bloque.
+- Validación final ejecutada: MachineMonolith2DCapture.RunCurrentSceneBatch, registro
+  Logs/machine_monolith_v54_final.log, V54 DAMAGED-SURFACE PASS. Se verificaron 24 casos
+  distintos, navegación y ocho entradas temporizadas; cero errores C# o excepciones.
+- Se generaron 48 capturas completas, 24 recortes y dos láminas comparativas. El
+  coordinador revisó las láminas finales y los seis recortes intermedios a 720×1280.
+- Main.unity y los seis archivos de guardado coinciden por SHA-256 con la línea base.
+  La primera reconstrucción produjo reserialización innecesaria; se descartó únicamente
+  ese cambio propio mediante la copia previa y se repitió la prueba en la escena original.
+- Auditoría auxiliar de QA favorable: cobertura real de cuatro etapas y ambas resoluciones.
+  La revisión auxiliar vio las láminas de Run3; el coordinador revisó las capturas finales.
+
+CARAS INFERIORES Y DISTRIBUCIÓN PROGRESIVA V55 — 2026-09-17
+
+- El orden físico canónico queda fijado como cara 1 superior izquierda, cara 2 superior
+  derecha, cara 3 inferior derecha y cara 4 inferior izquierda.
+- Las caras 3 y 4 usan hojas 2x2 propias. Ambas poseen borde superior plano, coherente con
+  la división horizontal del Monolito completo, y cuatro etapas: daño fuerte, medio, leve
+  y reparado. Ya no se reutiliza ni se refleja en tiempo de ejecución una cara superior.
+- Las tres caras funcionales conservan ocho ramas de presentación y revelan 3/5/7/8
+  símbolos en los umbrales globales 0/20/40/60 %. Cada símbolo conserva su posición una
+  vez revelado; la cara 4 permanece reservada y no muestra nodos.
+- La distribución es fija e irregular. La huella completa del símbolo, más cuatro píxeles
+  locales de margen, debe permanecer dentro de piedra válida y fuera de tubos, rieles,
+  base, bordes y huecos en cada etapa visible.
+- El alfa sólido admite el antialias casi opaco del arte generado (mínimo 0,98); los huecos
+  y el daño real continúan bloqueados por la prueba de superficie y el polígono conservador.
+- `MachineMonolith2DCapture.RunCurrentSceneBatch` pasó 24 combinaciones de superficie
+  (3 caras x 4 etapas x 2 resoluciones), navegación, transición con cadencia simulada de
+  33/67 ms y restauración del guardado. Evidencia: `Logs/monolith_v55_capture_retry3.log`
+  y `Logs/VisualQA/MachineMonolith2D_V55`.
+- La integración técnica V55 está completa. Las capturas permanecen candidatas hasta la
+  confirmación visual del usuario y todavía no acreditan una APK ni prueba física en móvil.
+
+ACERCAMIENTO FRONTAL MONOLITO-CARA V58 — 2026-09-17
+
+- El video móvil posterior a 0.1.13 reabre únicamente la entrada desde la vista general a
+  una cara. La llegada y la ficha inferior se conservan; se elimina el desplazamiento
+  lateral inicial que hacía que el Monolito pareciera apartarse.
+- La entrada se divide en dos fases. Primero, durante 0,24 s, sólo el contenedor visual del
+  Monolito aumenta de escala 1,00 a 1,06 sobre su eje central. El laboratorio, el pedestal
+  y el viewport permanecen quietos durante ese acercamiento.
+- Después comienza el cruce existente hacia la cara. El cambio de altura del viewport se
+  interpola durante esa fase en vez de aplicarse de golpe; origen y destino mantienen
+  opacidades complementarias y no producen un fotograma vacío.
+- `OverviewArtwork` conserva su escala canónica 0,72 y posición `(0, 34)`. La animación usa
+  `MonolithOverview` como contenedor independiente para no disputar propiedades con
+  `AspectRatioFitter`.
+- La apertura cinematográfica interna previa a la selección dimensional queda omitida. La
+  selección, el regreso sin reinicio y la confirmación triple permanecen operativos mientras
+  el usuario prepara el video externo que la sustituirá.
+- Evidencia candidata: `Logs/post_0.1.13_monolith_transition_validation.log` y checkpoints
+  0/25/50/55/62/75/100 en `Logs/VisualQA/MachineMonolith2D_V57`. La validación comprueba
+  1080×1920, 720×1280, opacidades, geometría y ocho entradas a 33/67 ms.
+- V58 queda pendiente de aprobación visual explícita y de una prueba posterior en APK; no
+  se genera APK como parte de este bloque.
+
+CORRECCIÓN DE ENTRADA MONOLITO-CARA V59 — 2026-09-18
+
+- La revisión del usuario rechaza el acercamiento frontal V58: al escalar el contenedor
+  `MonolithOverview` de 1,00 a 1,06 mientras el pedestal permanece fijo, el Monolito se
+  separa visualmente de su alojamiento y parece subir antes de mostrar la cara.
+- Se elimina únicamente esa fase previa de 0,24 s. El Monolito conserva escala y posición
+  de reposo hasta que comienza el cruce hacia la cara.
+- El tramo aprobado de llegada de la cara se conserva con su ritmo de 0,88 s, opacidades
+  complementarias, ficha inferior y encuadre cercano. El movimiento del viewport comienza
+  junto con el fundido para evitar movimiento perceptible antes de aparecer el destino.
+- La captura añade checkpoints tempranos al 10 % y 20 %. El validador exige escala de
+  reposo y una base estable antes del cruce, además de las comprobaciones de mezcla ya
+  existentes.
+- La evidencia nueva se archiva en `Logs/VisualQA/MachineMonolith2D_V59`. Sigue pendiente
+  la aprobación visual del usuario; no se genera APK como parte de este bloque.

@@ -23,7 +23,7 @@ public static class D2PresentationRouter
     {
         if (gameState == null || gameState.dimension2 == null)
             return PresentationFeatureIds.D2Map;
-        if (!gameState.dimension2.firstEntrySeen)
+        if (!Dimension2System.HasSeenCurrentFirstEntry(gameState))
             return FirstEntryScreenId;
         return ResolveSafeScreen(gameState, gameState.dimension2.presentation.lastScreenId);
     }

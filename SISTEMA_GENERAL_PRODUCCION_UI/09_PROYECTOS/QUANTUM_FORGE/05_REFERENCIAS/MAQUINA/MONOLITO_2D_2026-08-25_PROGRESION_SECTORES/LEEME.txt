@@ -1,0 +1,32 @@
+QUANTUM FORGE — MONOLITO 2D, PROGRESIÓN Y SECTORES
+Fecha: 2026-08-25
+
+CLASIFICACIÓN
+
+- Estas imágenes son mockups conceptuales de composición.
+- No son assets finales ni capturas reales de Unity.
+- Definen el lenguaje visual que debe revisarse antes de implementar la pantalla.
+
+CONTENIDO
+
+- 00: progresión exterior del Monolito cerrado.
+- 01: sector 1 acercado, 7 posiciones visibles.
+- 02 v02: sector 2 acercado en la tapa inferior derecha, 11 posiciones visibles.
+- 03 v02: sector 3 acercado en la tapa superior derecha, 7 posiciones visibles.
+- 04 v02: sector 4 reservado en la tapa inferior izquierda, `???` y cuatro
+  marcas decorativas no interactivas.
+
+VERSIONES RECHAZADAS
+
+- Los archivos 02, 03 y 04 terminados en v01 reutilizan incorrectamente el marco
+  de la tapa superior izquierda. Se conservan sólo como historial conceptual y no
+  deben utilizarse para implementar la composición.
+- Las versiones vigentes de esos tres sectores son las terminadas en v02.
+
+REGLAS VIGENTES
+
+- Las posiciones se mantienen fijas entre etapas de reparación.
+- El progreso modifica daño físico e iluminación.
+- El sector 4 no contiene nodos activos ni elementos seleccionables.
+- La integración final debe conservar las barras de navegación existentes y ubicar
+  NODOS / MEZCLAS en la parte superior del contenido de la Máquina.

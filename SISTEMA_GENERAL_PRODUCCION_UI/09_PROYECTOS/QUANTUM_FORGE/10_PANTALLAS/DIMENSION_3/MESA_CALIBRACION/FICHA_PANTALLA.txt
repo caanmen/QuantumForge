@@ -1,0 +1,34 @@
+FICHA DE PANTALLA — MESA DE CALIBRACIÓN
+=======================================
+
+Dimensión: 3
+Tipo: subpantalla del Taller
+Referencia visual: 05_REFERENCIAS/DIMENSION_3/MESA_CALIBRACION/
+Implementación funcional: D3CalibrationPanelUI + D3CalibrationSystem
+
+ESCENARIO CANÓNICO DE QA
+- recursos: 3.25M LE, 4.2K Trazas y 56 Autómatas;
+- pieza seleccionada: Chasis;
+- ensamblaje seleccionado: MK1;
+- distribución: Superior 35, Central 40, Inferior 25; total 100;
+- lectura registrada de Chasis: 48;
+- las otras cuatro piezas permanecen Pendiente;
+- afinidad provisional: Coordinador · Alta;
+- acciones de perfil y confirmación visibles en estado bloqueado cuando corresponda;
+- navegación inferior: Taller seleccionado.
+
+ZONAS VISUALES
+1. encabezado, regreso y tres recursos;
+2. selectores e instrucción de total;
+3. tres filas de calibración y acción principal;
+4. cinco tarjetas de lecturas;
+5. capa de comparación;
+6. acciones progresivas/bloqueadas;
+7. navegación Planta / Taller / Control.
+
+ESTADOS A VALIDAR DESPUÉS DE APROBAR LA ESTÁTICA
+- lectura pendiente y registrada;
+- total distinto de 100 y total correcto;
+- perfil incompleto y completo 5/5;
+- acciones N1–N4 bloqueadas/habilitadas;
+- confirmación de intento bloqueada/habilitada.

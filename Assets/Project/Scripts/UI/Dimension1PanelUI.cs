@@ -38,12 +38,14 @@ public class Dimension1PanelUI : MonoBehaviour
     [Header("Recompensas de exploración")]
     [SerializeField] private GameObject explorationRewardsPanel;
     [SerializeField] private TextMeshProUGUI explorationRewardsText;
+    [SerializeField] private Dimension1ExpeditionResultUI expeditionResultUI;
 
     [Header("Registro de exploración")]
     [SerializeField] private Button openExplorationRecordButton;
     [SerializeField] private GameObject explorationRecordPanel;
     [SerializeField] private TextMeshProUGUI explorationRecordText;
     [SerializeField] private Button closeExplorationRecordButton;
+    [SerializeField] private Dimension1ExpeditionRecordUI expeditionRecordUI;
 
     [Header("Hangar")]
     [SerializeField] private Button unlockExtractorDroneButton;
@@ -104,7 +106,25 @@ public class Dimension1PanelUI : MonoBehaviour
 
     [Header("Galaxia")]
     [SerializeField] private GameObject galaxyPanel;
+    private CanvasGroup galaxyDetailOcclusion;
+
+    public void RefreshGalaxyDetailOcclusion()
+    {
+        if (galaxyPanel == null) return;
+        if (galaxyDetailOcclusion == null)
+            galaxyDetailOcclusion = galaxyPanel.GetComponent<CanvasGroup>();
+        if (galaxyDetailOcclusion == null)
+            galaxyDetailOcclusion = galaxyPanel.AddComponent<CanvasGroup>();
+        bool covered = ancientOrbitsUI != null && ancientOrbitsUI.IsOpen;
+        if (sectorDetailUIs != null)
+            foreach (Dimension1SectorDetailUI detail in sectorDetailUIs)
+                covered |= detail != null && detail.IsOpen;
+        galaxyDetailOcclusion.alpha = covered ? 0f : 1f;
+        galaxyDetailOcclusion.interactable = !covered;
+        galaxyDetailOcclusion.blocksRaycasts = !covered;
+    }
     [SerializeField] private Dimension1AncientOrbitsUI ancientOrbitsUI;
+    [SerializeField] private Dimension1SectorDetailUI[] sectorDetailUIs;
     [SerializeField] private Button openGalaxyPanelButton;
     [SerializeField] private Button closeGalaxyPanelButton;
 
@@ -158,23 +178,32 @@ public class Dimension1PanelUI : MonoBehaviour
     private string dimension1TreeDropdownSignature = "";
     private bool isRefreshingDimension1TreeDropdown;
     private bool galaxyPanelOpen;
+    private bool galaxyOpenedForExploreSectorSelection;
     private bool arkPanelOpen;
+    private bool modernCommandCenterPresented;
     private string arkFeedbackMessage = "";
     private string galaxyPreviewSectorId = "";
     public string GalaxyPreviewSectorId => galaxyPreviewSectorId;
+    public bool GalaxyOpenedForExploreSectorSelectionForUi =>
+        galaxyOpenedForExploreSectorSelection;
     private string galaxyFeedbackMessage = "";
     private int lastHandledExplorationResultId;
+    private readonly Queue<int> pendingExplorationResultIds = new Queue<int>();
+    private int activeExplorationResultId;
     private bool showingExplorationResultPanel;
     private bool explorationRecordPanelOpen;
     private int lastObservedDestinationDropdownValue = -1;
     private int lastObservedShipDropdownValue = -1;
     private int lastObservedSupportShipDropdownValue = -1;
+    private Dimension1ExploreVisualUI modernExploreVisual;
+    private Dimension1GalaxyVisualUI modernGalaxyVisual;
 
     private static readonly string[] HangarShipIds =
         Dimension1System.Dimension1ActiveShipIds;
 
     private void OnEnable()
     {
+        NormalizeUnsupportedEllipsisOverflow();
         BindGalaxyButtonListeners();
         BindDimension1TreeListeners();
         BindArkListeners();
@@ -372,6 +401,8 @@ public class Dimension1PanelUI : MonoBehaviour
                 ? gs.dimension1LastExplorationResultId
                 : 0;
 
+        pendingExplorationResultIds.Clear();
+        activeExplorationResultId = 0;
         showingExplorationResultPanel = false;
     }
 
@@ -505,12 +536,69 @@ public class Dimension1PanelUI : MonoBehaviour
         if (gs == null)
             return;
 
-        if (gs.dimension1LastExplorationResultId <= lastHandledExplorationResultId)
-            return;
+        int newestResultId = gs.dimension1LastExplorationResultId;
+        if (newestResultId > lastHandledExplorationResultId)
+        {
+            int previousResultId = lastHandledExplorationResultId;
+            bool queuedAny = false;
+            if (gs.dimension1RecentExplorationRecords != null)
+            {
+                foreach (D1ExplorationRecordEntry record in gs.dimension1RecentExplorationRecords)
+                {
+                    if (record == null || record.resultId <= previousResultId ||
+                        record.resultId > newestResultId || IsExplorationResultQueued(record.resultId) ||
+                        record.resultId == activeExplorationResultId)
+                        continue;
+                    pendingExplorationResultIds.Enqueue(record.resultId);
+                    queuedAny = true;
+                }
+            }
 
-        lastHandledExplorationResultId = gs.dimension1LastExplorationResultId;
-        showingExplorationResultPanel = true;
-        explorationRecordPanelOpen = false;
+            // Compatibilidad con guardados antiguos sin historial detallado.
+            if (!queuedAny && !string.IsNullOrEmpty(gs.dimension1LastExplorationDestinationId) &&
+                newestResultId != activeExplorationResultId && !IsExplorationResultQueued(newestResultId))
+                pendingExplorationResultIds.Enqueue(newestResultId);
+
+            lastHandledExplorationResultId = newestResultId;
+        }
+
+        ShowNextPendingExplorationResult(gs);
+    }
+
+    private bool IsExplorationResultQueued(int resultId)
+    {
+        foreach (int queuedId in pendingExplorationResultIds)
+            if (queuedId == resultId) return true;
+        return false;
+    }
+
+    private void ShowNextPendingExplorationResult(GameState gs)
+    {
+        if (showingExplorationResultPanel || gs == null) return;
+        while (pendingExplorationResultIds.Count > 0)
+        {
+            int nextId = pendingExplorationResultIds.Dequeue();
+            if (FindExplorationRecord(gs, nextId) == null &&
+                nextId != gs.dimension1LastExplorationResultId)
+                continue;
+            activeExplorationResultId = nextId;
+            showingExplorationResultPanel = true;
+            explorationRecordPanelOpen = false;
+            return;
+        }
+        activeExplorationResultId = 0;
+    }
+
+    private static D1ExplorationRecordEntry FindExplorationRecord(GameState gs, int resultId)
+    {
+        if (gs == null || resultId <= 0 || gs.dimension1RecentExplorationRecords == null)
+            return null;
+        for (int i = gs.dimension1RecentExplorationRecords.Count - 1; i >= 0; i--)
+        {
+            D1ExplorationRecordEntry record = gs.dimension1RecentExplorationRecords[i];
+            if (record != null && record.resultId == resultId) return record;
+        }
+        return null;
     }
 
     private string BuildMetalsText(GameState gs)
@@ -1181,11 +1269,14 @@ public class Dimension1PanelUI : MonoBehaviour
         bool shouldShowResult =
             showingExplorationResultPanel &&
             gs != null &&
-            !string.IsNullOrEmpty(gs.dimension1LastExplorationDestinationId);
+            (FindExplorationRecord(gs, activeExplorationResultId) != null ||
+             (activeExplorationResultId == gs.dimension1LastExplorationResultId &&
+              !string.IsNullOrEmpty(gs.dimension1LastExplorationDestinationId)));
 
         bool shouldShowPreview =
             gs != null &&
             !gs.dimension1ScanActive &&
+            !IsModernExploreSkinActive() &&
             GetSelectedAvailableDestination(gs) != null &&
             GetSelectedAvailableShip(gs) != null;
 
@@ -1195,11 +1286,22 @@ public class Dimension1PanelUI : MonoBehaviour
             !galaxyPanelOpen &&
             (shouldShowResult || shouldShowPreview);
 
+        bool usesDetailedResult = expeditionResultUI != null && shouldShowResult && shouldShow;
+
         if (explorationRewardsPanel != null)
-            explorationRewardsPanel.SetActive(shouldShow);
+            explorationRewardsPanel.SetActive(shouldShow && !usesDetailedResult);
+
+        if (expeditionResultUI != null)
+            expeditionResultUI.RefreshFromState(gs, usesDetailedResult, activeExplorationResultId);
 
         if (explorationRewardsText == null)
             return;
+
+        if (usesDetailedResult)
+        {
+            explorationRewardsText.text = "";
+            return;
+        }
 
         if (!shouldShow)
         {
@@ -1216,6 +1318,21 @@ public class Dimension1PanelUI : MonoBehaviour
         explorationRewardsText.text = BuildExplorationRewardsText(gs);
     }
 
+    private bool IsModernExploreSkinActive()
+    {
+        if (modernExploreVisual == null)
+            modernExploreVisual = GetComponentInChildren<Dimension1ExploreVisualUI>(true);
+
+        return modernExploreVisual != null &&
+            modernExploreVisual.gameObject.activeInHierarchy;
+    }
+
+    public void SuppressLegacyExplorationPreviewForUi()
+    {
+        if (explorationRewardsPanel != null)
+            explorationRewardsPanel.SetActive(false);
+    }
+
     private void RefreshExplorationRecordPanel(GameState gs)
     {
         bool isMainDimension1View =
@@ -1223,6 +1340,7 @@ public class Dimension1PanelUI : MonoBehaviour
             !relicChamberPanelOpen &&
             !galaxyPanelOpen;
         bool shouldShowRecordPanel = isMainDimension1View && explorationRecordPanelOpen;
+        bool usesDetailedRecord = expeditionRecordUI != null && shouldShowRecordPanel;
 
         if (openExplorationRecordButton != null)
         {
@@ -1232,20 +1350,23 @@ public class Dimension1PanelUI : MonoBehaviour
 
         if (closeExplorationRecordButton != null)
         {
-            closeExplorationRecordButton.gameObject.SetActive(shouldShowRecordPanel);
+            closeExplorationRecordButton.gameObject.SetActive(shouldShowRecordPanel && !usesDetailedRecord);
             SetButtonText(closeExplorationRecordButton, "cerrar registro");
         }
 
         if (explorationRecordPanel != null)
-            explorationRecordPanel.SetActive(shouldShowRecordPanel);
+            explorationRecordPanel.SetActive(shouldShowRecordPanel && !usesDetailedRecord);
 
         if (explorationRecordText != null)
-            explorationRecordText.gameObject.SetActive(shouldShowRecordPanel);
+            explorationRecordText.gameObject.SetActive(shouldShowRecordPanel && !usesDetailedRecord);
+
+        if (expeditionRecordUI != null)
+            expeditionRecordUI.RefreshFromState(gs, usesDetailedRecord);
 
         if (explorationRecordText == null)
             return;
 
-        if (!shouldShowRecordPanel)
+        if (!shouldShowRecordPanel || usesDetailedRecord)
         {
             explorationRecordText.text = "";
             return;
@@ -2178,6 +2299,7 @@ public class Dimension1PanelUI : MonoBehaviour
             destinationDropdown.RefreshShownValue();
 
             selectedDestinationIndex = 0;
+            lastObservedDestinationDropdownValue = 0;
             destinationDropdownSignature = "Escaneando...";
 
             destinationDropdown.interactable = false;
@@ -2196,6 +2318,7 @@ public class Dimension1PanelUI : MonoBehaviour
             destinationDropdown.RefreshShownValue();
 
             selectedDestinationIndex = 0;
+            lastObservedDestinationDropdownValue = 0;
             destinationDropdownSignature = "Sin destinos disponibles";
 
             destinationDropdown.interactable = false;
@@ -2211,7 +2334,7 @@ public class Dimension1PanelUI : MonoBehaviour
 
         foreach (D1ScannedDestinationState destination in gs.dimension1ScannedDestinations)
         {
-            if (destination == null || !destination.available)
+            if (!IsAvailableDestinationInSelectedSector(gs, destination))
                 continue;
 
             string specialPointMarker = "";
@@ -2259,6 +2382,7 @@ public class Dimension1PanelUI : MonoBehaviour
 
         destinationDropdown.SetValueWithoutNotify(selectedDestinationIndex);
         destinationDropdown.RefreshShownValue();
+        lastObservedDestinationDropdownValue = selectedDestinationIndex;
 
         destinationDropdown.interactable = true;
 
@@ -2293,6 +2417,7 @@ public class Dimension1PanelUI : MonoBehaviour
             shipDropdown.RefreshShownValue();
 
             selectedShipIndex = 0;
+            lastObservedShipDropdownValue = 0;
             shipDropdownSignature = "Escaneando...";
 
             shipDropdown.interactable = false;
@@ -2311,6 +2436,7 @@ public class Dimension1PanelUI : MonoBehaviour
             shipDropdown.RefreshShownValue();
 
             selectedShipIndex = 0;
+            lastObservedShipDropdownValue = 0;
             shipDropdownSignature = "Sin destino disponible";
 
             shipDropdown.interactable = false;
@@ -2329,6 +2455,7 @@ public class Dimension1PanelUI : MonoBehaviour
             shipDropdown.RefreshShownValue();
 
             selectedShipIndex = 0;
+            lastObservedShipDropdownValue = 0;
             shipDropdownSignature = "Sin naves disponibles";
 
             shipDropdown.interactable = false;
@@ -2380,6 +2507,7 @@ public class Dimension1PanelUI : MonoBehaviour
 
         shipDropdown.SetValueWithoutNotify(selectedShipIndex);
         shipDropdown.RefreshShownValue();
+        lastObservedShipDropdownValue = selectedShipIndex;
 
         shipDropdown.interactable = true;
 
@@ -2446,6 +2574,7 @@ public class Dimension1PanelUI : MonoBehaviour
         );
         supportShipDropdown.SetValueWithoutNotify(selectedSupportShipIndex);
         supportShipDropdown.RefreshShownValue();
+        lastObservedSupportShipDropdownValue = selectedSupportShipIndex;
         supportShipDropdown.interactable = mainShip != null && options.Count > 1;
         isRefreshingSupportShipDropdown = false;
     }
@@ -2551,7 +2680,7 @@ public class Dimension1PanelUI : MonoBehaviour
 
         foreach (D1ScannedDestinationState destination in gs.dimension1ScannedDestinations)
         {
-            if (destination != null && destination.available)
+            if (IsAvailableDestinationInSelectedSector(gs, destination))
                 count++;
         }
 
@@ -2576,7 +2705,7 @@ public class Dimension1PanelUI : MonoBehaviour
 
         foreach (D1ScannedDestinationState destination in gs.dimension1ScannedDestinations)
         {
-            if (destination == null || !destination.available)
+            if (!IsAvailableDestinationInSelectedSector(gs, destination))
                 continue;
 
             if (currentIndex == targetIndex)
@@ -2593,15 +2722,32 @@ public class Dimension1PanelUI : MonoBehaviour
         if (gs == null || gs.dimension1ScannedDestinations == null)
             return -1;
 
-        int dropdownIndex = selectedDestinationIndex;
-
-        if (destinationDropdown != null)
-            dropdownIndex = destinationDropdown.value;
-
-        if (dropdownIndex <= 0)
+        D1ScannedDestinationState selected = GetSelectedAvailableDestination(gs);
+        if (selected == null)
             return -1;
 
-        return dropdownIndex - 1;
+        int availableIndex = 0;
+        foreach (D1ScannedDestinationState destination in gs.dimension1ScannedDestinations)
+        {
+            if (destination == null || !destination.available)
+                continue;
+            if (ReferenceEquals(destination, selected))
+                return availableIndex;
+            availableIndex++;
+        }
+
+        return -1;
+    }
+
+    private static bool IsAvailableDestinationInSelectedSector(
+        GameState gs,
+        D1ScannedDestinationState destination)
+    {
+        return gs != null &&
+            destination != null &&
+            destination.available &&
+            Dimension1System.IsDimension1ExplorationSectorId(gs.dimension1SelectedSectorId) &&
+            destination.sectorId == gs.dimension1SelectedSectorId;
     }
 
     private int GetAvailableShipCount(GameState gs)
@@ -3581,7 +3727,14 @@ public class Dimension1PanelUI : MonoBehaviour
         relicChamberPanelOpen = false;
         galaxyPanelOpen = false;
         RefreshUI();
+
+        if (expeditionRecordUI == null)
+            expeditionRecordUI = GetComponentInChildren<Dimension1ExpeditionRecordUI>(true);
+        if (expeditionRecordUI != null)
+            expeditionRecordUI.OpenFromState(gs);
     }
+
+    public bool IsExplorationRecordOpenForUi() => explorationRecordPanelOpen;
 
     public void OnClickCloseExplorationRecord()
     {
@@ -3763,6 +3916,7 @@ public class Dimension1PanelUI : MonoBehaviour
     private void CloseExplorationOverlayPanels()
     {
         showingExplorationResultPanel = false;
+        activeExplorationResultId = 0;
         explorationRecordPanelOpen = false;
     }
 
@@ -3819,7 +3973,10 @@ public class Dimension1PanelUI : MonoBehaviour
         if (gs == null)
             return;
 
-        Dimension1System.TryUpgradeSimpleScanner(gs);
+        bool upgraded = Dimension1System.TryUpgradeSimpleScanner(gs);
+
+        if (upgraded && SaveService.I != null)
+            SaveService.I.Save();
 
         RefreshUI();
     }
@@ -3880,6 +4037,18 @@ public class Dimension1PanelUI : MonoBehaviour
         RefreshUI();
     }
 
+    private void NormalizeUnsupportedEllipsisOverflow()
+    {
+        // Rajdhani-Medium SDF no contiene el glifo de elipsis que TMP necesita
+        // para este modo. Truncate produce el mismo resultado efectivo que TMP
+        // ya aplicaba como respaldo, pero evita una advertencia por cada texto.
+        foreach (TMP_Text text in GetComponentsInChildren<TMP_Text>(true))
+        {
+            if (text != null && text.overflowMode == TextOverflowModes.Ellipsis)
+                text.overflowMode = TextOverflowModes.Truncate;
+        }
+    }
+
     public void OnClickStartFirstAvailableExploration()
     {
         GameState gs = GameState.I;
@@ -3912,6 +4081,8 @@ public class Dimension1PanelUI : MonoBehaviour
     public void OnClickCloseExplorationRewards()
     {
         showingExplorationResultPanel = false;
+        activeExplorationResultId = 0;
+        ShowNextPendingExplorationResult(GameState.I);
         ResetMainExplorationSelection();
 
         RefreshUI();
@@ -5014,7 +5185,14 @@ public class Dimension1PanelUI : MonoBehaviour
     {
         arkPanelOpen = false;
         arkFeedbackMessage = "";
+        galaxyPanelOpen = true;
+        galaxyPreviewSectorId = Dimension1System.Sector05GalacticCenter;
         RefreshUI();
+
+        if (modernGalaxyVisual == null)
+            modernGalaxyVisual = GetComponentInChildren<Dimension1GalaxyVisualUI>(true);
+        if (modernGalaxyVisual != null)
+            modernGalaxyVisual.RefreshFromStateForUi();
     }
 
     public void OnClickInvestigateArk()
@@ -5289,6 +5467,16 @@ public class Dimension1PanelUI : MonoBehaviour
 
     public void OnClickOpenGalaxyPanel()
     {
+        OpenGalaxyPanel(false);
+    }
+
+    public void OnClickOpenGalaxyForExploreSectorSelection()
+    {
+        OpenGalaxyPanel(true);
+    }
+
+    private void OpenGalaxyPanel(bool forExploreSectorSelection)
+    {
         if (galaxyPanel == null)
             return;
 
@@ -5300,8 +5488,10 @@ public class Dimension1PanelUI : MonoBehaviour
         // Carta Galactica opens in a neutral browsing state. The persisted
         // current sector remains untouched and is still reported in the header.
         galaxyPreviewSectorId = "";
+        galaxyOpenedForExploreSectorSelection = forExploreSectorSelection;
 
         ancientOrbitsUI?.CloseSilently();
+        CloseSectorDetails();
         galaxyFeedbackMessage = "";
         galaxyPanelOpen = true;
         hangarPanelOpen = false;
@@ -5345,10 +5535,16 @@ public class Dimension1PanelUI : MonoBehaviour
 
     public void OnClickCloseGalaxyPanel()
     {
+        bool returnToExplore = galaxyOpenedForExploreSectorSelection;
+        galaxyOpenedForExploreSectorSelection = false;
         ancientOrbitsUI?.CloseSilently();
+        CloseSectorDetails();
         galaxyPanelOpen = false;
         galaxyFeedbackMessage = "";
         RefreshUI();
+
+        if (returnToExplore)
+            ReturnToExploreAfterGalaxySectorSelection();
     }
 
     public void OnClickPreviewGalaxySector1()
@@ -5384,6 +5580,11 @@ public class Dimension1PanelUI : MonoBehaviour
         galaxyPreviewSectorId = sectorId;
         galaxyFeedbackMessage = "";
         RefreshUI();
+
+        if (modernGalaxyVisual == null)
+            modernGalaxyVisual = GetComponentInChildren<Dimension1GalaxyVisualUI>(true);
+        if (modernGalaxyVisual != null)
+            modernGalaxyVisual.RefreshFromStateForUi();
     }
 
     public void OnClickEnterGalaxySector()
@@ -5413,6 +5614,19 @@ public class Dimension1PanelUI : MonoBehaviour
         if (SaveService.I != null)
             SaveService.I.Save();
 
+        if (galaxyOpenedForExploreSectorSelection)
+        {
+            galaxyOpenedForExploreSectorSelection = false;
+            ReturnToExploreAfterGalaxySectorSelection();
+            return;
+        }
+
+        if (galaxyPreviewSectorId == Dimension1System.Sector05GalacticCenter)
+        {
+            OnClickOpenArkPanel();
+            return;
+        }
+
         if (galaxyPreviewSectorId == Dimension1System.Sector03AncientOrbits &&
             ancientOrbitsUI == null)
         {
@@ -5428,8 +5642,382 @@ public class Dimension1PanelUI : MonoBehaviour
             return;
         }
 
+        Dimension1SectorDetailUI sectorDetail = FindSectorDetail(galaxyPreviewSectorId);
+        if (sectorDetail != null)
+        {
+            galaxyPanelOpen = true;
+            RefreshUI();
+            sectorDetail.OpenFromGalaxy();
+            return;
+        }
+
         galaxyPanelOpen = false;
         RefreshUI();
+    }
+
+    private void ReturnToExploreAfterGalaxySectorSelection()
+    {
+        if (modernGalaxyVisual == null)
+            modernGalaxyVisual = GetComponentInChildren<Dimension1GalaxyVisualUI>(true);
+
+        if (modernGalaxyVisual != null)
+            modernGalaxyVisual.OpenExplore();
+    }
+
+    public void PrepareCommandCenterForUi()
+    {
+        modernCommandCenterPresented = true;
+        ancientOrbitsUI?.CloseSilently();
+        CloseSectorDetails();
+
+        galaxyPanelOpen = false;
+        hangarPanelOpen = false;
+        relicChamberPanelOpen = false;
+        dimension1TreePanelOpen = false;
+        arkPanelOpen = false;
+        explorationRecordPanelOpen = false;
+        showingExplorationResultPanel = false;
+        activeExplorationResultId = 0;
+
+        galaxyFeedbackMessage = "";
+        arkFeedbackMessage = "";
+        RefreshUI();
+    }
+
+    public void PrepareExploreForUi()
+    {
+        // Explorar es una piel moderna de la vista principal. Mientras esté
+        // presentada, la interfaz funcional antigua debe seguir oculta aunque
+        // no haya ningún panel secundario abierto.
+        modernCommandCenterPresented = true;
+        ancientOrbitsUI?.CloseSilently();
+        CloseSectorDetails();
+
+        galaxyPanelOpen = false;
+        hangarPanelOpen = false;
+        relicChamberPanelOpen = false;
+        dimension1TreePanelOpen = false;
+        arkPanelOpen = false;
+        explorationRecordPanelOpen = false;
+
+        galaxyFeedbackMessage = "";
+        arkFeedbackMessage = "";
+        RefreshUI();
+        SuppressLegacyExplorationPreviewForUi();
+    }
+
+    public void SetModernCommandCenterPresentedForUi(bool presented)
+    {
+        modernCommandCenterPresented = presented;
+        ApplyLegacyMainContentVisibility(
+            !hangarPanelOpen &&
+            !relicChamberPanelOpen &&
+            !dimension1TreePanelOpen &&
+            !galaxyPanelOpen &&
+            !arkPanelOpen
+        );
+    }
+
+    private void ApplyLegacyMainContentVisibility(bool requestedVisible)
+    {
+        if (dimension1MainContentRoot != null)
+            dimension1MainContentRoot.SetActive(
+                requestedVisible && !modernCommandCenterPresented
+            );
+    }
+
+    public void OnClickViewLastExplorationRelics()
+    {
+        GameState gs = GameState.I;
+        string relicId = "";
+        D1ExplorationRecordEntry activeRecord = FindExplorationRecord(gs, activeExplorationResultId);
+        List<D1RelicRewardEntry> relicRewards = activeRecord != null
+            ? activeRecord.relicRewards
+            : gs != null ? gs.dimension1LastExplorationRelics : null;
+
+        if (relicRewards != null)
+        {
+            foreach (D1RelicRewardEntry reward in relicRewards)
+            {
+                if (reward == null || string.IsNullOrEmpty(reward.relicId))
+                    continue;
+
+                relicId = reward.relicId;
+                break;
+            }
+        }
+
+        showingExplorationResultPanel = false;
+        activeExplorationResultId = 0;
+        ResetMainExplorationSelection();
+        OnClickOpenRelicChamberPanel();
+
+        if (!string.IsNullOrEmpty(relicId))
+            SelectRelicChamberRelic(relicId);
+    }
+
+    public string GetD1MetalVisualNameForUi(string metalId) => GetMetalVisualName(metalId);
+    public string GetD1ShipVisualNameForUi(string shipId) => GetShipVisualName(shipId);
+    public string GetD1DestinationVisualNameForUi(string destinationId) => GetDestinationVisualName(destinationId);
+    public string GetD1BlueprintVisualNameForUi(string blueprintId) => GetBlueprintVisualName(blueprintId);
+
+    // La pantalla visual de Explorar no mantiene una segunda copia de las reglas.
+    // Estos accesos reutilizan exactamente las selecciones y validaciones del panel
+    // funcional original, aunque los TMP_Dropdown permanezcan ocultos por el skin.
+    public D1ScannedDestinationState GetSelectedAvailableDestinationForUi()
+        => GetSelectedAvailableDestination(GameState.I);
+
+    public D1ShipState GetSelectedAvailableShipForUi()
+        => GetSelectedAvailableShip(GameState.I);
+
+    public D1ShipState GetSelectedSupportShipForUi()
+        => GetSelectedSupportShip(GameState.I);
+
+    public int GetAvailableDestinationCountForUi()
+        => GetAvailableDestinationCount(GameState.I);
+
+    public int GetAvailableShipCountForUi()
+        => GetAvailableShipCount(GameState.I);
+
+    public bool IsCoordinatedModeForUi() => coordinatedMode;
+
+    public bool CanUseCoordinatedModeForUi()
+    {
+        GameState gs = GameState.I;
+        return gs != null && Dimension1System.HasD1TreeFleetCoordination(gs);
+    }
+
+    public bool CanStartSelectedExplorationForUi()
+    {
+        GameState gs = GameState.I;
+        if (gs == null) return false;
+        int destinationIndex = GetSelectedAvailableDestinationRealIndex(gs);
+        D1ShipState mainShip = GetSelectedAvailableShip(gs);
+        if (destinationIndex < 0 || mainShip == null) return false;
+        if (!coordinatedMode)
+            return Dimension1System.CanStartExploration(gs, mainShip.shipId, destinationIndex);
+        D1ShipState supportShip = GetSelectedSupportShip(gs);
+        return supportShip != null && Dimension1System.CanStartCoordinatedExploration(
+            gs, mainShip.shipId, supportShip.shipId, destinationIndex);
+    }
+
+    public string GetSelectedSynergyNameForUi()
+    {
+        D1ShipState mainShip = GetSelectedAvailableShip(GameState.I);
+        D1ShipState supportShip = GetSelectedSupportShip(GameState.I);
+        string synergyId = mainShip != null && supportShip != null
+            ? Dimension1System.GetD1SynergyId(mainShip.shipId, supportShip.shipId)
+            : "";
+        return string.IsNullOrEmpty(synergyId)
+            ? "SIN SINERGIA"
+            : Dimension1System.GetD1SynergyVisualName(synergyId);
+    }
+
+    public string GetSelectedExplorationPreviewForUi()
+    {
+        GameState gs = GameState.I;
+        if (gs == null)
+            return "Estado:\nDatos de partida no disponibles.";
+        if (!gs.dimension01Unlocked)
+            return "Estado:\nDimensión 1 bloqueada.";
+        if (gs.dimension1ScanActive)
+            return "Estado:\nBarrido del sector en curso. Tiempo restante: " +
+                FormatSeconds(gs.dimension1ScanRemainingSeconds) + ".";
+
+        D1ScannedDestinationState destination = GetSelectedAvailableDestination(gs);
+        if (destination == null)
+            return "Estado:\nNo hay destinos escaneados disponibles en este sector. Usa ESCANEAR SECTOR.";
+
+        D1ShipState mainShip = GetSelectedAvailableShip(gs);
+        if (mainShip == null)
+            return "Estado:\nNo hay una nave principal disponible. Revisa el Hangar o una expedición activa.";
+
+        string preview = BuildExplorationRewardsText(gs);
+        string stateText;
+        if (coordinatedMode && !Dimension1System.HasD1TreeFleetCoordination(gs))
+            stateText = "Bloqueada: requiere Coordinación de Flota en el Árbol Cuántico.";
+        else if (coordinatedMode && GetSelectedSupportShip(gs) == null)
+            stateText = "Bloqueada: selecciona una nave de apoyo disponible.";
+        else if (CanStartSelectedExplorationForUi())
+            stateText = "Lista para iniciar.";
+        else
+            stateText = "Bloqueada: el destino o una de las naves ya no está disponible.";
+
+        return preview + "\n\nEstado:\n" + stateText;
+    }
+
+    public void EnsureDefaultExploreSelectionsForUi()
+    {
+        RefreshUI();
+
+        bool changed = false;
+        if (destinationDropdown != null && destinationDropdown.options.Count > 1 &&
+            GetSelectedAvailableDestination(GameState.I) == null)
+        {
+            destinationDropdown.SetValueWithoutNotify(1);
+            destinationDropdown.RefreshShownValue();
+            selectedDestinationIndex = 1;
+            lastObservedDestinationDropdownValue = 1;
+            changed = true;
+        }
+
+        if (shipDropdown != null && shipDropdown.options.Count > 1 &&
+            GetSelectedAvailableShip(GameState.I) == null)
+        {
+            shipDropdown.SetValueWithoutNotify(1);
+            shipDropdown.RefreshShownValue();
+            selectedShipIndex = 1;
+            lastObservedShipDropdownValue = 1;
+            changed = true;
+        }
+
+        if (coordinatedMode && supportShipDropdown != null && supportShipDropdown.options.Count > 1 &&
+            GetSelectedSupportShip(GameState.I) == null)
+        {
+            supportShipDropdown.SetValueWithoutNotify(1);
+            supportShipDropdown.RefreshShownValue();
+            selectedSupportShipIndex = 1;
+            lastObservedSupportShipDropdownValue = 1;
+            changed = true;
+        }
+
+        if (changed)
+            RefreshUI();
+    }
+
+    public void CycleAvailableDestinationForUi(int direction)
+    {
+        RefreshUI();
+        CycleExploreDropdown(destinationDropdown, direction, OnDestinationDropdownChanged);
+    }
+
+    public void CycleAvailableShipForUi(int direction)
+    {
+        RefreshUI();
+        CycleExploreDropdown(shipDropdown, direction, OnShipDropdownChanged);
+    }
+
+    public void CycleSupportShipForUi(int direction)
+    {
+        RefreshUI();
+        if (!coordinatedMode || supportShipDropdown == null) return;
+        CycleExploreDropdown(supportShipDropdown, direction, OnSupportShipDropdownChanged);
+    }
+
+    public void SetCoordinatedModeForUi(bool enabled)
+    {
+        GameState gs = GameState.I;
+        bool allowed = gs != null && Dimension1System.HasD1TreeFleetCoordination(gs);
+        enabled &= allowed;
+        if (coordinatedMode != enabled)
+            OnClickToggleCoordinatedMode();
+        if (enabled)
+        {
+            RefreshUI();
+            if (supportShipDropdown != null && supportShipDropdown.options.Count > 1 &&
+                GetSelectedSupportShip(gs) == null)
+                SetExploreDropdownValue(supportShipDropdown, 1, OnSupportShipDropdownChanged);
+        }
+    }
+
+    public bool TryUnlockHangarShipForUi(string shipId)
+    {
+        GameState gs = GameState.I;
+        if (gs == null || !Dimension1System.IsShipActiveInDimension1Base(shipId))
+            return false;
+        bool unlocked = Dimension1System.TryUnlockShip(gs, shipId);
+        if (unlocked && SaveService.I != null)
+            SaveService.I.Save();
+        RefreshUI();
+        return unlocked;
+    }
+
+    private static void CycleExploreDropdown(
+        TMP_Dropdown dropdown, int direction, UnityEngine.Events.UnityAction<int> changed)
+    {
+        if (dropdown == null || dropdown.options == null || dropdown.options.Count <= 1)
+            return;
+        int selectableCount = dropdown.options.Count - 1;
+        int current = Mathf.Clamp(dropdown.value - 1, -1, selectableCount - 1);
+        int offset = direction < 0 ? -1 : 1;
+        int next = current < 0 ? 0 : (current + offset + selectableCount) % selectableCount;
+        SetExploreDropdownValue(dropdown, next + 1, changed);
+    }
+
+    private static void SetExploreDropdownValue(
+        TMP_Dropdown dropdown, int value, UnityEngine.Events.UnityAction<int> changed)
+    {
+        if (dropdown == null || dropdown.options == null || dropdown.options.Count == 0)
+            return;
+        int safeValue = Mathf.Clamp(value, 0, dropdown.options.Count - 1);
+        dropdown.SetValueWithoutNotify(safeValue);
+        dropdown.RefreshShownValue();
+        changed?.Invoke(safeValue);
+    }
+
+    private Dimension1SectorDetailUI FindSectorDetail(string sectorId)
+    {
+        if (sectorDetailUIs == null || sectorDetailUIs.Length == 0)
+            sectorDetailUIs = GetComponentsInChildren<Dimension1SectorDetailUI>(true);
+
+        foreach (Dimension1SectorDetailUI detail in sectorDetailUIs)
+            if (detail != null && detail.SectorId == sectorId) return detail;
+        return null;
+    }
+
+    private void CloseSectorDetails()
+    {
+        if (sectorDetailUIs == null || sectorDetailUIs.Length == 0)
+            sectorDetailUIs = GetComponentsInChildren<Dimension1SectorDetailUI>(true);
+        foreach (Dimension1SectorDetailUI detail in sectorDetailUIs)
+            detail?.CloseSilently();
+    }
+
+    public bool TrySelectAvailableDestinationForUi(string destinationId, string sectorId)
+    {
+        GameState gs = GameState.I;
+        if (gs == null || gs.dimension1ScannedDestinations == null ||
+            string.IsNullOrEmpty(destinationId))
+        {
+            return false;
+        }
+
+        // Sincroniza primero las opciones. OnDestinationDropdownChanged normalmente
+        // recibe un valor que el propio TMP_Dropdown ya aplicó; esta ruta programática
+        // debe reproducir ese paso antes de notificar el cambio.
+        RefreshUI();
+        int dropdownIndex = 1;
+        foreach (D1ScannedDestinationState destination in gs.dimension1ScannedDestinations)
+        {
+            if (!IsAvailableDestinationInSelectedSector(gs, destination))
+                continue;
+
+            if (destination.destinationId == destinationId &&
+                (string.IsNullOrEmpty(sectorId) || destination.sectorId == sectorId))
+            {
+                if (destinationDropdown != null)
+                {
+                    destinationDropdown.SetValueWithoutNotify(dropdownIndex);
+                    destinationDropdown.RefreshShownValue();
+                }
+                OnDestinationDropdownChanged(dropdownIndex);
+                if (modernExploreVisual == null)
+                    modernExploreVisual = GetComponentInChildren<Dimension1ExploreVisualUI>(true);
+                if (modernExploreVisual != null)
+                    modernExploreVisual.RefreshFromStateForUi();
+                return true;
+            }
+
+            dropdownIndex++;
+        }
+
+        return false;
+    }
+
+    public string GetSelectedAvailableDestinationIdForUi()
+    {
+        D1ScannedDestinationState destination = GetSelectedAvailableDestination(GameState.I);
+        return destination != null ? destination.destinationId : "";
     }
 
     private void RefreshGalaxyPanel(GameState gs)
@@ -5440,8 +6028,7 @@ public class Dimension1PanelUI : MonoBehaviour
             dimension1TreePanelOpen ||
             galaxyPanelOpen;
 
-        if (dimension1MainContentRoot != null)
-            dimension1MainContentRoot.SetActive(!secondaryPanelOpen);
+        ApplyLegacyMainContentVisibility(!secondaryPanelOpen);
 
         if (openGalaxyPanelButton != null)
         {
@@ -5455,6 +6042,8 @@ public class Dimension1PanelUI : MonoBehaviour
 
         if (galaxyPanel != null)
             galaxyPanel.SetActive(galaxyPanelOpen);
+
+        RefreshGalaxyDetailOcclusion();
 
         RefreshGalaxySectorButton(
             galaxySector1Button,
@@ -5486,7 +6075,9 @@ public class Dimension1PanelUI : MonoBehaviour
         {
             closeGalaxyPanelButton.gameObject.SetActive(galaxyPanelOpen);
             SetButtonText(closeGalaxyPanelButton,
-                closeGalaxyPanelButton.name == "CommandCenterBack"
+                galaxyOpenedForExploreSectorSelection
+                    ? "VOLVER A EXPLORAR"
+                    : closeGalaxyPanelButton.name == "CommandCenterBack"
                     ? "CENTRO DE MANDO"
                     : "Volver");
         }
@@ -5562,14 +6153,13 @@ public class Dimension1PanelUI : MonoBehaviour
 
         bool canEnter = CanEnterGalaxyPreviewSector(gs, out _);
         enterGalaxySectorButton.interactable = canEnter;
-
-        bool current =
-            gs != null &&
-            gs.dimension1SelectedSectorId == galaxyPreviewSectorId;
-
         SetButtonText(
             enterGalaxySectorButton,
-            current ? "Volver al sector" : "Entrar"
+            galaxyOpenedForExploreSectorSelection
+                ? "EXPLORAR ESTE SECTOR"
+                : galaxyPreviewSectorId == Dimension1System.Sector05GalacticCenter
+                ? "ENTRAR AL CENTRO"
+                : "ENTRAR AL SECTOR"
         );
     }
 
@@ -5589,6 +6179,14 @@ public class Dimension1PanelUI : MonoBehaviour
         if (!Dimension1System.IsDimension1SectorId(galaxyPreviewSectorId))
         {
             blockedReason = "Selecciona un sector válido.";
+            return false;
+        }
+
+        if (galaxyOpenedForExploreSectorSelection &&
+            galaxyPreviewSectorId == Dimension1System.Sector05GalacticCenter)
+        {
+            blockedReason =
+                "El Centro Galáctico no pertenece a los sectores de exploración.";
             return false;
         }
 
@@ -5779,25 +6377,7 @@ public class Dimension1PanelUI : MonoBehaviour
 
     private string GetGalaxyPlanetVisualName(string planetId)
     {
-        switch (planetId)
-        {
-            case Dimension1System.Planet01:
-                return "Planeta 1";
-            case Dimension1System.Planet02:
-                return "Planeta 2";
-            case Dimension1System.Planet03:
-                return "Planeta 3";
-            case Dimension1System.Planet04:
-                return "Planeta 4";
-            case Dimension1System.Planet05:
-                return "Planeta 5";
-            case Dimension1System.Planet06:
-                return "Planeta 6";
-            case Dimension1System.Planet07:
-                return "Planeta 7";
-            default:
-                return planetId ?? "";
-        }
+        return Dimension1System.GetDimension1PlanetVisualName(planetId);
     }
 
     public void OnClickOpenHangarPanel()
@@ -5940,15 +6520,12 @@ public class Dimension1PanelUI : MonoBehaviour
 
     private void RefreshRelicChamberPanel(GameState gs)
     {
-        if (dimension1MainContentRoot != null)
-        {
-            dimension1MainContentRoot.SetActive(
-                !hangarPanelOpen &&
-                !relicChamberPanelOpen &&
-                !dimension1TreePanelOpen &&
-                !galaxyPanelOpen
-            );
-        }
+        ApplyLegacyMainContentVisibility(
+            !hangarPanelOpen &&
+            !relicChamberPanelOpen &&
+            !dimension1TreePanelOpen &&
+            !galaxyPanelOpen
+        );
 
         if (openRelicChamberPanelButton != null)
         {
@@ -6160,7 +6737,7 @@ public class Dimension1PanelUI : MonoBehaviour
             "\nHito actual: " +
             (currentMilestone > 0 ? currentMilestone.ToString() : "ninguno") +
             "\n\nEfecto actual:\n" +
-            GetRelicEffectText(
+            GetRelicEffectTextForUi(
                 relicId,
                 Dimension1System.GetDimension1RelicPrimaryBonusForLevel(relicId, level),
                 Dimension1System.GetDimension1RelicSecondaryBonusForLevel(relicId, level)
@@ -6183,7 +6760,7 @@ public class Dimension1PanelUI : MonoBehaviour
                     "\n\nProximo hito (nivel " +
                     nextMilestone +
                     "):\n" +
-                    GetRelicEffectText(relicId, nextPrimaryBonus, nextSecondaryBonus);
+                    GetRelicEffectTextForUi(relicId, nextPrimaryBonus, nextSecondaryBonus);
             }
         }
         else
@@ -6393,7 +6970,7 @@ public class Dimension1PanelUI : MonoBehaviour
         SetButtonText(upgradeSelectedRelicButton, text);
     }
 
-    private string GetRelicEffectText(
+    public static string GetRelicEffectTextForUi(
         string relicId,
         double primaryBonus,
         double secondaryBonus
@@ -6489,7 +7066,8 @@ public class Dimension1PanelUI : MonoBehaviour
                 return
                     "- Probabilidad de obtener un destino adicional al escanear: +" +
                     FormatRelicPercentagePoints(primaryBonus) +
-                    "\n- Bonus secundario: pendiente de definicion.";
+                    "\n- Reduccion de la duracion del escaneo: -" +
+                    FormatRelicPercent(secondaryBonus);
 
             case Dimension1System.RelicMatrixArchive:
                 return
@@ -6506,45 +7084,53 @@ public class Dimension1PanelUI : MonoBehaviour
                     FormatRelicPercent(secondaryBonus);
 
             case Dimension1System.RelicIncompleteStarMap:
-                return BuildPendingRelicEffectText(
-                    "variedad de destinos"
-                );
+                return
+                    "- Peso de destinos repetidos: -" +
+                    FormatRelicPercent(primaryBonus) +
+                    "\n- Diversidad de destinos ofrecidos: +" +
+                    FormatRelicPercent(secondaryBonus);
 
             case Dimension1System.RelicTracesResonator:
-                return BuildPendingRelicEffectText("Trazas");
+                return
+                    "- Generacion de Trazas: +" +
+                    FormatRelicPercent(primaryBonus) +
+                    "\n- Costes de Trazas en mejoras del Cuarto 1 y Captador: -" +
+                    FormatRelicPercent(secondaryBonus);
 
             case Dimension1System.RelicCalibrationFragment:
-                return BuildPendingRelicEffectText(
-                    "Modulador de Fase"
-                );
+                return
+                    "- Velocidad de sincronizacion del Triangulo: +" +
+                    FormatRelicPercent(primaryBonus) +
+                    "\n- Avance por sintonizacion correcta de estudios: +" +
+                    FormatRelicPercentagePoints(secondaryBonus);
 
             case Dimension1System.RelicRareFrequencySensor:
-                return BuildPendingRelicEffectText(
-                    "puntos especiales"
-                );
+                return
+                    "- Aparicion de puntos especiales: +" +
+                    FormatRelicPercentagePoints(primaryBonus) +
+                    "\n- Promocion a una categoria superior: +" +
+                    FormatRelicPercentagePoints(secondaryBonus);
 
             case Dimension1System.RelicTriangularSeal:
-                return BuildPendingRelicEffectText("Triangulo");
+                return
+                    "- Potencia relativa del protocolo activo: +" +
+                    FormatRelicPercent(primaryBonus) +
+                    "\n- Generacion de Energia del Triangulo: +" +
+                    FormatRelicPercent(secondaryBonus);
 
             case Dimension1System.RelicMachineMemory:
-                return BuildPendingRelicEffectText(
-                    "Maquina / Cuarto 2"
-                );
+                return
+                    "- Eficiencia de efectos numericos de nodos: +" +
+                    FormatRelicPercent(primaryBonus) +
+                    "\n- Impacto de bonus derivados de reparacion: +" +
+                    FormatRelicPercent(secondaryBonus);
 
             default:
                 return "Efecto no disponible.";
         }
     }
 
-    private string BuildPendingRelicEffectText(string intendedImpact)
-    {
-        return
-            "- Impacto previsto: " +
-            intendedImpact +
-            ".\n- Valores numericos pendientes de definicion; no aplica bonus por ahora.";
-    }
-
-    private string FormatRelicPercent(double value)
+    private static string FormatRelicPercent(double value)
     {
         double percent = value * 100.0;
 
@@ -6553,7 +7139,7 @@ public class Dimension1PanelUI : MonoBehaviour
         ) + "%";
     }
 
-    private string FormatRelicPercentagePoints(double value)
+    private static string FormatRelicPercentagePoints(double value)
     {
         double points = value * 100.0;
 
@@ -6615,13 +7201,10 @@ public class Dimension1PanelUI : MonoBehaviour
             relicChamberPanelOpen ||
             galaxyPanelOpen;
 
-        if (dimension1MainContentRoot != null)
-        {
-            dimension1MainContentRoot.SetActive(
-                !anotherPanelOpen &&
-                !dimension1TreePanelOpen
-            );
-        }
+        ApplyLegacyMainContentVisibility(
+            !anotherPanelOpen &&
+            !dimension1TreePanelOpen
+        );
 
         if (openDimension1TreePanelButton != null)
         {
@@ -6874,15 +7457,12 @@ public class Dimension1PanelUI : MonoBehaviour
 
     private void RefreshHangarPanel(GameState gs)
     {
-        if (dimension1MainContentRoot != null)
-        {
-            dimension1MainContentRoot.SetActive(
-                !hangarPanelOpen &&
-                !relicChamberPanelOpen &&
-                !dimension1TreePanelOpen &&
-                !galaxyPanelOpen
-            );
-        }
+        ApplyLegacyMainContentVisibility(
+            !hangarPanelOpen &&
+            !relicChamberPanelOpen &&
+            !dimension1TreePanelOpen &&
+            !galaxyPanelOpen
+        );
 
         if (openHangarPanelButton != null)
         {

@@ -8,6 +8,32 @@ using UnityEngine;
 /// </summary>
 public static class D3FusionService
 {
+    public const double StableReactionThreshold = 0.30;
+    public const double StableFailureReductionRate = 0.20;
+    public const double StableMinorConversionRate = 0.25;
+
+    public static double ApplyStableReactionChamberReduction(
+        double rawFailureChance, bool stableChamberActive)
+    {
+        double clamped = Math.Max(0.0, Math.Min(1.0, rawFailureChance));
+        if (!stableChamberActive) return clamped;
+        double excess = Math.Max(0.0, clamped - StableReactionThreshold);
+        return Math.Max(0.0, Math.Min(
+            1.0, clamped - excess * StableFailureReductionRate));
+    }
+
+    public static double GetStableMinorConversionChance(
+        double rawFailureChance, double rolledFailureChance,
+        bool stableChamberActive)
+    {
+        if (!stableChamberActive || rolledFailureChance <= 0.0) return 0.0;
+        double clamped = Math.Max(0.0, Math.Min(1.0, rawFailureChance));
+        double excess = Math.Max(0.0, clamped - StableReactionThreshold);
+        double convertedProbability = excess * StableMinorConversionRate;
+        return Math.Max(0.0, Math.Min(
+            1.0, convertedProbability / rolledFailureChance));
+    }
+
     public static bool TryParseRecipeId(
         string recipeId, out ExperimentalFragmentType fragmentA,
         out ExperimentalFragmentType fragmentB,
@@ -125,17 +151,20 @@ public static class D3FusionService
             catalyst == ExperimentalCatalystType.Beta)
             failureChance -= 0.05;
         failureChance = Math.Max(0.0, Math.Min(1.0, failureChance));
+        beforeStable = failureChance;
         bool stable = MachineManager.I.GetTotalEffectValue(
             MachineNodeEffectType.StableReactionChamber) > 0.0;
-        if (stable && failureChance >= 0.30) failureChance *= 0.80;
+        failureChance = ApplyStableReactionChamberReduction(
+            failureChance, stable);
         bool hasCore = MachineManager.I.GetTotalEffectValue(
             MachineNodeEffectType.SynthesisCore) > 0.0;
         bool coreCharged = hasCore && gameState.synthesisCoreFusionCounter >= 10;
         if (coreCharged) failureChance *= 0.75;
         failureChance = Math.Max(0.03, Math.Min(1.0, failureChance));
         bool failed = UnityEngine.Random.value < failureChance;
-        if (failed && stable && beforeStable >= 0.30 &&
-            UnityEngine.Random.value < 0.25f)
+        if (failed && UnityEngine.Random.value <
+            GetStableMinorConversionChance(
+                beforeStable, failureChance, stable))
         {
             result = ExperimentalResultType.LecturaIncompleta;
             failed = false;
@@ -183,7 +212,9 @@ public static class D3FusionService
         entry.lastResult = (int)result;
         if ((int)result > entry.bestResult) entry.bestResult = (int)result;
         entry.timesExecuted += 1;
+        bool newlyDiscovered = result != ExperimentalResultType.None && !entry.discovered;
         if (result != ExperimentalResultType.None) entry.discovered = true;
+        if (newlyDiscovered) entry.unreadDiscovery = true;
     }
 
     private static double GetBaseFailureChance(

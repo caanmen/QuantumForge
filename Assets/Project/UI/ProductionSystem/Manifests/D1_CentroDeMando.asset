@@ -18,7 +18,7 @@ MonoBehaviour:
   approvalStage: 2
   baseResolution: {x: 1080, y: 1920}
   perceivedSimilarityTarget: 0.95
-  referenceRelativePath: SISTEMA_UI_QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_1/CENTRO_DE_MANDO/referencia_centro_de_mando.png
+  referenceRelativePath: SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_1/CENTRO_DE_MANDO/referencia_centro_de_mando.png
   approvedCaptureRelativePaths: []
   sharedTheme: {fileID: 11400000, guid: 3ed269241773c0d42accabf95ed69cef, type: 2}
   setupMethod: Dimension1CommandCenterSetup
@@ -26,5 +26,5 @@ MonoBehaviour:
   requiredCaptureStates:
   - Neutral
   - "Drawer/Navegaci\xF3n"
-  documentationFolder: SISTEMA_UI_QUANTUM_FORGE/10_PANTALLAS/DIMENSION_1/CENTRO_DE_MANDO
+  documentationFolder: SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/10_PANTALLAS/DIMENSION_1/CENTRO_DE_MANDO
   notes: "La captura final a\xFAn debe consolidarse en el sistema central."

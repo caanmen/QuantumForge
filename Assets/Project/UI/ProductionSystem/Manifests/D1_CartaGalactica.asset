@@ -18,15 +18,15 @@ MonoBehaviour:
   approvalStage: 4
   baseResolution: {x: 1080, y: 1920}
   perceivedSimilarityTarget: 0.95
-  referenceRelativePath: SISTEMA_UI_QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_1/CARTA_GALACTICA/referencia_carta_galactica.png
+  referenceRelativePath: SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_1/CARTA_GALACTICA/referencia_carta_galactica.png
   approvedCaptureRelativePaths:
-  - SISTEMA_UI_QUANTUM_FORGE/06_CAPTURAS_APROBADAS/DIMENSION_1/CARTA_GALACTICA/carta_galactica_neutral_1080x1920.png
-  - SISTEMA_UI_QUANTUM_FORGE/06_CAPTURAS_APROBADAS/DIMENSION_1/CARTA_GALACTICA/carta_galactica_orbitas_seleccionada_1080x1920.png
+  - SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/06_CAPTURAS_APROBADAS/DIMENSION_1/CARTA_GALACTICA/carta_galactica_neutral_1080x1920.png
+  - SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/06_CAPTURAS_APROBADAS/DIMENSION_1/CARTA_GALACTICA/carta_galactica_orbitas_seleccionada_1080x1920.png
   sharedTheme: {fileID: 11400000, guid: 3ed269241773c0d42accabf95ed69cef, type: 2}
   setupMethod: Dimension1GalaxyPremiumSetup.ConfigureReferenceV11
   validationMethod: Dimension1GalaxyReferenceCapture.RunInteractionRegression
   requiredCaptureStates:
   - Neutral
   - "\xD3rbitas Antiguas seleccionada"
-  documentationFolder: SISTEMA_UI_QUANTUM_FORGE/10_PANTALLAS/DIMENSION_1/CARTA_GALACTICA
+  documentationFolder: SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/10_PANTALLAS/DIMENSION_1/CARTA_GALACTICA
   notes: "Referencia V11 con rutas sim\xE9tricas e interacci\xF3n regresiva aprobada."

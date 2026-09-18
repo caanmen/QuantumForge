@@ -1,0 +1,47 @@
+QUANTUM FORGE — CONTINUIDAD DEL MONOLITO 2D V08
+Fecha: 2026-08-26
+
+REGLAS
+
+- Leer las reglas, instrucciones maestras, guías y archivos reales del proyecto.
+- El Monolito es alienígena y 2D; el laboratorio es humano y quedó abandonado tras un
+  accidente. No usar cubos ni representación 3D.
+- No usar mockups o láminas comparativas como assets de runtime.
+- Mantener sincronizados escena, reconstructor, controlador visual y captura QA.
+
+APROBADO
+
+- Centrado V17 de las cuatro luces de entrada.
+- Dirección estática V19 y fondo limpio V18.
+- Las cuatro caras V25: escala 0,78 y elevación proporcional del 11 % de la altura útil.
+  Sus bases quedan dentro del marco del suelo, sobre el travesaño y entre las guías.
+- Sector 1: 7 nodos. Sector 2: 11 nodos. Sector 3: 7 nodos. Sector 4: accesible, oscuro,
+  cero nodos y `???` únicamente dentro del arte.
+
+CANDIDATA VIGENTE V26 — MOVIMIENTO DEL MONOLITO
+
+- V08 permanece en la vista general y V18 en las cuatro vistas cercanas.
+- Al tocar una luz, el Monolito completo avanza hasta 1,25 veces su escala de reposo y se
+  desplaza hacia la cara elegida.
+- El laboratorio general avanza 1,07 veces y recorre sólo un 10 % del desplazamiento del
+  Monolito. Esa diferencia produce el paralaje.
+- El cruce de V08 a V18 comienza antes de que el Monolito domine la sala. El velo queda
+  limitado a 0,18.
+- La cara final aparece con la composición V25 aprobada y la captura de finalización espera
+  a que esté completamente opaca.
+
+VALIDACIÓN
+
+- Compilación: 0 errores y 0 advertencias.
+- Unity: VALIDATION PASS y CAPTURE PASS.
+- Evidencia: `Logs/machine_monolith_grounded_parallax_v26_capture.log`.
+- Se generaron 26 capturas en `Logs/VisualQA/MachineMonolith2D`, en 1080×1920 y
+  720×1280.
+- La prueba cubre paralaje, cruce de fondos, final opaco, caras aprobadas, estados,
+  navegación y restauración del guardado.
+
+PENDIENTE
+
+- Aprobación perceptual explícita del movimiento V26.
+- Sólo después registrar el 95 % y archivar las capturas elegidas en
+  `SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/06_CAPTURAS_APROBADAS`.

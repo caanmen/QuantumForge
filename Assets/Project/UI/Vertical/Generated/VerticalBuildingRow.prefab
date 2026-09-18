@@ -794,6 +794,7 @@ MonoBehaviour:
   modulatorIcon: {fileID: 21300000, guid: 13ca558e42a6d4848a7e66564d26efbb, type: 3}
   rowCanvasGroup: {fileID: 1157908153633071655}
   refreshInterval: 0.25
+  tickBarRefreshInterval: 0.06666667
 --- !u!1 &8046227357764983339
 GameObject:
   m_ObjectHideFlags: 0

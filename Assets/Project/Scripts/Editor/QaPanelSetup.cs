@@ -20,11 +20,19 @@ public static class QaPanelSetup
         Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
         GameObject hud = FindInScene(scene, "HUD");
         GameObject speedButtonObject = FindInScene(scene, "BtnDevMultiplier");
+        GameObject legacyResetObject = FindInScene(scene, "BtnDevReset");
+        GameObject verticalQaObject = FindInScene(scene, "Nav_QA");
+        Button verticalQaButton = verticalQaObject != null
+            ? verticalQaObject.GetComponent<Button>()
+            : null;
         if (hud == null || speedButtonObject == null)
         {
             Debug.LogError("[QA Block 3 Setup] Falta HUD o BtnDevMultiplier.");
             return;
         }
+
+        if (legacyResetObject != null)
+            Object.DestroyImmediate(legacyResetObject);
 
         GameObject safeRootObject = FindDirectChild(hud.transform, SafeRootName);
         if (safeRootObject == null)
@@ -51,6 +59,8 @@ public static class QaPanelSetup
             ToolsButtonName, safeRoot, "HERRAMIENTAS QA");
         ConfigureAccessRect(toolsButton.GetComponent<RectTransform>(),
             new Vector2(176f, -16f), new Vector2(220f, 52f));
+        if (verticalQaButton != null)
+            toolsButton.gameObject.SetActive(false);
 
         GameObject panelRoot = CreateUIObject(PanelRootName, safeRoot);
         Stretch(panelRoot.GetComponent<RectTransform>());
@@ -73,6 +83,7 @@ public static class QaPanelSetup
         var advanceButtons = new List<Button>();
         var saveButtons = new List<Button>();
         var loadButtons = new List<Button>();
+        var checkpointStatusTexts = new List<TMP_Text>();
 
         CreateTextItem(content, "QA_Title",
             "MODO QA - NO REPRESENTA EL BALANCE FINAL", 24f, 58f,
@@ -81,7 +92,7 @@ public static class QaPanelSetup
             "VELOCIDAD ACTUAL: QA x1", 21f, 48f,
             TextAlignmentOptions.Center, Color.white);
         TMP_Text operationStatus = CreateTextItem(content, "QA_OperationStatus",
-            "LISTO", 18f, 42f, TextAlignmentOptions.Center,
+            "LISTO", 18f, 64f, TextAlignmentOptions.Center,
             new Color(0.65f, 0.92f, 0.72f));
 
         CreateSection(content, "VELOCIDAD");
@@ -92,15 +103,32 @@ public static class QaPanelSetup
         speedButtons.Add(CreateRowButton(speedRow, "QA_Speed20", "x20"));
 
         CreateSection(content, "AVANZAR TIEMPO");
-        Transform advanceRow = CreateRow(content, "QA_AdvanceRow");
-        advanceButtons.Add(CreateRowButton(advanceRow, "QA_Advance5", "+5 MIN"));
-        advanceButtons.Add(CreateRowButton(advanceRow, "QA_Advance30", "+30 MIN"));
-        advanceButtons.Add(CreateRowButton(advanceRow, "QA_Advance60", "+1 H"));
+        Transform shortAdvanceRow = CreateRow(content, "QA_AdvanceShortRow");
+        advanceButtons.Add(CreateRowButton(shortAdvanceRow, "QA_Advance5", "+5 MIN"));
+        advanceButtons.Add(CreateRowButton(shortAdvanceRow, "QA_Advance30", "+30 MIN"));
+        advanceButtons.Add(CreateRowButton(shortAdvanceRow, "QA_Advance60", "+1 H"));
+        Transform longAdvanceRow = CreateRow(content, "QA_AdvanceLongRow");
+        advanceButtons.Add(CreateRowButton(longAdvanceRow, "QA_Advance480", "+8 H"));
+        advanceButtons.Add(CreateRowButton(longAdvanceRow, "QA_Advance720", "+12 H"));
+        advanceButtons.Add(CreateRowButton(longAdvanceRow, "QA_Advance1440", "+24 H"));
 
         CreateSection(content, "CHECKPOINTS");
-        CreateCheckpointRow(content, 'A', saveButtons, loadButtons);
-        CreateCheckpointRow(content, 'B', saveButtons, loadButtons);
-        CreateCheckpointRow(content, 'C', saveButtons, loadButtons);
+        CreateCheckpointRow(content, 'A', saveButtons, loadButtons,
+            checkpointStatusTexts);
+        CreateCheckpointRow(content, 'B', saveButtons, loadButtons,
+            checkpointStatusTexts);
+        CreateCheckpointRow(content, 'C', saveButtons, loadButtons,
+            checkpointStatusTexts);
+
+        CreateSection(content, "PARTIDA");
+        Button resetSaveButton = CreateButton(
+            "QA_ResetSave", content, "BORRAR PARTIDA Y REINICIAR");
+        resetSaveButton.targetGraphic.color =
+            new Color(0.46f, 0.11f, 0.13f, 1f);
+        LayoutElement resetLayout = resetSaveButton.gameObject
+            .AddComponent<LayoutElement>();
+        resetLayout.minHeight = 58f;
+        resetLayout.preferredHeight = 58f;
 
         Button closeButton = CreateButton("QA_Close", content, "CERRAR");
         LayoutElement closeLayout = closeButton.gameObject.AddComponent<LayoutElement>();
@@ -112,7 +140,9 @@ public static class QaPanelSetup
             out Button confirmationAccept, out Button confirmationCancel);
 
         panel.safeAreaRoot = safeRoot;
-        panel.toolsButton = toolsButton;
+        panel.toolsButton = verticalQaButton != null
+            ? verticalQaButton
+            : toolsButton;
         panel.panelRoot = panelRoot;
         panel.scrollRect = scroll;
         panel.speedStatusText = status;
@@ -121,6 +151,8 @@ public static class QaPanelSetup
         panel.advanceButtons = advanceButtons.ToArray();
         panel.checkpointSaveButtons = saveButtons.ToArray();
         panel.checkpointLoadButtons = loadButtons.ToArray();
+        panel.checkpointStatusTexts = checkpointStatusTexts.ToArray();
+        panel.resetSaveButton = resetSaveButton;
         panel.closeButton = closeButton;
         panel.confirmationRoot = confirmationRoot;
         panel.confirmationText = confirmationText;
@@ -140,7 +172,7 @@ public static class QaPanelSetup
         }
 
         Debug.Log("[QA Block 3 Setup] COMPLETE | Safe Area | acceso | scroll | " +
-            "velocidades | avance | checkpoints | confirmación");
+            "velocidades | avance | checkpoints | reinicio confirmado | confirmación");
     }
 
     public static void ConfigureTwiceAndValidateBatch()
@@ -222,14 +254,35 @@ public static class QaPanelSetup
 
     private static void CreateCheckpointRow(
         Transform parent, char slot, List<Button> saveButtons,
-        List<Button> loadButtons)
+        List<Button> loadButtons, List<TMP_Text> statusTexts)
     {
         Transform row = CreateRow(parent, "QA_Checkpoint" + slot);
-        TMP_Text label = CreateText("Slot " + slot, row, "SLOT " + slot, 19f,
-            TextAlignmentOptions.Center, Color.white);
+        LayoutElement rowLayout = row.GetComponent<LayoutElement>();
+        rowLayout.minHeight = 68f;
+        rowLayout.preferredHeight = 68f;
+        GameObject slotInfo = CreateUIObject("QA_SlotInfo" + slot, row);
+        VerticalLayoutGroup slotLayout =
+            slotInfo.AddComponent<VerticalLayoutGroup>();
+        slotLayout.spacing = 1f;
+        slotLayout.childAlignment = TextAnchor.MiddleCenter;
+        slotLayout.childControlWidth = true;
+        slotLayout.childControlHeight = true;
+        slotLayout.childForceExpandWidth = true;
+        slotLayout.childForceExpandHeight = false;
+        LayoutElement slotInfoLayout = slotInfo.AddComponent<LayoutElement>();
+        slotInfoLayout.minWidth = 150f;
+        slotInfoLayout.flexibleWidth = 0.7f;
+
+        TMP_Text label = CreateText("Slot " + slot, slotInfo.transform,
+            "SLOT " + slot, 18f, TextAlignmentOptions.Center, Color.white);
         LayoutElement labelLayout = label.gameObject.AddComponent<LayoutElement>();
-        labelLayout.minWidth = 100f;
-        labelLayout.flexibleWidth = 0.5f;
+        labelLayout.preferredHeight = 24f;
+        TMP_Text status = CreateText("Status " + slot, slotInfo.transform,
+            "VACÍO", 16f, TextAlignmentOptions.Center,
+            new Color(0.60f, 0.68f, 0.76f));
+        LayoutElement statusLayout = status.gameObject.AddComponent<LayoutElement>();
+        statusLayout.preferredHeight = 40f;
+        statusTexts.Add(status);
         saveButtons.Add(CreateRowButton(row, "QA_Save" + slot, "GUARDAR"));
         loadButtons.Add(CreateRowButton(row, "QA_Load" + slot, "CARGAR"));
     }

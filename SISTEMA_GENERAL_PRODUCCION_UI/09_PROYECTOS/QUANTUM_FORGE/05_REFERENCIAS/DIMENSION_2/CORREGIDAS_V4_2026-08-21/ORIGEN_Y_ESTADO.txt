@@ -1,0 +1,69 @@
+ORIGEN Y ESTADO — REFERENCIAS CORREGIDAS V4 DE DIMENSIÓN 2
+
+Estado: COLECCIÓN COMPLETA, APROBADA COMO AUTORIDAD VISUAL E IMPLEMENTADA EN UNITY.
+Fecha: 21 de agosto de 2026.
+
+Fuente principal:
+05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V3_2026-08-19
+
+Estas imágenes son conceptos estáticos corregidos fuera de Unity. No son capturas
+reales de Unity ni assets finales de interfaz.
+
+Alcance:
+- Veinte vistas conservadas dentro de cuatro pantallas base.
+- Resolución maestra verificada: 941 x 1672 píxeles en los veinte PNG.
+- La carpeta contiene físicamente veintitrés PNG: las veinte vistas vigentes más
+  las versiones V4 sustituidas de las vistas 01, 19 y 20, conservadas como historial.
+- La colección vigente utiliza V4 para las vistas 02 a 18 y V5 para las vistas
+  01, 19 y 20. Los archivos V4 sustituidos no son autoridad de construcción.
+- La vista 05 Noviciado se reutilizó sin regenerarla porque no requería corrección.
+- Las otras diecinueve vistas se regeneraron de forma no destructiva para corregir
+  datos, estados, navegación, nomenclatura o iconos detectados en la auditoría.
+
+Correcciones principales:
+- Mapa sin rutas ni nodos, con los tres territorios visibles y Ruinas Sepultadas
+  bloqueada hasta alcanzar Dominio total de 30% o menos.
+- Confianza expresada sobre 500; 300 se conserva sólo como requisito.
+- Fórmula y producción del Altar de Cera corregidas.
+- Peregrinaciones muestran recompensas reales y usan Pan ritual.
+- Umbral y Pacto quedaron separados en un estado establecido coherente.
+- Nombres de Pan ritual, Tela sagrada y Piedra tallada normalizados.
+- Familia de iconos de Regiones unificada en Civilización 2.
+- Alerta ya no afirma que revisar marcas desbloquea Contención.
+- Contención usa un historial alcanzable de intentos y fallos.
+- Arqueología usa Archivo IV, patrón profundo 2/12 y Conocimiento del Ente 3/6.
+- Archivo usa un estado alcanzable y elimina regresos redundantes.
+- Iconos de Fragmentos Base y Conocimiento del Ente corregidos en vistas 19 y 20.
+
+Preparación para animaciones:
+- Se conserva únicamente el estado estático de reposo.
+- No se hornearon estelas, parpadeos, desplazamientos ni movimiento permanente.
+- La separación en fondos, marcos, iconos, textos y efectos se realizará después de
+  la aprobación, durante la implementación en Unity.
+
+Decisiones confirmadas por el usuario el 21 de agosto de 2026:
+- La vista 17 Analizar restos se conserva como subvista de Arqueología/Excavar; no
+  será una ruta base ni una pestaña principal independiente.
+- La composición de la vista 18 Archivo IV se acepta como propuesta visual.
+- 19_Investigacion_Del_Ente_Corregida_V5.png sustituye a la V4: separa el último
+  resultado del objetivo actual en dos filas con propietarios distintos.
+- 20_Pacto_Opcional_Con_El_Ente_Corregido_V5.png sustituye a la V4: muestra sólo
+  las cuatro líneas con efecto funcional actual. Crónica del Primer Umbral queda
+  oculta hasta que exista una decisión e implementación real de su efecto.
+- Estos acuerdos aprueban las decisiones de composición indicadas, no convierten
+  los conceptos en capturas reales ni validan todavía su implementación en Unity.
+
+Decisión confirmada por el usuario el 24 de agosto de 2026:
+- 01_Mapa_De_Los_Pactos_Corregido_V5.png sustituye a la V4 como referencia vigente.
+- El Mapa de los Pactos muestra siempre sus tres territorios. Ruinas Sepultadas
+  permanece visible en estado bloqueado hasta que el Dominio total de Civilización 2
+  sea 30% o menos.
+- No se añadieron líneas, nodos de conexión ni Fragmentos al estado inicial.
+- La implementación actual de Unity todavía oculta Civilización 3 antes de su
+  desbloqueo; deberá sincronizarse con esta decisión al construir la pantalla real.
+
+APROBACIÓN Y CIERRE
+- La colección fue revisada durante la implementación de sus veinte vistas.
+- El usuario aprobó el cierre completo de Dimensión 2 el 4 de septiembre de 2026.
+- Las capturas reales aprobadas se conservan en
+  06_CAPTURAS_APROBADAS/DIMENSION_2.

@@ -1,0 +1,11 @@
+ORIGEN Y ESTADO — RUTINAS Y PERFILES ONLINE
+============================================
+
+Origen canónico:
+ENTREGABLES/Dimension3_11_Pantallas_Finales_1080x1920_ORDENADAS_01-11/10_Rutinas_Perfiles.png
+
+SHA256:
+9D941745DC9791FD962BEB80B0B10B07253FDE3FF9C097291E6108C829BA176F
+
+Estado:
+Referencia final permanente para implementación y comparación visual.

@@ -52,6 +52,10 @@ public static class VerticalUpgradesVisualPolishValidation
             "La jerarquia de pulido de Mejoras esta incompleta.", failures);
         Check(screen != null && keycard != null && screen.keycardRow == keycard,
             "La Keycard no esta conectada a la pantalla vertical activa.", failures);
+        Check(screen != null && screen.emptyCompletedStateRoot != null &&
+                screen.emptyCompletedStateLabel != null &&
+                screen.emptyCompletedStateRoot.transform.parent?.name == "UpgradesScroll",
+            "El estado intencional de completadas ocultas no esta conectado.", failures);
         Check(CountNamed(scene, "VerticalUpgradesHeader") == 1 &&
             FindAll<VerticalUpgradesPolishUI>(scene).Length == 1,
             "La cabecera o el controlador visual de Mejoras esta duplicado.", failures);
@@ -104,6 +108,12 @@ public static class VerticalUpgradesVisualPolishValidation
         if (shell != null)
         {
             RectTransform rect = (RectTransform)shell.transform;
+            Image shellBackground = shell.GetComponent<Image>();
+            Check(shellBackground != null && shellBackground.sprite != null &&
+                shellBackground.color.r >= .70f &&
+                shellBackground.color.a >= .78f,
+                "El fondo de fabrica de Mejoras vuelve a quedar apenas visible.",
+                failures);
             Check(Near(rect.offsetMin.x, 28f, 0.1f) &&
                 Near(rect.offsetMax.x, -28f, 0.1f) &&
                 Near(rect.offsetMax.y, -138f, 0.1f),
@@ -118,6 +128,46 @@ public static class VerticalUpgradesVisualPolishValidation
                 console.Find("ResearchReadout") != null &&
                 console.Find("ConsoleTitlePlate") != null,
                 "La consola de estudios no usa el banco de laboratorio aprobado.", failures);
+            if (console != null)
+            {
+                RectTransform hint = FindDescendant(console, "Hint") as RectTransform;
+                RectTransform tune = FindDescendant(console, "TuneButton") as RectTransform;
+                RectTransform conclusion = FindDescendant(
+                    console, "ConclusionButton") as RectTransform;
+                if (hint != null && tune != null && conclusion != null)
+                {
+                    Bounds hintBounds =
+                        RectTransformUtility.CalculateRelativeRectTransformBounds(
+                            console, hint);
+                    Bounds tuneBounds =
+                        RectTransformUtility.CalculateRelativeRectTransformBounds(
+                            console, tune);
+                    Bounds conclusionBounds =
+                        RectTransformUtility.CalculateRelativeRectTransformBounds(
+                            console, conclusion);
+                    float nearestButtonTop = Mathf.Max(
+                        tuneBounds.max.y, conclusionBounds.max.y);
+                    Check(hintBounds.min.y >= nearestButtonTop + 8f,
+                        "El texto de sintonizacion invade el boton de accion.",
+                        failures);
+                }
+                else
+                {
+                    Check(false,
+                        "Faltan el texto o los botones de sintonizacion.", failures);
+                }
+            }
+            RectTransform socket = FindDescendant(shell.transform,
+                "ResearchSocket") as RectTransform;
+            RectTransform coreGlow = FindDescendant(shell.transform,
+                "ResearchCoreGlow") as RectTransform;
+            RectTransform core = FindDescendant(shell.transform,
+                "ResearchCore") as RectTransform;
+            Check(socket != null && coreGlow != null && core != null &&
+                    Near(socket.anchoredPosition.y, 0f, .1f) &&
+                    Near(coreGlow.anchoredPosition.y, 0f, .1f) &&
+                    Near(core.anchoredPosition.y, 0f, .1f),
+                "El nucleo de investigacion no esta centrado en su receptaculo.", failures);
             ValidateSections(shell.transform, failures);
             ValidateRows(shell.transform, failures);
             ValidateKeycard(shell.transform, keycard, failures);

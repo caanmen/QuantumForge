@@ -36,10 +36,19 @@ public sealed class Dimension1AncientOrbitsUI : MonoBehaviour
     [SerializeField] private PlanetCardView planet4;
     [SerializeField] private PlanetCardView planet5;
     [SerializeField] private Button[] destinationButtons;
+    [SerializeField] private TMP_Text[] destinationStatuses;
     [SerializeField] private Button[] navigationButtons;
 
     private bool visible;
     private float refreshTimer;
+
+    private static readonly string[] DestinationIds =
+    {
+        Dimension1System.DestinationAbandonedShip,
+        Dimension1System.DestinationOrbitalRuin,
+        Dimension1System.DestinationLaboratory,
+        Dimension1System.DestinationAbandonedStation
+    };
 
     public bool IsOpen => visible;
 
@@ -56,6 +65,7 @@ public sealed class Dimension1AncientOrbitsUI : MonoBehaviour
         PlanetCardView configuredPlanet4,
         PlanetCardView configuredPlanet5,
         Button[] configuredDestinationButtons,
+        TMP_Text[] configuredDestinationStatuses,
         Button[] configuredNavigationButtons)
     {
         panel = configuredPanel;
@@ -70,6 +80,7 @@ public sealed class Dimension1AncientOrbitsUI : MonoBehaviour
         planet4 = configuredPlanet4;
         planet5 = configuredPlanet5;
         destinationButtons = configuredDestinationButtons;
+        destinationStatuses = configuredDestinationStatuses;
         navigationButtons = configuredNavigationButtons;
     }
 
@@ -153,8 +164,16 @@ public sealed class Dimension1AncientOrbitsUI : MonoBehaviour
 
     private void OpenDestination(int index)
     {
+        if (index < 0 || index >= DestinationIds.Length || panel == null)
+            return;
+
+        GameState state = GameState.I;
+        if (FindAvailableDestinationDropdownIndex(state, DestinationIds[index]) <= 0)
+            return;
+
         OpenExplore();
-        if (panel != null) panel.OnDestinationDropdownChanged(index);
+        panel.TrySelectAvailableDestinationForUi(
+            DestinationIds[index], Dimension1System.Sector03AncientOrbits);
     }
 
     private void ActOnPlanet(PlanetCardView view)
@@ -179,21 +198,69 @@ public sealed class Dimension1AncientOrbitsUI : MonoBehaviour
         if (state == null) return;
         state.EnsureDimension1State();
 
-        string[] metals =
-        {
-            Dimension1System.MetalIron,
-            Dimension1System.MetalAluminum,
-            Dimension1System.MetalNickel
-        };
-        for (int i = 0; i < metals.Length; i++)
-        {
-            Set(metalAmounts, i, FormatAmount(state.GetD1MetalAmount(metals[i])));
-            Set(metalRates, i, "+" + FormatAmount(
-                Dimension1System.GetMetalProductionPerSecond(state, metals[i])) + "/s");
-        }
+        Dimension1HeaderMetalsUI.Refresh(transform, state, Dimension1System.Sector03AncientOrbits);
 
         RefreshPlanet(state, planet4);
         RefreshPlanet(state, planet5);
+
+        if (destinationButtons != null)
+        {
+            int count = Mathf.Min(destinationButtons.Length, DestinationIds.Length);
+            for (int i = 0; i < count; i++)
+            {
+                if (destinationButtons[i] != null)
+                {
+                    bool available = FindAvailableDestinationDropdownIndex(state, DestinationIds[i]) > 0;
+                    destinationButtons[i].interactable = available;
+                    SetDestinationStatus(i, available
+                        ? "LISTO PARA EXPLORAR"
+                        : DestinationUnavailableStatus(state, DestinationIds[i]));
+                }
+            }
+        }
+    }
+
+    private void SetDestinationStatus(int index, string value)
+    {
+        if (destinationStatuses != null && index >= 0 && index < destinationStatuses.Length &&
+            destinationStatuses[index] != null)
+            destinationStatuses[index].text = value;
+    }
+
+    private static string DestinationUnavailableStatus(GameState state, string destinationId)
+    {
+        if (state != null && state.dimension1ScanActive &&
+            state.dimension1ActiveScanSectorId == Dimension1System.Sector03AncientOrbits)
+            return "BARRIDO EN CURSO";
+        if (state?.dimension1ScannedDestinations != null)
+            foreach (D1ScannedDestinationState destination in state.dimension1ScannedDestinations)
+                if (destination != null && destination.destinationId == destinationId &&
+                    destination.sectorId == Dimension1System.Sector03AncientOrbits)
+                    return "NO DISPONIBLE";
+        return "NO ESCANEADO";
+    }
+
+    private static int FindAvailableDestinationDropdownIndex(GameState state, string destinationId)
+    {
+        if (state == null || state.dimension1ScannedDestinations == null)
+            return -1;
+
+        int dropdownIndex = 1;
+        foreach (D1ScannedDestinationState destination in state.dimension1ScannedDestinations)
+        {
+            if (destination == null || !destination.available)
+                continue;
+
+            if (destination.destinationId == destinationId &&
+                destination.sectorId == Dimension1System.Sector03AncientOrbits)
+            {
+                return dropdownIndex;
+            }
+
+            dropdownIndex++;
+        }
+
+        return -1;
     }
 
     private static void RefreshPlanet(GameState state, PlanetCardView view)
@@ -248,6 +315,7 @@ public sealed class Dimension1AncientOrbitsUI : MonoBehaviour
         canvasGroup.alpha = value ? 1f : 0f;
         canvasGroup.interactable = value;
         canvasGroup.blocksRaycasts = value;
+        panel?.RefreshGalaxyDetailOcclusion();
     }
 
     private static D1PlanetState FindPlanet(GameState state, string planetId)

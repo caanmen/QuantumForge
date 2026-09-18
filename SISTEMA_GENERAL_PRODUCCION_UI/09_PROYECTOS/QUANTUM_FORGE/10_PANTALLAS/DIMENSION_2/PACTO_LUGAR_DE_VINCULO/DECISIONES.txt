@@ -1,0 +1,64 @@
+DECISIONES — PACTO / LUGAR DE VÍNCULO
+
+31 de agosto de 2026
+
+1. La referencia V4 permanente es la autoridad visual; el marco del visor y los
+   tiradores blancos del adjunto temporal no forman parte de la pantalla.
+2. La vista conserva UMBRAL antes de preparar el vínculo y cambia a PACTO únicamente
+   cuando D2BondSystem confirma que el pacto mayor está establecido.
+3. No se modificaron mecánicas ni balance: las cinco líneas, tres niveles, costes,
+   porcentajes y generación de progreso pertenecen al sistema canónico existente.
+4. La selección se resuelve por los IDs de D2BondSystem, no por la posición visual.
+5. La placa limpia conserva marcos, diagrama e iconos de la V4; todos los títulos,
+   valores, niveles, costes, estados y etiquetas variables se renderizan con TMP.
+6. La edición integrada de imagen retiró solamente glifos y reconstruyó el material
+   subyacente. PrepareD2BondAssets.ps1 compone después la placa de forma determinista.
+7. El dropdown permanece como mapa de datos no visible y no intercepta raycasts; las
+   cinco áreas táctiles visibles son botones UGUI reales.
+8. Los controles −/+, MEJORAR LÍNEA, regreso y navegación se prueban mediante
+   PointerEvent real. El QA restaura Camino Peregrino, nivel 1 y valores V4.
+9. El QA oficial de esta vista es Dimension2BondCapture para evitar que temporizadores
+   de pantallas hermanas alteren la evidencia del Lugar de Vínculo.
+10. La captura queda como candidata hasta la aprobación visual explícita del usuario.
+11. Los nombres y niveles de las cinco líneas, el estado central, el botón principal y
+    las columnas de Acólitos usan cajas interiores con márgenes explícitos y tamaño fijo;
+    no pueden crecer hasta tocar los biseles mediante autosizing u overflow.
+12. Las cinco bandas NIVEL 1 / 3 se elevan dentro de su placa y usan contorno y sombra
+    mínimos. Los nombres largos y PACTO ESTABLECIDO conservan un centro óptico común sin
+    competir con el bisel inferior al reducir la pantalla a 720×1280.
+13. La escala tipográfica de las líneas se define por longitud: Camino Peregrino y
+    Oficio Sagrado conservan el cuerpo principal; Orden de Acólitos, Eco del Santuario y
+    Liturgia de Trazas usan un cuerpo menor para mantener aire lateral uniforme.
+14. La auditoría paralela visual, técnica y de QA invalidó el porcentaje global como
+    único gate: la revisión final también exige ausencia de truncamiento, solapamiento y
+    salida de placa en cada bloque de texto a 1080×1920 y 720×1280.
+15. El runtime conserva saltos de línea explícitos para los cinco nombres y los efectos;
+    no puede reemplazar la composición del constructor por cadenas corridas.
+16. El chevrón verde y los separadores del detalle son arte fijo canónico extraído de la
+    V4. PrepareD2BondAssets.ps1 los repone sin hornear títulos, cifras ni costes dinámicos.
+17. Cada placa radial reserva dos cajas sin solapamiento: una para el nombre y otra para
+    NIVEL. Ambas usan tamaño fijo y margen interior; ningún glifo puede tocar el divisor,
+    el bisel lateral o el borde inferior en 1080×1920 ni en 720×1280.
+18. Las cinco placas radiales definen un único centro X por tarjeta. Nombre y nivel se
+    calculan desde ese centro para impedir que vuelvan a divergir; Oficio, Eco y Liturgia
+    se ajustaron contra el marco visible, no contra el centro del icono superior.
+19. Las cuatro filas de SIGUIENTE comparten ancho, altura y columna X, y su coordenada Y
+    se alinea con el centro óptico del icono canónico de cada coste.
+20. Las siete etiquetas inferiores usan Cinzel a 13 fijo, sin autosizing, con centros
+    independientes de las áreas táctiles. PEREGRINACIONES debe conservarse completa y con
+    separación visible respecto a NOVICIADO en 1080×1920 y 720×1280.
+21. Una auditoría visual, técnica y de QA se utilizó en modo lectura. La integración y la
+    evidencia final se verificaron mediante reconstrucción v5, captura real en ambas
+    resoluciones y comparación percibida AA de 95.81 % / 96.24 %.
+22. La placa central limpia se amplía de forma determinista en
+    PrepareD2BondAssets.ps1. El texto conserva cuerpo 24 y gana aire interior sin cubrir
+    el emblema central ni las conexiones radiales.
+23. Orden de Acólitos se elevó dentro de su placa y comparte un único centro X con su
+    banda de nivel. El ajuste no modifica el área táctil ni el ID de la línea.
+24. El valor de Acólitos asignados se elevó seis píxeles para compartir el eje horizontal
+    óptico del icono de persona.
+25. La navegación recupera cuerpo 19 fijo. PEREGRINACIONES se presenta como
+    PEREGRI- / NACIONES en dos líneas con división ortográfica visible, mismo cuerpo y
+    centro de celda, evitando reducir toda la barra en móvil.
+26. La evidencia v6 conserva STRUCTURE_PASS, STATE_PASS, ACTIONS_PASS y ROUTE_PASS, con
+    comparación percibida AA de 95.79 % en 1080 y 96.22 % en 720.

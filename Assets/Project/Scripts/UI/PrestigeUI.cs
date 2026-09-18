@@ -73,8 +73,8 @@ public class PrestigeUI : MonoBehaviour
         if (autoBuy1Text != null)
         {
             autoBuy1Text.text = canPrestige1
-                ? "La convergencia está lista."
-                : "Repara la Máquina al 80% y activa el Canal de Convergencia.";
+                ? "La Máquina está lista."
+                : "Repara la Máquina al 80%.";
         }
 
         if (autoBuyToggleButton != null)
@@ -374,7 +374,7 @@ public class PrestigeUI : MonoBehaviour
         text.fontSize = fontSize;
         text.fontStyle = style;
         text.alignment = TextAlignmentOptions.Center;
-        text.enableWordWrapping = true;
+        text.textWrappingMode = TextWrappingModes.Normal;
         text.color = Color.white;
         return text;
     }

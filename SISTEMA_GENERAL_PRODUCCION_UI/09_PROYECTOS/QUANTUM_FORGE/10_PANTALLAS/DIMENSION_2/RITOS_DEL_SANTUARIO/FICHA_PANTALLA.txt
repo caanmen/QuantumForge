@@ -1,0 +1,35 @@
+FICHA DE PANTALLA — DIMENSIÓN 2 / RITOS DEL SANTUARIO
+
+Estado: APROBADA VISUALMENTE POR EL USUARIO; CAPTURAS ARCHIVADAS.
+Fecha: 31 de agosto de 2026.
+Raíz Unity: D2_Civ1_RitesSection.
+Constructor canónico: Dimension2Block1UISetup.BuildCivilization1Placeholder.
+Controlador único: D2RitesPanelUI.
+Reglas y datos: D2RitesSystem y D2Civilization1PresentationRules.
+
+Referencia:
+05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/06_Ritos_Del_Santuario_Corregidos_V4.png
+SHA-256: C212C68A1EE8C350EB79BB6679EFC83D072738AAB09937800EE04C7B9442BC78.
+
+Composición:
+- Cabecera con Atrás y cuatro recursos dinámicos.
+- Indicador Ritos activos 1/2 y cinco tarjetas seleccionables.
+- Detalle real del rito seleccionado con descripción, efecto actual y límite.
+- Asignación independiente de Seguidores y Acólitos mediante controles menos/más.
+- Liberar todo y requisito persistente para desbloquear el tercer espacio.
+- Navegación inferior de siete rutas con Ritos seleccionado.
+
+Escenario QA V4:
+- 3,845 Seguidores; 1,280 Acólitos; Cera y Pan ritual 3,450.
+- Rito de Recibimiento seleccionado; 4 Seguidores y 1 Acólito asignados.
+- Efecto actual +11 % y límite +50 %.
+- Un rito activo de dos espacios disponibles.
+- Tercer espacio bloqueado por 250 Confianza, Noviciado 3, 5 Acólitos y 150/150 Ofrendas.
+
+Evidencia:
+- STRUCTURE_PASS, STATE_PASS, ACTIONS_PASS y ROUTE_PASS.
+- Selección de los cinco ritos, asignación +/−, liberación y restauración con datos reales.
+- Capturas reales 1080x1920 y 720x1280.
+- Similitud percibida AA oficial: 96.36 % en 1080 y 96.69 % en 720.
+- Regresión P4/P3/P2/P1 exitosa; Ritos validado como D2-5.
+- Capturas archivadas en 06_CAPTURAS_APROBADAS/DIMENSION_2/RITOS_DEL_SANTUARIO.

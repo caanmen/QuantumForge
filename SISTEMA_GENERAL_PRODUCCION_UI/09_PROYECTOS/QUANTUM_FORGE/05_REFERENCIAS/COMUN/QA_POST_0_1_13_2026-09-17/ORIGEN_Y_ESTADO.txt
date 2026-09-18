@@ -1,0 +1,26 @@
+ORIGEN Y ESTADO — QA POSTERIOR A APK 0.1.13
+
+Fecha: 17 de septiembre de 2026
+Clasificacion: capturas reales y video real de Unity en telefono.
+Autoridad: observaciones actuales y explicitas del usuario.
+
+ALCANCE
+
+- 01: regresion de composicion del Triangulo, solapamiento entre circuitos y compras,
+  y franjas superior e inferior donde reaparece la cuadricula general.
+- 02 y 03: estado de Mejoras antes y despues de ocultar las completadas.
+- 04: centro perceptual incorrecto del icono dentro del receptaculo de investigacion.
+- 05: transicion real desde la vista general del Monolito a una cara.
+
+DECISIONES DEL USUARIO
+
+- Cubrir la altura disponible con el laboratorio sin estirar ni danar el Triangulo.
+- Mantener la llegada actual a la cara; corregir solamente el acercamiento inicial para
+  que sea frontal, corto y elegante, sin desplazamiento lateral aparente.
+- Retirar temporalmente la animacion cinematica de apertura del Monolito de Prestigio;
+  el usuario entregara posteriormente una animacion creada fuera de Unity.
+- Centrar el icono visible del receptaculo dentro de su marco.
+
+ESTADO
+
+Referencia vigente para este bloque. No es arte final ni captura aprobada del resultado.

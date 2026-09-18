@@ -1,0 +1,35 @@
+FICHA DE PANTALLA — DIMENSIÓN 2 / NOVICIADO
+
+Estado: APROBADA VISUALMENTE POR EL USUARIO; CAPTURAS ARCHIVADAS.
+Fecha: 30 de agosto de 2026.
+Raíz Unity: D2_Civ1_NovitiateSection.
+Constructor canónico: Dimension2Block1UISetup.BuildCivilization1Placeholder.
+Controlador único: D2NovitiatePanelUI.
+Reglas y datos: D2NovitiateSystem.
+
+Referencia:
+05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/05_Noviciado_Corregido_V4.png
+SHA-256: 4AF919491443E729A9122BF236D8C6F3FA75017FAD84D93EA9AD478FE98647B5.
+
+Composición:
+- Cabecera con Atrás y cinco recursos dinámicos.
+- Nivel, medallón del Noviciado y panel de Tanda actual.
+- Apoyo adicional real 0/4 con controles menos/más.
+- Estado neutral o activo, CTA Formar tanda y Cancelar formación persistente.
+- Mejora al siguiente nivel con costes reales.
+- Navegación inferior de siete rutas con Noviciado seleccionado.
+
+Escenario QA V4:
+- Nivel II; 3,845 Seguidores; 1,280 Acólitos disponibles/presentes.
+- Cera y Pan ritual 3,450; apoyo 0/4; ninguna tanda activa.
+- Tanda de 2 Acólitos en 06:00 por 10 Seguidores y 22/22 Ofrendas.
+- Mejora a Nivel III por 60 Seguidores y 75/75 Ofrendas.
+- Sin Ritos, Pactos ni vínculos que alteren duración, producción o costes.
+
+Evidencia:
+- STRUCTURE_PASS, STATE_PASS, ACTIONS_PASS y ROUTE_PASS.
+- Apoyo +/−, formar y cancelar con consumos/devoluciones reales.
+- Capturas reales 1080x1920 y 720x1280.
+- Similitud percibida AA: 96.16 % en 1080 y 96.48 % en 720.
+- Regresión P4/P3/P2/P1 exitosa.
+- Capturas archivadas en 06_CAPTURAS_APROBADAS/DIMENSION_2/NOVICIADO.

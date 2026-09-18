@@ -1,0 +1,15 @@
+DECISIONES ESPECÍFICAS: BORDE EXTERIOR
+=====================================
+
+- Es una subpantalla del Sector 1; no añade otra opción a la navegación inferior.
+- Conserva el armazón, márgenes, centrado y navegación de la familia Órbitas Antiguas.
+- Planetas, metales, costes y destinos proceden del sistema real; no se fijan valores de
+  una imagen de concepto.
+- Los planetas 1 y 2 reutilizan sus sprites existentes de Carta Galáctica.
+- Los tres destinos sin arte previo permanecen como candidatos detallados V2.
+- Cada destino se enlaza por ID oficial y queda deshabilitado si aún no fue escaneado.
+- No se añade animación antes de aprobar la composición estática.
+- La pantalla no se considera aprobada al 95 % hasta la revisión expresa del usuario.
+- Desde 2026-08-22 la pantalla planetaria no repite DESTINOS DEL SECTOR. Los destinos y
+  su escaneo pertenecen exclusivamente a EXPLORAR; esta pantalla conserva planetas,
+  extractores y regreso a Carta Galáctica.

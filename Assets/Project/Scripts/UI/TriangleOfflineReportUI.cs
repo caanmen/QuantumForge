@@ -4,9 +4,12 @@ using UnityEngine.UI;
 
 public sealed class TriangleOfflineReportUI : MonoBehaviour
 {
+    private const float PollInterval = 0.25f;
+
     private static bool displayedThisSession;
     private GameObject panel;
     private TextMeshProUGUI reportText;
+    private float nextPollTime;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void CreateRuntimeReport()
@@ -59,6 +62,8 @@ public sealed class TriangleOfflineReportUI : MonoBehaviour
     private void Update()
     {
         if (displayedThisSession || panel == null || GameState.I == null) return;
+        if (Time.unscaledTime < nextPollTime) return;
+        nextPollTime = Time.unscaledTime + PollInterval;
         if (PresentationReturnReportService.UnifiedReportPreparedThisLoad)
         {
             displayedThisSession = true;

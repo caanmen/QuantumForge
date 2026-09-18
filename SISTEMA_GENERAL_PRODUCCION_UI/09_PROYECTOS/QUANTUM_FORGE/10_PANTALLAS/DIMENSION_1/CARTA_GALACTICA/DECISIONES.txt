@@ -1,0 +1,55 @@
+DECISIONES ESPECÍFICAS: CARTA GALÁCTICA
+======================================
+
+AUTORIDAD V12 — 21 DE AGOSTO DE 2026
+
+- Esta sección reemplaza las restricciones visuales V11 sobre cuatro hexágonos, cuatro
+  conectores y ausencia de órbitas. La nueva composición fue elegida expresamente por
+  el usuario después de comparar propuestas.
+- Inicio neutral: ningún cuerpo se selecciona automáticamente. El sector guardado sí
+  determina cabecera, metales y la marca ACTUAL sin crear una selección de preview.
+- El mapa se presenta como un sistema visto desde arriba y ligeramente inclinado.
+- Existen siete trayectorias, una por cada cuerpo de Dimensión 1. Las exteriores pueden
+  salir del viewport para distribuir mejor los cuerpos.
+- Los cuerpos no se trasladan por las trayectorias. Permanecen fijos y sólo rotan sobre
+  su propio eje, con pivote centrado.
+- Distribución funcional conservada:
+  Elysia + Vulkar -> Borde Exterior;
+  Corona de Tántalo -> Anillo de Restos;
+  Mnemos + Orpheon -> Órbitas Antiguas;
+  Nyxara + Erebon -> Frontera Silenciosa.
+- Los IDs de persistencia planet_01…planet_07 no cambian. Los nombres son presentación.
+- Corona de Tántalo sigue usando el arte aprobado del Anillo de Restos:
+  Candidates/DebrisRing/d1_debris_ring_option_1_dense_orbit.png.
+- El Centro Galáctico no cuenta como planeta ni sector explorable. Permanece separado,
+  bloqueado según datos reales y conserva su arte naranja con nave.
+- El arte del Centro usa el material canónico UI/QuantumForgeBlackKey para eliminar el
+  rectángulo oscuro. Una oclusión elíptica integra el centro y tapa órbitas posteriores.
+- La imagen principal del Centro no gira. Por corrección visual posterior del usuario,
+  se oscurece el arte y se retiran el anillo técnico y el halo exterior; el Centro queda
+  integrado mediante el recorte negro y la oclusión elíptica, sin adornos superpuestos.
+- Las cantidades históricas de expediciones no aparecen sobre los cuerpos porque se
+  confundían con destinos o contenido único. El mapa muestra ACTUAL, sector, DISPONIBLE
+  o BLOQUEADO según corresponda.
+- Seleccionar cualquiera de los dos cuerpos de un sector previsualiza ese mismo sector.
+- El panel inferior conserva ENTRAR AL SECTOR/ENTRAR AL CENTRO y los datos reales.
+
+CORRECCIÓN VALIDADA — 22 DE AGOSTO DE 2026
+
+- Cada cuerpo es propietario de su selección visual: al pulsar Orpheon sólo se acentúa
+  su quinta órbita; compartir sector con Mnemos no permite iluminar ambas trayectorias.
+- El fondo del mapa reutiliza el campo estelar canónico D1 con opacidad baja, detrás de
+  órbitas, cuerpos y textos; no añade contenido jugable ni intercepta pulsaciones.
+- La prueba física recorrió los siete cuerpos y verificó inmediatamente y tras varios
+  fotogramas tanto el texto sectorial como la órbita individual correspondiente.
+- Corrección del 22 de agosto: el centro del arte planetario, no el centro de su área
+  táctil con rótulos, es la autoridad de alineación. Cada posición se proyecta sobre la
+  elipse inclinada que le corresponde y deja de depender de coordenadas aproximadas.
+- La aplicación puntual modifica únicamente las siete coordenadas existentes; el mismo
+  cálculo queda en el constructor para conservarlas después de una reconstrucción.
+- Carta Galáctica mantiene el contexto de CAMBIAR SECTOR de Explorar y la cabecera de
+  metales dependiente del sector, sin mezclar destinos de ámbitos anteriores.
+- La barra global externa permanece oculta; la navegación propia D1 continúa visible.
+- EXPLORAR debe abrirse antes de que Carta libere su visibilidad. Centro de Mando y Explorar
+  resuelven su enlace de forma recíproca para sobrevivir a reconstrucciones parciales.
+- La supresión de guardado QA permanece activa hasta cerrar el proceso de Unity.

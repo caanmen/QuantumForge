@@ -276,12 +276,45 @@ public static class D2Civilization3System
         if (!gameState.dimension2.civilization3Unlocked)
             return;
 
-        foreach (D2C3ZoneState zone in state.zones)
+        double remaining = seconds;
+        while (remaining > 0.0)
         {
-            AdvanceExcavation(state, zone, seconds);
-            AdvanceAnalysis(state, zone, seconds);
+            double step = remaining;
+            foreach (D2C3ZoneState zone in state.zones)
+            {
+                if (zone == null || !zone.unlocked)
+                    continue;
+                if (zone.excavationActive)
+                    step = Math.Min(step, zone.excavationRemainingSeconds);
+                if (zone.analysisActive)
+                    step = Math.Min(step, zone.analysisRemainingSeconds);
+            }
+            // A research milestone also ends an interval, preserving result ordering
+            // when it precedes (or coincides with) a zone completion.
+            if (state.entityResearchActive && state.entityResearchUnlocked)
+            {
+                double progressToMilestone = GetPendingEntityResearchMilestone(state) -
+                    state.entityResearchProgress;
+                if (progressToMilestone > 0.0 && state.ancientKnowledge >=
+                    progressToMilestone * EntityResearchKnowledgePerPercent)
+                {
+                    step = Math.Min(step,
+                        progressToMilestone * EntityResearchSecondsPerPercent);
+                }
+            }
+
+            // Only knowledge present at the start can fund this interval. Rewards at
+            // its endpoint become usable in the next interval, including across ticks.
+            AdvanceEntityResearch(state, step);
+            foreach (D2C3ZoneState zone in state.zones)
+            {
+                AdvanceExcavation(state, zone, step);
+                AdvanceAnalysis(state, zone, step);
+            }
+            // A zero-length step resolves already-due zone jobs exactly once. Jobs
+            // never restart here, so even a huge finite interval needs few iterations.
+            remaining -= step;
         }
-        AdvanceEntityResearch(state, seconds);
     }
 
     public static void ApplyOfflineProgress(GameState gameState, double seconds)
@@ -592,7 +625,7 @@ public static class D2Civilization3System
         D2Civilization3State state = gameState.dimension2.civilization3;
         state.entityPactEstablished = true;
         state.lastEntityPactResult =
-            "Pacto con el Ente establecido. Sus cinco líneas ya pueden desarrollarse.";
+            "Pacto con el Ente establecido. Sus líneas disponibles ya pueden desarrollarse.";
         state.lastResult = state.lastEntityPactResult;
         return true;
     }
@@ -1083,7 +1116,9 @@ public static class D2Civilization3System
     public static long GetArchiveUpgradeEntityKnowledgeRequirement(string upgradeId)
     {
         if (upgradeId == StratifiedCartographyUpgradeId) return 1L;
-        return upgradeId == AnomalousConcordanceUpgradeId ? 3L : 6L;
+        if (upgradeId == AnomalousConcordanceUpgradeId ||
+            upgradeId == DeepExegesisUpgradeId) return 0L;
+        return 6L;
     }
 
     public static double GetArchiveUpgradeKnowledgeCost(string upgradeId)
@@ -1242,18 +1277,12 @@ public static class D2Civilization3System
     {
         if (zone == null || !zone.unlocked || !zone.excavationActive)
             return;
-        double remaining = seconds;
-        int guard = 0;
-        while (remaining > 0.000001 && zone.excavationActive && guard++ < 100000)
-        {
-            double step = Math.Min(remaining, zone.excavationRemainingSeconds);
-            zone.excavationRemainingSeconds -= step;
-            remaining -= step;
-            if (zone.excavationRemainingSeconds > 0.000001)
-                continue;
-            CompleteExcavation(state, zone, UnityEngine.Random.value);
-            zone.excavationActive = false;
-        }
+        zone.excavationRemainingSeconds -= Math.Min(seconds, zone.excavationRemainingSeconds);
+        if (zone.excavationRemainingSeconds > 0.0)
+            return;
+        CompleteExcavation(state, zone, UnityEngine.Random.value);
+        zone.excavationActive = false;
+        zone.excavationRemainingSeconds = 0.0;
     }
 
     private static void CompleteExcavation(
@@ -1292,7 +1321,7 @@ public static class D2Civilization3System
         if (zone == null || !zone.unlocked || !zone.analysisActive)
             return;
         zone.analysisRemainingSeconds -= Math.Min(seconds, zone.analysisRemainingSeconds);
-        if (zone.analysisRemainingSeconds > 0.000001)
+        if (zone.analysisRemainingSeconds > 0.0)
             return;
 
         string qualityId = zone.analysisQualityId;

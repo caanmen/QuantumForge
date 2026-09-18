@@ -1,0 +1,28 @@
+PROMPTS DE PRODUCCIÓN V32 — GENERADOR INTEGRADO DE IMÁGENES
+Fecha: 2026-08-27
+Modo: edición raster integrada de Codex; no CLI.
+
+FONDO GENERAL
+
+- Objetivo estricto: fondo V31.
+- Referencias de medida: captura real Unity V31 y hoja canónica del Monolito.
+- Petición: cambiar únicamente el soporte de suelo por un alojamiento ancho, bajo,
+  trapezoidal y escalonado que siga la huella real de la base; guías laterales conectadas
+  con sus extremos y travesaño frontal delante del Monolito.
+- Invariantes: conservar cámara, perspectiva, laboratorio, iluminación, paredes, puerta,
+  ventanas, mesas, consolas, cables y centro vacío. No incluir Monolito, caras, símbolos,
+  nodos, texto, interfaz ni personajes.
+
+CARAS 1–4
+
+- Objetivo estricto por sector: hoja V31 correspondiente.
+- Referencia física: hoja canónica del Monolito completo.
+- Petición común: reconstruir los cuatro cuadrantes como la misma cara, con escala, línea
+  de apoyo y caja envolvente constantes. Mantener una superficie interior ancha, sólida y
+  continua en todas las etapas. Progresar únicamente el desgaste del perímetro: fuerte,
+  medio, leve y reparado.
+- Invariantes: preservar proporción, perspectiva, columna lateral, material y textura del
+  sector. No crear huecos, transparencias centrales, cráteres, sockets, pits, montículos,
+  relieves, símbolos, texto, UI ni laboratorio. Alfa real sin cuadrícula horneada.
+- Sector 2: reservar margen central amplio para 11 símbolos en varias columnas.
+- Sector 4: mantener más oscuro, sin nodos ni `???` horneado; Unity añade el marcador.

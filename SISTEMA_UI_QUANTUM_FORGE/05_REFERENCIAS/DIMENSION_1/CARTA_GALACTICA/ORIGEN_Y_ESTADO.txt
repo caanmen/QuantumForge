@@ -1,9 +1,0 @@
-Pantalla: Carta Galáctica — Dimensión 1
-Archivo: referencia_carta_galactica.png
-Tipo: REFERENCIA VISUAL
-Origen: imagen proporcionada por el usuario en chat
-Estado: referencia utilizada para la implementación actual
-Resolución original: 755×1315
-Notas: las correcciones posteriores aprobadas incluyen rutas simétricas, ausencia
-de marcos alrededor de expediciones, ausencia de órbitas añadidas y títulos estables.
-

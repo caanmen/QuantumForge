@@ -1,0 +1,11 @@
+CONTRATO DE APROBACIÓN — INVESTIGACIÓN DE PIEZAS
+================================================
+
+La pantalla sólo puede declararse terminada cuando:
+- existen capturas reales nuevas 1080x1920 y 720x1280;
+- los controles reales están alineados con sus zonas visuales y la placa no bloquea raycasts;
+- el escenario visible se comprueba contra D3ResearchSystem y Dimension3Catalog;
+- el usuario aprueba al menos 95 % de similitud visual;
+- pasan investigación V4–V6, integridad de Main, layout móvil y protección del guardado;
+- se validan los estados posteriores aplicables;
+- las capturas se archivan únicamente tras la aprobación explícita.

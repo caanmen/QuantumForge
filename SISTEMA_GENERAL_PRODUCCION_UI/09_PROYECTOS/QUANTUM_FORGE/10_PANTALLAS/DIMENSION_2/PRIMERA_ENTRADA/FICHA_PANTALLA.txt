@@ -1,0 +1,146 @@
+FICHA DE PANTALLA — QUANTUM FORGE
+
+IDENTIDAD
+Nombre visible: DIMENSIÓN 2 · PACTOS
+Nombre interno estable: D2_FirstEntry
+Dimensión o sistema: Dimensión 2
+Tipo: introducción de primera entrada
+Responsable de aprobación visual: usuario
+
+ALCANCE
+Reglas generales heredadas: instrucciones maestras y guías centrales de UI.
+Perfil propio de la dimensión: 03_ESTILOS/DIMENSION_2/PERFIL_ESTILO_DIMENSION_2.txt
+Ejemplos históricos consultados: ninguno de otra dimensión como autoridad visual.
+Decisiones de esos ejemplos que NO deben heredarse: estética, navegación, iconos y fondos de D1.
+Decisiones exclusivas de esta pantalla: aparece una sola vez; un único botón ABRIR MAPA;
+sin recursos, pestañas, flecha de regreso ni datos de progreso.
+
+FUNCIÓN
+Objetivo en una frase: presentar los tres territorios y señalar que sólo el Santuario responde a la llegada.
+Forma de entrar: primera apertura de Dimensión 2 cuando firstEntrySeen es falso.
+Forma de salir: botón ABRIR MAPA.
+Acción principal: registrar firstEntrySeen y abrir Mapa de los Pactos.
+Datos que puede modificar: firstEntrySeen y estado de presentación asociado al mapa.
+Datos que sólo previsualiza: existencia de tres territorios y disponibilidad inicial del Santuario.
+
+REFERENCIAS
+Ruta de referencia visual permanente: 05_REFERENCIAS/DIMENSION_2/PRIMERA_ENTRADA_2026-08-24/REFERENCIA_ELEGIDA_D2_PRIMERA_ENTRADA_2026-08-24.png
+Tipo: concepto candidato; no es captura real ni asset final.
+Resolución original: 730 x 1325 píxeles, verificada.
+Relación de aspecto: vertical.
+Partes ambiguas pendientes de decisión: ninguna para la composición estática elegida; animación futura pendiente.
+
+PUERTA 0 — AUDITORÍA Y REUTILIZACIÓN
+Rutas y pantallas anteriores inspeccionadas: Mapa de los Pactos V5, Santuario V4,
+Dimension2PanelUI, Dimension2System, D2PresentationRouter y Dimension2Block1UISetup.
+Catálogo consultado: SÍ
+Mapa de reutilización consultado: SÍ
+Capturas aprobadas comparadas: no existen capturas Unity aprobadas de D2.
+
+Matriz obligatoria:
+Concepto | primera aparición localizada | ruta exacta | estado | decisión
+Marco piedra y bronce D2 | colección candidata D2 | 05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21 | candidato | reutilizar lenguaje sin promoverlo
+Tres territorios | Mapa de los Pactos V5 | 01_Mapa_De_Los_Pactos_Corregido_V5.png | candidato aprobado para composición | reutilizar identidades
+Santuario iluminado | Santuario/Mapa D2 | vistas 01 y 02 vigentes | candidato | reutilizar como único territorio que responde
+Texto introductorio | código y decisión del usuario | Dimension2PanelUI + esta ficha | aprobado por usuario | usar texto exacto de esta ficha
+Botón ABRIR MAPA | código actual | Dimension2PanelUI.cs | funcional | conservar
+
+Confirmación de que no se recreará desde cero un concepto ya resuelto: SÍ.
+Simplificaciones prohibidas por la referencia: pictogramas genéricos, estilo D1,
+líneas entre territorios, recursos o navegación secundaria.
+Diferencias o simplificaciones autorizadas explícitamente por el usuario: ninguna.
+
+DATOS Y LORE
+Sistemas fuente: Dimension2System, D2PilgrimageSystem y D2PresentationRouter.
+Nombres oficiales: DIMENSIÓN 2 · PACTOS; Santuario de Peregrinos; Confianza.
+Costes y requisitos: la introducción no cobra recursos ni muestra requisitos.
+Valores mínimo y máximo visibles: no mostrar contadores ni cantidades.
+Localización o formatos especiales: español; Confianza con mayúscula como nombre de recurso.
+
+COMPOSICIÓN
+Resolución base: 730 x 1325 para la referencia; implementación y capturas en 1080 x 1920 y 720 x 1280.
+Zonas: título / ilustración ceremonial / único texto narrativo / botón.
+Márgenes seguros: conservar el borde completo y separación amplia de textos.
+Bloques principales y medidas: implementados en una raíz vertical fija 1080 x 1920 con título, ilustración, relato y botón independientes.
+Jerarquía prevista: título > territorio activo > relato > ABRIR MAPA.
+
+ASSETS
+Assets canónicos reutilizados: ninguno; D2 aún no tiene assets finales aprobados.
+Assets candidatos existentes reutilizados: PactsScreen_Background.png e Icon_SunCompass.png.
+Tipografía existente reutilizada: Cinzel SDF.asset.
+Componentes, prefabs o generadores reutilizados: D2_FirstEntry, Dimension2PanelUI y Dimension2Block1UISetup.
+Assets nuevos aprobados: D2_FirstEntry_Hero_v1.png, D2_FirstEntry_FrameAtlas_v2.png, D2_FirstEntry_ButtonPlate_v2.png y D2_FirstEntry_OuterFrame_v2.png, todos bajo Assets/Project/UI/Dimension2/FirstEntry/Generated.
+Assets candidatos pendientes de aprobación: ninguno.
+Assets faltantes para la composición estática: ninguno. Marcos, iconos y arte quedaron aprobados con el cierre de Dimensión 2.
+Placeholders temporales autorizados: ninguno.
+Justificación individual de cada asset nuevo pese a la búsqueda previa: faltaba una ilustración limpia de la escena central. Se generó únicamente esa capa, sin texto, botón ni marcos horneados; continúa como candidata.
+
+ESTADOS
+[x] Neutral
+[ ] Normal
+[ ] Preseleccionado
+[ ] Seleccionado
+[ ] Bloqueado
+[ ] Deshabilitado
+[ ] Vacío
+[ ] Completado
+[ ] Error
+
+Para cada estado: la referencia representa únicamente el reposo inicial antes de pulsar ABRIR MAPA.
+
+PROPIETARIOS
+Layout: raíz D2_FirstEntry.
+Textos dinámicos: Dimension2PanelUI, sincronizado después con el constructor canónico.
+Colores y estados visuales: perfil D2.
+Reglas y progreso: Dimension2System y D2PresentationRouter.
+Navegación: Dimension2PanelUI.
+Animación: pendiente de definir después de aprobar la estática.
+
+INTERACCIONES
+Botones y acciones: ABRIR MAPA registra la introducción y abre el mapa.
+Respuesta visual inmediata: el botón oculta la introducción, registra firstEntrySeen y abre D2_PactMap.
+Comportamiento ante toques repetidos: una sola transición; impedir doble ejecución perceptible.
+Botón Atrás: no forma parte de esta composición.
+
+ANIMACIONES
+Intención definida antes de Unity: NO
+Elemento: pendiente.
+Objetivo: ambiental o informativo, por decidir.
+Capa separada necesaria: SÍ.
+Propiedad animada: pendiente.
+Pivote y posición base: pendiente.
+Duración, amplitud y objetivo informativo: pendiente.
+Estado que inicia y detiene: pendiente.
+Elementos que deben permanecer inmóviles: textos, botón y marco.
+Margen o recorte necesario: pendiente.
+Coste y reducción prevista para móvil: pendiente.
+Confirmación: no implementar antes de aprobar la composición estática: SÍ.
+
+RECONSTRUCCIÓN
+Escena o prefab: Assets/Project/Scenes/Main.unity, implementación candidata guardada.
+Script generador: Assets/Project/Scripts/Editor/Dimension2Block1UISetup.cs, sincronizado con la escena.
+Controlador runtime: Assets/Project/Scripts/UI/Dimension2PanelUI.cs, texto y transición sincronizados.
+Archivos que son fuente definitiva: esta ficha, decisiones aprobadas, constructor y sistemas reales.
+
+PRUEBAS
+Resoluciones: 1080 x 1920 y 720 x 1280 validadas en Unity.
+Escenarios QA: primera entrada; reapertura después de aceptar; toque repetido; guardado y carga.
+Pruebas inmediatas después del toque: firstEntrySeen verdadero y Mapa visible.
+Compatibilidad de partida existente: firstEntrySeen antiguo puede ser verdadero; la versión visual nueva se muestra una vez mientras firstEntryVisualVersionSeen sea anterior a la vigente.
+Pruebas después del refresco o animación: el texto no debe ser sobrescrito por otra autoridad.
+Prueba automatizada: Dimension2FirstEntryCapture.Run.
+Resultado técnico: BUILD_PASS y PASS de captura/interacción para la revisión ornamental final.
+Regresión de entrada versionada: PASS con una partida existente que ya había visto la introducción provisional.
+Capturas candidatas: 10_PANTALLAS/DIMENSION_2/PRIMERA_ENTRADA/CAPTURAS_CANDIDATAS/D2_FirstEntry_1080x1920.png y D2_FirstEntry_720x1280.png.
+La transición al mapa se validó funcionalmente; la captura visual del mapa pertenece a su propia pantalla.
+Última evidencia: Logs/dimension2_first_entry_ornate_final_build_2026-08-24.log y Logs/dimension2_first_entry_ornate_final_capture_2026-08-24.log.
+Compatibilidad final de versión visual 2: Logs/dimension2_first_entry_ornate_visual_v2_capture_2026-08-24.log, PASS.
+
+APROBACIÓN
+Referencia y captura final aprobadas por: usuario.
+Fecha: 4 de septiembre de 2026.
+Similitud visual objetivo: 95 % mínimo.
+D2_FirstEntry implementada, validada técnicamente y aprobada visualmente; capturas archivadas.
+Diferencias aceptadas explícitamente: ninguna.
+Confirmación de que no se copió estética de otra dimensión sin autorización: SÍ.
+Confirmación de que el diseño no se simplificó silenciosamente: SÍ.

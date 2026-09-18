@@ -14,8 +14,28 @@ public static class Dimension1ExploreReferenceSetup
 {
     private const string ScenePath = "Assets/Project/Scenes/Main.unity";
     private const string ArtPath = "Assets/Project/UI/Dimension1/Generated";
-    private const string ShipArtPath = ArtPath + "/d1_explore_ship_solid_v2.png";
-    private const string DroneArtPath = ArtPath + "/d1_explore_drone_solid_v2.png";
+    private const string BlueprintMaterialPath = ArtPath + "/d1_hangar_blueprint_keyed.mat";
+    private static readonly string[] ShipBlueprintPaths =
+    {
+        ArtPath + "/d1_hangar_sonda_ligera_blueprint_v2.png",
+        ArtPath + "/d1_hangar_dron_extractor_blueprint_v2.png",
+        ArtPath + "/d1_hangar_sonda_analitica_blueprint_v2.png",
+        ArtPath + "/d1_hangar_nave_carga_blueprint_v2.png"
+    };
+    private static readonly string[] SectorArtworkIds =
+    {
+        Dimension1System.Sector01OuterRim,
+        Dimension1System.Sector02DebrisRing,
+        Dimension1System.Sector03AncientOrbits,
+        Dimension1System.Sector04SilentFrontier
+    };
+    private static readonly string[] SectorArtworkPaths =
+    {
+        ArtPath + "/d1_body_planet_blue_v3.png",
+        ArtPath + "/Candidates/DebrisRing/d1_debris_ring_option_1_dense_orbit.png",
+        ArtPath + "/d1_body_planet_ancient_v3.png",
+        ArtPath + "/d1_body_planet_silent_v3.png"
+    };
     private const string RootName = "D1_ExploreVisualRoot";
     private const float W = 1080f;
     private const float H = 1920f;
@@ -35,6 +55,8 @@ public static class Dimension1ExploreReferenceSetup
     {
         public readonly List<TMP_Text> metalAmounts = new List<TMP_Text>();
         public readonly List<TMP_Text> metalRates = new List<TMP_Text>();
+        public TMP_Text sectorName;
+        public Image sectorArtwork;
         public TMP_Text scannerLevel;
         public TMP_Text destinationName;
         public TMP_Text destinationLevel;
@@ -42,6 +64,7 @@ public static class Dimension1ExploreReferenceSetup
         public TMP_Text destinationCount;
         public TMP_Text shipName;
         public TMP_Text shipStatus;
+        public TMP_Text shipMetricLabel;
         public TMP_Text shipSpeed;
         public TMP_Text supportName;
         public TMP_Text supportStatus;
@@ -50,9 +73,29 @@ public static class Dimension1ExploreReferenceSetup
         public TMP_Text activeShip;
         public TMP_Text activeDestination;
         public TMP_Text activeTimer;
+        public TMP_Text activeCount;
+        public TMP_Text scannerUpgradeLabel;
+        public TMP_Text startLabel;
+        public Image shipIllustration;
+        public Image supportIllustration;
+        public Button scannerUpgrade;
         public Button commandCenter;
         public Button start;
         public Button record;
+        public Button openDetails;
+        public Button closeDetails;
+        public GameObject detailsOverlay;
+        public TMP_Text detailsText;
+        public RectTransform detailsContent;
+        public ScrollRect detailsScroll;
+        public readonly List<Button> destinationCards = new List<Button>();
+        public readonly List<Image> destinationCardImages = new List<Image>();
+        public readonly List<Image> destinationCardBorders = new List<Image>();
+        public readonly List<TMP_Text> destinationCardLabels = new List<TMP_Text>();
+        public Image simpleModeBorder;
+        public Image coordinatedModeBorder;
+        public TMP_Text simpleModeStatus;
+        public TMP_Text coordinatedModeStatus;
         public readonly List<RectTransform> pulses = new List<RectTransform>();
     }
 
@@ -63,13 +106,52 @@ public static class Dimension1ExploreReferenceSetup
         Dimension1PanelUI panel = FindSceneComponent<Dimension1PanelUI>(scene);
         if (panel == null) throw new InvalidOperationException("No existe Dimension1PanelUI en Main.unity.");
 
-        PrepareUiSprite(ShipArtPath);
-        PrepareUiSprite(DroneArtPath);
+        foreach (string path in ShipBlueprintPaths)
+            PrepareUiSprite(path);
+        foreach (string path in SectorArtworkPaths)
+            PrepareUiSprite(path);
         TMP_FontAsset font = FindFont(panel.transform);
         Sprite frame = LoadSprite(ArtPath + "/d1_premium_frame_v4.png");
         Sprite fillSprite = LoadSprite(ArtPath + "/d1_panel_fill_v4.png");
         Sprite starfield = LoadSprite(ArtPath + "/d1_starfield.png");
-        if (font == null || frame == null || fillSprite == null)
+        Material blueprintMaterial = AssetDatabase.LoadAssetAtPath<Material>(BlueprintMaterialPath);
+        Sprite[] shipBlueprints = new Sprite[ShipBlueprintPaths.Length];
+        for (int i = 0; i < ShipBlueprintPaths.Length; i++)
+            shipBlueprints[i] = LoadSprite(ShipBlueprintPaths[i]);
+        Sprite[] sectorArtworkSprites = Array.ConvertAll(SectorArtworkPaths, LoadSprite);
+        Sprite activeBadge = LoadSprite(ArtPath + "/Candidates/ExpeditionResult/d1_expedition_complete_badge_v1.png");
+        string[] destinationArtIds =
+        {
+            Dimension1System.DestinationMineralBelt,
+            Dimension1System.DestinationShipGraveyard,
+            Dimension1System.DestinationAbandonedShip,
+            Dimension1System.DestinationOrbitalRuin,
+            Dimension1System.DestinationDriftingProbes,
+            Dimension1System.DestinationLaboratory,
+            Dimension1System.DestinationAbandonedStation,
+            Dimension1System.DestinationMinorAnomaly,
+            Dimension1System.DestinationAncientStructure,
+            Dimension1System.DestinationUnstableZone
+        };
+        string[] destinationArtPaths =
+        {
+            ArtPath + "/Candidates/SectorDetails/d1_destination_mineral_belt_v2.png",
+            ArtPath + "/Candidates/SectorDetails/d1_destination_ship_graveyard_v2.png",
+            ArtPath + "/Candidates/AncientOrbits/d1_destination_abandoned_ship_v2.png",
+            ArtPath + "/Candidates/AncientOrbits/d1_destination_orbital_ruin_v2.png",
+            ArtPath + "/Candidates/SectorDetails/d1_destination_drifting_probes_v2.png",
+            ArtPath + "/Candidates/AncientOrbits/d1_destination_laboratory_v2.png",
+            ArtPath + "/Candidates/AncientOrbits/d1_destination_abandoned_station_v2.png",
+            ArtPath + "/Candidates/SectorDetails/d1_destination_minor_anomaly_v2.png",
+            ArtPath + "/Candidates/SectorDetails/d1_destination_ancient_structure_v2.png",
+            ArtPath + "/Candidates/SectorDetails/d1_destination_unstable_zone_v2.png"
+        };
+        Sprite[] destinationArt = Array.ConvertAll(destinationArtPaths, LoadSprite);
+        if (font == null || frame == null || fillSprite == null || blueprintMaterial == null ||
+            activeBadge == null ||
+            Array.Exists(shipBlueprints, sprite => sprite == null) ||
+            Array.Exists(sectorArtworkSprites, sprite => sprite == null) ||
+            Array.Exists(destinationArt, sprite => sprite == null))
             throw new InvalidOperationException("Faltan recursos base para la pantalla Explorar.");
 
         Transform previous = FindDirectChild(panel.transform, RootName);
@@ -108,18 +190,21 @@ public static class Dimension1ExploreReferenceSetup
         Refs refs = new Refs();
         BuildHeader(root, frame, fillSprite, font, refs, visual);
         BuildTitle(root, font);
-        BuildScanner(root, frame, fillSprite, font, refs);
-        BuildDestination(root, frame, fillSprite, font, refs);
-        BuildShip(root, frame, fillSprite, font, refs);
-        BuildSupport(root, frame, fillSprite, font, refs);
-        BuildActiveExpedition(root, frame, fillSprite, font, refs);
-        BuildActions(root, frame, fillSprite, font, refs, panel);
+        BuildScanner(root, frame, fillSprite, font, refs, panel, visual, starfield,
+            sectorArtworkSprites[0]);
+        BuildDestination(root, frame, fillSprite, font, refs, visual, destinationArt);
+        BuildShip(root, frame, fillSprite, font, refs, visual, shipBlueprints[0], blueprintMaterial);
+        BuildSupport(root, frame, fillSprite, font, refs, visual, shipBlueprints[1], blueprintMaterial);
+        BuildMode(root, frame, fillSprite, font, refs, visual);
+        BuildActiveExpedition(root, frame, fillSprite, font, refs, visual, activeBadge);
+        BuildActions(root, frame, fillSprite, font, refs, panel, visual);
         BuildNavigation(root, frame, fillSprite, font, refs, panel);
+        BuildPreviewDetails(root, frame, fillSprite, font, refs, visual);
         Dimension1SharedShellApply.ApplyToRoot(root);
 
         GameObject[] blockers = FindObjects(panel.transform,
             "GalaxyPanel", "HangarPanel", "RelicChamberPanel", "Dimension1TreePanel",
-            "ArkPanel", "ExplorationRewardsPanel", "Exploration Record Panel");
+            "ArkPanel", "Exploration Record Panel", "D1_ExpeditionRecordVisualRoot");
         GameObject[] navRoots = FindNavigationRoots(scene);
 
         SerializedObject so = new SerializedObject(visual);
@@ -130,6 +215,10 @@ public static class Dimension1ExploreReferenceSetup
         SetObjectArray(so, "hideWhileOpen", navRoots);
         SetObjectArray(so, "metalAmounts", refs.metalAmounts.ToArray());
         SetObjectArray(so, "metalRates", refs.metalRates.ToArray());
+        Assign(so, "sectorName", refs.sectorName);
+        Assign(so, "sectorArtwork", refs.sectorArtwork);
+        SetStringArray(so, "sectorArtworkIds", SectorArtworkIds);
+        SetObjectArray(so, "sectorArtworkSprites", sectorArtworkSprites);
         Assign(so, "scannerLevel", refs.scannerLevel);
         Assign(so, "destinationName", refs.destinationName);
         Assign(so, "destinationLevel", refs.destinationLevel);
@@ -137,7 +226,11 @@ public static class Dimension1ExploreReferenceSetup
         Assign(so, "destinationCount", refs.destinationCount);
         Assign(so, "shipName", refs.shipName);
         Assign(so, "shipStatus", refs.shipStatus);
+        Assign(so, "shipMetricLabel", refs.shipMetricLabel);
         Assign(so, "shipSpeed", refs.shipSpeed);
+        Assign(so, "shipIllustration", refs.shipIllustration);
+        Assign(so, "supportIllustration", refs.supportIllustration);
+        SetObjectArray(so, "shipIllustrations", shipBlueprints);
         Assign(so, "supportName", refs.supportName);
         Assign(so, "supportStatus", refs.supportStatus);
         Assign(so, "supportBonus", refs.supportBonus);
@@ -145,23 +238,35 @@ public static class Dimension1ExploreReferenceSetup
         Assign(so, "activeShip", refs.activeShip);
         Assign(so, "activeDestination", refs.activeDestination);
         Assign(so, "activeTimer", refs.activeTimer);
+        Assign(so, "activeCount", refs.activeCount);
+        Assign(so, "scannerUpgradeLabel", refs.scannerUpgradeLabel);
+        Assign(so, "scannerUpgradeButton", refs.scannerUpgrade);
+        Assign(so, "startButtonLabel", refs.startLabel);
         Assign(so, "startButton", refs.start);
+        SetObjectArray(so, "destinationCardButtons", refs.destinationCards.ToArray());
+        SetObjectArray(so, "destinationCardImages", refs.destinationCardImages.ToArray());
+        SetObjectArray(so, "destinationCardBorders", refs.destinationCardBorders.ToArray());
+        SetObjectArray(so, "destinationCardLabels", refs.destinationCardLabels.ToArray());
+        SetStringArray(so, "destinationArtIds", destinationArtIds);
+        SetObjectArray(so, "destinationArtSprites", destinationArt);
+        Assign(so, "simpleModeBorder", refs.simpleModeBorder);
+        Assign(so, "coordinatedModeBorder", refs.coordinatedModeBorder);
+        Assign(so, "simpleModeStatus", refs.simpleModeStatus);
+        Assign(so, "coordinatedModeStatus", refs.coordinatedModeStatus);
+        Assign(so, "previewDetailsOverlay", refs.detailsOverlay);
+        Assign(so, "previewDetailsText", refs.detailsText);
+        Assign(so, "previewDetailsContent", refs.detailsContent);
+        Assign(so, "previewDetailsScroll", refs.detailsScroll);
         so.ApplyModifiedPropertiesWithoutUndo();
 
         Dimension1CommandCenterUI commandCenter = FindSceneComponent<Dimension1CommandCenterUI>(scene);
         if (commandCenter != null)
         {
             commandCenter.ConfigureExploreScreen(root.gameObject);
-            Transform galaxyRoot = FindChild(panel.transform, "D1_GalaxyVisualRoot");
-            Transform galaxyExplore = galaxyRoot != null ? FindChild(galaxyRoot, "ExploreButton") : null;
-            if (galaxyExplore == null && galaxyRoot != null)
-                galaxyExplore = FindChild(galaxyRoot, "EXPLORARButton");
-            Button galaxyExploreButton = galaxyExplore != null ? galaxyExplore.GetComponent<Button>() : null;
-            if (galaxyExploreButton != null && !HasPersistentMethod(galaxyExploreButton.onClick, "ShowExploreScreen"))
-                AddPersistent(galaxyExploreButton.onClick, commandCenter.ShowExploreScreen);
             EditorUtility.SetDirty(commandCenter);
         }
 
+        refs.detailsOverlay.SetActive(false);
         root.gameObject.SetActive(false);
         EditorUtility.SetDirty(visual);
         EditorSceneManager.MarkSceneDirty(scene);
@@ -228,11 +333,11 @@ public static class Dimension1ExploreReferenceSetup
     private static void BuildTitle(Transform root, TMP_FontAsset font)
     {
         TMP_Text title = Text("ExploreTitle", root, font, "EXPLORAR", 43f, FontStyles.Bold, Primary);
-        Top(title.rectTransform, 340f, 238f, 400f, 63f);
+        Top(title.rectTransform, 340f, 205f, 400f, 58f);
         title.alignment = TextAlignmentOptions.Center;
         title.characterSpacing = 5f;
         RectTransform decor = Rect("TitleDecor", root);
-        Top(decor, 0f, 238f, 1032f, 63f);
+        Top(decor, 24f, 205f, 1032f, 58f);
         Line("TitleLineLeft", decor, new Vector2(-490f, 0f), new Vector2(-235f, 0f), 2f, CyanMuted);
         Line("TitleLineRight", decor, new Vector2(235f, 0f), new Vector2(490f, 0f), 2f, CyanMuted);
         Line("TitleOuterLeftA", decor, new Vector2(-524f, -13f), new Vector2(-507f, 0f), 2f, CyanMuted);
@@ -245,171 +350,302 @@ public static class Dimension1ExploreReferenceSetup
         Line("TitleStepRight", decor, new Vector2(235f, 0f), new Vector2(218f, -12f), 2f, CyanMuted);
     }
 
-    private static void BuildScanner(Transform root, Sprite frame, Sprite fill, TMP_FontAsset font, Refs refs)
+    private static void BuildScanner(Transform root, Sprite frame, Sprite fill, TMP_FontAsset font, Refs refs,
+        Dimension1PanelUI functionalPanel, Dimension1ExploreVisualUI visual,
+        Sprite starfield, Sprite initialSectorArtwork)
     {
         RectTransform panel = Panel("ScannerPanel", root, frame, fill,
-            new Vector2(62f, 334f), new Vector2(460f, 628f), Fill, CyanMuted);
-        TMP_Text label = Text("Label", panel, font, "ESCÁNER NIVEL", 29f, FontStyles.Bold, Secondary);
-        Top(label.rectTransform, 47f, 27f, 250f, 40f);
-        refs.scannerLevel = Text("Level", panel, font, "3/15", 29f, FontStyles.Bold, Cyan);
-        Top(refs.scannerLevel.rectTransform, 318f, 25f, 105f, 43f);
-        refs.scannerLevel.alignment = TextAlignmentOptions.Center;
+            new Vector2(62f, 276f), new Vector2(954f, 350f), Fill, CyanMuted);
+        Image stars = Image("SectorStarfield", panel, starfield, Hex("BFEFFF", 115));
+        Stretch(stars.rectTransform, new Vector2(4f, 4f), new Vector2(4f, 4f));
+        stars.preserveAspect = false;
+        stars.raycastTarget = false;
+        RectTransform artworkViewport = new GameObject("SectorArtworkViewport", typeof(RectTransform), typeof(RectMask2D)).GetComponent<RectTransform>();
+        artworkViewport.gameObject.layer = panel.gameObject.layer;
+        artworkViewport.SetParent(panel, false);
+        Stretch(artworkViewport, new Vector2(4f, 4f), new Vector2(4f, 4f));
+        refs.sectorArtwork = Image("SectorArtwork", artworkViewport, initialSectorArtwork, Color.white);
+        Top(refs.sectorArtwork.rectTransform, 500f, -78f, 520f, 520f);
+        refs.sectorArtwork.preserveAspect = true;
+        refs.sectorArtwork.raycastTarget = false;
+        Image veil = Image("SectorVeil", panel, null, Hex("01070C", 120));
+        Stretch(veil.rectTransform);
+        veil.raycastTarget = false;
 
-        RectTransform radar = Rect("RadarStage", panel);
-        radar.anchorMin = radar.anchorMax = new Vector2(0.5f, 0.5f);
-        radar.pivot = new Vector2(0.5f, 0.5f);
-        radar.anchoredPosition = new Vector2(0f, -22f);
-        radar.sizeDelta = new Vector2(420f, 420f);
-        Image radarGlow = Image("RadarGlow", radar, LoadSprite(ArtPath + "/d1_glow_v3.png"), Hex("18C8FF", 42));
-        radarGlow.rectTransform.anchorMin = radarGlow.rectTransform.anchorMax = new Vector2(.5f, .5f);
-        radarGlow.rectTransform.pivot = new Vector2(.5f, .5f);
-        radarGlow.rectTransform.anchoredPosition = Vector2.zero;
-        radarGlow.rectTransform.sizeDelta = new Vector2(414f, 414f);
-        radarGlow.raycastTarget = false;
-        Circle(radar, Vector2.zero, 185f, 2.8f, CyanBright);
-        Circle(radar, Vector2.zero, 177f, 1f, Hex("56E4FF", 120));
-        Circle(radar, Vector2.zero, 151f, 1.3f, Hex("25BEE8", 190));
-        Circle(radar, Vector2.zero, 116f, 1.2f, Hex("25BEE8", 180));
-        Circle(radar, Vector2.zero, 79f, 1.2f, Hex("25BEE8", 160));
-        Circle(radar, Vector2.zero, 42f, 1.2f, Hex("25BEE8", 150));
-        for (int i = 0; i < 12; i++)
-        {
-            float a = Mathf.PI * 2f * i / 12f;
-            Vector2 p = new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 185f;
-            Line("Spoke" + i, radar, Vector2.zero, p, 1f, Hex("1FA8D3", 145));
-        }
-        Polygon("Sweep", radar, new[] { Vector2.zero, new Vector2(86f, 164f), new Vector2(170f, 74f) }, Hex("12BFFF", 36));
-        Line("SweepEdge", radar, Vector2.zero, new Vector2(86f, 164f), 3f, Hex("63E4FF", 205));
-        GlowDot(radar, Vector2.zero, 20f, CyanBright);
-        GlowDot(radar, new Vector2(82f, 108f), 13f, CyanBright);
-        GlowDot(radar, new Vector2(142f, 42f), 13f, CyanBright);
-        GlowDot(radar, new Vector2(100f, -72f), 13f, CyanBright);
-        GlowDot(radar, new Vector2(-98f, -91f), 13f, CyanBright);
-        Circle(radar, Vector2.zero, 195f, 1.2f, Hex("25BEE8", 120));
-        for (int i = 0; i < 24; i++)
-        {
-            float a = Mathf.PI * 2f * i / 24f;
-            float outer = i % 6 == 0 ? 208f : 201f;
-            float width = i % 6 == 0 ? 3f : 1.2f;
-            Vector2 p1 = new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 192f;
-            Vector2 p2 = new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * outer;
-            Line("Tick" + i, radar, p1, p2, width, i % 6 == 0 ? Cyan : Hex("25BEE8", 155));
-        }
+        refs.sectorName = Text("SectorName", panel, font, "SECTOR 1 · BORDE EXTERIOR", 27f,
+            FontStyles.Bold, Primary);
+        Top(refs.sectorName.rectTransform, 34f, 34f, 560f, 44f);
+        TMP_Text scannerLabel = Text("ScannerLabel", panel, font, "ESCÁNER", 19f,
+            FontStyles.Bold, Secondary);
+        Top(scannerLabel.rectTransform, 36f, 91f, 130f, 28f);
+        refs.scannerLevel = Text("Level", panel, font, "3/15", 25f, FontStyles.Bold, Cyan);
+        Top(refs.scannerLevel.rectTransform, 155f, 84f, 96f, 38f);
+
+        Button changeSector = ButtonPanel("ChangeSector", panel, frame, fill,
+            new Vector2(686f, 30f), new Vector2(232f, 62f), FillRaised, CyanMuted);
+        TMP_Text changeLabel = Text("Label", changeSector.transform, font, "CAMBIAR SECTOR", 18f,
+            FontStyles.Bold, Cyan);
+        Stretch(changeLabel.rectTransform, new Vector2(12f, 8f), new Vector2(12f, 8f));
+        changeLabel.alignment = TextAlignmentOptions.Center;
+        AddPersistent(changeSector.onClick,
+            functionalPanel.OnClickOpenGalaxyForExploreSectorSelection);
+
+        refs.scannerUpgrade = ButtonPanel("UpgradeScanner", panel, frame, fill,
+            new Vector2(34f, 258f), new Vector2(250f, 58f), FillRaised, CyanMuted);
+        refs.scannerUpgradeLabel = Text("Label", refs.scannerUpgrade.transform, font,
+            "MEJORAR ESCÁNER", 19f, FontStyles.Bold, Cyan);
+        Stretch(refs.scannerUpgradeLabel.rectTransform, new Vector2(20f, 8f), new Vector2(20f, 8f));
+        refs.scannerUpgradeLabel.alignment = TextAlignmentOptions.Center;
+        AddPersistent(refs.scannerUpgrade.onClick, visual.UpgradeScanner);
     }
 
-    private static void BuildDestination(Transform root, Sprite frame, Sprite fill, TMP_FontAsset font, Refs refs)
+    private static void BuildDestination(Transform root, Sprite frame, Sprite fill, TMP_FontAsset font, Refs refs,
+        Dimension1ExploreVisualUI visual, Sprite[] destinationArt)
     {
         RectTransform panel = Panel("DestinationPanel", root, frame, fill,
-            new Vector2(550f, 334f), new Vector2(468f, 319f), Fill, CyanMuted);
-        Label(panel, font, "DESTINO", 29f, 28f, 140f);
-        refs.destinationName = Value(panel, font, "SEÑAL DESCONOCIDA", 29f, 68f, 300f, Cyan);
-        refs.destinationLevel = Value(panel, font, "NIVEL 2", 29f, 111f, 220f, Secondary);
-        Line("Rule", panel, new Vector2(-205f, 8f), new Vector2(-42f, 8f), 1.2f, Hex("1C7EA1", 130));
-        Label(panel, font, "DISTANCIA", 29f, 167f, 160f);
-        refs.destinationDistance = Value(panel, font, "2.41 UA", 29f, 207f, 190f, Secondary);
-        Circle(panel, new Vector2(146f, -20f), 61f, 1.3f, Hex("1B92BD", 180));
-        Circle(panel, new Vector2(146f, -20f), 36f, 1.1f, Hex("1B92BD", 140));
-        refs.destinationCount = Text("Count", panel, font, "3", 44f, FontStyles.Normal, Cyan);
-        refs.destinationCount.rectTransform.anchorMin = refs.destinationCount.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-        refs.destinationCount.rectTransform.sizeDelta = new Vector2(80f, 80f);
-        refs.destinationCount.rectTransform.anchoredPosition = new Vector2(146f, -20f);
+            new Vector2(62f, 640f), new Vector2(954f, 350f), Fill, CyanMuted);
+        TMP_Text section = Text("SectionLabel", panel, font, "DESTINOS ESCANEADOS", 23f,
+            FontStyles.Bold, Secondary);
+        Top(section.rectTransform, 28f, 20f, 270f, 34f);
+        refs.destinationName = Text("SelectedDestination", panel, font, "SIN SEÑALES", 20f,
+            FontStyles.Bold, Cyan);
+        Top(refs.destinationName.rectTransform, 310f, 20f, 360f, 34f);
+        refs.destinationLevel = Text("DestinationState", panel, font, "ESCANEA PARA BUSCAR", 16f,
+            FontStyles.Bold, Secondary);
+        Top(refs.destinationLevel.rectTransform, 310f, 49f, 260f, 26f);
+        refs.destinationDistance = Text("DestinationOrdinal", panel, font, "—", 16f,
+            FontStyles.Bold, Secondary);
+        Top(refs.destinationDistance.rectTransform, 572f, 49f, 120f, 26f);
+        refs.destinationCount = Text("Count", panel, font, "0", 22f, FontStyles.Bold, Cyan);
+        Top(refs.destinationCount.rectTransform, 700f, 20f, 70f, 34f);
         refs.destinationCount.alignment = TextAlignmentOptions.Center;
+        refs.openDetails = ButtonPanel("OpenDetails", panel, frame, fill,
+            new Vector2(786f, 17f), new Vector2(140f, 58f), FillRaised, CyanMuted);
+        TMP_Text detailsLabel = Text("Label", refs.openDetails.transform, font,
+            "DETALLES", 17f, FontStyles.Bold, CyanBright);
+        Stretch(detailsLabel.rectTransform, new Vector2(10f, 8f), new Vector2(10f, 8f));
+        detailsLabel.alignment = TextAlignmentOptions.Center;
+        AddPersistent(refs.openDetails.onClick, visual.OpenPreviewDetails);
+
+        UnityAction[] actions =
+        {
+            visual.SelectDestinationCard0,
+            visual.SelectDestinationCard1,
+            visual.SelectDestinationCard2,
+            visual.SelectDestinationCard3
+        };
         for (int i = 0; i < 4; i++)
         {
-            float a = Mathf.PI * 0.5f * i;
-            Vector2 p1 = new Vector2(146f, -20f) + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 69f;
-            Vector2 p2 = new Vector2(146f, -20f) + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 79f;
-            Line("CountTick" + i, panel, p1, p2, 2f, CyanMuted);
-        }
-        for (int i = 0; i < 8; i++)
-        {
-            float a = Mathf.PI * 2f * i / 8f;
-            Vector2 p1 = new Vector2(146f, -20f) + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 54f;
-            Vector2 p2 = new Vector2(146f, -20f) + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 60f;
-            Line("MinorTick" + i, panel, p1, p2, 1f, Hex("1B92BD", 120));
+            Button card = ButtonPanel("DestinationCard" + i, panel, frame, fill,
+                new Vector2(24f + i * 230f, 88f), new Vector2(216f, 238f),
+                Hex("031019", 248), i == 0 ? Amber : CyanMuted);
+            Image art = Image("Art", card.transform,
+                destinationArt != null && i < destinationArt.Length ? destinationArt[i] : null, Color.white);
+            Top(art.rectTransform, 8f, 8f, 200f, 154f);
+            art.preserveAspect = false;
+            art.raycastTarget = false;
+            Image shade = Image("Shade", card.transform, null, Hex("01070C", 72));
+            Top(shade.rectTransform, 8f, 8f, 200f, 154f);
+            shade.raycastTarget = false;
+            TMP_Text label = Text("Name", card.transform, font,
+                i == 0 ? "CINTURÓN MINERAL" : "SIN SEÑAL", 18f, FontStyles.Bold,
+                i == 0 ? Amber : Secondary);
+            Top(label.rectTransform, 12f, 168f, 192f, 56f);
+            label.alignment = TextAlignmentOptions.Center;
+            label.textWrappingMode = TextWrappingModes.Normal;
+            refs.destinationCards.Add(card);
+            refs.destinationCardImages.Add(art);
+            refs.destinationCardBorders.Add(FindChild(card.transform, "Border").GetComponent<Image>());
+            refs.destinationCardLabels.Add(label);
+            AddPersistent(card.onClick, actions[i]);
         }
     }
 
-    private static void BuildShip(Transform root, Sprite frame, Sprite fill, TMP_FontAsset font, Refs refs)
+    private static void BuildShip(Transform root, Sprite frame, Sprite fill, TMP_FontAsset font, Refs refs,
+        Dimension1ExploreVisualUI visual, Sprite initialBlueprint, Material blueprintMaterial)
     {
         RectTransform panel = Panel("ShipPanel", root, frame, fill,
-            new Vector2(550f, 674f), new Vector2(468f, 300f), Fill, CyanMuted);
-        Label(panel, font, "NAVE", 29f, 28f, 130f);
-        refs.shipName = Value(panel, font, "SONDA LIGERA", 29f, 70f, 250f, Cyan);
-        refs.shipStatus = Value(panel, font, "DISPONIBLE", 29f, 112f, 210f, Green);
-        Line("Rule", panel, new Vector2(-205f, 1f), new Vector2(-55f, 1f), 1.2f, Hex("1C7EA1", 130));
-        Label(panel, font, "VELOCIDAD", 29f, 169f, 160f);
-        refs.shipSpeed = Value(panel, font, "120 UA/s", 29f, 211f, 190f, Secondary);
-        Image shipArt = Image("ShipIllustration", panel, LoadSprite(ShipArtPath), Hex("D7F4FF", 235));
-        shipArt.rectTransform.anchorMin = shipArt.rectTransform.anchorMax = new Vector2(.5f, .5f);
-        shipArt.rectTransform.pivot = new Vector2(.5f, .5f);
-        shipArt.rectTransform.anchoredPosition = new Vector2(108f, 10f);
-        shipArt.rectTransform.sizeDelta = new Vector2(192f, 210f);
-        shipArt.preserveAspect = false;
-        shipArt.raycastTarget = false;
+            new Vector2(62f, 1004f), new Vector2(462f, 224f), Fill, CyanMuted);
+        Label(panel, font, "NAVE", 24f, 20f, 120f);
+        refs.shipName = Value(panel, font, "SONDA LIGERA", 24f, 58f, 250f, Cyan);
+        refs.shipStatus = Value(panel, font, "DISPONIBLE", 24f, 96f, 210f, Green);
+        refs.shipMetricLabel = Label(panel, font, "VELOCIDAD", 24f, 139f, 140f);
+        refs.shipSpeed = Value(panel, font, "NIVEL 4", 24f, 174f, 160f, Secondary);
+        refs.shipIllustration = Image("ShipIllustration", panel, initialBlueprint, Color.white);
+        refs.shipIllustration.material = blueprintMaterial;
+        refs.shipIllustration.rectTransform.anchorMin = refs.shipIllustration.rectTransform.anchorMax = new Vector2(.5f, .5f);
+        refs.shipIllustration.rectTransform.pivot = new Vector2(.5f, .5f);
+        refs.shipIllustration.rectTransform.anchoredPosition = new Vector2(122f, 0f);
+        refs.shipIllustration.rectTransform.sizeDelta = new Vector2(202f, 202f);
+        refs.shipIllustration.preserveAspect = true;
+        refs.shipIllustration.raycastTarget = false;
+        AddCycleControls(panel, frame, fill, font, visual.SelectPreviousShip, visual.SelectNextShip,
+            new Vector2(300f, 147f), "CAMBIAR");
     }
 
-    private static void BuildSupport(Transform root, Sprite frame, Sprite fill, TMP_FontAsset font, Refs refs)
+    private static void BuildSupport(Transform root, Sprite frame, Sprite fill, TMP_FontAsset font, Refs refs,
+        Dimension1ExploreVisualUI visual, Sprite initialBlueprint, Material blueprintMaterial)
     {
         RectTransform panel = Panel("SupportPanel", root, frame, fill,
-            new Vector2(62f, 1002f), new Vector2(954f, 224f), Fill, CyanMuted);
+            new Vector2(550f, 1004f), new Vector2(466f, 224f), Fill, CyanMuted);
         TMP_Text supportLabel = Text("SupportLabel", panel, font, "APOYO", 24f, FontStyles.Bold, Secondary);
-        Top(supportLabel.rectTransform, 48f, 22f, 112f, 36f);
+        Top(supportLabel.rectTransform, 24f, 20f, 112f, 36f);
         TMP_Text optional = Text("Optional", panel, font, "OPCIONAL", 20f, FontStyles.Bold, Cyan);
-        Top(optional.rectTransform, 164f, 25f, 125f, 31f);
-        Image droneArt = Image("DroneIllustration", panel, LoadSprite(DroneArtPath), Hex("D1F2FC", 230));
-        droneArt.rectTransform.anchorMin = droneArt.rectTransform.anchorMax = new Vector2(.5f, .5f);
-        droneArt.rectTransform.pivot = new Vector2(.5f, .5f);
-        droneArt.rectTransform.anchoredPosition = new Vector2(-330f, -26f);
-        droneArt.rectTransform.sizeDelta = new Vector2(170f, 116f);
-        droneArt.preserveAspect = false;
-        droneArt.raycastTarget = false;
+        Top(optional.rectTransform, 128f, 23f, 125f, 31f);
+        refs.supportIllustration = Image("DroneIllustration", panel, initialBlueprint, Color.white);
+        refs.supportIllustration.material = blueprintMaterial;
+        refs.supportIllustration.rectTransform.anchorMin = refs.supportIllustration.rectTransform.anchorMax = new Vector2(.5f, .5f);
+        refs.supportIllustration.rectTransform.pivot = new Vector2(.5f, .5f);
+        refs.supportIllustration.rectTransform.anchoredPosition = new Vector2(125f, 0f);
+        refs.supportIllustration.rectTransform.sizeDelta = new Vector2(196f, 196f);
+        refs.supportIllustration.preserveAspect = true;
+        refs.supportIllustration.raycastTarget = false;
         refs.supportName = Text("SupportName", panel, font, "DRON EXTRACTOR", 27f, FontStyles.Bold, Cyan);
-        Top(refs.supportName.rectTransform, 300f, 84f, 315f, 38f);
+        Top(refs.supportName.rectTransform, 24f, 62f, 250f, 38f);
         refs.supportStatus = Text("SupportStatus", panel, font, "DISPONIBLE", 22f, FontStyles.Bold, Green);
-        Top(refs.supportStatus.rectTransform, 300f, 128f, 220f, 32f);
-        Line("Divider", panel, new Vector2(128f, 67f), new Vector2(128f, -70f), 1.2f, Hex("1B6682", 130));
-        refs.supportBonus = Text("Bonus", panel, font, "BONO: +10% ESCANEO", 23f, FontStyles.Bold, Secondary);
-        Top(refs.supportBonus.rectTransform, 652f, 87f, 275f, 34f);
+        Top(refs.supportStatus.rectTransform, 24f, 101f, 250f, 32f);
+        refs.supportBonus = Text("Bonus", panel, font, "×4 METALES · ×2.5 TIEMPO", 18f, FontStyles.Bold, Secondary);
+        Top(refs.supportBonus.rectTransform, 24f, 139f, 250f, 54f);
+        refs.supportBonus.alignment = TextAlignmentOptions.Left;
+        refs.supportBonus.textWrappingMode = TextWrappingModes.Normal;
         refs.supportAvailability = Text("Availability", panel, font, "● DISPONIBLE", 19f, FontStyles.Bold, Green);
-        Top(refs.supportAvailability.rectTransform, 652f, 130f, 250f, 30f);
+        Top(refs.supportAvailability.rectTransform, 24f, 187f, 260f, 26f);
+        AddCycleControls(panel, frame, fill, font, visual.SelectPreviousSupport, visual.SelectNextSupport,
+            new Vector2(304f, 147f), "CAMBIAR");
     }
 
-    private static void BuildActiveExpedition(Transform root, Sprite frame, Sprite fill, TMP_FontAsset font, Refs refs)
+    private static void BuildMode(Transform root, Sprite frame, Sprite fill, TMP_FontAsset font, Refs refs,
+        Dimension1ExploreVisualUI visual)
+    {
+        RectTransform panel = Panel("ModePanel", root, frame, fill,
+            new Vector2(62f, 1242f), new Vector2(954f, 146f), Fill, CyanMuted);
+        TMP_Text heading = Text("Heading", panel, font, "MODO DE EXPEDICIÓN", 21f,
+            FontStyles.Bold, Secondary);
+        Top(heading.rectTransform, 25f, 12f, 280f, 30f);
+
+        Button simple = ButtonPanel("SimpleMode", panel, frame, fill,
+            new Vector2(24f, 48f), new Vector2(440f, 78f), Hex("1B1508", 248), Amber);
+        refs.simpleModeBorder = FindChild(simple.transform, "Border").GetComponent<Image>();
+        TMP_Text simpleTitle = Text("Title", simple.transform, font, "SIMPLE", 24f,
+            FontStyles.Bold, Primary);
+        Top(simpleTitle.rectTransform, 25f, 8f, 180f, 34f);
+        refs.simpleModeStatus = Text("Status", simple.transform, font, "MODO ACTIVO", 16f,
+            FontStyles.Bold, Amber);
+        Top(refs.simpleModeStatus.rectTransform, 25f, 40f, 250f, 25f);
+        AddPersistent(simple.onClick, visual.SetSimpleMode);
+
+        Button coordinated = ButtonPanel("CoordinatedMode", panel, frame, fill,
+            new Vector2(490f, 48f), new Vector2(440f, 78f), FillRaised, CyanMuted);
+        refs.coordinatedModeBorder = FindChild(coordinated.transform, "Border").GetComponent<Image>();
+        TMP_Text coordinatedTitle = Text("Title", coordinated.transform, font, "COORDINADA", 24f,
+            FontStyles.Bold, Cyan);
+        Top(coordinatedTitle.rectTransform, 25f, 8f, 220f, 34f);
+        refs.coordinatedModeStatus = Text("Status", coordinated.transform, font,
+            "MAYORES RECOMPENSAS", 16f, FontStyles.Bold, Secondary);
+        Top(refs.coordinatedModeStatus.rectTransform, 25f, 40f, 300f, 25f);
+        AddPersistent(coordinated.onClick, visual.SetCoordinatedMode);
+    }
+
+    private static void BuildActiveExpedition(Transform root, Sprite frame, Sprite fill, TMP_FontAsset font, Refs refs,
+        Dimension1ExploreVisualUI visual, Sprite activeBadge)
     {
         RectTransform panel = Panel("ActiveExpedition", root, frame, fill,
-            new Vector2(62f, 1272f), new Vector2(954f, 216f), Fill, CyanMuted);
-        DrawAnalyticProbe(panel, new Vector2(-391f, 0f), 83f, CyanMuted);
-        TMP_Text eyebrow = Text("Eyebrow", panel, font, "EXPEDICIÓN ACTIVA", 24f, FontStyles.Bold, Cyan);
-        Top(eyebrow.rectTransform, 184f, 38f, 325f, 34f);
+            new Vector2(62f, 1402f), new Vector2(954f, 146f), Fill, CyanMuted);
+        Image badge = Image("ExpeditionBadge", panel, activeBadge, Color.white);
+        Top(badge.rectTransform, 28f, 12f, 122f, 122f);
+        badge.preserveAspect = true;
+        badge.raycastTarget = false;
+        TMP_Text eyebrow = Text("Eyebrow", panel, font, "EXPEDICIONES ACTIVAS", 22f, FontStyles.Bold, Cyan);
+        Top(eyebrow.rectTransform, 170f, 20f, 325f, 32f);
         refs.activeShip = Text("ActiveShip", panel, font, "SONDA ANALÍTICA", 26f, FontStyles.Bold, Cyan);
-        Top(refs.activeShip.rectTransform, 184f, 78f, 335f, 36f);
+        Top(refs.activeShip.rectTransform, 170f, 55f, 335f, 36f);
         refs.activeDestination = Text("ActiveDestination", panel, font, "SEÑAL DESCONOCIDA NIVEL 1", 22f, FontStyles.Normal, Secondary);
-        Top(refs.activeDestination.rectTransform, 184f, 121f, 430f, 34f);
+        Top(refs.activeDestination.rectTransform, 170f, 91f, 430f, 34f);
         TMP_Text remaining = Text("Remaining", panel, font, "TIEMPO RESTANTE", 18f, FontStyles.Bold, Secondary);
-        Top(remaining.rectTransform, 700f, 66f, 220f, 30f);
+        Top(remaining.rectTransform, 714f, 38f, 220f, 30f);
         remaining.alignment = TextAlignmentOptions.Center;
         refs.activeTimer = Text("Timer", panel, font, "00:28:45", 40f, FontStyles.Normal, Primary);
-        Top(refs.activeTimer.rectTransform, 675f, 101f, 272f, 55f);
+        Top(refs.activeTimer.rectTransform, 706f, 69f, 236f, 55f);
         refs.activeTimer.alignment = TextAlignmentOptions.Center;
+        refs.activeCount = Text("ActiveCount", panel, font, "1 / 1", 18f, FontStyles.Bold, CyanMuted);
+        Top(refs.activeCount.rectTransform, 814f, 10f, 90f, 28f);
+        refs.activeCount.alignment = TextAlignmentOptions.Center;
+        AddCycleControls(panel, frame, fill, font, visual.SelectPreviousActiveExpedition, visual.SelectNextActiveExpedition,
+            new Vector2(534f, 46f), "");
     }
 
     private static void BuildActions(Transform root, Sprite frame, Sprite fill, TMP_FontAsset font, Refs refs,
-        Dimension1PanelUI panel)
+        Dimension1PanelUI panel, Dimension1ExploreVisualUI visual)
     {
         refs.start = ButtonPanel("StartExpedition", root, frame, fill,
-            new Vector2(62f, 1513f), new Vector2(544f, 122f), Hex("1B1508", 250), Amber);
-        TMP_Text startText = Text("Label", refs.start.transform, font, "INICIAR EXPEDICIÓN", 29f, FontStyles.Bold, Amber);
-        Stretch(startText.rectTransform, new Vector2(25f, 18f), new Vector2(25f, 18f));
-        startText.alignment = TextAlignmentOptions.Center;
-        AddPersistent(refs.start.onClick, panel.OnClickStartFirstAvailableExploration);
+            new Vector2(62f, 1562f), new Vector2(544f, 122f), Hex("1B1508", 250), Amber);
+        refs.startLabel = Text("Label", refs.start.transform, font, "INICIAR EXPEDICIÓN", 29f, FontStyles.Bold, Amber);
+        Stretch(refs.startLabel.rectTransform, new Vector2(25f, 18f), new Vector2(25f, 18f));
+        refs.startLabel.alignment = TextAlignmentOptions.Center;
+        AddPersistent(refs.start.onClick, visual.ExecutePrimaryAction);
 
         refs.record = ButtonPanel("ExplorationRecord", root, frame, fill,
-            new Vector2(648f, 1513f), new Vector2(368f, 122f), Fill, CyanMuted);
+            new Vector2(648f, 1562f), new Vector2(368f, 122f), Fill, CyanMuted);
         TMP_Text recordText = Text("Label", refs.record.transform, font, "REGISTRO", 27f, FontStyles.Bold, CyanMuted);
         Stretch(recordText.rectTransform, new Vector2(25f, 18f), new Vector2(25f, 18f));
         recordText.alignment = TextAlignmentOptions.Center;
-        AddPersistent(refs.record.onClick, panel.OnClickOpenExplorationRecord);
+        AddPersistent(refs.record.onClick, visual.OpenExpeditionRecord);
+    }
+
+    private static void BuildPreviewDetails(Transform root, Sprite frame, Sprite fill, TMP_FontAsset font,
+        Refs refs, Dimension1ExploreVisualUI visual)
+    {
+        RectTransform overlay = Rect("PreviewDetailsOverlay", root);
+        Stretch(overlay);
+        refs.detailsOverlay = overlay.gameObject;
+        Image blocker = Image("Blocker", overlay, null, Hex("00070B", 225));
+        Stretch(blocker.rectTransform);
+        blocker.raycastTarget = true;
+
+        RectTransform panel = Panel("DetailsPanel", overlay, frame, fill,
+            new Vector2(62f, 300f), new Vector2(954f, 1335f), Fill, CyanMuted);
+        TMP_Text title = Text("Title", panel, font, "DETALLES DE LA SEÑAL", 32f,
+            FontStyles.Bold, Primary);
+        Top(title.rectTransform, 36f, 34f, 690f, 52f);
+
+        refs.closeDetails = ButtonPanel("CloseDetails", panel, frame, fill,
+            new Vector2(838f, 22f), new Vector2(82f, 72f), FillRaised, CyanMuted);
+        TMP_Text closeLabel = Text("Label", refs.closeDetails.transform, font, "×", 42f,
+            FontStyles.Normal, CyanBright);
+        Stretch(closeLabel.rectTransform, new Vector2(8f, 4f), new Vector2(8f, 4f));
+        closeLabel.alignment = TextAlignmentOptions.Center;
+        AddPersistent(refs.closeDetails.onClick, visual.ClosePreviewDetails);
+
+        RectTransform viewport = Rect("Viewport", panel);
+        Top(viewport, 36f, 116f, 882f, 1175f);
+        Image viewportHit = viewport.gameObject.AddComponent<Image>();
+        viewportHit.color = Color.clear;
+        viewportHit.raycastTarget = true;
+        viewport.gameObject.AddComponent<RectMask2D>();
+        refs.detailsScroll = viewport.gameObject.AddComponent<ScrollRect>();
+        refs.detailsScroll.horizontal = false;
+        refs.detailsScroll.vertical = true;
+        refs.detailsScroll.movementType = ScrollRect.MovementType.Clamped;
+        refs.detailsScroll.inertia = true;
+        refs.detailsScroll.decelerationRate = .12f;
+        refs.detailsScroll.scrollSensitivity = 48f;
+        refs.detailsScroll.viewport = viewport;
+
+        refs.detailsContent = Rect("Content", viewport);
+        refs.detailsContent.anchorMin = new Vector2(0f, 1f);
+        refs.detailsContent.anchorMax = new Vector2(1f, 1f);
+        refs.detailsContent.pivot = new Vector2(.5f, 1f);
+        refs.detailsContent.anchoredPosition = Vector2.zero;
+        refs.detailsContent.sizeDelta = new Vector2(0f, 1800f);
+        refs.detailsScroll.content = refs.detailsContent;
+
+        refs.detailsText = Text("DetailsText", refs.detailsContent, font,
+            "SELECCIONA UNA SEÑAL Y UNA NAVE PARA VER DESTINO, DISTANCIA, MODO, " +
+            "RECOMPENSAS POSIBLES Y ESTADO DE SALIDA.", 27f, FontStyles.Normal, Primary);
+        Top(refs.detailsText.rectTransform, 18f, 12f, 846f, 1760f);
+        refs.detailsText.textWrappingMode = TextWrappingModes.Normal;
+        refs.detailsText.overflowMode = TextOverflowModes.Overflow;
+        refs.detailsText.lineSpacing = 5f;
     }
 
     private static void BuildNavigation(Transform root, Sprite frame, Sprite fill, TMP_FontAsset font, Refs refs,
@@ -487,6 +723,47 @@ public static class Dimension1ExploreReferenceSetup
         colors.pressedColor = new Color(0.55f, 0.85f, 1f, 1f);
         colors.disabledColor = new Color(0.45f, 0.5f, 0.52f, 0.72f);
         colors.fadeDuration = 0.08f;
+        button.colors = colors;
+        return button;
+    }
+
+    private static void AddCycleControls(Transform parent, Sprite frame, Sprite fill, TMP_FontAsset font,
+        UnityAction previous, UnityAction next, Vector2 topLeft, string hint)
+    {
+        const float controlSize = 72f;
+        const float controlStep = 86f;
+        Button left = ButtonPanel("Previous", parent, frame, fill, topLeft,
+            new Vector2(controlSize, controlSize), FillRaised, CyanMuted);
+        Line("ChevronA", left.transform, new Vector2(8f, 14f), new Vector2(-8f, 0f), 3.2f, CyanBright);
+        Line("ChevronB", left.transform, new Vector2(-8f, 0f), new Vector2(8f, -14f), 3.2f, CyanBright);
+        AddPersistent(left.onClick, previous);
+
+        Button right = ButtonPanel("Next", parent, frame, fill, topLeft + new Vector2(controlStep, 0f),
+            new Vector2(controlSize, controlSize), FillRaised, CyanMuted);
+        Line("ChevronA", right.transform, new Vector2(-8f, 14f), new Vector2(8f, 0f), 3.2f, CyanBright);
+        Line("ChevronB", right.transform, new Vector2(8f, 0f), new Vector2(-8f, -14f), 3.2f, CyanBright);
+        AddPersistent(right.onClick, next);
+
+        if (string.IsNullOrEmpty(hint)) return;
+        TMP_Text label = Text("CycleHint", parent, font, hint, 14f, FontStyles.Bold, CyanMuted);
+        Top(label.rectTransform, topLeft.x - 142f, topLeft.y + 20f, 134f, 32f);
+        label.alignment = TextAlignmentOptions.Right;
+    }
+
+    private static Button TransparentButton(string name, Transform parent, Vector2 topLeft, Vector2 size)
+    {
+        RectTransform rect = Rect(name, parent);
+        Top(rect, topLeft, size);
+        Image hit = rect.gameObject.AddComponent<Image>();
+        hit.color = new Color(1f, 1f, 1f, .001f);
+        Button button = rect.gameObject.AddComponent<Button>();
+        button.targetGraphic = hit;
+        ColorBlock colors = button.colors;
+        colors.normalColor = Color.white;
+        colors.highlightedColor = new Color(.70f, .94f, 1f, 1f);
+        colors.pressedColor = new Color(.45f, .78f, .92f, 1f);
+        colors.disabledColor = new Color(.35f, .40f, .42f, .45f);
+        colors.fadeDuration = .06f;
         button.colors = colors;
         return button;
     }
@@ -1039,8 +1316,8 @@ public static class Dimension1ExploreReferenceSetup
         text.fontSize = size;
         text.fontStyle = style;
         text.color = color;
-        text.enableWordWrapping = false;
-        text.overflowMode = TextOverflowModes.Ellipsis;
+        text.textWrappingMode = TextWrappingModes.NoWrap;
+        text.overflowMode = TextOverflowModes.Truncate;
         text.raycastTarget = false;
         return text;
     }
@@ -1159,6 +1436,15 @@ public static class Dimension1ExploreReferenceSetup
             property.GetArrayElementAtIndex(i).objectReferenceValue = values[i];
     }
 
+    private static void SetStringArray(SerializedObject so, string propertyName, string[] values)
+    {
+        SerializedProperty property = so.FindProperty(propertyName);
+        if (property == null) throw new InvalidOperationException("No existe arreglo serializado: " + propertyName);
+        property.arraySize = values == null ? 0 : values.Length;
+        for (int i = 0; values != null && i < values.Length; i++)
+            property.GetArrayElementAtIndex(i).stringValue = values[i];
+    }
+
     private static void AddPersistent(UnityEvent evt, UnityAction action)
     {
         UnityEventTools.AddPersistentListener(evt, action);
@@ -1186,7 +1472,16 @@ public static class Dimension1ExploreReferenceSetup
         string[] required = { "ScannerPanel", "DestinationPanel", "ShipPanel", "SupportPanel", "ActiveExpedition", "StartExpedition", "BottomNavigation" };
         foreach (string name in required)
             if (FindChild(root, name) == null) throw new InvalidOperationException("Falta bloque visual: " + name);
+        Image sectorArtwork = FindChild(root, "SectorArtwork")?.GetComponent<Image>();
+        if (sectorArtwork == null || sectorArtwork.sprite == null)
+            throw new InvalidOperationException("Falta el arte dinámico del sector en Explorar.");
         if (FindChild(root, "Nav_EXPLORAR")?.GetComponent<Button>() == null) throw new InvalidOperationException("Falta navegación Explorar.");
+        Button start = FindChild(root, "StartExpedition")?.GetComponent<Button>();
+        if (start == null || !HasPersistentMethod(start.onClick, "ExecutePrimaryAction"))
+            throw new InvalidOperationException("La acción principal de Explorar no usa el flujo contextual.");
+        Button upgradeScanner = FindChild(root, "UpgradeScanner")?.GetComponent<Button>();
+        if (upgradeScanner == null || !HasPersistentMethod(upgradeScanner.onClick, "UpgradeScanner"))
+            throw new InvalidOperationException("Falta la mejora funcional del escáner.");
     }
 
     private static Color Hex(string value, byte alpha = 255)

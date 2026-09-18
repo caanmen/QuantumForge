@@ -1,0 +1,45 @@
+RESUMEN DE CONTINUIDAD — MONOLITO 2D V17 — 2026-08-28
+
+AUTORIDAD CONSERVADA
+
+- La composición general mantiene escala 0,72 y posición `(0, 34)`.
+- El pedestal visible V39 permanece dividido en cama trasera y labio frontal; no se
+  modificó durante el bloque de animación.
+- Vista general V06, Monolito V03, caras expuestas V35 y fondo cercano V27 permanecen
+  como assets canónicos conectados en `Main.unity`.
+- Se mantienen las cuatro luces V17, las dimensiones aprobadas de las caras y la
+  distribución 7 + 11 + 7 + 0.
+
+CORRECCIÓN DE TRANSICIÓN V40
+
+- El problema anterior era un solape prolongado: Monolito y cara coexistían entre 40 %
+  y 90 %, mientras el cambio V06/V27 ocurría entre 18 % y 82 %.
+- V40 usa una mezcla única y complementaria entre 48 % y 62 % para el Monolito, la
+  cara seleccionada y el laboratorio cercano. Nunca existe un fotograma sin una vista
+  dominante.
+- La cara ya no aparece directamente en su tamaño final: nace en la región tocada del
+  Monolito, avanza hacia el centro y alcanza el encuadre cercano entre 44 % y 74 %.
+- V27 realiza un pequeño avance coordinado entre 42 % y 78 %; el cambio de perspectiva
+  acompaña a la cara en vez de ocurrir como una fotografía separada.
+- El pedestal V39 conserva su salida existente y desaparece antes de consolidarse la
+  vista cercana.
+
+VALIDACIÓN REAL
+
+- PASS específico: `V40 TRANSITION PASS`.
+- Puntos comprobados: 0/25/50/55/62/75/100.
+- Resoluciones: 1080×1920 y 720×1280.
+- Se validó alfa complementaria, sincronía fondo/cara, ausencia de pantalla vacía,
+  monotonía de opacidades, paralaje y estado final exclusivo V27 + cara.
+- Evidencia temporal:
+  `Logs/VisualQA/MachineMonolith2D/*transition_v40*`.
+- Registro:
+  `Logs/machine_monolith_v40_transition_capture.log`.
+
+ESTADO
+
+- Implementación y validación automática completas.
+- Pendiente aprobación visual del usuario en movimiento; no copiar aún las capturas V40
+  a `06_CAPTURAS_APROBADAS` ni declarar similitud final del 95 %.
+- Próximo bloque sugerido después de la aprobación: pulir la aparición del título,
+  botón Volver y ficha de nodo, y luego evaluar una animación coherente de regreso.

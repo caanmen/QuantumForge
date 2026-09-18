@@ -24,8 +24,8 @@ public class LocalizationManager : MonoBehaviour
     [Serializable]
     private class Entry
     {
-        public string key;
-        public string value;
+        public string key = string.Empty;
+        public string value = string.Empty;
     }
 
     // Soporta JSON tipo: { "a":"b", "c":"d" } (como los tuyos)

@@ -1,0 +1,55 @@
+ORIGEN Y USO — D2_FIRSTENTRY_HERO_V1
+
+Fecha: 24 de agosto de 2026.
+Asset: D2_FirstEntry_Hero_v1.png.
+
+Origen:
+- Generado mediante ImageGen en modo edición usando como referencia la composición
+  visual elegida por el usuario para D2_FirstEntry.
+- Intención del prompt: aislar una ilustración cuadrada limpia del bosque oscuro,
+  el sendero sinuoso, las lámparas, el Santuario iluminado y los emblemas rojo y gris.
+- Se pidió retirar marcos, título, relato, botón, adornos de interfaz y marcas.
+
+Uso:
+- Propietario: D2_FirstEntry/HeroPanel/HeroClip/HeroArt.
+- Es una capa de ilustración, no una pantalla aplanada.
+- Estado: candidato integrado; pendiente de aprobación visual final.
+- No debe promoverse ni reutilizarse como asset canónico hasta registrar esa aprobación.
+
+SHA-256:
+B1943F60A9DF4A5DF2F77F8C6DCD6ACBFA92A97F2D234215F9333D8177E30A5C
+
+CAPAS ORNAMENTALES V2
+
+Assets:
+- D2_FirstEntry_FrameAtlas_v2.png
+- D2_FirstEntry_ButtonPlate_v2.png
+- D2_FirstEntry_OuterFrame_v2.png
+- D2FirstEntryWhiteKey.shader
+- D2FirstEntryWhiteKey.mat
+
+Origen y modo:
+- ImageGen integrado, modo edición, usando la referencia visual elegida por el usuario.
+- FrameAtlas: aislar marcos tallados de título, ilustración y relato sin texto ni
+  contenido funcional.
+- ButtonPlate: aislar la placa dorada sin las palabras ABRIR MAPA.
+- OuterFrame: aislar únicamente el marco exterior, esquinas y remates centrales.
+- Las salidas visuales no incluyeron alfa real; el material WhiteKey elimina en Unity
+  los fondos neutros sin modificar los píxeles ornamentales de origen.
+
+Propietarios:
+- OuterFrame: decoración exterior de D2_FirstEntry.
+- TitleFrame: recorte UV del atlas, detrás del título TMP real.
+- HeroFrame: recorte UV del atlas, separado de HeroArt.
+- NarrativeFrame: recorte UV del atlas, separado del relato TMP real.
+- Btn_ContinueFirstEntry: Button UGUI real con ButtonPlate como TargetGraphic y
+  ABRIR MAPA como texto TMP independiente.
+
+Estado:
+- Candidatos integrados y validados técnicamente.
+- Pendientes de aprobación visual explícita; no son todavía assets canónicos D2.
+
+SHA-256:
+- FrameAtlas_v2: 1687556D6FFCAD510F0BD8680DF1505F3F0E4D5AA80D2323CA40371E53C761C6
+- ButtonPlate_v2: EEF82F6065DE4F2A476BC359704147D9A958AC0273F0FDDEC92953A6576B0B0C
+- OuterFrame_v2: B0C8607A6F597FC0D6ADD6E760111AD529D462EDE741F286A7F3FB3D97473301

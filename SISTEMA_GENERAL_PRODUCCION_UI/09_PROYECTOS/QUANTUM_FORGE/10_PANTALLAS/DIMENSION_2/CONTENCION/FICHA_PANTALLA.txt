@@ -1,0 +1,85 @@
+FICHA DE PANTALLA — CONTENCIÓN
+
+Fecha: 2 de septiembre de 2026
+Estado: APROBADA VISUALMENTE POR EL USUARIO; CAPTURAS ARCHIVADAS
+
+IDENTIDAD Y FUNCIÓN
+- Sexta sección de Civilización 2 antes de contener al Ente.
+- Muestra Miembros disponibles, Dominio total, intentos y fallos.
+- Presenta la probabilidad real, cooldown y consecuencias de fallo o éxito.
+- Muestra el Sostenimiento previo como controles visibles deshabilitados.
+- Permite intentar Contención y exige una segunda confirmación cuando el riesgo
+  funcional se considera alto.
+- Entrada: pestaña CONTENCIÓN después de revisar Alerta.
+- Salida: botón Atrás al Mapa de los Pactos o cualquier pestaña hermana visible.
+
+REFERENCIA DE AUTORIDAD
+- Ruta: 05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/14_Contencion_Intento_Corregida_V4.png
+- Tipo: referencia visual candidata permanente V4.
+- Resolución: 941×1672; composición objetivo 1080×1920.
+- SHA-256: C4A61ED19D9CF9410AD094D66FD653B463B62A009307939F4AA76BDD67D0BFC8
+- La selección exterior del adjunto temporal del chat no pertenece a la pantalla.
+
+PUERTA 0 — AUDITORÍA Y REUTILIZACIÓN
+- Main.unity, constructor, D2ContainmentPanelUI, D2Civilization2System,
+  Dimension2State, referencia V4 y pantallas hermanas fueron inspeccionados.
+
+Concepto | origen | ruta exacta | estado | decisión
+- Armazón D2 Resistencia | pantallas 09–13 | Dimension2Block1UISetup.cs | producción | reutilizar Canvas, navegación, Cinzel y lienzo 1080×1920.
+- Datos y reglas | sistema Civ 2 | D2Civilization2System.cs y Dimension2State.cs | producción | autoridad funcional única.
+- Controlador | UI previa | D2ContainmentPanelUI.cs | producción | ampliar sin duplicar probabilidad, cooldown ni resolución.
+- Placa limpia | referencia V4 14 | Assets/Project/UI/Dimension2/Resistance/Generated/D2_ResistanceContainment_CleanBasePlate_v3.png | candidato | conservar ilustración, cadenas, marcos e iconos sin hornear datos; V3 aplica el centrado óptico final de ojo y reloj.
+- Confirmación de riesgo | reglas de presentación | D2Civilization2PresentationRules | producción | primera pulsación arma la confirmación sin ejecutar el intento.
+
+Simplificaciones prohibidas:
+- No hornear Dominio, probabilidad, cooldown, intentos, fallos, asignaciones,
+  resultado ni etiqueta de la acción principal.
+- No permitir una ejecución accidental cuando la confirmación de riesgo es obligatoria.
+- No mostrar PACTO MAYOR antes de contener al Ente.
+- No activar los controles de Sostenimiento antes del éxito.
+
+DATOS Y PROPIETARIOS
+- D2Civilization2System: disponibilidad, probabilidad, cooldown, pérdidas,
+  resolución, Contención permanente y preparación del Pacto Mayor.
+- Dimension2State: intentos, fallos, cooldown, asignación y último resultado.
+- D2ContainmentPanelUI: formato, confirmación segura, interacción y fase visible.
+- D2Civilization2PanelUI: navegación, desbloqueo y refresco.
+- Dimension2Block1UISetup: geometría, tipografía, capas, botones y assets.
+
+ESTADOS
+- Contención bloqueada, disponible y Ente contenido.
+- Probabilidad favorable o recomendación de reducir Dominio/mejorar Protección.
+- Sin cooldown, cooldown activo y Contención permanente.
+- Sin intentos, fallo con reintento y transición al Pacto Mayor.
+- Acción directa y confirmación obligatoria de riesgo.
+
+RECONSTRUCCIÓN Y QA
+- Escena: Assets/Project/Scenes/Main.unity.
+- Constructor canónico: Dimension2Block1UISetup.ConfigureBlock1UI.
+- Captura y pruebas: Dimension2ResistanceContainmentCapture.Run.
+- Comparación: UIReferenceComparison.RunDimension2ResistanceContainment.
+- Resoluciones: 1080×1920 y 720×1280.
+- Criterio: estructura, estado, confirmación, rutas, guardado intacto,
+  geometría de texto y similitud perceptual AA ≥95 % en ambas resoluciones.
+
+EVIDENCIA ACTUALIZADA EL 2 DE SEPTIEMBRE DE 2026
+- Captura 1080×1920: CAPTURAS_CANDIDATAS/D2_Contencion_1080x1920.png
+- Captura 720×1280: CAPTURAS_CANDIDATAS/D2_Contencion_720x1280.png
+- Log de captura: Logs/dimension2_resistance_containment_capture.log
+- Log de comparación: Logs/dimension2_resistance_containment_comparison.log
+- Resultado: STRUCTURE_PASS | STATE_PASS | ACTIONS_PASS | ROUTE_PASS |
+  SAVE_INTACT_PASS | TEXT_GEOMETRY_PASS.
+- Comparación perceptual AA: 95.82 % a 1080×1920 y 96.29 % a 720×1280.
+- Se verificó el centrado de las cuatro cifras de cabecera, la columna completa
+  de Dominio, el reloj de cooldown y el contenido de los cinco botones de
+  Sostenimiento en ambas resoluciones.
+- El valor 15 % quedó ocho píxeles de diseño más arriba; ojo y reloj se movieron
+  a la izquierda para completar el centrado horizontal solicitado.
+- SIN COOLDOWN quedó doce píxeles de diseño más cerca del reloj, conservando el
+  centro horizontal común.
+- El fixture usa 3,845 Miembros, 15 % de Dominio, 57.5 % de probabilidad,
+  dos intentos, dos fallos y ausencia de cooldown.
+- La ruta física abre Alerta, Contención, confirma el riesgo sin resolver el
+  intento, vuelve al mapa y reabre la sección sin modificar los guardados.
+
+Evidencia aprobada por el usuario y archivada el 4 de septiembre de 2026.

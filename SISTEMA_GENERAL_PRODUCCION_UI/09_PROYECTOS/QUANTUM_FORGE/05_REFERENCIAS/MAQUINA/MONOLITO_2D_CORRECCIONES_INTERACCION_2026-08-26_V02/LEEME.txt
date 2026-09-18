@@ -1,0 +1,388 @@
+MONOLITO 2D — CORRECCIONES DE INTERACCIÓN V02
+Fecha: 2026-08-26
+
+CLASIFICACIÓN
+
+- `reference_only_lights_and_selected_signature_v02.png` es la referencia visual
+  aprobada para esta corrección. Es concepto visual, no captura de Unity ni asset
+  final recortable.
+- `monolith_sector_1_progression_v02.png`,
+  `monolith_sector_2_progression_v02.png` y
+  `monolith_sector_3_progression_v02.png` son los artes 2D de progresión corregidos
+  que se integran en Unity.
+- `machine_abandoned_alien_lab_background_v01.png` queda como antecedente descartado
+  porque su composición podía leerse como un nicho o recinto alrededor de la cara.
+- `machine_abandoned_alien_lab_background_v02.png` queda como antecedente sustituido:
+  resolvía la amplitud y el vacío central, pero su lenguaje material seguía pareciéndose
+  demasiado al Monolito.
+- `machine_destroyed_scientific_lab_background_v03.png` reemplaza a V02 por decisión
+  explícita del usuario. Presenta un laboratorio científico construido con metal,
+  cerámica, cristales, consolas y equipo de contención dañados por una explosión. Su
+  lenguaje material es deliberadamente distinto del Monolito y reserva el centro para
+  superponer el artefacto como pieza independiente.
+- `machine_monolith_entry_light_depth_pulse_emission_v01.png` registra la opción 5
+  aprobada para los cuatro accesos: una fisura cian-blanca irregular que emerge desde
+  la profundidad del material. Es una textura de emisión sobre negro para mezcla
+  luminosa; no contiene símbolos, círculos, botones ni geometría de nodo.
+- `machine_destroyed_containment_lab_background_v04.png` registra la primera versión
+  vertical de la opción de laboratorio 1 elegida por el usuario. Queda como referencia
+  de concepto, no como fondo de producción, porque el viewport real es casi cuadrado.
+- `machine_destroyed_containment_lab_background_square_v05.png` es el fondo de
+  producción anterior. Queda como antecedente descartado por decisión explícita del
+  usuario: el recinto no resultó convincente como laboratorio para esta pantalla.
+- `machine_destroyed_industrial_lab_background_square_v06.png` es el fondo de
+  producción anterior y corresponde a la opción 5 elegida por el usuario: un cuarto
+  industrial humano abandonado, con bancos de trabajo, consolas cian, ventanas rotas,
+  cableado de techo, luces rojas de emergencia, puerta posterior y pasillo central libre.
+- `machine_destroyed_lab_grounded_cradle_square_v07.png` es el fondo de producción
+  anterior. Conserva el laboratorio V06 y añade una base de contención baja empotrada en
+  el suelo, sombra de contacto y reflejo localizado para que el Monolito tenga apoyo físico
+  y una escala humana legible.
+- `machine_lab_monolith_visible_support_candidate_v08.png` es la referencia aprobada
+  del nuevo fondo de producción. Sustituye la plataforma central oculta por dos guías
+  laterales y un borde frontal que continúan visibles alrededor del Monolito.
+- `machine_monolith_visible_support_composite_mockup_v08.png` es un mockup de
+  composición usado para aprobar V08; no es captura de Unity ni asset de producción.
+- `mockup_sector_1_close_lab_dolly_candidate_v09.png` es una propuesta estática todavía
+  pendiente de aprobación para la vista cercana. Presenta el mismo laboratorio desde una
+  cámara adelantada, con profundidad atmosférica y apoyo físico de la cara.
+- `comparativa_vista_general_y_cara_cercana_v10.png` es una lámina de continuidad:
+  muestra a la izquierda la vista general vigente y a la derecha el concepto cercano V09.
+  No es un asset de producción ni sustituye las dos fuentes originales.
+- `RESUMEN_CONTINUIDAD_MONOLITO_2D_2026-08-26_V03.txt` registra el estado exacto para
+  continuar el trabajo en otro chat, distinguiendo lo aplicado, lo aprobado y lo pendiente.
+- `RESUMEN_CONTINUIDAD_MONOLITO_2D_2026-08-26_V04.txt` reemplaza V03 como resumen vigente
+  después de normalizar las cuatro caras e implementar el paralaje V22. V03 se conserva
+  únicamente como historial del estado anterior.
+- `RESUMEN_CONTINUIDAD_MONOLITO_2D_2026-08-26_V05.txt` reemplaza V04 como resumen vigente.
+  Registra el rechazo visual de V22 y la corrección de composición V23. V04 queda como
+  historial del intento descartado.
+- `RESUMEN_CONTINUIDAD_MONOLITO_2D_2026-08-26_V06.txt` reemplaza V05 como resumen vigente.
+  Registra la proporción fiel V24 y su validación completa. V05 queda como historial de la
+  iteración intermedia.
+- `RESUMEN_CONTINUIDAD_MONOLITO_2D_2026-08-26_V07.txt` reemplaza V06 como resumen vigente.
+  Registra el rechazo del apoyo V24 y la alineación con el marco del suelo V25. V06 queda
+  como historial de la candidata anterior.
+- `RESUMEN_CONTINUIDAD_MONOLITO_2D_2026-08-26_V08.txt` reemplaza V07 como resumen vigente.
+  Registra la aprobación de las cuatro caras V25 y el paralaje contenido V26. V07 queda
+  como historial anterior a esa aprobación.
+- `RESUMEN_CONTINUIDAD_MONOLITO_2D_2026-08-26_V09.txt` reemplaza V08 como resumen vigente.
+  Registra la aprobación final V25/V26 y el archivo permanente de capturas.
+- `machine_lab_close_background_candidate_v18.png` es la fuente conceptual limpia aprobada
+  para el fondo cercano. Conserva el laboratorio humano V08, adelanta la cámara, lleva
+  bancos y consolas hacia los laterales, mantiene las dos guías y el borde frontal y deja
+  el centro libre. No contiene Monolito, cara, nodos, símbolos, textos ni interfaz. Su copia
+  de producción se integra como asset separado dentro de `Assets`.
+- `mockup_sector_1_close_background_candidate_v19.png` es la prueba conceptual aprobada de
+  composición que coloca una sola cara sobre V18 para revisar escala, apoyo físico y aire
+  alrededor. Sirve únicamente para aprobación visual: no debe recortarse, importarse ni
+  sustituir el fondo y la cara canónicos separados.
+- `monolith_overview_progression_clean_v03.png` reconstruye el Monolito completo sin
+  fondo negro integrado. Las cuatro etapas conservan la misma envolvente y escala.
+- `monolith_sector_1_structure_progression_clean_v04.png`,
+  `monolith_sector_2_structure_progression_clean_v04.png` y
+  `monolith_sector_3_structure_progression_clean_v04.png` contienen únicamente la
+  progresión estructural de las caras. Las firmas de nodo se mantienen en una capa
+  separada obtenida de los artes canónicos V02 para conservar 7, 11 y 7 posiciones.
+- `monolith_sector_4_reserved_clean_v04.png` es la cara reservada vigente: oscura,
+  accesible, sin nodos y con `???` solamente en su interior.
+
+DECISIONES APROBADAS
+
+- La vista general usa cuatro luces cian-blancas suaves, una por cada cara accesible.
+  No muestra firmas de nodo, símbolos, `???`, mensajes, nombres, flechas, círculos,
+  cuadros ni marcos explicativos. El `???` aparece sólo dentro de la cuarta cara.
+- Las cuatro luces adoptan la dirección «pulso de profundidad» de la textura de emisión
+  V01. El resplandor se integra en la materia mediante mezcla luminosa y el negro del
+  asset nunca debe renderizarse como rectángulo.
+- Sector 1: superior izquierda. Sector 2: inferior derecha. Sector 3: superior
+  derecha. Sector 4: inferior izquierda, más oscuro y accesible como cara completa,
+  pero sin nodos ni acciones internas.
+- Cada nodo conserva la firma alienígena exacta dibujada en el arte aprobado. En
+  estado dañado se percibe con emisión cian-blanca baja; al repararse alcanza su
+  iluminación completa. La selección actúa sobre la firma situada en la posición
+  exacta del punto tocado y no utiliza aro separado.
+- Conteos: sectores 1 y 3, 0/3/5/7; sector 2, 0/4/7/11.
+- El daño del borde progresa en los acercamientos y debe conservar correspondencia
+  con la silueta dañada de la vista general.
+- La entrada a una cara es un acercamiento 2D; no se usa cubo ni giro 3D.
+- La decisión anterior de mantener inmóvil el mismo fondo durante todo el acercamiento
+  queda revocada por indicación del usuario. La composición cercana se aprobará estática
+  antes de modificar la animación; la propuesta V09 adelanta también el laboratorio para
+  producir paralaje y evitar el aspecto de fotografía ampliada.
+- El viewport debe seguir recortando cualquier fondo cercano para que nunca invada el
+  encabezado ni la ficha inferior.
+- El laboratorio vigente es un cuarto contenido y no un hangar. El Monolito completo
+  y las cuatro caras deben compartir una escala física menor, una línea de apoyo común
+  sobre el suelo y aire visible a los lados y por encima.
+- Las tres caras con nodos se normalizan juntas; la cuarta adopta después la misma
+  envolvente física, conservando su oscuridad, ausencia de nodos y `???` central.
+- La ficha de nodo conserva nombre, estado, descripción funcional, efecto,
+  requisitos, coste y progreso real del sector.
+- Mezclas reutiliza el encabezado y las pestañas de Máquina y ofrece `VOLVER` en
+  la propia capa superior del panel para regresar a Nodos.
+
+GENERACIÓN
+
+- Los recursos raster fueron creados con el generador de imágenes integrado de
+  Codex, guiados por los mockups canónicos del Monolito y las decisiones vigentes.
+- Los prompts exigieron composición 2D ortográfica, material alienígena, una sola
+  gama cian-blanca, conteos exactos y ausencia de tecnología humana.
+- El prompt final de producción V05 exigió un cuarto cuadrado de contención científica
+  humana, con techo, paredes y suelo claramente visibles; cilindros de vidrio rotos,
+  consolas y daño por explosión; centro libre, materiales distintos del Monolito y
+  ausencia de Monolito, cubo, personajes, símbolos o texto.
+
+INTEGRACIÓN Y VALIDACIÓN
+
+- Integrado en `Main.unity` mediante el reconstructor canónico
+  `MachineMonolith2DSetup`; escena y herramienta permanecen sincronizadas.
+- El Monolito completo y las cuatro caras se recortan por su silueta propia: sus zonas
+  oscuras son opacas, el marco rectangular de las hojas raster no se renderiza y las
+  caras no dependen del brillo del píxel para definir transparencia.
+- Las cuatro entradas usan la fisura de pulso profundo con mezcla luminosa aditiva;
+  el negro de la textura de emisión no aparece como cuadro.
+- Validación automática V07 aprobada el 2026-08-26: 7 + 11 + 7 + 0 nodos, cuarta cara
+  accesible y oscura con `???` únicamente en su interior, navegación de Mezclas y
+  transición animada. Se generaron 26 capturas de revisión en 1080×1920 y 720×1280.
+- Las capturas permanecen en `Logs/VisualQA/MachineMonolith2D` hasta recibir aprobación
+  visual del usuario; todavía no se clasifican como capturas aprobadas permanentes.
+- Corrección de producción V11: el laboratorio V06, el Monolito reconstruido y las cuatro
+  caras usan extracción por fondo claro neutro. No se calcula transparencia desde el negro,
+  por lo que piedra, metal, sombras y grietas permanecen sólidas y no aparece el rectángulo
+  oscuro de la hoja original.
+- El generador integrado devolvió los nuevos artes con el patrón claro de previsualización
+  horneado en RGB, aunque se solicitó alfa. Se verificó el archivo real antes de importarlo
+  y se resolvió sin recortar los tonos negros válidos del Monolito.
+- Validación automática V11 aprobada: 7 + 11 + 7 + 0 nodos y 26 capturas de estados,
+  transición y navegación en 1080×1920 y 720×1280. Evidencia:
+  `Logs/machine_monolith_industrial_lab_v11_capture.log`.
+- Corrección V13: se conserva y restaura la escala real de reposo del Monolito, las cuatro
+  luces se centran individualmente sobre sus caras y el laboratorio V07 aporta una base
+  física visible. La ficha completa continúa en las caras 1–3. Evidencia PASS:
+  `Logs/machine_monolith_grounded_lab_v13_capture.log`.
+- Corrección V15: el fondo V08 aprobado se integró en escena y en el reconstructor
+  canónico. Su primer ajuste de luces pasó validación funcional, pero fue rechazado
+  visualmente por el usuario porque las emisiones aún no coincidían con los centros.
+- Corrección V17: las cuatro emisiones se recalibraron contra el centro de la superficie
+  de piedra visible en el arte aprobado, con posiciones independientes para las caras
+  superiores e inferiores. Validación automática PASS en 1080×1920 y 720×1280, con
+  guardado restaurado: `Logs/machine_monolith_surface_centers_v17_capture.log`.
+- Aprobación V18/V19: el usuario aprobó el centrado V17 y la dirección estática V19. El
+  fondo limpio V18 se copió a producción como
+  `Assets/Project/UI/Vertical/Machine/Monolith2D/machine_destroyed_lab_close_dolly_square_v18.png`.
+- Primera integración cercana: V08 continuó en la vista general y V18 se activó primero
+  sólo al entrar al sector 1. Esa captura real recibió aprobación visual del usuario antes
+  de extender la solución. Fondo, cara, nodos, firmas y ficha siguieron como capas
+  independientes.
+- La escena, el reconstructor y el controlador visual quedaron sincronizados. Validación
+  estructural PASS en `Logs/machine_monolith_close_background_v18_setup.log`; prueba completa
+  y 26 capturas PASS en `Logs/machine_monolith_close_background_v18_capture.log`.
+- V22 queda descartado pese a su PASS automático: redujo demasiado la cara 4 y mostró el
+  Monolito completo sobredimensionado durante la transición, en contra de V19.
+- V23 corrigió el acercamiento gigante, pero su escala 0,90 se descartó al compararla con la
+  lámina V10 completa.
+- V24 usa escala 0,78 en las cuatro caras, igual a la proporción original del sector 1, y
+  conserva el acercamiento moderado con el laboratorio visible.
+- V24 registró PASS técnico con 26 capturas en 1080×1920 y 720×1280, estados, navegación,
+  transición y guardado restaurado. Evidencia:
+  `Logs/machine_monolith_v10_proportion_v24_capture.log`.
+- Las capturas V24 siguen siendo candidatas hasta la aprobación perceptual explícita del
+  usuario; no se registran aún como 95 % ni se archivan en capturas aprobadas.
+- V24 se descartó después de la revisión del usuario porque la base de la cara descendía
+  por delante del marco de suelo.
+- V25 conserva la escala 0,78 y desplaza cada cara hacia arriba un 11 % de la altura útil
+  del viewport. La base queda contenida dentro del travesaño frontal y las guías laterales.
+- Validación V25 PASS con 26 capturas en ambas resoluciones, estados, navegación,
+  transición y guardado restaurado. Evidencia:
+  `Logs/machine_monolith_floor_frame_v25_capture.log`.
+- El usuario aprobó las cuatro caras V25. Su escala, posición y apoyo quedan fijados.
+- V26 limita el avance del Monolito a 1,25 veces su escala de reposo y el del laboratorio
+  a 1,07. El cruce de fondos comienza antes y el velo máximo baja a 0,18.
+- La evidencia de final de transición espera a que la cara esté totalmente opaca.
+- Validación V26 PASS con 26 capturas en ambas resoluciones. Evidencia:
+  `Logs/machine_monolith_grounded_parallax_v26_capture.log`.
+- El usuario aprobó explícitamente el movimiento V26. La composición completa alcanza el
+  95 % requerido y queda fijada.
+- Se archivaron 22 capturas visuales aprobadas en
+  `SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/06_CAPTURAS_APROBADAS/COMUN/MAQUINA_MONOLITO_2D`.
+
+CORRECCIÓN V28 — CONTINUIDAD, SÍMBOLOS Y COMPOSICIÓN
+
+- `machine_lab_close_background_derived_from_v08_candidate_v27.png` es la referencia
+  permanente del fondo cercano V27. Se generó con edición de imagen integrada usando V08
+  como objetivo estricto: mismo cuarto, puerta, ventanas, mesas, luces, rieles y marco de
+  suelo; sólo se adelanta la cámara y se mantiene el centro libre, sin Monolito ni interfaz.
+- La copia canónica de producción es
+  `Assets/Project/UI/Vertical/Machine/Monolith2D/machine_destroyed_lab_close_dolly_square_v27.png`.
+- V27 mide 1254×1254 y su SHA-256 es
+  `4DF168384175214D09C3936868DD293D2436BC420467F43CC13EEABBF70A427E`.
+- V18 permanece como historial y ya no es el fondo cercano activo de la escena.
+- V28 mantiene intactas las caras V25: escala 0,78 y apoyo 11 %. Reduce únicamente la
+  presentación de firmas a 72 px, conserva hitbox 104 px y mete las firmas del sector 2
+  dentro de su silueta sin alterar el muestreo de sus símbolos originales.
+- Los estados usan alfa 0,12 dañado, 0,26 dañado seleccionado y 1,00 reparado.
+- El Monolito general usa escala 0,80, posición `(-22, 6)` y cuatro centros compartidos:
+  `(0.379, 0.722)`, `(0.671, 0.330)`, `(0.667, 0.708)`, `(0.334, 0.335)`.
+- La transición V28 prepara V27 y la cara antes de retirar V08 y el Monolito. V08 no se
+  atenúa durante el cruce; V27 entra encima, las opacidades son monotónicas y no se reinicia
+  el fondo cercano. Al terminar sólo quedan activos V27 y la cara.
+- PASS estructural: `Logs/machine_monolith_continuity_v28_setup.log`.
+- PASS visual-funcional: `Logs/machine_monolith_continuity_v28_capture.log`.
+- Se generaron 32 capturas candidatas en `Logs/VisualQA/MachineMonolith2D`, con los cinco
+  momentos 0/25/50/75/100 de la transición en ambas resoluciones. No deben archivarse como
+  aprobadas hasta recibir confirmación perceptual explícita del usuario.
+- `RESUMEN_CONTINUIDAD_MONOLITO_2D_2026-08-27_V10.txt` reemplaza V09 como resumen vigente.
+  V09 conserva el estado aprobado anterior a estas correcciones.
+
+CORRECCIÓN V29 — SOPORTE FRONTAL Y AIRE EN EL SECTOR 2
+
+- La base del Monolito ya no depende sólo de posición: `OverviewSupportForeground` vuelve
+  a dibujar el travesaño inferior exacto de V08 delante del artefacto y lo hace parecer
+  contenido dentro del soporte. La capa utiliza
+  `MachineMonolithSupportForeground.shader` y queda recortada por el viewport.
+- Las caras cercanas usan ancho 0,86 y alto 0,78; el apoyo vertical continúa en 11 %.
+- El sector 2 organiza sus once firmas en columnas escalonadas, con margen adicional frente
+  a la arista inclinada. Las firmas miden 64 px y conservan hitbox 104 px.
+- Emisión: 0,16 dañada, 0,30 dañada seleccionada y 1,00 reparada.
+- PASS: `Logs/machine_monolith_support_layout_v29_setup.log` y
+  `Logs/machine_monolith_support_layout_v29_capture.log`.
+- Las 32 capturas actuales de `Logs/VisualQA/MachineMonolith2D` pertenecen a V29 y siguen
+  siendo candidatas.
+- `RESUMEN_CONTINUIDAD_MONOLITO_2D_2026-08-27_V11.txt` reemplaza V10 como resumen vigente.
+
+CORRECCIÓN V30 — MARCO AJUSTADO A LA HUELLA Y CARAS ESTABLES
+
+- El nuevo fondo candidato general es
+  `machine_lab_overview_frame_fit_candidate_v30.png`; su copia canónica activa es
+  `Assets/Project/UI/Vertical/Machine/Monolith2D/machine_destroyed_lab_monolith_fit_square_v30.png`.
+- Se creó mediante edición raster integrada de precisión usando V08 como objetivo y las
+  capturas reales del Monolito como referencia de huella. Se modificaron sólo las guías
+  laterales y el travesaño frontal; se conservaron cámara, arquitectura, iluminación,
+  mobiliario y centro vacío, sin Monolito, símbolos ni interfaz horneados.
+- El archivo mide 1254×1254 y su SHA-256 es
+  `F6FAB4B6005AAFF973C5EAE545FFB21756526DB758A7D947EC1770FE37BD6F1A`.
+- La capa frontal V29 usa ahora el marco V30, cuya apertura sí corresponde al ancho real
+  de la base del Monolito.
+- Las cuatro hojas de caras presentaban desplazamientos internos diferentes entre etapa
+  dañada y reparada. La presentación aplica compensación horizontal por sector y etapa a
+  partir del centro visible de cada silueta, eliminando el salto lateral sin modificar los
+  assets raster originales.
+- PASS: `Logs/machine_monolith_frame_fit_v30_setup.log` y
+  `Logs/machine_monolith_frame_fit_v30_capture.log`.
+- Las 32 capturas actuales de `Logs/VisualQA/MachineMonolith2D` pertenecen a V30 y son
+  candidatas pendientes de aprobación visual explícita.
+- `RESUMEN_CONTINUIDAD_MONOLITO_2D_2026-08-27_V12.txt` reemplaza V11 como resumen vigente.
+
+CORRECCIÓN V31 — FONDO PROPIETARIO DEL MARCO Y CARAS CANÓNICAS
+
+- V30 queda rechazado como dirección porque alteró el Monolito para compensar el fondo.
+  V31 restaura la composición V26 aprobada: escala 0,72 y posición `(0, 34)`.
+- El nuevo candidato permanente del fondo es
+  `CANDIDATOS_V31/machine_destroyed_lab_monolith_fit_square_v31.png`; su copia activa está
+  en `Assets/Project/UI/Vertical/Machine/Monolith2D/` con el mismo nombre.
+- SHA-256 del fondo V31:
+  `F9ECFBAE1BE0330CE9132466C68EA99721321409AD2261AFBBD117C622225FE3`.
+- Las caras V31 se guardan en `CANDIDATOS_V31` y en la carpeta canónica de producción como
+  `monolith_sector_1_surface_progression_v31.png` hasta
+  `monolith_sector_4_surface_progression_v31.png`.
+- SHA-256 S1: `A316FFF876FF28BF052C16A99714E5514865F12033031963C1848AE83DF48047`.
+- SHA-256 S2: `9A4876D36AE21EC4E4739D9C361E795E836F7A531C0FDA6F446A838B255D1BBE`.
+- SHA-256 S3: `6055297AEAE45199C458E102068D03167DA1153F680A0B07FA7A0B2786431D9B`.
+- SHA-256 S4: `83668DCC5A63EC791BAD2E9FDBFD930FB88FDAE40AAF74881ACD19FE75D6D425`.
+- Las hojas usan alfa real y no incluyen huecos, cráteres, sockets, relieves ni símbolos de
+  nodo. Los símbolos y el `???` son capas separadas de Unity.
+- PASS: `Logs/machine_monolith_v31_setup_2.log` y
+  `Logs/machine_monolith_v31_capture_2.log`.
+- Las 32 capturas actuales de `Logs/VisualQA/MachineMonolith2D` pertenecen a V31 y son
+  candidatas pendientes de aprobación visual explícita.
+- `RESUMEN_CONTINUIDAD_MONOLITO_2D_2026-08-27_V13.txt` reemplaza V12 como resumen vigente.
+
+CORRECCIÓN V32 — ALOJAMIENTO DE HUELLA Y DAÑO PERIMETRAL
+
+- V31 queda como candidato rechazado visualmente: su marco de suelo seguía siendo genérico
+  y las caras dañadas eliminaban superficie interior necesaria para mostrar los símbolos.
+- `CANDIDATOS_V32/machine_destroyed_lab_exact_footprint_cradle_square_v32.png` es el nuevo
+  fondo candidato. Cambia sólo el soporte del suelo; conserva laboratorio, cámara e
+  iluminación y no contiene Monolito, símbolos, textos ni interfaz.
+- `CANDIDATOS_V32/monolith_sector_1_perimeter_damage_progression_v32.png` hasta
+  `monolith_sector_4_perimeter_damage_progression_v32.png` son las nuevas hojas candidatas.
+  En todas, el interior permanece continuo y el deterioro se restringe al borde exterior.
+- SHA-256 fondo: `D02C40214F27294159E26AAC34AF0FCA6971431DC0752533BD62B504F5FD5D67`.
+- SHA-256 S1: `F8375BE0673C4EB2F834BF8F6D9CD774348121EBE6CF1437F306061AD5405A2B`.
+- SHA-256 S2: `D9B9705FF75AA0C9DCC6B175D5A8F118A304A491A45D914E9FF89EEDB473479B`.
+- SHA-256 S3: `E34DA7D3D2CB35369A34953FB2724C962CD91D9577DA81332FE39034F16FDA11`.
+- SHA-256 S4: `BE02D3252BB1AE98DDF480C5DC06AF8500A6A57E04ED48E375C925E0F7B7ACF5`.
+- `CANDIDATOS_V32/revision_unity_v32_contact_sheet.png` es una lámina de revisión de
+  capturas reales; no es un asset de producción.
+- PASS: `Logs/machine_monolith_v32_setup_2.log` y
+  `Logs/machine_monolith_v32_capture_2.log`.
+- `RESUMEN_CONTINUIDAD_MONOLITO_2D_2026-08-27_V14.txt` reemplaza V13 como resumen vigente.
+
+CORRECCIÓN V33/V34 — CARAS ABIERTAS Y HUELLA PROYECTADA REAL
+
+- V32 queda rechazada visualmente. El alojamiento se describía como exacto, pero su hueco
+  frontal era más estrecho que la base proyectada; las caras 1 y 3 se leían como tapas y la
+  cara 4 tenía la orientación del lado derecho.
+- Las caras V33 están en `CANDIDATOS_V33` y en producción como
+  `monolith_sector_1_open_surface_progression_v33.png` hasta sector 4.
+- Todas presentan piedra expuesta continua, sin tapa interior, huecos, cráteres, sockets ni
+  símbolos horneados. Sectores 1/4 llevan la columna central a la derecha; sectores 2/3, a
+  la izquierda.
+- El sector 2 conserva el raster abierto V32 mediante copia versionada. Los símbolos de los
+  sectores 1–3 se distribuyen con una zona segura propia por silueta; tamaño visible 64 px,
+  hitbox 104 px y estados de alfa 0,24/0,40/1,00.
+- El primer fondo V33 mejoró la cavidad, pero la captura real demostró que su apertura aún
+  era estrecha. Se conserva sólo como historial en `CANDIDATOS_V33`.
+- El fondo activo V34 es
+  `machine_destroyed_lab_monolith_wide_socket_square_v34.png`. Desplaza las guías laterales
+  fuera de la huella, deja una cama central cercana a dos tercios del ancho y conserva un
+  único borde frontal visible sobre la base. El Monolito continúa bloqueado en escala 0,72
+  y posición `(0, 34)`.
+- SHA-256 fondo V34:
+  `2D81CDDECC920EE7DB42CD28ABFAD46FA17EF2199728D45C86DCA92856DBBD47`.
+- SHA-256 S1 V33:
+  `ECA6DCFDD4A9A40A2F3D571F5E0F5816AC9F5F355695D00DE6B7F190D1BB6ABF`.
+- SHA-256 S2 V33:
+  `D9B9705FF75AA0C9DCC6B175D5A8F118A304A491A45D914E9FF89EEDB473479B`.
+- SHA-256 S3 V33:
+  `073ADE91EE22FE0EA126767DDD878DAC13574F03EA2DA0FF63920F9CF7D7217D`.
+- SHA-256 S4 V33:
+  `BB385FD8A5F030F53C05CE2FD48024F0A6E4033C999BCE10BFCAF46F9203C047`.
+- `CANDIDATOS_V34/revision_unity_v34_contact_sheet.png` es una lámina de revisión; no es un
+  asset de producción.
+- PASS final: `Logs/machine_monolith_v34_capture.log`, 32 capturas en 1080×1920 y
+  720×1280, transición 0/25/50/75/100, regreso, Mezclas y guardado restaurado.
+- `RESUMEN_CONTINUIDAD_MONOLITO_2D_2026-08-27_V15.txt` reemplaza V14 como resumen vigente.
+
+CORRECCIÓN V35 — RECEPTÁCULO DERIVADO DE LA HUELLA Y CARAS EXPUESTAS
+
+- V34 queda rechazada visualmente: el alojamiento seguía leyéndose como un marco genérico
+  demasiado grande y el Monolito parecía colocado encima.
+- La vista general vuelve al laboratorio limpio V06. El receptáculo ya no está horneado en
+  el fondo: se genera en Unity con dos capas, una detrás del Monolito y un labio frontal.
+- Las dos capas comparten la transformación V26 bloqueada `(escala 0,72; posición 0,34)` y
+  derivan su contorno del estado realmente visible de
+  `monolith_overview_progression_clean_v03.png`.
+- `machine_destroyed_lab_monolith_fitted_cradle_square_v35.png` se conserva sólo como
+  candidato raster rechazado. No es un asset de producción ni debe integrarse.
+- Las caras activas V35 son `monolith_sector_1_exposed_surface_progression_v35.png` hasta
+  sector 4: piedra oscura continua, daño sólo perimetral, sin huecos, relieves, símbolos ni
+  `???` horneados. S1/S4 llevan la columna estructural a la derecha; S2/S3, a la izquierda.
+- Las firmas son capas Unity de 56 px con área táctil de 80 px y alfa 0,24 dañada, 0,40
+  seleccionada y 1,00 reparada. Las posiciones se validaron en las cuatro etapas contra la
+  superficie oscura interior; rieles, biseles, escombros y base no cuentan como zona segura.
+- `CANDIDATOS_V35/node_safe_zone_preview_v35.png` es una lámina métrica de las doce
+  combinaciones sector/etapa; no es un asset de producción.
+- SHA-256 S1 V35:
+  `42A293DEA1F75E8EBC9C9BBE33D479C16C245BE1DBA8AB9CE1DE393A17EF30EE`.
+- SHA-256 S2 V35:
+  `6131F94CAEF56EA27631169701DA4563A811FDC57CAB49AD80C4D60A5E0852D2`.
+- SHA-256 S3 V35:
+  `743BBB0F58F65EEB912E6610EA4376F10306F0BE3C1F071D0B0A84F5B5FA8E0E`.
+- SHA-256 S4 V35:
+  `7049E2D491DC6C8ADD18220222D3647446C4AC6522AB74EA108282E35AAAF3B5`.
+- No existe PASS de Unity para V35. La reconstrucción y la captura quedaron pendientes
+  porque `Unity.Licensing.Client.exe` falló repetidamente. No declarar V35 terminada ni
+  archivar capturas hasta obtener evidencia nueva en 1080×1920 y 720×1280.
+- `RESUMEN_CONTINUIDAD_MONOLITO_2D_2026-08-27_V16.txt` reemplaza V15 como resumen vigente.

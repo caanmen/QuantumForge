@@ -17,6 +17,15 @@ Recovery/
 __pycache__/
 *.py[cod]
 
+# Paquetes de entrega exportados (se reconstruyen desde las fuentes versionadas)
+/ENTREGABLES/
+*.zip
+
+# Firma Android local (las claves y contraseñas nunca pertenecen al repositorio)
+*.keystore
+*.jks
+android-signing*.json
+
 # Purchased Unity Asset Store sources (local licensed dependency)
 /Assets/SciFi_Materials_vol2/
 /Assets/SciFi_Materials_vol2.meta

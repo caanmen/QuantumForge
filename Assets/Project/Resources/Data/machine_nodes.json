@@ -52,8 +52,8 @@
       "effectType": 1,
       "effectValue": 0.05,
       "cost": {
-        "le": 260000.0,
-        "traces": 220.0,
+        "le": 360000.0,
+        "traces": 310.0,
         "hallazgo": 0,
         "muestra": 0,
         "lecturaIncompleta": 0,
@@ -63,7 +63,7 @@
         "z1_energy_coupling_2"
       ],
       "hidden": false,
-      "damaged": true,
+      "damaged": false,
       "tierGroup": "z1_energy_coupling",
       "tierIndex": 3
     },
@@ -107,7 +107,7 @@
         "z1_traces_channel_1"
       ],
       "hidden": false,
-      "damaged": true,
+      "damaged": false,
       "tierGroup": "z1_traces_channel",
       "tierIndex": 2
     },
@@ -119,8 +119,8 @@
       "effectType": 2,
       "effectValue": 0.05,
       "cost": {
-        "le": 300000.0,
-        "traces": 280.0,
+        "le": 420000.0,
+        "traces": 390.0,
         "hallazgo": 0,
         "muestra": 0,
         "lecturaIncompleta": 0,
@@ -130,7 +130,7 @@
         "z1_traces_channel_2"
       ],
       "hidden": false,
-      "damaged": true,
+      "damaged": false,
       "tierGroup": "z1_traces_channel",
       "tierIndex": 3
     },
@@ -142,9 +142,9 @@
       "effectType": 3,
       "effectValue": 0.08,
       "cost": {
-        "le": 220000.0,
-        "traces": 200.0,
-        "hallazgo": 1,
+        "le": 310000.0,
+        "traces": 280.0,
+        "hallazgo": 2,
         "muestra": 0,
         "lecturaIncompleta": 0,
         "compuestoUtil": 0
@@ -173,9 +173,7 @@
         "lecturaIncompleta": 1,
         "compuestoUtil": 0
       },
-      "requiredNodeIds": [
-        "z1_protocol_reading"
-      ],
+      "requiredNodeIds": [],
       "hidden": false,
       "damaged": false,
       "tierGroup": "z1_triangle_anchor",
@@ -189,9 +187,9 @@
       "effectType": 3,
       "effectValue": 0.04,
       "cost": {
-        "le": 360000.0,
-        "traces": 340.0,
-        "hallazgo": 1,
+        "le": 500000.0,
+        "traces": 480.0,
+        "hallazgo": 2,
         "muestra": 0,
         "lecturaIncompleta": 0,
         "compuestoUtil": 0
@@ -212,18 +210,18 @@
       "effectType": 3,
       "effectValue": 0.04,
       "cost": {
-        "le": 650000.0,
-        "traces": 600.0,
+        "le": 910000.0,
+        "traces": 840.0,
         "hallazgo": 0,
         "muestra": 0,
         "lecturaIncompleta": 0,
-        "compuestoUtil": 1
+        "compuestoUtil": 2
       },
       "requiredNodeIds": [
         "z1_triangle_anchor_2"
       ],
       "hidden": false,
-      "damaged": true,
+      "damaged": false,
       "tierGroup": "z1_triangle_anchor",
       "tierIndex": 3
     },
@@ -235,10 +233,10 @@
       "effectType": 4,
       "effectValue": 0.1,
       "cost": {
-        "le": 420000.0,
-        "traces": 400.0,
+        "le": 590000.0,
+        "traces": 560.0,
         "hallazgo": 0,
-        "muestra": 1,
+        "muestra": 2,
         "lecturaIncompleta": 0,
         "compuestoUtil": 0
       },
@@ -259,11 +257,11 @@
       "effectType": 5,
       "effectValue": 0.08,
       "cost": {
-        "le": 800000.0,
-        "traces": 750.0,
+        "le": 1650000.0,
+        "traces": 1550.0,
         "hallazgo": 0,
         "muestra": 1,
-        "lecturaIncompleta": 1,
+        "lecturaIncompleta": 2,
         "compuestoUtil": 0
       },
       "requiredNodeIds": [
@@ -271,7 +269,7 @@
         "z1_triangle_anchor_2"
       ],
       "hidden": false,
-      "damaged": true,
+      "damaged": false,
       "tierGroup": "",
       "tierIndex": 0
     },
@@ -283,10 +281,10 @@
       "effectType": 5,
       "effectValue": 0.18,
       "cost": {
-        "le": 1500000.0,
-        "traces": 1400.0,
-        "hallazgo": 1,
-        "muestra": 1,
+        "le": 3050000.0,
+        "traces": 2900.0,
+        "hallazgo": 2,
+        "muestra": 2,
         "lecturaIncompleta": 0,
         "compuestoUtil": 1
       },
@@ -404,9 +402,7 @@
         "lecturaIncompleta": 0,
         "compuestoUtil": 0
       },
-      "requiredNodeIds": [
-        "z2_fusion_slot_2"
-      ],
+      "requiredNodeIds": [],
       "hidden": false,
       "damaged": false,
       "tierGroup": "z2_mix_stabilizer",
@@ -420,9 +416,9 @@
       "effectType": 21,
       "effectValue": 0.04,
       "cost": {
-        "le": 230000.0,
-        "traces": 220.0,
-        "hallazgo": 1,
+        "le": 320000.0,
+        "traces": 310.0,
+        "hallazgo": 2,
         "muestra": 0,
         "lecturaIncompleta": 0,
         "compuestoUtil": 0
@@ -431,7 +427,7 @@
         "z2_mix_stabilizer_1"
       ],
       "hidden": false,
-      "damaged": true,
+      "damaged": false,
       "tierGroup": "z2_mix_stabilizer",
       "tierIndex": 2
     },
@@ -443,10 +439,10 @@
       "effectType": 21,
       "effectValue": 0.03,
       "cost": {
-        "le": 420000.0,
-        "traces": 380.0,
+        "le": 590000.0,
+        "traces": 530.0,
         "hallazgo": 0,
-        "muestra": 1,
+        "muestra": 2,
         "lecturaIncompleta": 0,
         "compuestoUtil": 0
       },
@@ -454,14 +450,14 @@
         "z2_mix_stabilizer_2"
       ],
       "hidden": false,
-      "damaged": true,
+      "damaged": false,
       "tierGroup": "z2_mix_stabilizer",
       "tierIndex": 3
     },
     {
       "id": "z2_composition_reading",
       "name": "Lectura de Composición",
-      "description": "Muestra riesgo estimado y resultado probable solo si la receta ya fue descubierta.",
+      "description": "Muestra siempre el riesgo estimado. El resultado probable se revela después de descubrir la receta.",
       "zone": 2,
       "effectType": 24,
       "effectValue": 1.0,
@@ -489,10 +485,10 @@
       "effectType": 20,
       "effectValue": 3.0,
       "cost": {
-        "le": 650000.0,
-        "traces": 600.0,
-        "hallazgo": 1,
-        "muestra": 1,
+        "le": 910000.0,
+        "traces": 840.0,
+        "hallazgo": 2,
+        "muestra": 2,
         "lecturaIncompleta": 0,
         "compuestoUtil": 0
       },
@@ -512,16 +508,14 @@
       "effectType": 22,
       "effectValue": 0.04,
       "cost": {
-        "le": 260000.0,
-        "traces": 240.0,
-        "hallazgo": 1,
+        "le": 360000.0,
+        "traces": 340.0,
+        "hallazgo": 2,
         "muestra": 0,
         "lecturaIncompleta": 0,
         "compuestoUtil": 0
       },
-      "requiredNodeIds": [
-        "z2_composition_reading"
-      ],
+      "requiredNodeIds": [],
       "hidden": false,
       "damaged": false,
       "tierGroup": "z2_residual_catalyst",
@@ -535,10 +529,10 @@
       "effectType": 22,
       "effectValue": 0.03,
       "cost": {
-        "le": 480000.0,
-        "traces": 430.0,
+        "le": 670000.0,
+        "traces": 600.0,
         "hallazgo": 0,
-        "muestra": 1,
+        "muestra": 2,
         "lecturaIncompleta": 0,
         "compuestoUtil": 0
       },
@@ -558,8 +552,8 @@
       "effectType": 22,
       "effectValue": 0.03,
       "cost": {
-        "le": 850000.0,
-        "traces": 780.0,
+        "le": 1750000.0,
+        "traces": 1600.0,
         "hallazgo": 0,
         "muestra": 0,
         "lecturaIncompleta": 0,
@@ -569,7 +563,7 @@
         "z2_residual_catalyst_2"
       ],
       "hidden": false,
-      "damaged": true,
+      "damaged": false,
       "tierGroup": "z2_residual_catalyst",
       "tierIndex": 3
     },
@@ -581,16 +575,14 @@
       "effectType": 23,
       "effectValue": 0.05,
       "cost": {
-        "le": 300000.0,
-        "traces": 280.0,
+        "le": 420000.0,
+        "traces": 390.0,
         "hallazgo": 0,
         "muestra": 0,
-        "lecturaIncompleta": 1,
+        "lecturaIncompleta": 2,
         "compuestoUtil": 0
       },
-      "requiredNodeIds": [
-        "z2_composition_reading"
-      ],
+      "requiredNodeIds": [],
       "hidden": false,
       "damaged": false,
       "tierGroup": "z2_fusion_time_control",
@@ -604,11 +596,11 @@
       "effectType": 23,
       "effectValue": 0.05,
       "cost": {
-        "le": 520000.0,
-        "traces": 500.0,
-        "hallazgo": 1,
+        "le": 730000.0,
+        "traces": 700.0,
+        "hallazgo": 2,
         "muestra": 0,
-        "lecturaIncompleta": 1,
+        "lecturaIncompleta": 2,
         "compuestoUtil": 0
       },
       "requiredNodeIds": [
@@ -627,10 +619,10 @@
       "effectType": 23,
       "effectValue": 0.05,
       "cost": {
-        "le": 920000.0,
-        "traces": 850.0,
+        "le": 1900000.0,
+        "traces": 1750.0,
         "hallazgo": 0,
-        "muestra": 1,
+        "muestra": 2,
         "lecturaIncompleta": 0,
         "compuestoUtil": 1
       },
@@ -638,7 +630,7 @@
         "z2_fusion_time_control_2"
       ],
       "hidden": false,
-      "damaged": true,
+      "damaged": false,
       "tierGroup": "z2_fusion_time_control",
       "tierIndex": 3
     },
@@ -650,9 +642,9 @@
       "effectType": 25,
       "effectValue": 1.0,
       "cost": {
-        "le": 780000.0,
-        "traces": 720.0,
-        "hallazgo": 1,
+        "le": 1600000.0,
+        "traces": 1500.0,
+        "hallazgo": 2,
         "muestra": 1,
         "lecturaIncompleta": 0,
         "compuestoUtil": 0
@@ -674,11 +666,11 @@
       "effectType": 26,
       "effectValue": 1.0,
       "cost": {
-        "le": 1150000.0,
-        "traces": 1050.0,
-        "hallazgo": 1,
-        "muestra": 1,
-        "lecturaIncompleta": 1,
+        "le": 2350000.0,
+        "traces": 2200.0,
+        "hallazgo": 2,
+        "muestra": 2,
+        "lecturaIncompleta": 3,
         "compuestoUtil": 0
       },
       "requiredNodeIds": [
@@ -697,11 +689,11 @@
       "effectType": 27,
       "effectValue": 1.0,
       "cost": {
-        "le": 1400000.0,
-        "traces": 1300.0,
-        "hallazgo": 1,
-        "muestra": 1,
-        "lecturaIncompleta": 1,
+        "le": 2850000.0,
+        "traces": 2700.0,
+        "hallazgo": 2,
+        "muestra": 2,
+        "lecturaIncompleta": 3,
         "compuestoUtil": 1
       },
       "requiredNodeIds": [
@@ -721,12 +713,12 @@
       "effectType": 28,
       "effectValue": 1.0,
       "cost": {
-        "le": 2000000.0,
-        "traces": 1800.0,
-        "hallazgo": 2,
-        "muestra": 1,
-        "lecturaIncompleta": 1,
-        "compuestoUtil": 1
+        "le": 4100000.0,
+        "traces": 3750.0,
+        "hallazgo": 3,
+        "muestra": 2,
+        "lecturaIncompleta": 3,
+        "compuestoUtil": 2
       },
       "requiredNodeIds": [
         "z2_guided_synthesis",
@@ -837,10 +829,10 @@
       "effectType": 42,
       "effectValue": 1.0,
       "cost": {
-        "le": 320000.0,
-        "traces": 300.0,
+        "le": 450000.0,
+        "traces": 420.0,
         "hallazgo": 0,
-        "muestra": 1,
+        "muestra": 2,
         "lecturaIncompleta": 0,
         "compuestoUtil": 0
       },
@@ -848,7 +840,7 @@
         "z3_internal_diagnostics"
       ],
       "hidden": false,
-      "damaged": true,
+      "damaged": false,
       "tierGroup": "",
       "tierIndex": 0
     },
@@ -860,11 +852,11 @@
       "effectType": 43,
       "effectValue": 1.0,
       "cost": {
-        "le": 420000.0,
-        "traces": 380.0,
+        "le": 590000.0,
+        "traces": 530.0,
         "hallazgo": 0,
         "muestra": 0,
-        "lecturaIncompleta": 1,
+        "lecturaIncompleta": 2,
         "compuestoUtil": 0
       },
       "requiredNodeIds": [
@@ -883,9 +875,9 @@
       "effectType": 44,
       "effectValue": 1.0,
       "cost": {
-        "le": 700000.0,
-        "traces": 650.0,
-        "hallazgo": 1,
+        "le": 1450000.0,
+        "traces": 1350.0,
+        "hallazgo": 2,
         "muestra": 1,
         "lecturaIncompleta": 0,
         "compuestoUtil": 0
@@ -906,11 +898,11 @@
       "effectType": 45,
       "effectValue": 1.0,
       "cost": {
-        "le": 950000.0,
-        "traces": 850.0,
+        "le": 1950000.0,
+        "traces": 1750.0,
         "hallazgo": 0,
-        "muestra": 1,
-        "lecturaIncompleta": 1,
+        "muestra": 2,
+        "lecturaIncompleta": 2,
         "compuestoUtil": 0
       },
       "requiredNodeIds": [
@@ -930,10 +922,10 @@
       "effectType": 46,
       "effectValue": 1.0,
       "cost": {
-        "le": 1500000.0,
-        "traces": 1400.0,
-        "hallazgo": 1,
-        "muestra": 1,
+        "le": 3050000.0,
+        "traces": 2900.0,
+        "hallazgo": 2,
+        "muestra": 2,
         "lecturaIncompleta": 0,
         "compuestoUtil": 1
       },
@@ -943,7 +935,8 @@
       "hidden": false,
       "damaged": true,
       "tierGroup": "",
-      "tierIndex": 0
+      "tierIndex": 0,
+      "retired": true
     },
     {
       "id": "z3_hidden_failure_marker",
@@ -994,6 +987,7 @@
     },
     {
       "id": "z4_basic_chamber",
+      "retired": true,
       "name": "Cámara Básica",
       "description": "Desbloquea Semillas Dimensionales, Anclajes, Archivo y Fijación básica.",
       "zone": 4,
@@ -1015,6 +1009,7 @@
     },
     {
       "id": "z4_seed_reading_1",
+      "retired": true,
       "name": "Lectura de Maduración I",
       "description": "Mejora la lectura del estado de maduración de Semillas Dimensionales.",
       "zone": 4,
@@ -1038,6 +1033,7 @@
     },
     {
       "id": "z4_archive_expansion_1",
+      "retired": true,
       "name": "Archivo Expandido I",
       "description": "Aumenta el Archivo de 30 a 40 espacios.",
       "zone": 4,
@@ -1061,6 +1057,7 @@
     },
     {
       "id": "z4_initial_stability_1",
+      "retired": true,
       "name": "Estabilización Inicial I",
       "description": "Los Anclajes nacen con +4% estabilidad inicial.",
       "zone": 4,
@@ -1084,6 +1081,7 @@
     },
     {
       "id": "z4_controlled_sync_1",
+      "retired": true,
       "name": "Sincronía Controlada I",
       "description": "La estabilización gana 1 punto extra de estabilidad.",
       "zone": 4,
@@ -1107,6 +1105,7 @@
     },
     {
       "id": "z4_tuned_containment_1",
+      "retired": true,
       "name": "Contención Afinada I",
       "description": "La estabilización genera 1 punto menos de tensión.",
       "zone": 4,
@@ -1130,6 +1129,7 @@
     },
     {
       "id": "z4_safe_rewind_1",
+      "retired": true,
       "name": "Compensación Segura I",
       "description": "Compensar pierde menos estabilidad.",
       "zone": 4,
@@ -1153,6 +1153,7 @@
     },
     {
       "id": "z4_seed_slot_3",
+      "retired": true,
       "name": "Slot de Semilla Dimensional III",
       "description": "Desbloquea el tercer slot de Semilla Dimensional.",
       "zone": 4,
@@ -1176,6 +1177,7 @@
     },
     {
       "id": "z4_archive_expansion_2",
+      "retired": true,
       "name": "Archivo Expandido II",
       "description": "Aumenta el Archivo de 40 a 50 espacios.",
       "zone": 4,
@@ -1200,6 +1202,7 @@
     },
     {
       "id": "z4_initial_stability_2",
+      "retired": true,
       "name": "Estabilización Inicial II",
       "description": "Los Anclajes nacen con +8% estabilidad inicial total.",
       "zone": 4,
@@ -1223,6 +1226,7 @@
     },
     {
       "id": "z4_seed_reading_2",
+      "retired": true,
       "name": "Lectura de Maduración II",
       "description": "Permite una lectura más precisa del punto de maduración.",
       "zone": 4,
@@ -1246,6 +1250,7 @@
     },
     {
       "id": "z4_pure_materialization_1",
+      "retired": true,
       "name": "Fijación Pura I",
       "description": "El umbral para Anclaje puro baja de 70% a 68%.",
       "zone": 4,
@@ -1269,6 +1274,7 @@
     },
     {
       "id": "z4_controlled_sync_2",
+      "retired": true,
       "name": "Sincronía Controlada II",
       "description": "La estabilización gana 1 punto extra de estabilidad adicional.",
       "zone": 4,
@@ -1292,6 +1298,7 @@
     },
     {
       "id": "z4_tuned_containment_2",
+      "retired": true,
       "name": "Contención Afinada II",
       "description": "La estabilización genera 1 punto menos de tensión adicional.",
       "zone": 4,
@@ -1315,6 +1322,7 @@
     },
     {
       "id": "z4_safe_rewind_2",
+      "retired": true,
       "name": "Compensación Segura II",
       "description": "Compensar pierde 1 punto menos de estabilidad adicional.",
       "zone": 4,
@@ -1338,6 +1346,7 @@
     },
     {
       "id": "z4_seed_slot_4",
+      "retired": true,
       "name": "Slot de Semilla IV",
       "description": "Desbloquea el cuarto slot de Semilla Dimensional.",
       "zone": 4,
@@ -1361,6 +1370,7 @@
     },
     {
       "id": "z4_archive_expansion_3",
+      "retired": true,
       "name": "Archivo Expandido III",
       "description": "Aumenta el Archivo de 50 a 65 espacios.",
       "zone": 4,
@@ -1385,6 +1395,7 @@
     },
     {
       "id": "z4_pure_materialization_2",
+      "retired": true,
       "name": "Fijación Pura II",
       "description": "El umbral para Anclaje puro baja de 68% a 65%.",
       "zone": 4,
@@ -1408,6 +1419,7 @@
     },
     {
       "id": "z4_hidden_minor_chronal_pulse",
+      "retired": true,
       "name": "Pulso Dimensional Menor",
       "description": "Subnodo oculto: los Anclajes nacen con +3% estabilidad inicial.",
       "zone": 4,
@@ -1432,6 +1444,7 @@
     },
     {
       "id": "z4_hidden_resonant_archive",
+      "retired": true,
       "name": "Archivo Resonante",
       "description": "Subnodo oculto: aumenta el Archivo en 5 espacios.",
       "zone": 4,

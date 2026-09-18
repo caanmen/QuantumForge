@@ -89,12 +89,37 @@ public class F2UpgradeRowUI : MonoBehaviour
             case "emission_focus": return tier == 0 ? B("Actual: +0% LE · Siguiente: +5%", "Current: +0% LE · Next: +5%") : tier == 1 ? B("Actual: +5% LE · Siguiente: +15%", "Current: +5% LE · Next: +15%") : B("Total: +15% LE", "Total: +15% LE");
             case "containment_tuning": return tier == 0 ? B("Higgs: ciclo 1,0 s → 0,9 s", "Higgs: cycle 1.0 s → 0.9 s") : tier == 1 ? B("Higgs: ciclo 0,9 s → 0,8 s", "Higgs: cycle 0.9 s → 0.8 s") : B("Higgs: ciclo 0,8 s", "Higgs: 0.8 s cycle");
             case "tetraquark_stabilization": return tier == 0 ? B("Actual: +0% Trazas · Siguiente: +15%", "Current: +0% Traces · Next: +15%") : tier == 1 ? B("Actual: +15% Trazas · Siguiente: +35%", "Current: +15% Traces · Next: +35%") : B("Total: +35% Trazas", "Total: +35% Traces");
-            case "triangle_unlock_1": return tier > 0 ? B("Conecta Higgs, Tetraquark y Modulador. Circuitos activos.", "Connects Higgs, Tetraquark and Modulator. Circuits active.") : B("Conecta Higgs, Tetraquark y Modulador. Activa los circuitos.", "Connects Higgs, Tetraquark and Modulator. Activates circuits.");
+            case "triangle_unlock_1": return tier > 0 ? B("Triángulo activo.", "Triangle active.") : B("Activa el Triángulo conectando sus tres vértices.", "Activate the Triangle by connecting its three vertices.");
             case "triangle_impulse_tuning": return tier == 0 ? B("LE: +12% → +16%; escala con la sincronización", "LE: +12% → +16%; scales with synchronization") : tier == 1 ? B("LE: +16% → +20%; escala con la sincronización", "LE: +16% → +20%; scales with synchronization") : B("LE: +20%; escala con la sincronización", "LE: +20%; scales with synchronization");
-            case "triangle_synergy_resonance": return tier == 0 ? B("Trazas: +10% → +13%; escala con la sincronización", "Traces: +10% → +13%; scales with synchronization") : tier == 1 ? B("Trazas: +13% → +15%; escala con la sincronización", "Traces: +13% → +15%; scales with synchronization") : B("Trazas: +15%; escala con la sincronización", "Traces: +15%; scales with synchronization");
+            case "triangle_synergy_resonance": return tier == 0 ? B("Trazas totales: +0% → +13%; siempre activa", "Total Traces: +0% → +13%; always active") : tier == 1 ? B("Trazas totales: +13% → +15%; siempre activa", "Total Traces: +13% → +15%; always active") : B("Trazas totales: +15%; siempre activa", "Total Traces: +15%; always active");
             case "triangle_persistence_anchor": return tier == 0 ? B("Próximos cambios: sincronización inicial 50% → 65%", "Future switches: starting synchronization 50% → 65%") : tier == 1 ? B("Próximos cambios: sincronización inicial 65% → 80%", "Future switches: starting synchronization 65% → 80%") : B("Próximos cambios: sincronización inicial 80%", "Future switches: starting synchronization 80%");
             case "triangle_energy_efficiency": return tier == 0 ? B("Energía: +0% → +20%", "Energy: +0% → +20%") : tier == 1 ? B("Energía: +20% → +40%", "Energy: +20% → +40%") : tier == 2 ? B("Energía: +40% → +65%", "Energy: +40% → +65%") : B("Energía total: +65%", "Total Energy: +65%");
             default: return F2UpgradeManager.I.GetDef(upgradeId)?.description ?? string.Empty;
+        }
+    }
+
+    private string NextBenefitLabel(int bought)
+    {
+        switch (upgradeId)
+        {
+            case "emission_focus":
+                return bought == 0 ? B("LE TOTAL +5%", "TOTAL LE +5%") : B("LE TOTAL +15%", "TOTAL LE +15%");
+            case "containment_tuning":
+                return bought == 0 ? B("CICLO HIGGS 0,9 S", "HIGGS CYCLE 0.9 S") : B("CICLO HIGGS 0,8 S", "HIGGS CYCLE 0.8 S");
+            case "tetraquark_stabilization":
+                return bought == 0 ? B("TRAZAS +15%", "TRACES +15%") : B("TRAZAS +35%", "TRACES +35%");
+            case "triangle_unlock_1":
+                return B("ACTIVA TRIÁNGULO", "ACTIVATE TRIANGLE");
+            case "triangle_impulse_tuning":
+                return bought == 0 ? B("LE DE CIRCUITO +16%", "CIRCUIT LE +16%") : B("LE DE CIRCUITO +20%", "CIRCUIT LE +20%");
+            case "triangle_synergy_resonance":
+                return bought == 0 ? B("TRAZAS TOTALES +13%", "TOTAL TRACES +13%") : B("TRAZAS TOTALES +15%", "TOTAL TRACES +15%");
+            case "triangle_persistence_anchor":
+                return bought == 0 ? B("INICIO DE SINCRONÍA 65%", "START SYNC 65%") : B("INICIO DE SINCRONÍA 80%", "START SYNC 80%");
+            case "triangle_energy_efficiency":
+                return bought == 0 ? B("ENERGÍA +20%", "ENERGY +20%") : bought == 1 ? B("ENERGÍA +40%", "ENERGY +40%") : B("ENERGÍA +65%", "ENERGY +65%");
+            default:
+                return B("APLICAR SIGUIENTE NIVEL", "APPLY NEXT LEVEL");
         }
     }
 
@@ -150,9 +175,14 @@ public class F2UpgradeRowUI : MonoBehaviour
         if (titleText != null)
             titleText.text = L($"study.{study.id}.title", B("Estudio de artefacto", "Artifact study"));
         if (descriptionText != null)
-            descriptionText.text = L($"study.{study.id}.hint", B(
+        {
+            string hint = L($"study.{study.id}.hint", B(
                 "Analiza este fenómeno para descubrir una mejora.",
                 "Analyze this phenomenon to discover an upgrade."));
+            descriptionText.text = hint + "\n" + B(
+                "Investiga, ajusta ambas señales y revela la conclusión.",
+                "Research, tune both signals, then reveal the conclusion.");
+        }
 
         if (tierText != null)
         {
@@ -288,15 +318,20 @@ public class F2UpgradeRowUI : MonoBehaviour
         if (reason == F2UpgradeLockReason.InsufficientFunds)
         {
             double balance = F2UpgradeManager.I.GetDef(upgradeId).currency == F2UpgradeCurrency.LE ? GameState.I.LE : GameState.I.Traces;
-            return LF("f2.lock.missing_funds", "Faltan {0:0.##} {1}", System.Math.Max(0.0, cost - balance), currency);
+            return LF("f2.lock.missing_funds", "Faltan {0:0.##} {1}", System.Math.Max(0.0, cost - balance), currency) +
+                "\n" + NextBenefitLabel(F2UpgradeManager.I.GetPurchasedTierCount(upgradeId));
         }
-        return upgradeId == "triangle_unlock_1" ? L("f2.action.activate", "Activar") : L("f2.action.improve", "Mejorar");
+        return (upgradeId == "triangle_unlock_1"
+            ? L("f2.action.activate", "Activar")
+            : L("f2.action.improve", "Mejorar")) + "\n" +
+            NextBenefitLabel(F2UpgradeManager.I.GetPurchasedTierCount(upgradeId));
     }
 
     private void OnBuyClicked()
     {
         if (GameState.I == null) return;
         bool changed = false;
+        bool triangleActivated = false;
 
         bool discovered = UpgradeStudySystem.IsDiscovered(GameState.I, upgradeId) ||
             (F2UpgradeManager.I != null &&
@@ -319,12 +354,21 @@ public class F2UpgradeRowUI : MonoBehaviour
         else if (F2UpgradeManager.I != null && F2UpgradeManager.I.TryBuy(upgradeId))
         {
             changed = true;
+            triangleActivated = upgradeId == "triangle_unlock_1";
             RefreshNow();
         }
 
         if (changed) SaveService.I?.Save();
 
+        if (triangleActivated)
+        {
+            TabsUI.Instance?.ShowGeneracion();
+            TriangleActivationTutorialUI.ShowAfterUnlock();
+        }
+
         var visibility = FindFirstObjectByType<F2UpgradeVisibilityController>();
         if (visibility != null) visibility.RefreshAll();
+        HUD hud = FindFirstObjectByType<HUD>(FindObjectsInactive.Include);
+        if (hud != null) hud.RefreshNow();
     }
 }

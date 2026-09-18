@@ -1,0 +1,49 @@
+MAPA RÁPIDO
+
+Antes de seguir cualquier ruta, clasificar lo leído:
+- Regla general: se aplica al proyecto cuando corresponda.
+- Ejemplo histórico: enseña un caso, pero no transmite su estética.
+- Decisión de dimensión: sólo pertenece a ese perfil.
+- Decisión de pantalla: sólo pertenece a esa pantalla.
+
+Quiero crear una pantalla nueva:
+1. Leer INSTRUCCIONES_MAESTRAS_UI.md.
+2. Revisar RECOMENDACIONES_OFICIALES_UNITY_UI.md cuando se planifique rendimiento o reutilización.
+3. Leer las dos guías de 01_GUIAS.
+4. Leer el perfil de 03_ESTILOS correspondiente.
+5. Confirmar qué reglas generales hereda y qué decisiones de otras dimensiones no aplica.
+6. Crear 10_PANTALLAS/<DIMENSIÓN>/<PANTALLA> y completar su ficha.
+7. Definir qué se animará y preparar capas y pivotes, sin implementar movimiento todavía.
+8. Guardar y clasificar la referencia en 05_REFERENCIAS.
+9. Registrar assets en 04_CATALOGO_ASSETS.
+10. Aprobar la composición estática antes de implementar animación.
+11. Aplicar las demás puertas de aprobación.
+12. Guardar capturas aprobadas en 06_CAPTURAS_APROBADAS.
+13. Actualizar 07_REGISTROS.
+
+Quiero modificar una pantalla existente:
+1. Leer su ficha, perfil, referencia y decisiones.
+2. Confirmar la fuente real: escena, prefab y/o generador.
+3. Crear captura base antes del cambio.
+4. Modificar la fuente definitiva.
+5. Ejecutar pruebas específicas y regresión.
+6. Archivar captura nueva sólo si fue aprobada.
+
+Quiero crear, corregir o refactorizar código:
+1. Leer la guía general 03_GUIAS_TECNICAS/CODIGO/GUIA_DESARROLLO_Y_CALIDAD_CODIGO.md.
+2. Leer 11_CODIGO/MAPA_CODIGO_Y_VALIDACION.md.
+3. Inspeccionar el propietario real, consumidores y validadores del sistema afectado.
+4. Evaluar impactos aplicables sin exigir al usuario nombres de archivos ni plantillas.
+5. Implementar un bloque coherente y evitar refactorizaciones generales oportunistas.
+6. Seleccionar pruebas desde 11_CODIGO/INDICE_VALIDADORES_CODIGO.md y ejecutar regresión proporcional.
+7. Registrar un aprendizaje sólo si quedó demostrado y es reutilizable.
+
+Quiero comenzar en otro chat:
+1. Abrir el mismo proyecto.
+2. Indicar etapa, último bloque validado y pendiente inmediato; añadir dimensión, pantalla o
+   sistema sólo cuando corresponda.
+3. Entregar un resumen compacto y pedir aplicar el enrutador general. «Revisar la carpeta»
+   significa conocer su inventario y abrir sólo lo relacionado, no leerla completa.
+4. Buscar aprendizajes por palabras clave y consultar casos históricos sólo si están
+   enlazados o comparten la misma causa.
+5. No depender de imágenes temporales de un chat anterior.

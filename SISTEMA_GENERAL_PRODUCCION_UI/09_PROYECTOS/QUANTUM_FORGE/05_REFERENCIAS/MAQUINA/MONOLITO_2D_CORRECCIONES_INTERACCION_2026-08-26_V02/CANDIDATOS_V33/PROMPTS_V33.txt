@@ -1,0 +1,37 @@
+PROMPTS DE PRODUCCIÓN — CARAS ABIERTAS V33
+Modo: edición integrada de imágenes.
+Fecha: 2026-08-27.
+
+REGLAS COMUNES
+
+- Hoja transparente 2x2; la misma cara en cuatro etapas.
+- Piedra alienígena oscura expuesta y continua, no tapa, puerta, panel, escotilla ni marco
+  interior elevado.
+- Progresión: daño fuerte, medio, leve y reparado; sólo cambia el perímetro exterior.
+- Misma escala, posición, caja, perspectiva, orientación y altura de base en los cuatro
+  cuadrantes.
+- Sin huecos, cráteres, sockets, relieves de nodo, símbolos, `???`, texto, brillo, UI,
+  laboratorio, damero horneado ni marca de agua.
+
+SECTOR 1 — SUPERIOR IZQUIERDO
+
+Editar la hoja V32 usando el sector 2 abierto como lenguaje de superficie y las referencias
+geométricas canónicas del sector 1. Columna mecánica interior a la DERECHA, hacia el centro;
+borde exterior inclinado y dañable a la IZQUIERDA. Conservar el estrechamiento superior.
+
+SECTOR 3 — SUPERIOR DERECHO
+
+Editar la hoja V32 usando el sector 2 abierto como lenguaje de superficie y las referencias
+geométricas canónicas del sector 3. Columna mecánica interior a la IZQUIERDA, hacia el centro;
+borde exterior inclinado y dañable a la DERECHA. Conservar el estrechamiento superior.
+
+SECTOR 4 — INFERIOR IZQUIERDO RESERVADO
+
+Rehacer la hoja V32 con la orientación inferior izquierda canónica: columna mecánica a la
+DERECHA y borde exterior inclinado a la IZQUIERDA. Superficie expuesta muy oscura y continua;
+sin símbolos ni `???` horneados. Mantener las proporciones inferiores más anchas.
+
+SECTOR 2
+
+Se reutilizó sin regenerar el raster abierto V32 mediante copia versionada V33. Sólo cambió
+su distribución de firmas en Unity.

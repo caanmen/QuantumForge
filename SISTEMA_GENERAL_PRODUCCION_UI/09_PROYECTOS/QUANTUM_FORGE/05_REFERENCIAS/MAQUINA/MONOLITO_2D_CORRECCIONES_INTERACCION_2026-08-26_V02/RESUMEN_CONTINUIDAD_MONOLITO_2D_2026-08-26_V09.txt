@@ -1,0 +1,33 @@
+QUANTUM FORGE — CONTINUIDAD DEL MONOLITO 2D V09
+Fecha: 2026-08-26
+
+ESTADO FINAL APROBADO
+
+- El Monolito y sus caras son composiciones 2D; no se usa cubo ni representación 3D.
+- La vista general usa V08, cuatro luces V17 y no muestra nodos, símbolos ni `???`.
+- Las cuatro caras V25 usan V18 como fondo separado, escala 0,78 y elevación proporcional
+  del 11 %. Sus bases quedan apoyadas dentro del marco del suelo.
+- Sectores 1, 2 y 3 conservan 7, 11 y 7 nodos. El sector 4 es accesible, oscuro, no tiene
+  nodos y muestra `???` únicamente dentro de la cara.
+- La transición V26 avanza el Monolito 1,25 veces y el laboratorio 1,07 veces. El fondo
+  recorre sólo un 10 % del desplazamiento del Monolito y cruza gradualmente de V08 a V18.
+- Fondo, Monolito, caras, nodos, firmas y ficha permanecen como capas independientes.
+- El usuario aprobó explícitamente las cuatro caras V25 y el movimiento V26.
+
+VALIDACIÓN Y EVIDENCIA
+
+- Compilación: 0 errores y 0 advertencias.
+- Unity: VALIDATION PASS y CAPTURE PASS.
+- Evidencia técnica: `Logs/machine_monolith_grounded_parallax_v26_capture.log`.
+- 26 capturas de prueba cubren 1080×1920 y 720×1280, estados, navegación, transición y
+  restauración del guardado.
+- 22 capturas visuales aprobadas se archivaron en
+  `SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/06_CAPTURAS_APROBADAS/COMUN/MAQUINA_MONOLITO_2D`.
+- Estado del registro: `aprobada`, similitud mínima 95 %.
+
+REGLA DE CONTINUIDAD
+
+- No modificar escala, posición, apoyo, fondos, luces ni parámetros de paralaje sin una
+  nueva decisión explícita del usuario.
+- Cualquier cambio futuro debe generar una versión nueva y conservar V25/V26 como historial
+  aprobado.

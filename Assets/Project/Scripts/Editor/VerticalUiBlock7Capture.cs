@@ -124,8 +124,8 @@ public static class VerticalUiBlock7Capture
         if (!failed)
         {
             Debug.Log("[Vertical UI Block 7 Capture] PASS | Play Mode | compras reales | " +
-                "circuitos | save/load | idiomas | navegacion progresiva | " +
-                "9:16, 9:19.5, estrecha y Safe Area simulada | guardado restaurado");
+                "tutorial | circuitos | save/load | idiomas | navegacion progresiva | " +
+                "1080x1920, 720x1280, 9:19.5 y Safe Area simulada | guardado restaurado");
         }
 
         EditorApplication.Exit(failed ? 1 : 0);
@@ -161,6 +161,7 @@ public static class VerticalUiBlock7Capture
                 case 1:
                     ValidateEarlyPresentation();
                     Capture("01_generation_initial_es_1080x1920.png", 1080, 1920);
+                    Capture("01b_generation_initial_es_720x1280.png", 720, 1280);
                     Require(TabsUI.Instance != null, "TabsUI no esta disponible.");
                     TabsUI.Instance.ShowMejoras();
                     PrepareResolution(1080, 2340);
@@ -174,44 +175,51 @@ public static class VerticalUiBlock7Capture
                     break;
                 case 3:
                     BuyTriangleUnlockFromUi();
-                    TabsUI.Instance.ShowMejoras();
+                    PrepareResolution(1080, 1920);
                     Advance(4);
                     break;
                 case 4:
-                    ValidateAdvancedUpgradesPresentation();
-                    Capture("03_upgrades_triangle_es_1080x2340.png", 1080, 2340);
-                    PrepareAdvancedGenerationEnglish();
+                    ValidateAndCaptureTriangleTutorial();
+                    TabsUI.Instance.ShowMejoras();
+                    PrepareResolution(1080, 2340);
                     Advance(5);
                     break;
                 case 5:
-                    Capture("04_generation_energy_en_1080x2340.png", 1080, 2340);
-                    PrepareEnergyFocusSpanish();
-                    PrepareResolution(1080, 1920);
+                    ValidateAdvancedUpgradesPresentation();
+                    Capture("03_upgrades_triangle_es_1080x2340.png", 1080, 2340);
+                    PrepareAdvancedGenerationEnglish();
                     Advance(6);
                     break;
                 case 6:
-                    ValidateEnergyFocusAvailable();
-                    Capture("05_generation_energy_focus_es_1080x1920.png", 1080, 1920);
-                    PrepareProgressiveNavigation();
+                    Capture("04_generation_energy_en_1080x2340.png", 1080, 2340);
+                    PrepareEnergyFocusSpanish();
                     PrepareResolution(1080, 1920);
                     Advance(7);
                     break;
                 case 7:
-                    ValidateProgressiveNavigation();
-                    Capture("06b_secondary_navigation_es_1080x1920.png", 1080, 1920);
-                    PrepareResolution(720, 1600);
+                    ValidateEnergyFocusAvailable();
+                    Capture("05_generation_energy_focus_es_1080x1920.png", 1080, 1920);
+                    Capture("05b_generation_energy_focus_es_720x1280.png", 720, 1280);
+                    PrepareProgressiveNavigation();
+                    PrepareResolution(1080, 1920);
                     Advance(8);
                     break;
                 case 8:
-                    Capture("06_secondary_navigation_es_720x1600.png", 720, 1600);
-                    PrepareResolution(1080, 2340);
+                    ValidateProgressiveNavigation();
+                    Capture("06b_secondary_navigation_es_1080x1920.png", 1080, 1920);
+                    PrepareResolution(720, 1600);
                     Advance(9);
                     break;
                 case 9:
+                    Capture("06_secondary_navigation_es_720x1600.png", 720, 1600);
+                    PrepareResolution(1080, 2340);
+                    Advance(10);
+                    break;
+                case 10:
                     ApplySimulatedSafeArea();
                     Capture("07_safe_area_notch_es_1080x2340.png", 1080, 2340);
                     ValidateSaveAndLoadRoundTrip();
-                    Advance(10);
+                    Advance(11);
                     break;
                 default:
                     EditorApplication.update -= Tick;
@@ -246,6 +254,7 @@ public static class VerticalUiBlock7Capture
                 break;
             case 2:
                 BuyTriangleUnlockFromUi();
+                DismissTriangleTutorialForUpgradesCapture();
                 TabsUI.Instance.ShowMejoras();
                 PrepareResolution(1080, 1920);
                 Advance(3);
@@ -253,13 +262,33 @@ public static class VerticalUiBlock7Capture
             case 3:
                 ValidateAdvancedUpgradesPresentation();
                 Capture("08_upgrades_polished_es_1080x1920.png", 1080, 1920);
+                PrepareCompletedUpgradesHidden();
                 Advance(4);
+                break;
+            case 4:
+                ValidateCompletedUpgradesHidden();
+                Capture("09_upgrades_completed_hidden_es_1080x1920.png", 1080, 1920);
+                Capture("09b_upgrades_completed_hidden_es_720x1280.png", 720, 1280);
+                Advance(5);
                 break;
             default:
                 EditorApplication.update -= Tick;
                 EditorApplication.isPlaying = false;
                 break;
         }
+    }
+
+    private static void DismissTriangleTutorialForUpgradesCapture()
+    {
+        TriangleActivationTutorialUI tutorial =
+            UnityEngine.Object.FindFirstObjectByType<TriangleActivationTutorialUI>(
+                FindObjectsInactive.Include);
+        Require(tutorial != null,
+            "El tutorial del Triángulo no apareció antes de capturar Mejoras.");
+        Button close = tutorial.GetComponentsInChildren<Button>(true)
+            .FirstOrDefault(button => button.name == "Close");
+        Require(close != null, "El tutorial no tiene cierre accesible.");
+        close.onClick.Invoke();
     }
 
     private static void TickAdvancedOnly()
@@ -277,8 +306,20 @@ public static class VerticalUiBlock7Capture
                 LayoutRebuilder.ForceRebuildLayoutImmediate(
                     navigation.secondaryScroll.content);
                 navigation.secondaryScroll.horizontalNormalizedPosition = 0f;
+                VerticalGenerationBeforeTriangleUI generation =
+                    UnityEngine.Object.FindFirstObjectByType<
+                        VerticalGenerationBeforeTriangleUI>(
+                        FindObjectsInactive.Include);
+                generation?.RefreshState();
+                ScrollRect advancedScroll = generation?.triangleRoot != null
+                    ? generation.triangleRoot.transform.Find("TriangleScroll")?
+                        .GetComponent<ScrollRect>()
+                    : null;
+                if (advancedScroll != null)
+                    advancedScroll.verticalNormalizedPosition = 1f;
                 Canvas.ForceUpdateCanvases();
-                Capture("06b_secondary_navigation_es_1080x1920.png", 1080, 1920);
+                Capture("06c_secondary_navigation_corrected_es_1080x1920.png", 1080, 1920);
+                Capture("06c_secondary_navigation_corrected_es_720x1280.png", 720, 1280);
                 Advance(2);
                 break;
             default:
@@ -352,6 +393,7 @@ public static class VerticalUiBlock7Capture
         state.dimension01Unlocked = false;
         state.dimension02Unlocked = false;
         state.dimension03Unlocked = false;
+        UpgradeStudySystem.EnsureState(state).hideCompletedUpgrades = false;
         MachineManager.I?.ResetOperationalProgress();
 
         LocalizationManager.I?.SetLanguage(LocalizationManager.Language.ES);
@@ -445,6 +487,25 @@ public static class VerticalUiBlock7Capture
         Debug.Log("[Vertical UI Block 7] FUNCTION PASS | Acople desde Mejoras | cambio avanzado");
     }
 
+    private static void ValidateAndCaptureTriangleTutorial()
+    {
+        TriangleActivationTutorialUI tutorial =
+            UnityEngine.Object.FindFirstObjectByType<TriangleActivationTutorialUI>(
+                FindObjectsInactive.Include);
+        Require(tutorial != null && tutorial.gameObject.activeInHierarchy &&
+                GameState.I.triangleActivationTutorialSeen,
+            "Acople no devolvio a Generacion con el tutorial persistido y visible.");
+        Require(TabsUI.Instance.panelGeneracion != null &&
+                TabsUI.Instance.panelGeneracion.activeInHierarchy,
+            "El tutorial se mostro fuera de la pantalla de Generacion.");
+        Capture("02b_triangle_tutorial_es_1080x1920.png", 1080, 1920);
+        Capture("02c_triangle_tutorial_es_720x1280.png", 720, 1280);
+        Button close = tutorial.GetComponentsInChildren<Button>(true)
+            .FirstOrDefault(button => button.name == "Close");
+        Require(close != null, "El tutorial no tiene cierre accesible.");
+        close.onClick.Invoke();
+    }
+
     private static void ValidateAdvancedUpgradesPresentation()
     {
         VerticalUpgradesScreenUI screen =
@@ -455,6 +516,53 @@ public static class VerticalUiBlock7Capture
         foreach (string id in TriangleUpgradeIds)
             Require(RequireUpgradeRow(id).gameObject.activeInHierarchy,
                 "La fila triangular no esta visible: " + id);
+    }
+
+    private static void PrepareCompletedUpgradesHidden()
+    {
+        VerticalUpgradesScreenUI screen =
+            UnityEngine.Object.FindFirstObjectByType<VerticalUpgradesScreenUI>(
+                FindObjectsInactive.Include);
+        Require(screen != null && screen.rows != null,
+            "VerticalUpgradesScreenUI no esta disponible para ocultar completadas.");
+
+        var completed = new List<SavedF2UpgradeTier>();
+        foreach (F2UpgradeRowUI row in screen.rows)
+        {
+            if (row == null || string.IsNullOrWhiteSpace(row.UpgradeId)) continue;
+            F2UpgradeDef def = F2UpgradeManager.I.GetDef(row.UpgradeId);
+            if (def?.tiers == null || def.tiers.Count == 0) continue;
+            completed.Add(new SavedF2UpgradeTier
+            {
+                id = row.UpgradeId,
+                purchasedTiers = def.tiers.Count
+            });
+        }
+
+        F2UpgradeManager.I.ApplyLoadedPurchasedTiers(
+            completed, F2UpgradeManager.ProgressionMigrationVersion);
+        GameState.I.experimentalChamberUnlocked = true;
+        UpgradeStudySystem.EnsureState(GameState.I).hideCompletedUpgrades = true;
+        TabsUI.Instance.ShowMejoras();
+        screen.RefreshNow();
+        Canvas.ForceUpdateCanvases();
+    }
+
+    private static void ValidateCompletedUpgradesHidden()
+    {
+        VerticalUpgradesScreenUI screen =
+            UnityEngine.Object.FindFirstObjectByType<VerticalUpgradesScreenUI>(
+                FindObjectsInactive.Include);
+        Require(screen != null && screen.emptyCompletedStateRoot != null &&
+            screen.emptyCompletedStateRoot.activeInHierarchy,
+            "El estado vacio no aparece al ocultar todas las mejoras completadas.");
+        Require(screen.productionSection != null &&
+            screen.productionSection.GetComponent<CanvasGroup>().alpha < .01f &&
+            screen.tracesSection != null &&
+            screen.tracesSection.GetComponent<CanvasGroup>().alpha < .01f &&
+            screen.triangleSection != null &&
+            screen.triangleSection.GetComponent<CanvasGroup>().alpha < .01f,
+            "Alguna seccion completada sigue visible tras activar el filtro.");
     }
 
     private static void PrepareAdvancedGenerationEnglish()
@@ -681,6 +789,7 @@ public static class VerticalUiBlock7Capture
                 if (canvas != null && canvas.transform is RectTransform rootRect)
                     LayoutRebuilder.ForceRebuildLayoutImmediate(rootRect);
             Canvas.ForceUpdateCanvases();
+            ValidateGenerationModulesClearNavigation();
             ValidateTargetScrollCapacity();
             camera.Render();
             RenderTexture.active = target;
@@ -704,6 +813,66 @@ public static class VerticalUiBlock7Capture
                 canvases[i].worldCamera = cameras[i];
                 canvases[i].planeDistance = distances[i];
             }
+            // Restablecer también la geometría impulsada por CanvasScaler.
+            // Sin este paso, una segunda captura en la misma sesión puede
+            // conservar el recorte temporal de ScreenSpaceCamera.
+            RecalculateCanvasScalers(canvases);
+            Canvas.ForceUpdateCanvases();
+            foreach (Canvas canvas in canvases)
+                if (canvas != null && canvas.transform is RectTransform rootRect)
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(rootRect);
+            Canvas.ForceUpdateCanvases();
+        }
+    }
+
+    private static void ValidateGenerationModulesClearNavigation()
+    {
+        VerticalNavigationUI navigation = TabsUI.Instance != null
+            ? TabsUI.Instance.verticalNavigation
+            : null;
+        if (navigation == null || navigation.secondaryNavigationRoot == null ||
+            !navigation.secondaryNavigationRoot.gameObject.activeSelf)
+            return;
+
+        VerticalGenerationBeforeTriangleUI generation =
+            UnityEngine.Object.FindFirstObjectByType<VerticalGenerationBeforeTriangleUI>(
+                FindObjectsInactive.Include);
+        ScrollRect scroll = generation?.triangleRoot != null
+            ? generation.triangleRoot.transform.Find("TriangleScroll")?
+                .GetComponent<ScrollRect>()
+            : null;
+        Require(generation != null && scroll != null &&
+            scroll.viewport != null && scroll.content != null,
+            "Falta el viewport avanzado de Generacion.");
+        generation.RefreshState();
+        scroll.verticalNormalizedPosition = 1f;
+        Canvas.ForceUpdateCanvases();
+
+        RectTransform viewport = scroll.viewport;
+        RectTransform cards = scroll.content.Find(
+            "TriangleArtifactCards") as RectTransform;
+        Require(cards != null, "Faltan las tarjetas de modulos avanzados.");
+        Bounds bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(
+            viewport, cards);
+        Require(bounds.min.y >= viewport.rect.yMin - .5f,
+            "Las tarjetas de modulos quedan cortadas por la navegacion secundaria: " +
+            $"cardsMin={bounds.min.y:F1}, viewportMin={viewport.rect.yMin:F1}.");
+        Require(bounds.max.y <= viewport.rect.yMax + .5f,
+            "Las tarjetas de modulos exceden la parte superior del viewport.");
+        foreach (string nodeName in new[]
+        {
+            "Vertex_Higgs", "Vertex_Tetra", "Vertex_Modulator"
+        })
+        {
+            RectTransform node = scroll.content.Find(
+                "TriangleFocus/" + nodeName) as RectTransform;
+            Require(node != null, "Falta el nodo " + nodeName + ".");
+            Bounds nodeBounds =
+                RectTransformUtility.CalculateRelativeRectTransformBounds(
+                    viewport, node);
+            Require(nodeBounds.max.y <= viewport.rect.yMax + .5f &&
+                nodeBounds.min.y >= viewport.rect.yMin - .5f,
+                nodeName + " o su rotulo quedan recortados por el viewport.");
         }
     }
 
@@ -877,7 +1046,8 @@ public static class VerticalUiBlock7Capture
         "triangle_unlock_1",
         "triangle_impulse_tuning",
         "triangle_synergy_resonance",
-        "triangle_persistence_anchor"
+        "triangle_persistence_anchor",
+        "triangle_energy_efficiency"
     };
 }
 #endif

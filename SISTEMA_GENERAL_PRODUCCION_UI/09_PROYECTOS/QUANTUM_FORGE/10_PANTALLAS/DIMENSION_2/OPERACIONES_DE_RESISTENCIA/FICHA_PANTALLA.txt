@@ -1,0 +1,33 @@
+FICHA DE PANTALLA — OPERACIONES DE RESISTENCIA
+
+Fecha: 1 de septiembre de 2026
+Estado: APROBADA VISUALMENTE POR EL USUARIO; CAPTURAS ARCHIVADAS
+
+Referencia de autoridad visual:
+05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/10_Operaciones_De_Resistencia_Corregidas_V4.png
+SHA-256: E36810D4C8EA8CC6D137AADB77BC3F9173B5E5FB7149C07B1ADD260B8D0F6491
+
+Propietarios específicos:
+- D2OperationsPanelUI: selección, presentación y controles de Operaciones.
+- D2Civilization2System: catálogo, requisitos, actividad, tasas y asignaciones.
+- Dimension2Block1UISetup: composición canónica y referencias serializadas.
+- Dimension2ResistanceOperationsCapture: estado QA, acciones y capturas aisladas.
+
+Contenido implementado:
+- Cabecera de la región seleccionada, saldo sin destinar y Miembros en operaciones.
+- Rescate, Protección, Espionaje y Sabotaje como tarjetas seleccionables reales.
+- Estado, asignados y requisito de cada operación desde el estado de juego.
+- Detalle dinámico con descripción y tasas de Miembros, Dominio y Amenaza.
+- Controles reales −1, +1, +5, ASIGNAR TODOS y LIBERAR TODOS.
+- Regreso y navegación entre las seis secciones de Civilización 2.
+
+Evidencia vigente:
+- Captura 1080×1920: CAPTURAS_CANDIDATAS/D2_Operaciones_De_Resistencia_1080x1920.png
+- Captura 720×1280: CAPTURAS_CANDIDATAS/D2_Operaciones_De_Resistencia_720x1280.png
+- Similitud percibida AA: 95.60 % en 1080 y 95.94 % en 720.
+- QA: STRUCTURE_PASS, STATE_PASS, ACTIONS_PASS, ROUTE_PASS y TEXT_GEOMETRY_PASS.
+- Log de reconstrucción: Logs/dimension2_resistance_operations_setup.log
+- Log de captura: Logs/dimension2_resistance_operations_capture.log
+- Log de comparación: Logs/dimension2_resistance_operations_compare.log
+
+La captura no se archiva como aprobada hasta recibir confirmación visual explícita.

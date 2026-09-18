@@ -1,3 +1,4 @@
+using System.Globalization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -25,6 +26,14 @@ public class Dimension2PanelUI : MonoBehaviour
 
     [Header("Mapa")]
     public TMP_Text mapStatusText;
+    public TMP_Text mapSecondaryStatusText;
+    public TMP_Text mapFollowersText;
+    public TMP_Text mapTrustText;
+    public TMP_Text mapCivilization1TrustText;
+    public TMP_Text mapCivilization2RequirementText;
+    public TMP_Text mapCivilization3RequirementText;
+    public Button mapHelpButton;
+    public Button mapBackButton;
     public Button civilization1Button;
     public Button civilization2Button;
     public Button civilization3Button;
@@ -35,6 +44,7 @@ public class Dimension2PanelUI : MonoBehaviour
     [Header("Civilización 1")]
     public TMP_Text civilization1PlaceholderText;
     public Button backToMapButton;
+    public Button sanctuaryHelpButton;
     public D2Civilization1PanelUI civilization1PanelUI;
 
     [Header("Civilización 2")]
@@ -57,8 +67,16 @@ public class Dimension2PanelUI : MonoBehaviour
         if (civilization3Button != null)
             civilization3Button.onClick.AddListener(OpenCivilization3);
 
+        if (mapHelpButton != null)
+            mapHelpButton.onClick.AddListener(OpenContextualHelp);
+
+        if (mapBackButton != null)
+            mapBackButton.onClick.AddListener(CloseDimension2);
+
         if (backToMapButton != null)
             backToMapButton.onClick.AddListener(ShowMap);
+        if (sanctuaryHelpButton != null)
+            sanctuaryHelpButton.onClick.AddListener(OpenContextualHelp);
 
         if (closeDimension2Button != null)
             closeDimension2Button.onClick.AddListener(CloseDimension2);
@@ -96,6 +114,8 @@ public class Dimension2PanelUI : MonoBehaviour
             1, GameState.I.dimension2.presentation.onboardingStage);
         PresentationStateUtility.Acknowledge(
             GameState.I.dimension2.presentation, PresentationFeatureIds.D2Map);
+        if (SaveService.I != null)
+            SaveService.I.Save();
         ShowMap();
     }
 
@@ -168,35 +188,53 @@ public class Dimension2PanelUI : MonoBehaviour
 
         SetText(firstEntryTitleText, "DIMENSIÓN 2 · PACTOS");
         SetText(firstEntryDescriptionText,
-            "La influencia se gana acogiendo, guiando y cumpliendo compromisos.");
+            "ANTE TI APARECE UN MUNDO DIVIDIDO EN TRES TERRITORIOS.\n" +
+            "SOLO EL SANTUARIO DE PEREGRINOS RESPONDE A TU LLEGADA.");
         SetButtonLabel(continueFirstEntryButton, "ABRIR MAPA");
         SetButtonLabel(civilization1Button, "ENTRAR AL SANTUARIO");
-        SetButtonLabel(civilization2Button, civilization2Unlocked
-            ? "CIVILIZACIÓN 2\nTERRITORIO LOCALIZADO"
-            : "TERRITORIO PRÓXIMO");
         if (civilization3Button != null)
-            civilization3Button.gameObject.SetActive(civilization3Unlocked);
+            civilization3Button.gameObject.SetActive(true);
+
+        long totalFollowers = D2Civilization1System.GetTotalFollowers(
+            state.dimension2.civilization1);
+        double trust = state.dimension2.civilization1.trust;
+        double dominance = D2Civilization2System.GetTotalDominance(
+            state.dimension2.civilization2);
+        SetText(mapFollowersText, totalFollowers.ToString("N0", CultureInfo.InvariantCulture));
+        SetText(mapTrustText,
+            trust.ToString("0") + " / " + D2PilgrimageSystem.MaxTrust.ToString("0"));
 
         SetText(civilization1StateText, civilization1Unlocked ? "DISPONIBLE" : "BLOQUEADA");
-        SetText(civilization2StateText, civilization2Unlocked
-            ? "NUEVA · DISPONIBLE"
-            : "SILUETA · Confianza " +
-              state.dimension2.civilization1.trust.ToString("0") + "/300");
-        SetText(civilization3StateText, civilization3Unlocked ? "NUEVA · DISPONIBLE" : "");
+        SetText(civilization2StateText, civilization2Unlocked ? "DISPONIBLE" : "BLOQUEADO");
+        SetText(civilization3StateText, civilization3Unlocked ? "DISPONIBLE" : "BLOQUEADO");
+        SetText(mapCivilization1TrustText,
+            "CONFIANZA " + trust.ToString("0") + " / " +
+            D2PilgrimageSystem.MaxTrust.ToString("0"));
+        SetText(mapCivilization2RequirementText, civilization2Unlocked
+            ? "TERRITORIO LOCALIZADO"
+            : "SE LOCALIZA CON\n" +
+              D2PilgrimageSystem.Civilization2UnlockTrust.ToString("0") +
+              " DE CONFIANZA");
+        SetText(mapCivilization3RequirementText, civilization3Unlocked
+            ? "DOMINIO TOTAL " + dominance.ToString("0") + "%"
+            : "SE DESBLOQUEA CON\nDOMINIO TOTAL " +
+              D2Civilization2System.AlertDominanceThreshold.ToString("0") +
+              "% O MENOS");
 
         if (mapStatusText != null)
         {
-            mapStatusText.text =
-                "DIMENSIÓN 2 · PACTOS\n" +
-                (civilization2Unlocked
-                    ? "Se ha localizado otro territorio. Puedes visitarlo cuando quieras."
-                    : "El Santuario está disponible. Otro territorio se perfila con la Confianza.");
+            mapStatusText.text = civilization2Unlocked
+                ? "OTRO TERRITORIO ESTÁ DISPONIBLE"
+                : "EL SANTUARIO ESTÁ DISPONIBLE";
         }
+        SetText(mapSecondaryStatusText, civilization2Unlocked
+            ? "PUEDES VISITAR EL NUEVO TERRITORIO."
+            : "OTRO TERRITORIO SE PERFILA CON LA CONFIANZA.");
 
         if (civilization1PlaceholderText != null)
         {
             civilization1PlaceholderText.text =
-                "CIVILIZACIÓN 1 — SANTUARIO DE PEREGRINOS";
+                "EL SANTUARIO";
         }
 
         if (civilization1PanelUI != null)

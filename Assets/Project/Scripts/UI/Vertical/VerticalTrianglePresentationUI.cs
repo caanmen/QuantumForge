@@ -3,6 +3,8 @@ using UnityEngine.UI;
 
 public sealed class VerticalTrianglePresentationUI : MonoBehaviour
 {
+    private const float VisualRefreshInterval = 1f / 20f;
+
     public Image energyLine;
     public Image experimentalLine;
     public Image phaseLine;
@@ -12,9 +14,14 @@ public sealed class VerticalTrianglePresentationUI : MonoBehaviour
     public Color energyColor = new(0f, 0.84f, 1f, 1f);
     public Color experimentalColor = new(0.73f, 0.31f, 0.93f, 1f);
     public Color phaseColor = new(1f, 0.60f, 0.13f, 1f);
+    private float nextVisualRefreshTime;
 
     private void Update()
     {
+        if (Time.unscaledTime < nextVisualRefreshTime)
+            return;
+        nextVisualRefreshTime = Time.unscaledTime + VisualRefreshInterval;
+
         GameState state = GameState.I;
         TriangleCircuitType active = state != null
             ? state.triangleActiveCircuit

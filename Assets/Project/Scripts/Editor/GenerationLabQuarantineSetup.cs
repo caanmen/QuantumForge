@@ -48,7 +48,8 @@ public static class GenerationLabQuarantineSetup
         Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
         Transform header = FindUnique(scene, "VerticalGenerationHeader");
         Transform root = FindUnique(scene, "GenerationTriangleRoot");
-        Require(header != null && root != null,
+        Transform beforeRoot = FindUnique(scene, "GenerationBeforeTriangleRoot");
+        Require(header != null && root != null && beforeRoot != null,
             "La pantalla avanzada de Generacion no esta configurada.");
 
         Transform content = root.Find("TriangleScroll/Viewport/Content");
@@ -62,6 +63,7 @@ public static class GenerationLabQuarantineSetup
 
         ConfigureHeader(header, resourcePanel, theme);
         ConfigureRoot(root, content, background, theme);
+        ConfigureInitialBackground(beforeRoot, background);
         GenerationLabQuarantineUI controller = ConfigureFocus(
             focus, background, sidePanel, theme);
         Transform oldBanner = content.Find("QuarantineBanner");
@@ -92,12 +94,14 @@ public static class GenerationLabQuarantineSetup
         Transform left = FindUnique(scene, "RealCircuitStatus");
         Transform right = FindUnique(scene, "RealEffectStatus");
         Transform background = FindUnique(scene, "LabContainmentBackground");
+        Transform fullscreenBackground = FindUnique(scene,
+            "GenerationFullscreenLabBackground");
         GenerationLabQuarantineUI controller = focus != null
             ? focus.GetComponent<GenerationLabQuarantineUI>()
             : null;
 
-        Require(root != null && focus != null &&
-            left != null && right != null && background != null,
+        Require(root != null && focus != null && left != null && right != null &&
+            background != null && fullscreenBackground != null,
             "Falta una pieza visual del rediseño de cuarentena.");
         Require(banner == null || !banner.gameObject.activeSelf,
             "El cartel de cuarentena no debe mostrarse en esta pantalla.");
@@ -107,8 +111,34 @@ public static class GenerationLabQuarantineSetup
             "Los laterales no estan conectados a datos reales.");
         Require(background.GetComponent<Image>()?.sprite != null,
             "El fondo del laboratorio no tiene sprite.");
-        Require(Mathf.Abs(((RectTransform)root).offsetMin.x - 2f) < 0.1f,
-            "La composicion perdio el margen objetivo de 2 px.");
+        Image fullscreenImage = fullscreenBackground.GetComponent<Image>();
+        Require(fullscreenImage != null && fullscreenImage.sprite != null &&
+                fullscreenBackground.GetSiblingIndex() == 0 &&
+                fullscreenImage.preserveAspect &&
+                fullscreenBackground.GetComponent<AspectRatioFitter>()?.aspectMode ==
+                    AspectRatioFitter.AspectMode.EnvelopeParent,
+            "El laboratorio no cubre de forma independiente todo Panel_Generacion.");
+        Image rootImage = root.GetComponent<Image>();
+        Require(rootImage != null && rootImage.color.a <= 0.001f,
+            "GenerationTriangleRoot vuelve a tapar el laboratorio con la cuadricula.");
+        Transform earlyBackground = FindUnique(scene, "EarlyLabBackground");
+        Image earlyBackgroundImage = earlyBackground != null
+            ? earlyBackground.GetComponent<Image>()
+            : null;
+        Require(earlyBackgroundImage != null && earlyBackgroundImage.sprite != null &&
+                earlyBackground.GetSiblingIndex() == 0 &&
+                earlyBackgroundImage.color.a >= 0.99f,
+            "El fondo de fabrica de las pantallas iniciales no esta visible o " +
+            "perdio su orden de dibujo.");
+        Require(Mathf.Abs(((RectTransform)root).offsetMin.x - 16f) < 0.1f,
+            "La composicion perdio el margen lateral objetivo de 16 px.");
+        Require(earlyBackgroundImage.preserveAspect &&
+                earlyBackground.GetComponent<AspectRatioFitter>()?.aspectMode ==
+                    AspectRatioFitter.AspectMode.EnvelopeParent &&
+                background.GetComponent<Image>().preserveAspect &&
+                background.GetComponent<AspectRatioFitter>()?.aspectMode ==
+                    AspectRatioFitter.AspectMode.EnvelopeParent,
+            "La foto del laboratorio se esta deformando en alguna composicion.");
         Require(FindText(scene, "PRESION") == null &&
             FindText(scene, "NIVEL DE BRECHA") == null &&
             FindText(scene, "SISTEMAS ESTRES") == null,
@@ -124,9 +154,21 @@ public static class GenerationLabQuarantineSetup
             FindUnique(scene, "TriangleCard_Modulator")
                 ?.GetComponent<VerticalTriangleArtifactCardUI>() != null,
             "Las compras reales del Triangulo no estan conectadas.");
+        RectTransform circuits = FindUnique(scene, "CircuitSelectors") as RectTransform;
+        RectTransform purchases = FindUnique(scene,
+            "TrianglePurchasesFrame") as RectTransform;
+        Require(circuits != null && purchases != null &&
+                RectBottomFromTop(circuits) <= RectTopFromTop(purchases) - 4f,
+            "Los selectores del Triangulo se superponen con Modulos disponibles.");
         Debug.Log("[Lab Quarantine UI] VALIDATION PASS | composicion | fondo | " +
-            "datos reales | botones | compras");
+            "cobertura completa | datos reales | botones | compras sin solapamiento");
     }
+
+    private static float RectTopFromTop(RectTransform rect) =>
+        -rect.anchoredPosition.y;
+
+    private static float RectBottomFromTop(RectTransform rect) =>
+        RectTopFromTop(rect) + rect.rect.height;
 
     public static void ApplyAndValidateBatch()
     {
@@ -225,13 +267,17 @@ public static class GenerationLabQuarantineSetup
         RectTransform rootRect = (RectTransform)root;
         rootRect.anchorMin = Vector2.zero;
         rootRect.anchorMax = Vector2.one;
-        rootRect.offsetMin = new Vector2(2f, 20f);
-        rootRect.offsetMax = new Vector2(-2f, -138f);
+        rootRect.offsetMin = new Vector2(16f, 20f);
+        rootRect.offsetMax = new Vector2(-16f, -148f);
+
+        ConfigureFullscreenLabBackground(root.parent, background);
 
         Image rootBackground = GetOrAdd<Image>(root.gameObject);
-        rootBackground.sprite = theme.backgroundGrid;
+        // El laboratorio de pantalla completa es el unico propietario del fondo.
+        // La raiz conserva su geometria funcional sin revelar la cuadricula.
+        rootBackground.sprite = null;
         rootBackground.type = Image.Type.Simple;
-        rootBackground.color = new Color(0.54f, 0.62f, 0.66f, 1f);
+        rootBackground.color = Color.clear;
         rootBackground.raycastTarget = false;
 
         RectTransform contentRect = (RectTransform)content;
@@ -247,6 +293,31 @@ public static class GenerationLabQuarantineSetup
         Transform oldFrame = content.Find("GenerationTitleFrame");
         if (oldTitle != null) oldTitle.gameObject.SetActive(false);
         if (oldFrame != null) oldFrame.gameObject.SetActive(false);
+    }
+
+    private static void ConfigureFullscreenLabBackground(
+        Transform panel,
+        Sprite background)
+    {
+        Require(panel != null, "GenerationTriangleRoot perdio su panel propietario.");
+        Image fullscreen = CreateImage("GenerationFullscreenLabBackground", panel,
+            background, Color.white);
+        fullscreen.type = Image.Type.Simple;
+        fullscreen.preserveAspect = true;
+        Stretch(fullscreen.rectTransform, 0f);
+        ConfigureBackgroundCrop(fullscreen);
+        fullscreen.transform.SetAsFirstSibling();
+    }
+
+    private static void ConfigureInitialBackground(Transform root, Sprite background)
+    {
+        Image image = CreateImage("EarlyLabBackground", root, background,
+            new Color(.78f, .80f, .81f, 1f));
+        image.type = Image.Type.Simple;
+        image.preserveAspect = true;
+        Stretch(image.rectTransform, 2f);
+        ConfigureBackgroundCrop(image);
+        image.transform.SetAsFirstSibling();
     }
 
     private static GenerationLabQuarantineUI ConfigureFocus(
@@ -268,7 +339,8 @@ public static class GenerationLabQuarantineSetup
             "LabContainmentBackground", focus, background, Color.white);
         Stretch(backgroundImage.rectTransform, 3f);
         backgroundImage.type = Image.Type.Simple;
-        backgroundImage.preserveAspect = false;
+        backgroundImage.preserveAspect = true;
+        ConfigureBackgroundCrop(backgroundImage);
         backgroundImage.transform.SetAsFirstSibling();
 
         SetActive(focus.Find("TechnologyGrid"), false);
@@ -614,7 +686,7 @@ public static class GenerationLabQuarantineSetup
     {
         Transform frame = content.Find("TrianglePurchasesFrame");
         Require(frame != null, "Falta TrianglePurchasesFrame.");
-        SetTopRect((RectTransform)frame, 1128f, 374f, 10f, -10f);
+        SetTopRect((RectTransform)frame, 1128f, 470f, 10f, -10f);
         Image frameImage = frame.GetComponent<Image>();
         if (frameImage != null)
         {
@@ -633,7 +705,7 @@ public static class GenerationLabQuarantineSetup
         titleText.characterSpacing = 2.2f;
         titleText.alignment = TextAlignmentOptions.MidlineLeft;
 
-        SetTopRect((RectTransform)cards, 1176f, 292f, 22f, -22f);
+        SetTopRect((RectTransform)cards, 1176f, 390f, 22f, -22f);
         VerticalLayoutGroup oldVertical = cards.GetComponent<VerticalLayoutGroup>();
         if (oldVertical != null)
             UnityEngine.Object.DestroyImmediate(oldVertical);
@@ -661,8 +733,8 @@ public static class GenerationLabQuarantineSetup
         layout.minWidth = 220f;
         layout.preferredWidth = 300f;
         layout.flexibleWidth = 1f;
-        layout.minHeight = 280f;
-        layout.preferredHeight = 286f;
+        layout.minHeight = 370f;
+        layout.preferredHeight = 380f;
         layout.flexibleHeight = 1f;
 
         Transform accent = card.Find("AccentBar");
@@ -686,7 +758,7 @@ public static class GenerationLabQuarantineSetup
         TextMeshProUGUI nameText = name.GetComponent<TextMeshProUGUI>();
         nameText.fontSize = 22f;
         nameText.fontSizeMax = 22f;
-        nameText.fontSizeMin = 12f;
+        nameText.fontSizeMin = 18f;
         nameText.alignment = TextAlignmentOptions.MidlineLeft;
         nameText.textWrappingMode = TextWrappingModes.NoWrap;
         SetAnchors(nameText.rectTransform,
@@ -701,7 +773,7 @@ public static class GenerationLabQuarantineSetup
         TextMeshProUGUI stateText = state.GetComponent<TextMeshProUGUI>();
         stateText.fontSize = 18f;
         stateText.fontSizeMax = 18f;
-        stateText.fontSizeMin = 13f;
+        stateText.fontSizeMin = 16f;
         stateText.alignment = TextAlignmentOptions.Center;
         SetAnchors(stateText.rectTransform,
             new Vector2(0.08f, 0.28f), new Vector2(0.92f, 0.43f));
@@ -734,7 +806,7 @@ public static class GenerationLabQuarantineSetup
         {
             buyLabel.fontSize = 20f;
             buyLabel.fontSizeMax = 20f;
-            buyLabel.fontSizeMin = 13f;
+            buyLabel.fontSizeMin = 16f;
             buyLabel.alignment = TextAlignmentOptions.Center;
         }
 
@@ -1089,6 +1161,17 @@ public static class GenerationLabQuarantineSetup
         rect.anchorMax = Vector2.one;
         rect.offsetMin = new Vector2(inset, inset);
         rect.offsetMax = new Vector2(-inset, -inset);
+    }
+
+    private static void ConfigureBackgroundCrop(Image image)
+    {
+        if (image == null || image.sprite == null) return;
+        AspectRatioFitter fitter = GetOrAdd<AspectRatioFitter>(image.gameObject);
+        fitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
+        Rect spriteRect = image.sprite.rect;
+        fitter.aspectRatio = spriteRect.height > 0f
+            ? spriteRect.width / spriteRect.height
+            : 1f;
     }
 
     private static void ApplyFont(Transform root, VerticalUiTheme theme)

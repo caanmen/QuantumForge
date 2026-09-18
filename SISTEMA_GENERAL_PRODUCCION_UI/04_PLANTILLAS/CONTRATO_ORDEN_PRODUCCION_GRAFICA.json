@@ -1,0 +1,155 @@
+{
+  "schema_version": "1.3",
+  "scope": "Familias gráficas modulares con contenido compartido y envolvente temática",
+  "principle": "La dependencia funcional se resuelve antes que la decoración: el marco se diseña alrededor del contenido universal medido y de sus zonas reservadas bloqueadas.",
+  "required_order": [
+    "declare_asset_and_layer_ownership",
+    "inventory_existing_universal_components",
+    "measure_extreme_content_at_final_scale",
+    "lock_reserved_zones_and_usable_field",
+    "render_neutral_geometry_proof",
+    "validate_all_content_variants_against_clean_geometry",
+    "design_frame_around_locked_zones",
+    "validate_frame_against_reserved_zones",
+    "add_theme_specific_art_and_typography",
+    "validate_integrated_layer_composition",
+    "approve_representative_unit",
+    "produce_batch",
+    "validate_complete_inventory_in_final_context"
+  ],
+  "blocking_rules": {
+    "frame_before_geometry_proof_forbidden": true,
+    "shrinking_approved_universal_content_to_fit_late_frame_forbidden": true,
+    "moving_locked_universal_topology_to_hide_frame_conflict_forbidden": true,
+    "theme_translation_of_universal_content_forbidden": true,
+    "theme_scaling_of_universal_content_forbidden": true,
+    "frame_validation_before_universal_geometry_lock_forbidden": true,
+    "ornament_inside_reserved_zone_forbidden": true,
+    "theme_exception_requires_measured_profile": true,
+    "batch_before_representative_unit_approval_forbidden": true,
+    "opaque_complete_asset_over_owned_surface_forbidden": true,
+    "duplicate_surface_owner_forbidden": true,
+    "opaque_patch_as_integration_forbidden": true,
+    "hidden_RGB_under_zero_alpha_forbidden": true,
+    "visual_layer_composition_requires_VLC01_command_evidence": true
+  },
+  "required_evidence_before_frame_art": [
+    "clean_geometry_source",
+    "normalized_reserved_zone_bounds",
+    "widest_and_tallest_content_fixtures",
+    "final_scale_preview",
+    "automatic_fit_result"
+    ,"universal_geometry_lock_hash"
+    ,"frame_reserved_zone_overlay"
+  ],
+  "playing_card_application": {
+    "universal_geometry_contract": "04_PLANTILLAS/CONTRATO_GEOMETRIA_UNIVERSAL_CARTAS.json",
+    "universal_geometry_policy": {
+      "positions_are_global_and_immutable": true,
+      "visible_sizes_are_global_and_immutable": true,
+      "theme_translation_allowed": false,
+      "theme_scale_allowed": false,
+      "invalid_frame_must_be_redesigned": true,
+      "locked_hash_required_before_frame_validation": true
+    },
+    "universal_visible_index_envelope": {
+      "scope": "new_or_modified_themes",
+      "minimum_visible_suit_height_ratio_of_card_width": 0.084,
+      "pixel_rounding": "nearest_integer",
+      "theme_may_reduce_below_minimum": false,
+      "frame_may_vary_pocket_size_only_when_envelope_and_margin_fit": true,
+      "actual_upper_lower_pocket_dimension_delta_pixels_maximum": 1,
+      "actual_lower_pocket_must_match_upper_after_180_rotation": true,
+      "legacy_themes_require_separate_migration": true
+    },
+    "universal_core": [
+      "A_to_10_counts",
+      "A_to_10_pip_topology",
+      "pip_orientation",
+      "relative_pip_distribution",
+      "rank_and_suit_content_inventory",
+      "absolute_normalized_positions",
+      "visible_rank_and_pip_sizes"
+    ],
+    "theme_shell": [
+      "frame",
+      "background",
+      "ornaments",
+      "court_art",
+      "theme_font_style_with_locked_visible_metrics",
+      "court_measured_optical_offsets"
+    ],
+    "mandatory_extreme_fixtures": [
+      "10_plus_each_suit",
+      "Q_plus_each_suit",
+      "K_plus_each_suit",
+      "narrow_rank_plus_each_suit",
+      "A_to_10_all_four_suits",
+      "upper_and_lower_180_degree_corners"
+    ],
+    "rule": "Cada marco nuevo se diseña alrededor de la geometría A–10 bloqueada. El tema puede cambiar el estilo tipográfico sólo si conserva exactamente la huella visible, el tamaño y el centro universales. Si existe un conflicto se rediseña el marco; nunca se traslada ni se escala el contenido universal."
+  },
+  "layer_integration": {
+    "principle": "Cada región visible conserva un único propietario. Integrar capas significa recomponerlas con transparencia y máscaras declaradas, no apilar assets completos que repiten fondo, cara o marco.",
+    "required_gate_module": "visual_layer_composition",
+    "required_gate_criterion": "VLC01",
+    "required_automatic_checks": [
+      "isolated_layer_dimensions_and_roles",
+      "transparent_pixels_outside_authorized_content",
+      "theme_surface_visible_in_uncovered_samples",
+      "single_surface_and_frame_owner",
+      "exact_pixel_recomposition_from_declared_layers",
+      "opaque_complete_asset_negative_fixture_rejected"
+    ]
+  },
+  "negative_fixtures": {
+    "decorative_frame_created_before_reserved_zone": {
+      "expected_status": "FAIL",
+      "reason": "Obliga a encoger o desplazar el contenido universal después."
+    },
+    "ten_rank_clipped_by_frame": {
+      "expected_status": "FAIL",
+      "reason": "El caso ancho demuestra que la zona reservada no fue dimensionada primero."
+    },
+    "universal_symbols_reduced_to_rescue_frame": {
+      "expected_status": "FAIL",
+      "reason": "El marco debe adaptarse al contrato universal, no degradar su legibilidad."
+    },
+    "ornament_crosses_clean_reserved_zone": {
+      "expected_status": "FAIL",
+      "reason": "La envolvente temática invadió una interfaz geométrica bloqueada."
+    },
+    "painted_upper_lower_pockets_have_different_dimensions": {
+      "expected_status": "FAIL",
+      "reason": "Las coordenadas declaradas no sustituyen la igualdad visible de los dos huecos realmente renderizados."
+    },
+    "theme_translates_universal_content": {
+      "expected_status": "FAIL",
+      "reason": "La posición aprobada pertenece al maestro universal y no al marco."
+    },
+    "theme_scales_universal_content": {
+      "expected_status": "FAIL",
+      "reason": "El tamaño aprobado pertenece al maestro universal y no puede reducirse para caber."
+    },
+    "frame_does_not_contain_locked_reserved_zones": {
+      "expected_status": "FAIL",
+      "reason": "Un marco estrecho es inválido; no autoriza modificar el contenido."
+    },
+    "frame_uses_unapproved_geometry_hash": {
+      "expected_status": "FAIL",
+      "reason": "No se diseña ni valida un marco contra un maestro todavía pendiente o modificado después de su aprobación."
+    },
+    "correct_master_used_as_opaque_full_face": {
+      "expected_status": "FAIL",
+      "reason": "La autoridad de contenido y geometría no convierte al maestro en propietario de la superficie temática."
+    },
+    "transparent_frame_contains_hidden_checker_RGB": {
+      "expected_status": "FAIL",
+      "reason": "Datos ocultos bajo alfa cero pueden reaparecer durante filtrado, escalado o exportación."
+    },
+    "final_render_differs_from_declared_layer_recomposition": {
+      "expected_status": "FAIL",
+      "reason": "Indica un parche, una capa no declarada o un orden de composición distinto."
+    }
+  }
+}

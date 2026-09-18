@@ -1,0 +1,30 @@
+FICHA — CONTROL DE DIAGNÓSTICO
+==============================
+
+Dimensión: 3
+Tipo: automatización diagnóstica, prioridad, reservas y recetas
+Referencia visual: 05_REFERENCIAS/DIMENSION_3/CONTROL_DIAGNOSTICO/
+Implementación funcional: D3DiagnosticPanelUI + D3DiagnosticSystem
+
+ESCENARIO CANÓNICO DE QA
+- recursos: 3.25M LE, 4.2K Trazas y 56 Autómatas;
+- Banco de Diagnóstico nivel 4;
+- capacidad real suficiente para configurar la función N3;
+- autoanálisis: ON;
+- autorreparación: ON;
+- autofusión: OFF;
+- orden: Prioridad por zona;
+- zona: Sector de Fusión;
+- reserva LE: 10K;
+- reserva T: 100;
+- sin recetas manuales;
+- marcar receta bloqueado;
+- guardar/cargar rutina bloqueados hasta N5;
+- navegación inferior: CONTROL seleccionado.
+
+ESTADOS POSTERIORES A VALIDAR
+- niveles N1–N5 del Banco;
+- autoanálisis, autorreparación y autofusión ON/OFF;
+- orden ascendente y prioridad por zona;
+- receta manual ausente, presente y marcada;
+- rutina N5 guardada/cargada y offline con Núcleo N5.

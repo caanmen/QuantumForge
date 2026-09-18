@@ -1,0 +1,41 @@
+DECISIONES — PACTO MAYOR DE CIVILIZACIÓN 2
+
+2 de septiembre de 2026
+
+1. La referencia permanente V4 manda sobre el adjunto temporal del chat.
+2. PACTO MAYOR es la segunda fase de D2ContainmentPanelUI y sólo aparece después
+   de contener al Ente; no existe un segundo propietario de estado.
+3. La placa limpia conserva rueda, cadenas, marcos, placas, medallones y
+   navegación; textos, cifras, selección e iconos variables son capas de Unity.
+4. Los cinco nombres, efectos, niveles y costes proceden de
+   D2Civilization2System; la UI no replica sus reglas.
+5. La selección visible, el icono central y el icono del detalle cambian juntos
+   mediante un único índice de línea seleccionado.
+6. Las líneas permanecen sin interacción hasta establecer el Pacto Mayor.
+7. La acción principal alterna entre establecer y mejorar sin superponer dos
+   botones interactivos simultáneos.
+8. Los controles −1, +1, +10, TODOS y LIBERAR utilizan las acciones reales de
+   Sostenimiento y se habilitan según disponibilidad y asignación.
+9. El fondo y la ornamentación tienen raycast desactivado; sólo los controles
+   funcionales reciben eventos.
+10. La fuente Cinzel existente se mantiene como fuente canónica. Los grupos de
+    texto usan correcciones locales de proporción y eje para aproximar la
+    tipografía condensada de la referencia sin crear otro sistema de estilos.
+11. La escena y Dimension2Block1UISetup conservan la misma geometría; toda
+    reconstrucción futura vuelve a producir la versión validada.
+12. El capturador congela el fixture, restaura los datos antes de cada resolución
+    y suprime escrituras persistentes hasta cerrar Unity.
+13. La prueba funcional cubre selección de la segunda línea, asignación,
+    liberación, mejora, ruta física, reapertura, geometría TMP y save intacto.
+14. Cualquier cambio futuro de placa, texto, icono, controlador, mecánica o
+    navegación obliga a regenerar 1080, 720 y la comparación oficial.
+15. Superar el 95 % y pasar QA convierte la pantalla en candidata técnica; la
+    aprobación visual y creativa sigue perteneciendo al usuario.
+16. Los cinco símbolos interiores de las filas comparten un desplazamiento de
+    un píxel a la derecha y ocho hacia abajo; no se modifican aros, recortes,
+    tamaño, icono central ni detalle.
+17. Las etiquetas NIVEL conservan 16 px verticales y usan escala horizontal
+    0.84 dentro de una caja centrada sobre cada placa para evitar desbordes.
+18. La navegación adopta las mayúsculas y el tamaño de las pantallas hermanas:
+    17 px en pestañas neutras y 17.5 px en PACTO MAYOR, máximo que supera la
+    validación de geometría TMP sin truncamiento.

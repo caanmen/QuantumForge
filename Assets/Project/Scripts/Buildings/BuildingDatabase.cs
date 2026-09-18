@@ -17,7 +17,7 @@ public class BuildingDatabase : MonoBehaviour
     [System.Serializable]
     private class BuildingDefCollection
     {
-        public BuildingDef[] buildings;
+        public BuildingDef[] buildings = new BuildingDef[0];
     }
 
     private void Awake()

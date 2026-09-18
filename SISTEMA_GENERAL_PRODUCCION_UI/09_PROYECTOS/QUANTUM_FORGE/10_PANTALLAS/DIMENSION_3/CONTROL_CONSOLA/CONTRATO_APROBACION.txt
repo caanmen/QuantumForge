@@ -1,0 +1,11 @@
+CONTRATO DE APROBACIÓN — CONTROL DE CONSOLA
+===========================================
+
+La pantalla sólo puede declararse terminada cuando:
+- existen capturas reales nuevas 1080x1920 y 720x1280;
+- todos los selectores y botones conservan su marco y dejan pasar raycasts;
+- el escenario visible coincide con el estado real de D3ConsolePanelUI;
+- el usuario aprueba al menos 95 % de similitud visual;
+- pasan Consola N1–N5, automatización autorizada, Main, layout móvil y guardado;
+- se validan los estados posteriores aplicables;
+- las capturas se archivan únicamente tras la aprobación explícita.

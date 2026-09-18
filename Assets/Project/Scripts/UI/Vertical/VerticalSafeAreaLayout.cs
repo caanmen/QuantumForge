@@ -11,6 +11,10 @@ public sealed class VerticalSafeAreaLayout : MonoBehaviour
 
     [Header("Medidas en referencia 1080 x 1920")]
     [Min(0f)] public float horizontalMargin = 24f;
+    // El contenido debe cubrir el ancho util de la Safe Area para que el fondo
+    // tecnico de la raiz no aparezca como una franja lateral. Las barras
+    // conservan horizontalMargin como separacion visual independiente.
+    [Min(0f)] public float contentHorizontalMargin = 0f;
     // La cabecera de recursos pertenece a cada pantalla. HeaderSlot queda
     // disponible para futuras cabeceras globales, pero no reserva espacio.
     [Min(0f)] public float headerHeight = 0f;
@@ -22,6 +26,14 @@ public sealed class VerticalSafeAreaLayout : MonoBehaviour
     private int lastScreenHeight = -1;
     private Rect lastSafeArea;
     private bool lastSecondaryNavigationActive;
+    private bool secondaryNavigationOverlay;
+
+    public void SetSecondaryNavigationOverlay(bool overlay)
+    {
+        if (secondaryNavigationOverlay == overlay) return;
+        secondaryNavigationOverlay = overlay;
+        ApplyLayout();
+    }
 
     private void Awake() => ApplyLayout();
 
@@ -30,7 +42,7 @@ public sealed class VerticalSafeAreaLayout : MonoBehaviour
     private void Update()
     {
         bool secondaryActive = secondaryNavigationSlot != null &&
-            secondaryNavigationSlot.gameObject.activeSelf;
+            secondaryNavigationSlot.gameObject.activeSelf && !secondaryNavigationOverlay;
         if (lastScreenWidth != Screen.width ||
             lastScreenHeight != Screen.height ||
             lastSafeArea != Screen.safeArea ||
@@ -68,7 +80,7 @@ public sealed class VerticalSafeAreaLayout : MonoBehaviour
             primaryNavigationHeight, verticalGap);
 
         bool secondaryActive = secondaryNavigationSlot != null &&
-            secondaryNavigationSlot.gameObject.activeSelf;
+            secondaryNavigationSlot.gameObject.activeSelf && !secondaryNavigationOverlay;
         float secondaryBottom = primaryNavigationHeight + verticalGap * 2f;
         ConfigureBottomSlot(secondaryNavigationSlot, horizontalMargin,
             secondaryNavigationHeight, secondaryBottom);
@@ -79,8 +91,8 @@ public sealed class VerticalSafeAreaLayout : MonoBehaviour
             float bottom = primaryNavigationHeight + verticalGap * 2f;
             if (secondaryActive)
                 bottom += secondaryNavigationHeight + verticalGap;
-            contentSlot.offsetMin = new Vector2(horizontalMargin, bottom);
-            contentSlot.offsetMax = new Vector2(-horizontalMargin,
+            contentSlot.offsetMin = new Vector2(contentHorizontalMargin, bottom);
+            contentSlot.offsetMax = new Vector2(-contentHorizontalMargin,
                 -(headerHeight + verticalGap * 2f));
         }
 

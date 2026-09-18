@@ -10,6 +10,8 @@ using UnityEngine;
 [DefaultExecutionOrder(10000)]
 public class D3RuntimeLocalizer : MonoBehaviour
 {
+    private const float RefreshInterval = 0.2f;
+
     private sealed class CachedText
     {
         public string spanishSource = "";
@@ -18,6 +20,7 @@ public class D3RuntimeLocalizer : MonoBehaviour
 
     private readonly Dictionary<TMP_Text, CachedText> _cache =
         new Dictionary<TMP_Text, CachedText>();
+    private float nextRefreshTime;
 
     private struct Pair
     {
@@ -138,6 +141,10 @@ public class D3RuntimeLocalizer : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (Time.unscaledTime < nextRefreshTime)
+            return;
+        nextRefreshTime = Time.unscaledTime + RefreshInterval;
+
         if (LocalizationManager.I == null) return;
         bool english = LocalizationManager.I.CurrentLanguage ==
             LocalizationManager.Language.EN;

@@ -1,0 +1,24 @@
+PAQUETE VISUAL — PEREGRINACIONES
+
+Referencia autorizada:
+SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/04_Peregrinaciones_Corregidas_V4.png
+SHA-256: D8B946EDF4F3574694F1F6E56EEA570A727F9E289FFFAA7FFFCA04BF65903F88.
+
+D2_Pilgrimages_CleanBasePlate_v1.png
+- Placa limpia generada por edición con ImageGen el 30-08-2026.
+- Conserva marcos, piedra, ilustración narrativa, paneles y placas de botones.
+- Elimina textos, cifras, iconos y selecciones.
+
+D2_Pilgrimages_StaticIconOverlay_v1.png
+- Overlay transparente derivado mecánicamente de la referencia permanente.
+- Contiene arte de las cinco rutas e iconos canónicos de cabecera, requisitos,
+  estado, advertencia y navegación.
+- No contiene textos ni cifras dinámicas.
+
+D2_Pilgrimages_ShortSelectionOverlay_v1.png
+- Bordes/resplandores de la tarjeta Corta y la pestaña Peregrinaciones.
+- Propietario de visibilidad: D2PilgrimagesPanelUI.
+
+Tools/VisualQA/PrepareD2PilgrimagesAssets.ps1 reconstruye los dos overlays a
+partir de la referencia permanente. Todos los datos, títulos, estados y acciones
+se renderizan en Unity.

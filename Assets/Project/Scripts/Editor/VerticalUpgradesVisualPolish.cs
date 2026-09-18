@@ -235,7 +235,7 @@ public static class VerticalUpgradesVisualPolish
         shellImage.preserveAspect = false;
         // Shared accident-lab atmosphere: visible enough to establish place,
         // but darker than the functional cards and their typography.
-        shellImage.color = new Color(0.44f, 0.47f, 0.48f, 0.66f);
+        shellImage.color = new Color(0.72f, 0.74f, 0.75f, 0.80f);
         shellImage.raycastTarget = false;
 
         TextMeshProUGUI title = shell.transform.Find("Title")
@@ -265,7 +265,7 @@ public static class VerticalUpgradesVisualPolish
         scrollRect.anchorMin = Vector2.zero;
         scrollRect.anchorMax = Vector2.one;
         scrollRect.offsetMin = Vector2.zero;
-        scrollRect.offsetMax = new Vector2(0f, -94f);
+        scrollRect.offsetMax = new Vector2(0f, -630f);
         Transform content = scrollTransform.Find("Viewport/Content");
         Require(content != null, "UpgradesScroll perdio Content.");
         VerticalLayoutGroup contentLayout = content.GetComponent<VerticalLayoutGroup>();
@@ -273,7 +273,7 @@ public static class VerticalUpgradesVisualPolish
         contentLayout.padding = new RectOffset(4, 4, 8, 30);
         contentLayout.spacing = 10f;
 
-        StyleStudyConsole(content.Find("UpgradeStudyConsole"), labBackground,
+        StyleStudyConsole(shell.transform.Find("UpgradeStudyConsole"), labBackground,
             selectorPlate, moduleCardMetal, resourceCounterMetal, modulator,
             moduleFrame, theme);
 
@@ -315,6 +315,7 @@ public static class VerticalUpgradesVisualPolish
         Require(screen != null,
             "F2Panel perdio VerticalUpgradesScreenUI.");
         screen.keycardRow = keycard;
+        StyleEmptyCompletedState(scrollTransform, moduleFrame, theme, screen);
         EditorUtility.SetDirty(screen);
         ApplyFont(shell.transform, theme);
     }
@@ -385,20 +386,30 @@ public static class VerticalUpgradesVisualPolish
         VerticalUiTheme theme)
     {
         Require(console != null, "Falta la consola real de estudios de Mejoras.");
+        RectTransform consoleRect = (RectTransform)console;
+        consoleRect.anchorMin = new Vector2(0f, 1f);
+        consoleRect.anchorMax = new Vector2(1f, 1f);
+        consoleRect.pivot = new Vector2(0.5f, 1f);
+        consoleRect.anchoredPosition = new Vector2(0f, -94f);
+        consoleRect.sizeDelta = new Vector2(-8f, 520f);
+        LayoutElement consoleLayout = GetOrAdd<LayoutElement>(console.gameObject);
+        consoleLayout.ignoreLayout = true;
+        consoleLayout.minHeight = 520f;
+        consoleLayout.preferredHeight = 520f;
         Image frame = GetOrAdd<Image>(console.gameObject);
         frame.sprite = resourceCounterMetal;
         frame.type = Image.Type.Simple;
         frame.color = new Color(0.62f, 0.68f, 0.72f, 1f);
 
         Image lab = CreateImage("UpgradesLabBackground", console,
-            labBackground, new Color(0.68f, 0.70f, 0.71f, 0.88f));
+            labBackground, new Color(0.78f, 0.80f, 0.81f, 1f));
         lab.type = Image.Type.Simple;
         lab.preserveAspect = false;
         Stretch(lab.rectTransform, 18f);
         lab.transform.SetAsFirstSibling();
 
         Image darkVeil = CreateImage("ConsoleDarkVeil", console, null,
-            new Color(0.008f, 0.016f, 0.022f, 0.30f));
+            new Color(0.008f, 0.016f, 0.022f, 0.16f));
         Stretch(darkVeil.rectTransform, 20f);
         darkVeil.transform.SetSiblingIndex(1);
 
@@ -435,16 +446,16 @@ public static class VerticalUpgradesVisualPolish
         Image socket = CreateImage("ResearchSocket", receptacle.transform,
             moduleFrame, new Color(0.015f, 0.026f, 0.032f, 0.98f));
         socket.type = Image.Type.Sliced;
-        SetCentered(socket.rectTransform, new Vector2(0f, -18f),
+        SetCentered(socket.rectTransform, Vector2.zero,
             new Vector2(148f, 148f));
         Image coreGlow = CreateImage("ResearchCoreGlow", receptacle.transform,
             theme.softGlow, new Color(theme.energy.r, theme.energy.g,
                 theme.energy.b, 0.16f));
-        SetCentered(coreGlow.rectTransform, new Vector2(0f, -18f),
+        SetCentered(coreGlow.rectTransform, Vector2.zero,
             new Vector2(126f, 126f));
         Image core = CreateImage("ResearchCore", receptacle.transform,
             modulator, new Color(0.48f, 0.55f, 0.58f, 0.68f));
-        SetCentered(core.rectTransform, new Vector2(0f, -18f),
+        SetCentered(core.rectTransform, Vector2.zero,
             new Vector2(112f, 112f));
         core.preserveAspect = true;
 
@@ -467,12 +478,9 @@ public static class VerticalUpgradesVisualPolish
         detail.color = theme.secondaryText;
         detail.alignment = TextAlignmentOptions.Center;
 
-        Image scanLine = CreateImage("ResearchScanLine", readout.transform,
-            null, new Color(theme.energy.r, theme.energy.g, theme.energy.b, 0.32f));
-        scanLine.rectTransform.anchorMin = new Vector2(0.08f, 0.16f);
-        scanLine.rectTransform.anchorMax = new Vector2(0.92f, 0.16f);
-        scanLine.rectTransform.sizeDelta = new Vector2(0f, 2f);
-        scanLine.rectTransform.anchoredPosition = Vector2.zero;
+        Transform obsoleteScanLine = readout.transform.Find("ResearchScanLine");
+        if (obsoleteScanLine != null)
+            UnityEngine.Object.DestroyImmediate(obsoleteScanLine.gameObject);
 
         Transform progress = console.Find("Progress");
         if (progress != null) progress.SetAsLastSibling();
@@ -482,6 +490,34 @@ public static class VerticalUpgradesVisualPolish
         if (tune != null) tune.SetAsLastSibling();
         Transform conclusion = console.Find("ConclusionButton");
         if (conclusion != null) conclusion.SetAsLastSibling();
+    }
+
+    private static void StyleEmptyCompletedState(
+        Transform scroll,
+        Sprite moduleFrame,
+        VerticalUiTheme theme,
+        VerticalUpgradesScreenUI screen)
+    {
+        Require(scroll != null && screen != null,
+            "No se puede crear el estado vacio de Mejoras.");
+        Image frame = CreateImage("EmptyCompletedState", scroll, moduleFrame,
+            new Color(0.10f, 0.15f, 0.18f, 0.97f));
+        frame.type = Image.Type.Sliced;
+        SetCentered(frame.rectTransform, new Vector2(0f, -18f),
+            new Vector2(560f, 150f));
+        frame.transform.SetAsLastSibling();
+        CanvasGroup group = GetOrAdd<CanvasGroup>(frame.gameObject);
+        group.interactable = false;
+        group.blocksRaycasts = false;
+
+        TextMeshProUGUI label = CreateText("Label", frame.transform,
+            "Completadas: ocultas", 24f, TextAlignmentOptions.Center,
+            theme.secondaryText, theme);
+        label.characterSpacing = 1.2f;
+        Stretch(label.rectTransform, 18f);
+        screen.emptyCompletedStateRoot = frame.gameObject;
+        screen.emptyCompletedStateLabel = label;
+        frame.gameObject.SetActive(false);
     }
 
     private static VerticalUpgradesPolishUI.SectionBinding StyleSection(
@@ -695,7 +731,7 @@ public static class VerticalUpgradesVisualPolish
         row.DescriptionText.fontSize = 21f;
         row.DescriptionText.fontSizeMax = 21f;
         row.DescriptionText.fontSizeMin = 17f;
-        row.DescriptionText.overflowMode = TextOverflowModes.Ellipsis;
+        row.DescriptionText.overflowMode = TextOverflowModes.Truncate;
         ConfigureBottomStretch(row.CostText.rectTransform,
             156f, 224f, 16f, 34f);
         row.CostText.fontSize = 23f;

@@ -1,0 +1,15 @@
+CONTRATO DE APROBACIÓN — GESTIÓN DE COLAS
+=========================================
+
+- La captura real coincide visualmente con la referencia final.
+- Ningún título, botón, símbolo, selector o marco queda cortado o descentrado.
+- Los controles táctiles miden al menos 44x44.
+- La cola real seleccionada es Producción.
+- Existe exactamente un chassis V1 ×1 activo.
+- El trabajo conserva 6 s restantes, duración base 10 s y coste 100 LE + 1 T.
+- El primer toque de cancelación no elimina el trabajo y muestra la advertencia de 5 s.
+- Se valida en 1080x1920 y 720x1280.
+- No hay cambios en el guardado del jugador ni regresiones de pantallas aprobadas.
+
+Resultado: APROBADA POR EL USUARIO EL 7 DE SEPTIEMBRE DE 2026.
+Evidencia archivada: `06_CAPTURAS_APROBADAS/DIMENSION_3/GESTION_COLAS`.

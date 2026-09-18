@@ -1,0 +1,29 @@
+DECISIONES — DEFENSA Y REPRESALIAS
+
+1 de septiembre de 2026
+
+1. La referencia V4 permanente manda sobre el adjunto temporal.
+2. La placa limpia conserva únicamente marcos, piedra, iconos, medallones,
+   separadores y placas; todos los datos continúan como elementos reales de Unity.
+3. Los medidores de Amenaza y Cobertura son gráficos segmentados dinámicos y leen
+   0..100 y 0..60 respectivamente.
+4. La pérdida estimada usa GetExpectedReprisalLossFraction; la UI no repite la
+   fórmula ni ignora Pactos, mejoras, marcas o penalizaciones.
+5. La reducción preparada de Espionaje posee una sola API funcional compartida
+   por cálculo y presentación, por lo que puede mostrar también mejoras futuras.
+6. El último resultado de Represalia se guarda por región como dato tipado. El
+   mensaje general lastResult no se usa porque otras acciones pueden sobrescribirlo.
+7. Las partidas antiguas conservan compatibilidad: si hubo Represalias pero no
+   existe el nuevo dato histórico, la pantalla muestra SIN REGISTRO y no inventa cero pérdidas.
+8. El selector visible cambia sólo entre regiones seleccionables mediante el
+   propietario existente D2Civilization2PanelUI.
+9. Las seis rutas inferiores reutilizan los Buttons reales existentes; Defensa
+   añade sólo su presentación seleccionada, no listeners duplicados.
+10. La composición fija deriva de medidas de la V4 a 1080×1920 y debe comprobarse
+    nuevamente a 720×1280 antes de presentarse como candidata.
+11. El valor dinámico de Amenaza usa Overflow dentro de una caja holgada y una
+    validación explícita de malla TMP: Truncate podía dejar invisible “72%” sin
+    denunciar un desborde convencional.
+12. Las capturas de 1080 y 720 se renderizan en fotogramas distintos y restauran
+    el fixture antes de cada render; así Amenaza y temporizador no difieren por
+    pequeños avances del sistema entre resoluciones.

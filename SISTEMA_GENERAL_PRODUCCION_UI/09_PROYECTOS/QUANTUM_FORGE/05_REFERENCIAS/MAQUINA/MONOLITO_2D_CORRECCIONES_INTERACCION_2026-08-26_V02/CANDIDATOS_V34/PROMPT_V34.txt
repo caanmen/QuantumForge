@@ -1,0 +1,16 @@
+PROMPT DE PRODUCCIÓN — FONDO GENERAL V34
+Modo: edición integrada de imágenes.
+Fecha: 2026-08-27.
+
+Editar únicamente el soporte del suelo del laboratorio V33 usando como referencia métrica
+la captura real de Unity con el Monolito bloqueado y la hoja canónica del Monolito.
+
+El hueco frontal V33 es demasiado estrecho y cruza debajo de la base. Mover las dos guías
+laterales mucho más hacia afuera y dejar una cama central libre cercana al 65–68 % del ancho
+del viewport. El límite interior izquierdo debe quedar fuera del pie escalonado izquierdo y
+el derecho fuera del pie derecho. Ninguna guía, muesca, bloque o diagonal puede cruzar bajo
+la silueta. Conservar una cama continua y un único borde frontal ancho delante de la base.
+
+Mantener exactamente cámara, sala, puerta, ventanas, mesas, cables, suelo, perspectiva,
+iluminación, color y centro vacío. No hornear Monolito, símbolos, UI, texto, personajes ni
+marca de agua.

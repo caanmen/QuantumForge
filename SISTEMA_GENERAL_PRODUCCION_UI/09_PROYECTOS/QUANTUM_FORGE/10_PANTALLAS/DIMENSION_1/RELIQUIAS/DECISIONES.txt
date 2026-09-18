@@ -1,0 +1,67 @@
+DECISIONES ESPECÍFICAS: CÁMARA DE RELIQUIAS
+==========================================
+
+- La referencia entregada por el usuario el 19 de agosto de 2026 es la autoridad
+  visual de esta pantalla.
+- El estado activo de la navegación inferior es RELIQUIAS en ámbar.
+- Cristal Analítico se usa como selección del escenario visual de referencia.
+- Las ocho piezas se recrean como ilustraciones sólidas y volumétricas con fondo
+  transparente. No se dibujarán como wireframes ni se recortarán de la captura.
+- La forma, orientación, material dominante y distribución de luz de cada pieza se
+  medirán en un recorte individual de la referencia permanente.
+- Primero se aprueba la composición estática. Selección, mejora y animación se validan
+  después, sin modificar el layout aprobado.
+- Los valores 12/20, nivel 25/100 y los costes visibles pertenecen al escenario visual
+  de QA. En juego se muestran datos reales de GameState y Dimension1System.
+- Los bonos del Cristal Analítico de nivel 25 sí coinciden con las reglas reales:
+  +0.5 puntos porcentuales para fragmentos y matrices con Sonda Analítica y +0.2
+  puntos porcentuales en destinos de investigación.
+- Se reutiliza el sistema visual existente de Dimensión 1 y se evita crear un segundo
+  lenguaje de marcos, tipografía o navegación.
+- Cada reliquia se generó desde un recorte individual de la referencia permanente; las
+  ocho piezas se verificaron juntas sobre el fondo oscuro real antes de montarlas.
+- El generador entregó fondos claros horneados pese a solicitar alfa. Los originales se
+  conservaron fuera de Assets como evidencia de origen y los sprites usados por Unity
+  se limpiaron mediante la herramienta reproducible CleanGeneratedRelicAlpha.ps1.
+- Los PNG limpios permanecen como candidatos y no pasan al catálogo canónico ni a
+  Capturas Aprobadas hasta recibir aprobación explícita del usuario.
+- El código contiene 20 reliquias y la referencia sólo presenta ocho tarjetas. Esta fase
+  no inventa cómo acceder visualmente a las otras doce; esa ampliación se diseña después
+  de aprobar el estándar de estas ocho piezas.
+- El 19 de agosto de 2026 se preparó una expansión visual tentativa para las doce
+  reliquias restantes, respetando sus nombres, sectores y tiers reales.
+- La propuesta mantiene una sola Cámara de Reliquias con tres páginas: ocho piezas en
+  la primera, ocho en la segunda y las cuatro finales centradas en una cuadrícula 2 x 2.
+- Los doce sprites y las dos páginas adicionales se integraron en Unity por petición
+  explícita del usuario. Permanecen como candidatos y no se vuelven canónicos hasta
+  recibir aprobación visual explícita de las capturas reales.
+- La especificación y la evidencia se conservan en EXPANSION_TENTATIVA para que una
+  futura integración no dependa de imágenes temporales del chat.
+- La pantalla reutiliza ocho tarjetas estables y cambia únicamente su contenido por
+  página. En la página final oculta cuatro ranuras y centra las restantes sin escalarlas.
+- Los valores pendientes de seis reliquias no se presentan como +0: la interfaz comunica
+  el impacto previsto y que todavía no existe una bonificación numérica definida.
+- El 20 de agosto se auditó cada efecto contra sus consumidores reales. La Antena
+  Fracturada no estaba totalmente pendiente: su reducción máxima de 6 % ya actuaba sobre
+  el temporizador de escaneo, aunque la Cámara la describía como pendiente y la tabla de
+  hitos no la exponía. Se centralizó como 1.5 % por hito y la UI muestra ahora ambos
+  efectos reales sin mantener una segunda constante.
+- El 20 de agosto el usuario aprobó cerrar tres de las seis reliquias pendientes usando
+  los sistemas reales auditados y los valores del diseño antiguo recortados al máximo
+  vigente de nivel 100. Resonador de Trazas conserva +3 % de generación y -1 % de costes
+  de Trazas, limitado a Mejoras del Cuarto 1 y al Captador. Fragmento de Calibración se
+  adapta del Modulador legado al Triángulo: +4 % de sincronización y +1 punto porcentual
+  al avance por sintonización correcta de estudios. Sello Triangular aporta +3 % relativo
+  al protocolo activo y +1 % a la generación de Energía del Triángulo.
+- Los hitos aprobados son 25/50/75/100. No se incorporan los antiguos niveles 125/150
+  porque el sistema real fija nivel máximo 100.
+- El 20 de agosto el usuario aprobó cerrar las tres reliquias restantes con las magnitudes
+  del documento antiguo y una adaptación estricta a consumidores ya existentes. Mapa
+  Estelar Incompleto reduce hasta 4 % la repetición y acerca 2 % los pesos del sector a una
+  oferta uniforme. Sensor de Frecuencia Rara añade hasta 2 puntos porcentuales de aparición
+  de puntos especiales y 0.8 puntos porcentuales de promoción a Eco de Reliquia o Traza de
+  Matriz cuando esas categorías ya están disponibles. Memoria de Máquina aumenta hasta 2 %
+  los efectos numéricos de nodos y 1 % los bonus derivados del progreso de reparación; no
+  altera porcentajes visibles de reparación, desbloqueos ni requisitos.
+- Las veinte reliquias tienen ahora dos efectos definidos en los hitos 25/50/75/100. La
+  Cámara no conserva estados «pendiente» ni una segunda autoridad visual para esos efectos.

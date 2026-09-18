@@ -1,0 +1,38 @@
+REFERENCIA: PLANTA DE PRODUCCIÓN — DIMENSIÓN 3
+================================================
+
+Archivo: referencia_planta_produccion_original.png
+Origen: paquete Dimension3_Continuidad_2026-08-19 entregado por el usuario.
+Fecha de incorporación: 19 de agosto de 2026.
+Resolución original: 941 x 1672.
+Tipo: concepto visual candidato; no es captura de Unity ni asset final.
+Estado: autoridad visual de partida para corregir la pantalla Planta de Producción.
+
+La dirección artística industrial, la máquina central, la jerarquía general y la
+navegación inferior deben conservarse. Los textos, controles, cifras e iconos que no
+coinciden con los sistemas reales se corrigen antes de presentar una candidata.
+
+La imagen corregida no pasa a 06_CAPTURAS_APROBADAS hasta recibir aprobación visual
+explícita del usuario y ser implementada y capturada desde Unity.
+
+
+REFERENCIA ACTUAL PARA IMPLEMENTACIÓN — 4 DE SEPTIEMBRE DE 2026
+================================================================
+
+Archivo: referencia_planta_produccion_codigo_real_v1_1080x1920.png
+Origen: regeneración visual solicitada por el usuario después de auditar la implementación
+real de Dimension3PanelUI y Dimension3Block1UISetup.
+Resolución: 1080 x 1920.
+Tipo: referencia visual de implementación; no es captura de Unity.
+Estado: referencia elegida por el usuario para iniciar la pantalla 00.
+
+La lógica existente es la autoridad. Los cinco botones de pieza conservan sus acciones
+directas, los selectores y rutas corresponden a los campos reales del controlador y no se
+añaden mecánicas para acomodar la imagen.
+
+Placa limpia derivada para montaje UGUI:
+Assets/Project/Art/Dimension3/ProductionFloor/D3_ProductionFloor_CleanBasePlate_v1.png
+
+La placa limpia contiene sólo el entorno industrial y paneles vacíos. Todo texto, cifra,
+estado, selección y control interactivo debe ser propiedad de UGUI y de los controladores
+reales; no se autorizan hotspots mudos ni valores horneados.

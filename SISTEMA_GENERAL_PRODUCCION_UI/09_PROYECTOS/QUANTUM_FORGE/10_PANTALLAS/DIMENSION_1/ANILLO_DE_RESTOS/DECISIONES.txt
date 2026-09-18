@@ -1,0 +1,19 @@
+DECISIONES ESPECÍFICAS: ANILLO DE RESTOS
+=======================================
+
+- Es una subpantalla del Sector 2; no añade otra opción a la navegación inferior.
+- Conserva el armazón de Órbitas Antiguas, pero muestra únicamente el Planeta 3 real.
+- La tarjeta única se centra en la caja envolvente del área de planetas; no se duplica ni
+  se inventa contenido para llenar el espacio.
+- Planeta, metales, costes y destinos proceden del sistema real.
+- Los destinos compartidos reutilizan los mismos assets que Borde Exterior.
+- Cada destino se enlaza por ID oficial y queda deshabilitado si aún no fue escaneado.
+- No se añade animación antes de aprobar la composición estática.
+- La pantalla no se considera aprobada al 95 % hasta la revisión expresa del usuario.
+- El 21 de agosto de 2026 el usuario eligió la propuesta 1 del nuevo arte sectorial:
+  `Candidates/DebrisRing/d1_debris_ring_option_1_dense_orbit.png`.
+- Esa imagen identifica Anillo de Restos en Explorar, Carta Galáctica y el detalle del
+  Planeta 3; las tres vistas deben permanecer sincronizadas.
+- Desde 2026-08-22 la pantalla planetaria no repite DESTINOS DEL SECTOR. Los destinos y
+  su escaneo pertenecen exclusivamente a EXPLORAR; esta pantalla conserva planeta,
+  extractor y regreso a Carta Galáctica.

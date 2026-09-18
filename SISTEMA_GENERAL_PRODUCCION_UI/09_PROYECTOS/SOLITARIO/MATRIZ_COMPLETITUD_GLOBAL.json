@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "snapshot_date": "2026-09-18",
+  "expected_modalities": 11,
+  "required_dimensions": [
+    "playable",
+    "classic_theme",
+    "two_free_themes",
+    "premium_target",
+    "store",
+    "equipment",
+    "persistence",
+    "targeted_tests",
+    "final_gate"
+  ],
+  "status_legend": {
+    "PASS": "Evidencia vigente satisface la dimensión.",
+    "PENDING": "Falta contenido o evidencia vigente; bloquea el cierre global."
+  },
+  "modalities": [
+    {"id": "Klondike", "free_theme_count": 2, "premium_theme_count": 6, "dimensions": {"playable": "PASS", "classic_theme": "PASS", "two_free_themes": "PASS", "premium_target": "PASS", "store": "PENDING", "equipment": "PENDING", "persistence": "PENDING", "targeted_tests": "PENDING", "final_gate": "PENDING"}},
+    {"id": "FreeCell", "free_theme_count": 2, "premium_theme_count": 6, "dimensions": {"playable": "PASS", "classic_theme": "PASS", "two_free_themes": "PASS", "premium_target": "PASS", "store": "PENDING", "equipment": "PENDING", "persistence": "PENDING", "targeted_tests": "PENDING", "final_gate": "PENDING"}},
+    {"id": "Spider", "free_theme_count": 2, "premium_theme_count": 6, "dimensions": {"playable": "PASS", "classic_theme": "PASS", "two_free_themes": "PASS", "premium_target": "PASS", "store": "PENDING", "equipment": "PENDING", "persistence": "PENDING", "targeted_tests": "PENDING", "final_gate": "PENDING"}},
+    {"id": "Pyramid", "free_theme_count": 2, "premium_theme_count": 6, "dimensions": {"playable": "PASS", "classic_theme": "PASS", "two_free_themes": "PASS", "premium_target": "PASS", "store": "PENDING", "equipment": "PENDING", "persistence": "PENDING", "targeted_tests": "PENDING", "final_gate": "PENDING"}},
+    {"id": "TriPeaks", "free_theme_count": 2, "premium_theme_count": 6, "dimensions": {"playable": "PASS", "classic_theme": "PASS", "two_free_themes": "PASS", "premium_target": "PASS", "store": "PENDING", "equipment": "PENDING", "persistence": "PENDING", "targeted_tests": "PENDING", "final_gate": "PENDING"}},
+    {"id": "Golf", "free_theme_count": 2, "premium_theme_count": 6, "dimensions": {"playable": "PASS", "classic_theme": "PASS", "two_free_themes": "PASS", "premium_target": "PASS", "store": "PENDING", "equipment": "PENDING", "persistence": "PENDING", "targeted_tests": "PENDING", "final_gate": "PENDING"}},
+    {"id": "Yukon", "free_theme_count": 2, "premium_theme_count": 6, "dimensions": {"playable": "PASS", "classic_theme": "PASS", "two_free_themes": "PASS", "premium_target": "PASS", "store": "PENDING", "equipment": "PENDING", "persistence": "PENDING", "targeted_tests": "PENDING", "final_gate": "PENDING"}},
+    {"id": "Canfield", "free_theme_count": 2, "premium_theme_count": 6, "dimensions": {"playable": "PASS", "classic_theme": "PASS", "two_free_themes": "PASS", "premium_target": "PASS", "store": "PENDING", "equipment": "PENDING", "persistence": "PENDING", "targeted_tests": "PENDING", "final_gate": "PENDING"}},
+    {"id": "FortyThieves", "free_theme_count": 2, "premium_theme_count": 6, "dimensions": {"playable": "PASS", "classic_theme": "PASS", "two_free_themes": "PASS", "premium_target": "PASS", "store": "PASS", "equipment": "PASS", "persistence": "PASS", "targeted_tests": "PASS", "final_gate": "PASS"}},
+    {"id": "Scorpion", "free_theme_count": 0, "premium_theme_count": 6, "dimensions": {"playable": "PASS", "classic_theme": "PASS", "two_free_themes": "PENDING", "premium_target": "PASS", "store": "PENDING", "equipment": "PENDING", "persistence": "PENDING", "targeted_tests": "PENDING", "final_gate": "PENDING"}},
+    {"id": "Russian", "free_theme_count": 0, "premium_theme_count": 1, "dimensions": {"playable": "PASS", "classic_theme": "PASS", "two_free_themes": "PENDING", "premium_target": "PENDING", "store": "PASS", "equipment": "PASS", "persistence": "PASS", "targeted_tests": "PASS", "final_gate": "PASS"}}
+  ],
+  "notes": [
+    "Los conteos de carpetas Free y Premium fueron verificados el 2026-09-18.",
+    "PENDING no significa que la función esté rota; significa que esta matriz aún no tiene evidencia vigente suficiente para declararla cerrada.",
+    "FortyThieves y Russian conservan PASS de implementación por sus puertas finales vigentes; el contenido faltante sigue bloqueando el cierre global de la colección."
+  ]
+}

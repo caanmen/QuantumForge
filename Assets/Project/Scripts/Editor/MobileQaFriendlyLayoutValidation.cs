@@ -37,15 +37,27 @@ public static class MobileQaFriendlyLayoutValidation
                 layout.drawerHandle.parent == layout.mobileSafeAreaRoot,
                 "El control MOSTRAR/OCULTAR puede desaparecer con la barra.",
                 failures);
-            Check(layout.qaSpeedButton != null && layout.qaToolsButton != null &&
-                layout.qaSpeedButton.parent == layout.qaSafeAreaRoot &&
-                layout.qaToolsButton.parent == layout.qaSafeAreaRoot,
-                "Los accesos QA salieron de su Safe Area.", failures);
-            Check(layout.qaToolsButton.sizeDelta.y == 52f &&
+            Check(layout.qaSpeedButton != null &&
+                layout.qaSpeedButton.parent == layout.qaSafeAreaRoot,
+                "El acceso QA de velocidad salió de su Safe Area.", failures);
+            if (layout.qaToolsButton != null)
+            {
+                Check(layout.qaToolsButton.parent == layout.qaSafeAreaRoot &&
+                    layout.qaToolsButton.sizeDelta.y == 52f,
+                    "El acceso QA auxiliar salió de su Safe Area.", failures);
+            }
+            else
+            {
+                Check(CountNamed(scene, "Nav_QA") == 1,
+                    "Falta tanto el acceso QA auxiliar como la pestaña QA vertical.",
+                    failures);
+            }
+            Check(layout.qaSpeedButton != null &&
                 layout.qaSpeedButton.sizeDelta.y == 52f &&
                 layout.languageButton.sizeDelta.y <= 36f,
                 "Los accesos de utilidad no conservan el tamaño compacto.", failures);
-            Check(!layout.qaSpeedButton.gameObject.activeSelf,
+            Check(layout.qaSpeedButton != null &&
+                !layout.qaSpeedButton.gameObject.activeSelf,
                 "QA xN externo sigue ocupando espacio fuera del panel.", failures);
             Check(layout.devResetButton.anchorMin == Vector2.zero &&
                 layout.devResetButton.anchorMax == Vector2.zero &&

@@ -1,0 +1,20 @@
+CONTRATO DE APROBACIÓN: REGISTRO DE EXPEDICIONES
+================================================
+
+Meta visual: similitud percibida mínima del 95 % con la referencia una vez aprobada.
+
+CONDICIONES
+- No fabricar expediciones, recompensas, sectores ni estados para el juego real.
+- No perder entradas por encima de las seis visibles; deben permanecer accesibles por scroll.
+- No usar un thumbnail perteneciente a otro ID.
+- No cubrir un faltante de icono con navegación, un metal individual, glifos o geometría
+  improvisada; crear y validar un candidato específico antes de presentarlo.
+- No eliminar el registro fijo de acceso a Ark.
+- No alterar el guardado al abrir, filtrar, desplazarse o cerrar.
+- No aprobar sin evidencia nueva en 1080×1920 y 720×1280.
+
+ESTADO
+- Contrato funcional: DEFINIDO.
+- Composición estática: IMPLEMENTADA Y CAPTURADA EN AMBAS RESOLUCIONES.
+- Datos e interacción: PASS AUTOMATIZADO CON DATOS REALES/DETERMINISTAS SIN GUARDADO.
+- Aprobación del usuario: PENDIENTE.

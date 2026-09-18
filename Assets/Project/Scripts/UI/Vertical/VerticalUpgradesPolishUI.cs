@@ -115,7 +115,9 @@ public sealed class VerticalUpgradesPolishUI : MonoBehaviour
         {
             if (binding?.row == null) continue;
             bool maxed = manager != null && manager.IsMaxed(binding.row.UpgradeId);
-            Color accent = binding.accent;
+            Color accent = maxed && theme != null
+                ? theme.completed
+                : binding.accent;
 
             SetAlphaColor(binding.frame, accent, 0.82f);
             SetAlphaColor(binding.innerFrame, accent, 0.20f);

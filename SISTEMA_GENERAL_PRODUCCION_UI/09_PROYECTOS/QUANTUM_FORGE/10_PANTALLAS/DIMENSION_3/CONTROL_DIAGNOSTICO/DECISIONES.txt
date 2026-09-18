@@ -1,0 +1,12 @@
+DECISIONES — CONTROL DE DIAGNÓSTICO
+===================================
+
+1. La maestra limpia 08_Control_Diagnostico.png manda en composición y acabado.
+2. Estados, prioridad, zona y reservas proceden del D3DiagnosticSystem real.
+3. La cola de recetas permanece vacía; MARCAR RECETA no puede operar sin ejecución manual.
+4. Guardar/cargar rutina permanece bloqueado en N4 y exige N5.
+5. La placa estática no recibe raycasts; los controles reales conservan la interacción.
+6. El usuario aprobó explícitamente la candidata el 7 de septiembre de 2026 al
+   solicitar continuar con Puerto de Expediciones.
+7. Se archivaron las capturas reales 1080x1920 y 720x1280 en
+   06_CAPTURAS_APROBADAS/DIMENSION_3/CONTROL_DIAGNOSTICO/.

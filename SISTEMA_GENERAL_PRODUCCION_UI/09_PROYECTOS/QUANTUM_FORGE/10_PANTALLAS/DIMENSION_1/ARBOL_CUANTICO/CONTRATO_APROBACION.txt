@@ -1,0 +1,59 @@
+CONTRATO DE APROBACIÓN: ÁRBOL CUÁNTICO
+======================================
+
+Referencia permanente: registrada.
+Resolución principal: 1080 x 1920 vertical.
+Verificación adicional: 720 x 1280.
+Meta visual: 95 % de parecido percibido con la referencia orbital seleccionada.
+
+PUERTA 0 — AUDITORÍA Y REUTILIZACIÓN
+[x] Proyecto real, catálogo y mapa general inspeccionados.
+[x] Pantallas D1 anteriores y capturas disponibles comparadas.
+[x] Marcos, relleno, fondo, brillo y navegación reutilizables localizados.
+[x] Candidatos de Reliquias, Explorar y Hangar localizados sin promover su estado.
+[x] Matriz individual de los diez nodos completa.
+[x] Cada icono nuevo justificado como faltante real.
+[x] Geometría o assets repetidos reutilizados sin cambiar su salida aprobada.
+[x] Simplificaciones prohibidas registradas por bloque de la referencia.
+
+PUERTA 1 — CONTRATO
+[x] Función y flujo definidos.
+[x] Datos, nombres, máximos, costes y requisitos verificados en el código real.
+[x] Referencia permanente disponible y clasificada.
+[x] Assets D1 reutilizables identificados.
+[x] Cristal y anillos clasificados como composición visual, no mecánicas nuevas.
+[x] Intención de animación prevista sin implementar movimiento.
+
+PUERTA 2 — COMPOSICIÓN ESTÁTICA
+[x] Jerarquía estable y reproducible.
+[x] Medidas, Safe Area y zonas interiores verificadas en 1080×1920 y 720×1280.
+[x] Diez tarjetas con iconos detallados, canónicos o candidatos documentados.
+[x] Anillos orbitales densos y proporcionales sin prerrequisitos falsos.
+[x] Panel contextual y navegación reconstruidos y capturados.
+[x] Primera implementación capturada y comparada; fue rechazada.
+[ ] Composición estática aprobada por el usuario.
+
+PUERTA 3 — DATOS E INTERACCIÓN
+[x] Datos reales conectados.
+[x] Propietario único por texto y estado.
+[x] Selección de los diez nodos probada.
+[x] Disponible, bloqueado, comprado, máximo e insuficiente implementados.
+[x] Compra y guardado conectados sin rutas duplicadas.
+[x] Navegación y botón Atrás probados con raycast físico.
+
+PUERTA 4 — ANIMACIÓN
+[ ] Composición estática aprobada antes de comenzar.
+[ ] Sólo cristal, anillos y acento localizado se animan.
+[ ] Pivotes y posiciones base estables.
+[ ] Evidencia renderizada y rendimiento móvil comprobado.
+
+PUERTA 5 — CIERRE
+[x] Capturas candidatas reales nuevas generadas en ambas resoluciones.
+[x] Pruebas automáticas PASS.
+[x] Sin errores o excepciones relacionadas.
+[ ] Similitud mínima del 95 % aprobada.
+[ ] Diferencias restantes registradas.
+
+Resultado: PUERTAS 0, 1 Y 3 COMPLETAS — PUERTA 2 PENDIENTE DE APROBACIÓN VISUAL;
+LA PRIMERA IMPLEMENTACIÓN PERMANECE RECHAZADA Y LA CANDIDATA FUNCIONAL NO SE DECLARA
+95 % HASTA RECIBIR APROBACIÓN EXPLÍCITA.

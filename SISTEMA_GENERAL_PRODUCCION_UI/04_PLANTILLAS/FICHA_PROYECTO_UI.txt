@@ -1,0 +1,66 @@
+FICHA DE ADOPCIÓN UI DEL PROYECTO
+================================
+
+IDENTIDAD
+Proyecto:
+Responsable creativo:
+Responsable de aprobación:
+Fecha:
+
+TECNOLOGÍA
+Motor y versión:
+Sistema o framework UI:
+Plataformas:
+Métodos de entrada:
+Módulos técnicos adoptados:
+Módulos descartados y motivo:
+
+PANTALLA Y DISPOSITIVOS
+Orientaciones:
+Resoluciones de referencia:
+Relaciones de aspecto extremas:
+Safe Area:
+Dispositivos objetivo:
+
+AUTORIDAD
+Diseño canónico:
+Reglas persistentes del proyecto:
+Ubicación de perfiles visuales:
+Ubicación de decisiones:
+Orden de autoridad adicional:
+
+RECURSOS Y EVIDENCIA
+Catálogo de assets:
+Referencias permanentes:
+Capturas candidatas:
+Capturas aprobadas:
+Logs y resultados QA:
+Fuente definitiva de pantallas:
+
+COLABORACIÓN CON AGENTES
+Agentes disponibles: sí / no
+Coordinador responsable:
+Trabajos que se benefician de revisión paralela:
+Trabajos que exigen un único ejecutor:
+Propietario de escrituras Unity o motor:
+Política de archivos y sistemas disjuntos:
+Método para integrar y verificar hallazgos:
+Reglas adicionales del proyecto:
+
+POLÍTICAS DEL PROYECTO
+Ruta de trabajo obligatoria: A / B / C / según pantalla
+Umbral de fidelidad:
+Método de medición:
+Resoluciones obligatorias:
+Estados obligatorios:
+Pruebas de dispositivo:
+Política de persistencia QA:
+Política de builds:
+Reglas más estrictas que el núcleo:
+
+DEFINICIÓN DE TERMINADO
+
+APROBACIÓN DE ADOPCIÓN
+Estado: PENDIENTE / APROBADO
+Fecha:
+Notas:

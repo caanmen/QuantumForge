@@ -96,6 +96,7 @@ public static class DimensionCompletionValidation
         state.dimension03Unlocked = true;
         state.dimension1GalacticAnchorDiscovered = true;
         state.dimension2 = Dimension2System.CreateInitialState();
+        state.dimension2.civilization2.entityContained = true;
         state.dimension2.civilization2.majorPactEstablished = true;
         state.dimension3 = Dimension3System.CreateInitialState();
         state.dimension3.autonomyCoreIntegrated = true;

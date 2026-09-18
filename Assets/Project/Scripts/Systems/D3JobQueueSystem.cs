@@ -123,19 +123,21 @@ public static class D3JobQueueSystem
         return true;
     }
 
-    public static void AdvanceAllQueues(GameState gameState, double seconds)
+    public static void AdvanceAllQueues(GameState gameState, double seconds,
+        double? dynamicWorkRate = null)
     {
         if (gameState == null || gameState.dimension3 == null ||
-            seconds <= 0.0 || double.IsNaN(seconds) || double.IsInfinity(seconds))
+            seconds < 0.0 || double.IsNaN(seconds) || double.IsInfinity(seconds))
         {
             return;
         }
 
         for (int i = 0; i < Dimension3Catalog.QueueIds.Length; i++)
-            AdvanceQueue(gameState, Dimension3Catalog.QueueIds[i], seconds);
+            AdvanceQueue(gameState, Dimension3Catalog.QueueIds[i], seconds, dynamicWorkRate);
     }
 
-    private static void AdvanceQueue(GameState gameState, string queueId, double seconds)
+    private static void AdvanceQueue(GameState gameState, string queueId, double seconds,
+        double? dynamicWorkRate)
     {
         D3QueueState queue = GetQueue(gameState.dimension3, queueId);
         if (queue == null || queue.jobs == null || queue.jobs.Count == 0)
@@ -144,7 +146,7 @@ public static class D3JobQueueSystem
         double remainingWindow = seconds;
         int safety = 0;
 
-        while (remainingWindow > CompletionEpsilon && queue.jobs.Count > 0)
+        while (remainingWindow >= 0.0 && queue.jobs.Count > 0)
         {
             safety++;
             if (safety > 100000)
@@ -159,11 +161,11 @@ public static class D3JobQueueSystem
             }
 
             double workRate = job.usesDynamicBankSpeed
-                ? D3PowerSystem.GetDynamicWorkRate(gameState.dimension3)
+                ? dynamicWorkRate ?? D3PowerSystem.GetDynamicWorkRate(gameState.dimension3)
                 : 1.0;
             double requiredWork = Math.Max(0.0, job.remainingSeconds);
             double requiredRealSeconds = requiredWork / workRate;
-            if (requiredRealSeconds > remainingWindow + CompletionEpsilon)
+            if (requiredRealSeconds > remainingWindow)
             {
                 job.remainingSeconds = Math.Max(
                     0.0, requiredWork - remainingWindow * workRate);

@@ -73,6 +73,9 @@ public sealed class UpgradeStudyState
 /// </summary>
 public static class UpgradeStudySystem
 {
+    public const double TuningMinimumChannelAccuracy = 0.90;
+    public const double TuningPerfectChannelAccuracy = 0.98;
+    public const double TuningPerfectBoostFraction = 0.25;
     public const int CurrentSaveVersion = 2;
     public const string KeycardProjectUnlockId = "project_experimental_chamber_keycard";
 
@@ -226,8 +229,7 @@ public static class UpgradeStudySystem
         progress.activeStudyId = studyId;
         progress.activeProgressSeconds = 0.0;
         progress.tuningStage = 0;
-        progress.tuningAmplitude = 0.5f;
-        progress.tuningFrequency = 0.5f;
+        ResetTuningControlsToChallenge(state);
         return true;
     }
 
@@ -330,6 +332,37 @@ public static class UpgradeStudySystem
         return def?.tuningStages ?? 0;
     }
 
+    public static double GetActiveTuningBoostFraction(GameState state)
+    {
+        UpgradeStudyDef def = GetActiveStudy(state);
+        if (def == null) return 0.0;
+        return GetTuningBoostFractionForAccuracy(
+            state, GetTuningAccuracy(state));
+    }
+
+    public static double GetTuningBoostFractionForAccuracy(
+        GameState state, double accuracy)
+    {
+        UpgradeStudyDef def = GetActiveStudy(state);
+        if (def == null) return 0.0;
+        double baseBoost = GetTuningBaseBoostFraction(
+            accuracy, def.tuningBoostFraction);
+        double relicBonus =
+            Dimension1System.GetCalibrationFragmentStudyTuningBonus(state);
+        return Math.Max(0.0, Math.Min(
+            0.50,
+            baseBoost + relicBonus
+        ));
+    }
+
+    public static double GetTuningBaseBoostFraction(
+        double accuracy, double standardBoostFraction = 0.18)
+    {
+        return accuracy >= TuningPerfectChannelAccuracy
+            ? TuningPerfectBoostFraction
+            : Math.Max(0.0, Math.Min(0.50, standardBoostFraction));
+    }
+
     public static void SetTuningValues(
         GameState state, float amplitude, float frequency)
     {
@@ -359,9 +392,34 @@ public static class UpgradeStudySystem
         UpgradeStudyState progress = EnsureState(state);
         if (progress == null || GetActiveStudy(state) == null) return 0.0;
         GetTuningTarget(state, out float targetAmplitude, out float targetFrequency);
-        double distance = (Math.Abs(progress.tuningAmplitude - targetAmplitude) +
-            Math.Abs(progress.tuningFrequency - targetFrequency)) * 0.5;
-        return Math.Max(0.0, Math.Min(1.0, 1.0 - distance));
+        double amplitudeAccuracy = 1.0 -
+            Math.Abs(progress.tuningAmplitude - targetAmplitude);
+        double frequencyAccuracy = 1.0 -
+            Math.Abs(progress.tuningFrequency - targetFrequency);
+        return Math.Max(0.0, Math.Min(1.0,
+            Math.Min(amplitudeAccuracy, frequencyAccuracy)));
+    }
+
+    public static void GetTuningChannelAccuracies(
+        GameState state, out double amplitudeAccuracy, out double frequencyAccuracy)
+    {
+        amplitudeAccuracy = 0.0;
+        frequencyAccuracy = 0.0;
+        UpgradeStudyState progress = EnsureState(state);
+        if (progress == null || GetActiveStudy(state) == null) return;
+        GetTuningTarget(state, out float targetAmplitude, out float targetFrequency);
+        amplitudeAccuracy = Math.Max(0.0, Math.Min(1.0,
+            1.0 - Math.Abs(progress.tuningAmplitude - targetAmplitude)));
+        frequencyAccuracy = Math.Max(0.0, Math.Min(1.0,
+            1.0 - Math.Abs(progress.tuningFrequency - targetFrequency)));
+    }
+
+    public static bool IsTuningReady(GameState state)
+    {
+        GetTuningChannelAccuracies(
+            state, out double amplitudeAccuracy, out double frequencyAccuracy);
+        return amplitudeAccuracy >= TuningMinimumChannelAccuracy &&
+            frequencyAccuracy >= TuningMinimumChannelAccuracy;
     }
 
     public static bool TryApplyActiveTuning(
@@ -372,16 +430,25 @@ public static class UpgradeStudySystem
         UpgradeStudyState progress = EnsureState(state);
         UpgradeStudyDef def = GetActiveStudy(state);
         if (progress == null || def == null || IsConclusionPending(state) ||
-            progress.tuningStage >= def.tuningStages || accuracy < 0.86)
+            progress.tuningStage >= def.tuningStages || !IsTuningReady(state))
             return false;
 
-        secondsApplied = def.durationSeconds * def.tuningBoostFraction;
+        secondsApplied = def.durationSeconds *
+            GetTuningBoostFractionForAccuracy(state, accuracy);
         progress.activeProgressSeconds = Math.Min(
             def.durationSeconds, progress.activeProgressSeconds + secondsApplied);
         progress.tuningStage++;
-        progress.tuningAmplitude = 0.5f;
-        progress.tuningFrequency = 0.5f;
+        ResetTuningControlsToChallenge(state);
         return true;
+    }
+
+    private static void ResetTuningControlsToChallenge(GameState state)
+    {
+        UpgradeStudyState progress = EnsureState(state);
+        if (progress == null || GetActiveStudy(state) == null) return;
+        GetTuningTarget(state, out float targetAmplitude, out float targetFrequency);
+        progress.tuningAmplitude = targetAmplitude < 0.5f ? 0.82f : 0.18f;
+        progress.tuningFrequency = targetFrequency < 0.5f ? 0.78f : 0.22f;
     }
 
     private static int StableHash(string value)

@@ -1,0 +1,16 @@
+DECISIONES — INVESTIGACIÓN DEL ENTE
+
+Fecha: 3 de septiembre de 2026
+
+1. La referencia canónica es V5; V4 queda histórica.
+2. Último resultado y Objetivo actual son dos filas y dos propietarios distintos.
+3. El arco, porcentajes, hito pendiente, recursos, datos, conocimiento y botones
+   son capas dinámicas de Unity; no quedan horneados en la placa.
+4. APORTAR RECURSOS permanece visible en 24%, pero deshabilitado.
+5. Los seis rombos representan Conocimiento del Ente de forma discreta.
+6. La navegación inferior usa rutas reales: Excavar, Analizar, Archivo y Ente.
+7. La futura pantalla de Pacto del Ente usará una raíz visual independiente;
+   no se comprimirá dentro de esta composición.
+8. No se modificaron reglas, costes, persistencia ni datos del sistema.
+9. Los porcentajes 30/60/85/100 quedan centrados ópticamente en ambos ejes
+   dentro de sus cuatro círculos; se compensa la métrica vertical de Cinzel.

@@ -40,6 +40,10 @@ public class F2UpgradeVisibilityController : MonoBehaviour
         foreach (var row in rows)
         {
             if (row == null) continue;
+            // La pantalla vertical posee sus filas, secciones y estado vacio.
+            // Este controlador global solo atiende interfaces legacy fuera de ella.
+            if (row.GetComponentInParent<VerticalUpgradesScreenUI>(true) != null)
+                continue;
             bool visible = F2UpgradeManager.I.ShouldBeVisible(row.UpgradeId);
             UpgradeStudyState studyState = GameState.I != null
                 ? UpgradeStudySystem.EnsureState(GameState.I)

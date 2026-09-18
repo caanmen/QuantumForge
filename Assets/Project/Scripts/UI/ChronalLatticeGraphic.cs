@@ -7,6 +7,8 @@ using UnityEngine.UI;
 /// </summary>
 public sealed class ChronalLatticeGraphic : MaskableGraphic
 {
+    private const float MeshRefreshInterval = 1f / 20f;
+
     private static readonly Vector2[] Nodes =
     {
         new(0.14f, 0.22f), new(0.25f, 0.68f), new(0.37f, 0.38f),
@@ -26,6 +28,7 @@ public sealed class ChronalLatticeGraphic : MaskableGraphic
 
     [SerializeField, Range(0f, 1f)] private float activity;
     [SerializeField, Range(0f, 1f)] private float tension;
+    private float meshRefreshTimer;
 
     private static readonly Color Cyan = Hex("38E5C1");
     private static readonly Color Amber = Hex("F0A018");
@@ -44,8 +47,15 @@ public sealed class ChronalLatticeGraphic : MaskableGraphic
 
     private void Update()
     {
-        if (activity > 0.001f)
-            SetVerticesDirty();
+        if (activity <= 0.001f)
+            return;
+
+        meshRefreshTimer += Time.unscaledDeltaTime;
+        if (meshRefreshTimer < MeshRefreshInterval)
+            return;
+
+        meshRefreshTimer = 0f;
+        SetVerticesDirty();
     }
 
     protected override void OnPopulateMesh(VertexHelper vh)

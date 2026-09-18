@@ -1,0 +1,157 @@
+{
+  "schema_version": "1.4",
+  "scope": "Índices compuestos de rango + palo en barajas de doble orientación",
+  "applies_to_ranks": ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"],
+  "corners": ["upper", "lower_rotated_180"],
+  "measurement": {
+    "reference_card_pixels": {"width": 220, "height": 348},
+    "minimum_visible_rank_suit_clearance_pixels": 4.0,
+    "formula": "vertical_center_distance - conservative_rank_half_height - visible_suit_half_height",
+    "rank_envelope": "font_size / 2",
+    "suit_envelope": "rendered_size_y * scale_y / 2",
+    "same_clearance_upper_lower_required": true,
+    "same_horizontal_visible_center_required": true,
+    "same_vertical_visible_center_required": true,
+    "composite_rank_suit_center_required": true,
+    "rank_suit_visible_axis_alignment_required": true,
+    "all_four_suits_per_rank_required": true,
+    "layered_render_capture_required": ["full", "rank_only", "suit_only", "clean"],
+    "inventory_visible_fit_may_be_na": false,
+    "maximum_visible_rank_width_occupancy_required": true,
+    "theme_specific_font_fit_required": true,
+    "integer_pixel_snap_required": true,
+    "corner_specific_part_offset_allowed_only_when_measured": true,
+    "complete_theme_inventory_required": true,
+    "rank_width_occupancy_formula": "visible rank ink width / visible pocket width",
+    "lower_rotation_degrees": 180
+    ,"minimum_visible_suit_height_ratio_of_card_width_for_new_or_modified_themes": 0.084
+    ,"visible_suit_height_pixel_rounding": "nearest_integer"
+    ,"theme_may_reduce_visible_suit_below_minimum": false
+    ,"actual_painted_pocket_measurement_required": true
+    ,"maximum_upper_lower_pocket_dimension_delta_pixels": 1
+    ,"actual_lower_pocket_must_match_upper_after_180_rotation": true
+  },
+  "profiles": {
+    "forty.theme.kraken_pearl": {
+      "rank_font_size_ratio_of_card_width": 0.15,
+      "suit_size_ratio_of_card_width": 0.084,
+      "suit_scale_y": 1.0,
+      "rank_offset_ratio_of_card_height": 0.045,
+      "suit_offset_ratio_of_card_height": 0.045,
+      "calculated_visible_clearance_pixels": 5.58,
+      "runtime_profile_required": true,
+      "validated_cards": 52,
+      "validated_corners": 104,
+      "evidence": "Logs/UniversalNumericFortyThievesBatch/all-themes-index-optical-fit-v1.json",
+      "status": "PASS"
+    },
+    "forty.theme.leviathan_crown": {
+      "runtime_profile_required": true,
+      "validated_cards": 52,
+      "validated_corners": 104,
+      "evidence": "Logs/UniversalNumericFortyThievesBatch/all-themes-index-optical-fit-v1.json",
+      "status": "PASS"
+    },
+    "forty.theme.storm_siren": {
+      "runtime_profile_required": true,
+      "corner_specific_part_offsets": {"J": {"upper": 0.045, "lower": 0.046}},
+      "validated_cards": 52,
+      "validated_corners": 104,
+      "evidence": "Logs/UniversalNumericFortyThievesBatch/all-themes-index-optical-fit-v1.json",
+      "status": "PASS"
+    },
+    "forty.theme.crimson_flag": {
+      "maximum_visible_rank_width_occupancy": 0.76,
+      "rank_specific_horizontal_scales": {"A": 0.63, "2": 0.92, "4": 0.90, "6": 0.90, "9": 0.90, "10": 0.55, "Q": 0.40, "K": 0.78},
+      "rank_specific_optical_offsets": {
+        "Q": {"upper_x": -0.021, "lower_x": 0.021},
+        "K": {"upper_x": -0.005, "lower_x": 0.006}
+      },
+      "rank_specific_composite_offsets": {
+        "A": {"upper_y": 0.010, "lower_y": -0.010},
+        "2": {"upper_y": 0.011, "lower_y": -0.011},
+        "3": {"upper_y": 0.011, "lower_y": -0.011},
+        "4": {"upper_y": 0.011, "lower_y": -0.011},
+        "5": {"upper_y": 0.011, "lower_y": -0.011},
+        "6": {"upper_y": 0.011, "lower_y": -0.011},
+        "7": {"upper_y": 0.010, "lower_y": -0.010},
+        "8": {"upper_y": 0.011, "lower_y": -0.011},
+        "9": {"upper_y": 0.011, "lower_y": -0.011},
+        "10": {"upper_y": 0.011, "lower_y": -0.011},
+        "J": {"upper_y": 0.014, "lower_y": -0.009},
+        "Q": {"upper_y": 0.013, "lower_y": -0.012},
+        "K": {"upper_y": 0.013, "lower_y": -0.012}
+      },
+      "rank_specific_part_offset_ratios": {"Q": 0.049},
+      "corner_specific_part_offsets": {"J": {"upper": 0.045, "lower": 0.046}},
+      "unlisted_rank_scale": 1.0,
+      "runtime_profile_required": true,
+      "integer_pixel_snap": true,
+      "validated_cards": 52,
+      "validated_corners": 104,
+      "evidence": "Logs/UniversalNumericFortyThievesBatch/all-themes-index-optical-fit-v1.json",
+      "status": "PASS"
+    },
+    "forty.theme.obsidian_corsair": {
+      "runtime_profile_required": true,
+      "validated_cards": 52,
+      "validated_corners": 104,
+      "evidence": "Logs/UniversalNumericFortyThievesBatch/all-themes-index-optical-fit-v1.json",
+      "status": "PASS"
+    },
+    "forty.theme.doubloon_chamber": {
+      "runtime_profile_required": true,
+      "validated_cards": 52,
+      "validated_corners": 104,
+      "evidence": "Logs/UniversalNumericFortyThievesBatch/all-themes-index-optical-fit-v1.json",
+      "status": "PASS"
+    }
+  },
+  "negative_fixtures": {
+    "previous_kraken_pearl_offsets": {
+      "rank_offset_ratio_of_card_height": 0.028,
+      "suit_offset_ratio_of_card_height": 0.030,
+      "calculated_visible_clearance_pixels": -5.556,
+      "expected_status": "FAIL"
+    },
+    "crimson_flag_unscaled_wide_ranks": {
+      "affected_ranks": ["Q", "10", "K"],
+      "observed_width_occupancy": {"Q": 1.0, "10": 1.0, "K": 0.8},
+      "maximum_allowed": 0.76,
+      "expected_status": "FAIL"
+    },
+    "partial_rank_coverage": {
+      "covered_ranks": ["10", "J", "Q", "K"],
+      "missing_ranks": ["A", "2", "3", "4", "5", "6", "7", "8", "9"],
+      "expected_status": "FAIL"
+    },
+    "isolated_rank_without_suit_union": {
+      "checks": ["rank_horizontal_center"],
+      "missing_checks": ["suit_center", "composite_center_x", "composite_center_y", "visible_gap", "rotation_equivalence"],
+      "expected_status": "FAIL"
+    },
+    "reported_k_and_7_composite_drift": {
+      "affected_ranks": ["K", "7"],
+      "evidence": "User mobile-scale crops show visible rank+suit imbalance",
+      "expected_status": "FAIL"
+    },
+    "missing_suit_variants": {
+      "required_suits": ["clubs", "diamonds", "hearts", "spades"],
+      "expected_status": "FAIL"
+    },
+    "visible_fit_na_inventory": {
+      "forbidden_value": "N/A",
+      "expected_status": "FAIL"
+    },
+    "reduced_universal_visible_suit": {
+      "observed_visible_height_ratio_of_card_width": 0.0625,
+      "minimum_required": 0.084,
+      "expected_status": "FAIL"
+    },
+    "unequal_painted_index_pockets": {
+      "observed_dimension_delta_pixels": 9,
+      "maximum_allowed": 1,
+      "expected_status": "FAIL"
+    }
+  }
+}

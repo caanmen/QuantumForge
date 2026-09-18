@@ -13,13 +13,16 @@ public sealed class PrestigeDimensionTransitionUI : MonoBehaviour
     [SerializeField] private Texture2D cardsTexture;
     [SerializeField] private Texture2D portraitReference;
     [SerializeField] private Texture2D laboratoryBackground;
-    [SerializeField] private Texture2D cube2DTexture;
-    [SerializeField] private Texture2D characterTexture;
+    [SerializeField] private Texture2D monolithTexture;
+    [SerializeField] private Material monolithCutoutMaterial;
+    [SerializeField] private Texture2D entryLightTexture;
+    [SerializeField] private Material entryLightAdditiveMaterial;
     [SerializeField] private Texture2D portalRingTexture;
 
     [Header("Tiempos")]
     [SerializeField, Min(6f)] private float transitionDuration = 8.6f;
     [SerializeField, Min(2f)] private float confirmationResetSeconds = 5f;
+    [SerializeField] private bool playOpeningAnimation;
 
     private static readonly Color Background = new Color(0.008f, 0.014f, 0.027f, 1f);
     private static readonly Color Cyan = new Color(0.12f, 0.78f, 1f, 1f);
@@ -32,12 +35,15 @@ public sealed class PrestigeDimensionTransitionUI : MonoBehaviour
     private GameObject _transitionStage;
     private GameObject _selectionStage;
     private CanvasGroup _selectionGroup;
-    private RectTransform _cubeFrame;
-    private RawImage _cubeImage;
+    private RectTransform _monolithFrame;
+    private CanvasGroup _monolithGroup;
+    private readonly RectTransform[] _monolithPlates = new RectTransform[4];
+    private readonly RawImage[] _monolithPlateImages = new RawImage[4];
+    private readonly RawImage[] _entryLights = new RawImage[4];
+    private PrestigePortal2DGraphic _monolithCore;
+    private RawImage _monolithCoreRing;
     private RawImage _laboratoryBackgroundImage;
     private Image _laboratoryDarkening;
-    private RectTransform _characterRect;
-    private RawImage _characterImage;
     private readonly RectTransform[] _portalRects = new RectTransform[3];
     private readonly RawImage[] _portalOuterRings = new RawImage[3];
     private readonly RawImage[] _portalInnerRings = new RawImage[3];
@@ -76,14 +82,17 @@ public sealed class PrestigeDimensionTransitionUI : MonoBehaviour
     public Texture2D CardsTexture => cardsTexture;
     public Texture2D PortraitReference => portraitReference;
     public Texture2D LaboratoryBackground => laboratoryBackground;
-    public Texture2D Cube2DTexture => cube2DTexture;
-    public Texture2D CharacterTexture => characterTexture;
+    public Texture2D MonolithTexture => monolithTexture;
+    public Material MonolithCutoutMaterial => monolithCutoutMaterial;
     public Texture2D PortalRingTexture => portalRingTexture;
     public int ConfirmationPresses => _confirmationPresses;
     public int SelectedDimensionId => _selectedDimensionId;
     public bool IsVisible => _root != null && _root.activeSelf;
     public bool IsSelectionVisible => _selectionStage != null && _selectionStage.activeSelf;
     public float ConfirmationResetSeconds => confirmationResetSeconds;
+    public int MonolithPlateCount => _monolithPlates.Length;
+    public int EntryLightCount => _entryLights.Length;
+    public bool PlayOpeningAnimation => playOpeningAnimation;
 
     private sealed class AmbientParticle
     {
@@ -238,6 +247,56 @@ public sealed class PrestigeDimensionTransitionUI : MonoBehaviour
         RefreshCards(false);
         RefreshConfirmationUi();
     }
+
+    public void PreviewOpenMonolithForCapture()
+    {
+        _previewMode = true;
+        BuildInterface();
+        if (_flowRoutine != null)
+            StopCoroutine(_flowRoutine);
+        _root.SetActive(true);
+        _root.transform.SetAsLastSibling();
+        _rootGroup.alpha = 1f;
+        _transitionStage.SetActive(true);
+        _selectionStage.SetActive(false);
+        if (_laboratoryBackgroundImage != null)
+            _laboratoryBackgroundImage.color = Color.white;
+        if (_flash != null)
+            _flash.color = Color.clear;
+        ApplyStaticMonolithState(true);
+    }
+
+    public void PreviewPortalsForCapture()
+    {
+        _previewMode = true;
+        BuildInterface();
+        if (_flowRoutine != null)
+            StopCoroutine(_flowRoutine);
+        _root.SetActive(true);
+        _root.transform.SetAsLastSibling();
+        _rootGroup.alpha = 1f;
+        _transitionStage.SetActive(true);
+        _selectionStage.SetActive(false);
+        if (_laboratoryBackgroundImage != null)
+            _laboratoryBackgroundImage.color = Color.white;
+        if (_flash != null)
+            _flash.color = Color.clear;
+        ApplyStaticMonolithState(true);
+
+        for (int i = 0; i < _portalRects.Length; i++)
+        {
+            Color portalColor = ColorForDimension(i + 1);
+            _portalRects[i].anchoredPosition = PortalPosition(i);
+            _portalRects[i].localScale = Vector3.one;
+            _portalOuterRings[i].color = new Color(
+                portalColor.r, portalColor.g, portalColor.b, .95f);
+            _portalInnerRings[i].color = new Color(
+                Mathf.Lerp(portalColor.r, 1f, .28f),
+                Mathf.Lerp(portalColor.g, 1f, .28f),
+                Mathf.Lerp(portalColor.b, 1f, .28f), .38f);
+            _portalCores[i].SetIntensity(1f);
+        }
+    }
 #endif
 
     private bool BeginInternal(bool preview)
@@ -254,8 +313,31 @@ public sealed class PrestigeDimensionTransitionUI : MonoBehaviour
 
         if (_flowRoutine != null)
             StopCoroutine(_flowRoutine);
-        _flowRoutine = StartCoroutine(TransitionRoutine());
+        if (playOpeningAnimation)
+            _flowRoutine = StartCoroutine(TransitionRoutine());
+        else
+            ShowSelectionWithoutOpeningAnimation();
         return true;
+    }
+
+    private void ShowSelectionWithoutOpeningAnimation()
+    {
+        _root.SetActive(true);
+        _root.transform.SetAsLastSibling();
+        _transitionStage.SetActive(false);
+        _selectionStage.SetActive(true);
+        _rootGroup.alpha = 1f;
+        _selectionGroup.alpha = 1f;
+        _flash.color = Color.clear;
+        RefreshCards(false);
+        RefreshConfirmationUi();
+        SetControlsInteractable(true);
+        if (_centerCardRect != null)
+        {
+            _centerCardRect.anchoredPosition = new Vector2(0f, 60f);
+            _centerCardRect.localScale = Vector3.one;
+        }
+        _flowRoutine = null;
     }
 
     private void BuildInterface()
@@ -291,8 +373,10 @@ public sealed class PrestigeDimensionTransitionUI : MonoBehaviour
     private void LoadResourceConfiguration()
     {
         if (cardsTexture != null && portraitReference != null &&
-            laboratoryBackground != null && cube2DTexture != null &&
-            characterTexture != null && portalRingTexture != null)
+            laboratoryBackground != null && monolithTexture != null &&
+            monolithCutoutMaterial != null && entryLightTexture != null &&
+            entryLightAdditiveMaterial != null &&
+            portalRingTexture != null)
             return;
 
         PrestigeDimensionTransitionConfig config =
@@ -306,10 +390,14 @@ public sealed class PrestigeDimensionTransitionUI : MonoBehaviour
             portraitReference = config.portraitReference;
         if (laboratoryBackground == null)
             laboratoryBackground = config.laboratoryBackground;
-        if (cube2DTexture == null)
-            cube2DTexture = config.cube2DTexture;
-        if (characterTexture == null)
-            characterTexture = config.characterTexture;
+        if (monolithTexture == null)
+            monolithTexture = config.monolithTexture;
+        if (monolithCutoutMaterial == null)
+            monolithCutoutMaterial = config.monolithCutoutMaterial;
+        if (entryLightTexture == null)
+            entryLightTexture = config.entryLightTexture;
+        if (entryLightAdditiveMaterial == null)
+            entryLightAdditiveMaterial = config.entryLightAdditiveMaterial;
         if (portalRingTexture == null)
             portalRingTexture = config.portalRingTexture;
     }
@@ -442,29 +530,66 @@ public sealed class PrestigeDimensionTransitionUI : MonoBehaviour
             });
         }
 
-        GameObject frame = CreateRectObject("Cube2DHero", _transitionStage.transform);
-        _cubeFrame = frame.GetComponent<RectTransform>();
-        SetRect(_cubeFrame, Vector2.zero, Vector2.zero,
-            new Vector2(0f, 80f), new Vector2(660f, 660f));
+        GameObject frame = CreateRectObject("OpeningMonolith",
+            _transitionStage.transform, typeof(CanvasGroup));
+        _monolithFrame = frame.GetComponent<RectTransform>();
+        _monolithGroup = frame.GetComponent<CanvasGroup>();
+        SetRect(_monolithFrame, Vector2.zero, Vector2.zero,
+            new Vector2(0f, 35f), new Vector2(700f, 700f));
 
-        GameObject cube = CreateRectObject("IllustratedMachineCube", frame.transform,
-            typeof(RawImage));
-        SetRect(cube.GetComponent<RectTransform>(), Vector2.zero, Vector2.zero,
-            Vector2.zero, new Vector2(650f, 650f));
-        _cubeImage = cube.GetComponent<RawImage>();
-        _cubeImage.texture = cube2DTexture;
-        _cubeImage.color = new Color(1f, 1f, 1f, 0f);
-        _cubeImage.raycastTarget = false;
+        GameObject revealedCoreObject = CreateRectObject(
+            "RevealedCore", frame.transform,
+            typeof(PrestigePortal2DGraphic));
+        SetRect(revealedCoreObject.GetComponent<RectTransform>(),
+            Vector2.zero, Vector2.zero,
+            Vector2.zero, new Vector2(285f, 285f));
+        _monolithCore =
+            revealedCoreObject.GetComponent<PrestigePortal2DGraphic>();
+        _monolithCore.Configure(new Color(.72f, .92f, 1f, 1f));
+        _monolithCore.SetIntensity(0f);
 
-        GameObject character = CreateRectObject("AnonymousCharacter2D",
-            _transitionStage.transform, typeof(RawImage));
-        _characterRect = character.GetComponent<RectTransform>();
-        SetRect(_characterRect, Vector2.zero, Vector2.zero,
-            new Vector2(0f, -560f), new Vector2(570f, 855f));
-        _characterImage = character.GetComponent<RawImage>();
-        _characterImage.texture = characterTexture;
-        _characterImage.color = new Color(1f, 1f, 1f, 0f);
-        _characterImage.raycastTarget = false;
+        GameObject coreRing = CreateRectObject("RevealedCoreRing",
+            frame.transform, typeof(RawImage));
+        SetRect(coreRing.GetComponent<RectTransform>(), Vector2.zero, Vector2.zero,
+            Vector2.zero, new Vector2(220f, 220f));
+        _monolithCoreRing = coreRing.GetComponent<RawImage>();
+        _monolithCoreRing.texture = portalRingTexture;
+        _monolithCoreRing.color = Color.clear;
+        _monolithCoreRing.raycastTarget = false;
+
+        for (int i = 0; i < _monolithPlates.Length; i++)
+        {
+            GameObject plate = CreateRectObject("MonolithPlate_" + (i + 1),
+                frame.transform, typeof(RawImage));
+            _monolithPlates[i] = plate.GetComponent<RectTransform>();
+            SetRect(_monolithPlates[i], Vector2.zero, Vector2.zero,
+                MonolithPlateClosedPosition(i), new Vector2(350f, 350f));
+            RawImage image = plate.GetComponent<RawImage>();
+            image.texture = monolithTexture;
+            image.uvRect = MonolithPlateUv(i);
+            image.material = monolithCutoutMaterial;
+            image.color = Color.white;
+            image.raycastTarget = false;
+            _monolithPlateImages[i] = image;
+        }
+
+        for (int i = 0; i < _entryLights.Length; i++)
+        {
+            GameObject light = CreateRectObject("AccessLight_" + (i + 1),
+                frame.transform, typeof(RawImage));
+            RectTransform lightRect = light.GetComponent<RectTransform>();
+            SetRect(lightRect, Vector2.zero, Vector2.zero,
+                EntryLightPosition(i), new Vector2(38f, 112f));
+            lightRect.localRotation = Quaternion.Euler(0f, 0f,
+                i < 2 ? -18f : 18f);
+            RawImage image = light.GetComponent<RawImage>();
+            image.texture = entryLightTexture;
+            image.material = entryLightAdditiveMaterial;
+            image.uvRect = new Rect(.28f, .16f, .44f, .68f);
+            image.color = new Color(.52f, .90f, 1f, 0f);
+            image.raycastTarget = false;
+            _entryLights[i] = image;
+        }
 
         GameObject flash = CreateRectObject("DimensionalFlash", _root.transform,
             typeof(Image));
@@ -583,11 +708,7 @@ public sealed class PrestigeDimensionTransitionUI : MonoBehaviour
         if (_laboratoryDarkening != null)
             _laboratoryDarkening.color = new Color(0.005f, 0.008f, 0.015f, 0.08f);
 
-        _characterRect.anchoredPosition = new Vector2(0f, -680f);
-        _characterImage.color = new Color(1f, 1f, 1f, 0f);
-        _cubeFrame.localScale = Vector3.one;
-        _cubeFrame.localRotation = Quaternion.identity;
-        _cubeImage.color = new Color(1f, 1f, 1f, 0f);
+        ApplyStaticMonolithState(false);
         for (int i = 0; i < 3; i++)
         {
             _portalRects[i].localScale = Vector3.zero;
@@ -606,32 +727,59 @@ public sealed class PrestigeDimensionTransitionUI : MonoBehaviour
             float t = Mathf.Clamp01(elapsed / duration);
             _rootGroup.alpha = Mathf.Clamp01(t / 0.08f);
 
-            float characterIn = Mathf.SmoothStep(0f, 1f,
-                Mathf.InverseLerp(0.02f, 0.16f, t));
-            float characterOut = 1f - Mathf.SmoothStep(0f, 1f,
-                Mathf.InverseLerp(0.70f, 0.82f, t));
-            float characterAlpha = characterIn * characterOut;
-            _characterImage.color = new Color(1f, 1f, 1f, characterAlpha);
-            _characterRect.anchoredPosition = new Vector2(0f,
-                Mathf.Lerp(-680f, -560f, characterIn));
+            float monolithIn = Mathf.SmoothStep(0f, 1f,
+                Mathf.InverseLerp(0.03f, 0.17f, t));
+            _monolithGroup.alpha = monolithIn;
+            _monolithFrame.localScale = Vector3.one *
+                Mathf.Lerp(.92f, 1f, monolithIn);
 
-            float cubeIn = Mathf.SmoothStep(0f, 1f,
-                Mathf.InverseLerp(0.10f, 0.25f, t));
-            _cubeFrame.localScale = Vector3.one;
-            _cubeFrame.localRotation = Quaternion.identity;
-            _cubeImage.color = new Color(1f, 1f, 1f, cubeIn);
+            for (int i = 0; i < _entryLights.Length; i++)
+            {
+                float lightIn = Mathf.SmoothStep(0f, 1f,
+                    Mathf.InverseLerp(.16f + i * .035f,
+                        .23f + i * .035f, t));
+                float lightOut = 1f - Mathf.SmoothStep(0f, 1f,
+                    Mathf.InverseLerp(.47f, .56f, t));
+                _entryLights[i].color = new Color(.52f, .90f, 1f,
+                    lightIn * lightOut * .78f);
+            }
+
+            float plateOpen = Mathf.SmoothStep(0f, 1f,
+                Mathf.InverseLerp(.52f, .68f, t));
+            for (int i = 0; i < _monolithPlates.Length; i++)
+            {
+                _monolithPlates[i].anchoredPosition = Vector2.Lerp(
+                    MonolithPlateClosedPosition(i),
+                    MonolithPlateOpenPosition(i), plateOpen);
+                _monolithPlates[i].localRotation = Quaternion.Euler(0f, 0f,
+                    (i % 2 == 0 ? -1f : 1f) * plateOpen * 2.5f);
+            }
+            float coreGlow = Mathf.SmoothStep(0f, 1f,
+                Mathf.InverseLerp(.48f, .67f, t));
+            _monolithCore.SetIntensity(coreGlow);
+            if (_monolithCoreRing != null)
+            {
+                _monolithCoreRing.color = new Color(.52f, .90f, 1f,
+                    coreGlow * .72f);
+                _monolithCoreRing.rectTransform.localRotation =
+                    Quaternion.Euler(0f, 0f, t * 18f);
+            }
 
             for (int i = 0; i < 3; i++)
             {
-                float portalStart = 0.35f + i * 0.055f;
+                float portalStart = 0.67f + i * 0.035f;
                 float portalOpen = Mathf.SmoothStep(0f, 1f,
-                    Mathf.InverseLerp(portalStart, portalStart + 0.12f, t));
+                    Mathf.InverseLerp(portalStart, portalStart + 0.11f, t));
+                // Los tres portales permanecen legibles juntos antes del
+                // destello que entrega la selección dimensional.
                 float portalFade = 1f - Mathf.SmoothStep(0f, 1f,
-                    Mathf.InverseLerp(0.70f, 0.82f, t));
+                    Mathf.InverseLerp(0.88f, 0.96f, t));
                 float portalAlpha = portalOpen * portalFade;
                 float portalScale = portalOpen *
                     (1f + Mathf.Sin(t * 11f + i) * 0.018f);
                 _portalRects[i].localScale = Vector3.one * portalScale;
+                _portalRects[i].anchoredPosition = Vector2.Lerp(
+                    new Vector2(0f, 35f), PortalPosition(i), portalOpen);
                 _portalOuterRings[i].rectTransform.localRotation =
                     Quaternion.Euler(0f, 0f,
                         Mathf.Sin(t * 7f + i * 0.8f) * 2.2f);
@@ -659,15 +807,17 @@ public sealed class PrestigeDimensionTransitionUI : MonoBehaviour
                 CinematicParticle particle = _cinematicParticles[i];
                 Color particleColor = ColorForDimension(
                     particle.portalIndex + 1);
-                float launchStart = 0.22f + particle.portalIndex * 0.055f +
-                    particle.phase * 0.055f;
-                float launchEnd = launchStart + 0.18f;
+                float launchStart = 0.29f + particle.portalIndex * 0.025f +
+                    particle.phase * 0.035f;
+                float launchEnd = launchStart + 0.16f;
                 if (t >= launchStart && t <= launchEnd)
                 {
                     float travel = Mathf.SmoothStep(0f, 1f,
                         Mathf.InverseLerp(launchStart, launchEnd, t));
-                    Vector2 start = new Vector2(0f, 80f);
-                    Vector2 target = PortalPosition(particle.portalIndex);
+                    Vector2 start = EntryLightPosition(
+                        (i + particle.portalIndex) % _entryLights.Length) +
+                        new Vector2(0f, 35f);
+                    Vector2 target = new Vector2(0f, 35f);
                     Vector2 direction = target - start;
                     particle.rect.anchoredPosition = Vector2.Lerp(
                         start, target, travel);
@@ -683,21 +833,21 @@ public sealed class PrestigeDimensionTransitionUI : MonoBehaviour
                 }
             }
 
-            // El laboratorio desaparece gradualmente mientras el cubo concentra
-            // la energía que abre la selección dimensional.
+            // El laboratorio se oscurece mientras la energía converge y las
+            // placas del Monolito liberan el núcleo dimensional.
             if (_laboratoryDarkening != null)
             {
                 float fade = Mathf.SmoothStep(0.08f, 0.76f,
-                    Mathf.InverseLerp(0.62f, 0.90f, t));
+                    Mathf.InverseLerp(0.40f, 0.62f, t));
                 _laboratoryDarkening.color = new Color(
                     0.005f, 0.008f, 0.015f, fade);
             }
 
-            if (t > 0.88f)
+            if (t > 0.94f)
             {
-                float flash = Mathf.InverseLerp(0.88f, 1f, t);
+                float flash = Mathf.InverseLerp(0.94f, 1f, t);
                 _flash.color = new Color(0.72f, 0.92f, 1f,
-                    Mathf.SmoothStep(0f, 1f, flash));
+                    Mathf.SmoothStep(0f, 1f, flash) * .18f);
             }
             yield return null;
         }
@@ -1059,6 +1209,98 @@ public sealed class PrestigeDimensionTransitionUI : MonoBehaviour
             case 1: return new Vector2(0f, 590f);
             default: return new Vector2(360f, 150f);
         }
+    }
+
+    private void ApplyStaticMonolithState(bool open)
+    {
+        if (_monolithGroup == null) return;
+        _monolithGroup.alpha = 1f;
+        _monolithFrame.localScale = Vector3.one;
+        _monolithFrame.localRotation = Quaternion.identity;
+        for (int i = 0; i < _monolithPlates.Length; i++)
+        {
+            if (_monolithPlates[i] == null) continue;
+            _monolithPlates[i].anchoredPosition = open
+                ? MonolithPlateOpenPosition(i)
+                : MonolithPlateClosedPosition(i);
+            _monolithPlates[i].localRotation = Quaternion.identity;
+            if (_monolithPlateImages[i] != null)
+                _monolithPlateImages[i].color = Color.white;
+        }
+        for (int i = 0; i < _entryLights.Length; i++)
+        {
+            if (_entryLights[i] != null)
+                _entryLights[i].color = new Color(.52f, .90f, 1f,
+                    open ? .18f : 0f);
+        }
+        if (_monolithCore != null)
+            _monolithCore.SetIntensity(open ? 1f : 0f);
+        if (_monolithCoreRing != null)
+            _monolithCoreRing.color = new Color(.52f, .90f, 1f,
+                open ? .72f : 0f);
+        if (_laboratoryDarkening != null)
+            _laboratoryDarkening.color = new Color(.005f, .008f, .015f,
+                open ? .32f : .08f);
+        for (int i = 0; i < _portalRects.Length; i++)
+        {
+            if (_portalRects[i] != null)
+            {
+                _portalRects[i].anchoredPosition = PortalPosition(i);
+                _portalRects[i].localScale = Vector3.zero;
+            }
+            if (_portalOuterRings[i] != null)
+                _portalOuterRings[i].color = Color.clear;
+            if (_portalInnerRings[i] != null)
+                _portalInnerRings[i].color = Color.clear;
+            if (_portalCores[i] != null)
+                _portalCores[i].SetIntensity(0f);
+        }
+        for (int i = 0; i < _cinematicParticles.Count; i++)
+            _cinematicParticles[i].image.color = Color.clear;
+    }
+
+    private static Vector2 MonolithPlateClosedPosition(int index)
+    {
+        return index switch
+        {
+            0 => new Vector2(-175f, 175f),
+            1 => new Vector2(175f, 175f),
+            2 => new Vector2(-175f, -175f),
+            _ => new Vector2(175f, -175f)
+        };
+    }
+
+    private static Vector2 MonolithPlateOpenPosition(int index)
+    {
+        return index switch
+        {
+            0 => new Vector2(-265f, 260f),
+            1 => new Vector2(265f, 260f),
+            2 => new Vector2(-265f, -260f),
+            _ => new Vector2(265f, -260f)
+        };
+    }
+
+    private static Rect MonolithPlateUv(int index)
+    {
+        return index switch
+        {
+            0 => new Rect(.5f, .25f, .25f, .25f),
+            1 => new Rect(.75f, .25f, .25f, .25f),
+            2 => new Rect(.5f, 0f, .25f, .25f),
+            _ => new Rect(.75f, 0f, .25f, .25f)
+        };
+    }
+
+    private static Vector2 EntryLightPosition(int index)
+    {
+        return index switch
+        {
+            0 => new Vector2(-105f, 142f),
+            1 => new Vector2(-65f, 32f),
+            2 => new Vector2(78f, 96f),
+            _ => new Vector2(102f, -105f)
+        };
     }
 
     private static RawImage CreateRawImage(Transform parent, string name)

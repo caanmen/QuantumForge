@@ -1,0 +1,18 @@
+ORIGEN Y USO — LUGAR DE VÍNCULO
+
+Referencia de autoridad visual:
+SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/08_Pacto_Lugar_De_Vinculo_Corregido_V4.png
+
+D2_Bond_ImageGenClean_v1.png:
+- Edición precisa generada con la herramienta integrada de imágenes.
+- Retira únicamente textos y cifras para reconstruir las superficies subyacentes.
+- No es una referencia ni una captura aprobada; es un auxiliar de producción.
+
+D2_Bond_CleanBasePlate_v1.png:
+- Placa compuesta de forma determinista por Tools/VisualQA/PrepareD2BondAssets.ps1.
+- Conserva la V4 fuera de las regiones dinámicas.
+- Los títulos, cifras, niveles, costes, estados y etiquetas de navegación se renderizan
+  con TMP desde D2VeiledThresholdPanelUI y el constructor canónico.
+
+No promover estos archivos a referencia creativa. La escena y
+Dimension2Block1UISetup.cs deben permanecer sincronizados.

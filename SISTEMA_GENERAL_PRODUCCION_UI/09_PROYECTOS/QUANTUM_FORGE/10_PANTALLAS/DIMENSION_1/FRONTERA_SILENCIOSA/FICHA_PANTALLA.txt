@@ -1,0 +1,52 @@
+FICHA DE PANTALLA: FRONTERA SILENCIOSA
+=====================================
+
+IDENTIDAD
+Nombre visible: FRONTERA SILENCIOSA
+Nombre interno estable: D1_FRONTERA_SILENCIOSA
+Dimensión: 1
+Tipo: subpantalla de sector dentro de Galaxia
+Estado: CANDIDATA FUNCIONAL VALIDADA; PENDIENTE DE APROBACIÓN VISUAL
+
+FUNCIÓN
+Objetivo: consultar y mejorar los planetas 6 y 7 del Sector 4 y abrir sus cuatro
+destinos oficiales desde la familia visual D1.
+Entrada: seleccionar Frontera Silenciosa en Carta Galáctica y confirmar la entrada.
+Salida: flecha superior o VOLVER A CARTA GALÁCTICA.
+
+AUTORIDAD Y REUTILIZACIÓN
+- Armazón: composición de Órbitas Antiguas reutilizada por petición explícita actual.
+- Planetas 6 y 7: d1_body_planet_silent_v3.png con los tratamientos ya empleados por
+  Carta Galáctica para distinguirlos.
+- Marcos, rellenos, campo estelar, metales y navegación: assets canónicos D1.
+- Ruina orbital: candidato existente de Órbitas Antiguas.
+- Anomalía menor, estructura antigua y zona inestable: candidatos SectorDetails V2.
+- No existe una referencia visual permanente específica para esta subpantalla.
+
+DATOS REALES
+- Planeta 6: Iridio / Cobalto.
+- Planeta 7: Tungsteno / Platino / Iridio; el tercer metal conserva su desbloqueo real.
+- Destinos, en orden oficial: Ruina Orbital, Anomalía Menor, Estructura Antigua y Zona
+  Inestable.
+- Producción, costes, desbloqueo y mejora: GameState / Dimension1System.
+- Las tarjetas de destinos resuelven la opción escaneada por ID estable.
+
+COMPOSICIÓN Y ESTADOS
+Resolución base: 1080 x 1920 vertical; comprobación adicional 720 x 1280.
+Zonas: encabezado; metales; dos tarjetas planetarias; cuatro destinos; regreso; cinco
+botones de navegación D1.
+
+PROPIETARIOS
+Composición serializada: Dimension1SectorDetailsSetup.
+Datos, visibilidad y acciones: Dimension1SectorDetailUI.
+Entrada y selección: Dimension1PanelUI.
+
+EVIDENCIA
+- Instalación: [D1 Sector Details] INSTALL_PASS.
+- QA: entrada real, cuatro IDs, inventario, mejora y regreso: PASS.
+- Centrado de ambos planetas: PASS en ambas resoluciones.
+- Encabezado completo, sin recorte superior, y márgenes compartidos con la familia: PASS.
+- Última evidencia: `[D1 Sector Details Capture] PASS | 3 entradas reales + 12 destinos
+  exactos + metales + mejoras + regreso | 1080x1920 + 720x1280`.
+- Capturas candidatas archivadas en CAPTURAS_CANDIDATAS.
+- Similitud visual mínima del 95 %: pendiente del usuario.

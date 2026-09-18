@@ -8,6 +8,8 @@ using UnityEngine.UI;
 /// </summary>
 public sealed class MachineSeedsPanelVisualUI : MonoBehaviour
 {
+    private const float StateRefreshInterval = 0.1f;
+
     private static readonly Color Cyan = Hex("00D5D0");
     private static readonly Color CyanSoft = Hex("69EAD1");
     private static readonly Color Amber = Hex("F0A018");
@@ -53,14 +55,19 @@ public sealed class MachineSeedsPanelVisualUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI stableCountText;
     [SerializeField] private TextMeshProUGUI forcedCountText;
     [SerializeField] private Image archiveFill;
+    private float nextStateRefreshTime;
 
     private void OnEnable()
     {
+        nextStateRefreshTime = 0f;
         RefreshState();
     }
 
     private void LateUpdate()
     {
+        if (Time.unscaledTime < nextStateRefreshTime)
+            return;
+        nextStateRefreshTime = Time.unscaledTime + StateRefreshInterval;
         RefreshState();
     }
 

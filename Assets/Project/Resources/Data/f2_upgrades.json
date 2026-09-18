@@ -66,7 +66,7 @@
     {
       "id": "triangle_unlock_1",
       "name": "Acople de Vértices",
-      "description": "Desbloquea los circuitos de vértices fijos del Triángulo.",
+      "description": "Activa el Triángulo conectando sus tres vértices.",
       "currency": 1,
       "effectType": 0,
       "requiredBuildingId": "fluctuation_antenna",
@@ -92,7 +92,7 @@
     {
       "id": "triangle_synergy_resonance",
       "name": "Rastreo Resonante",
-      "description": "Refuerza la producción del enfoque Trazas.",
+      "description": "Aumenta la producción total de Trazas sin depender del circuito activo.",
       "currency": 1,
       "effectType": 0,
       "requiresTriangleUnlocked": true,

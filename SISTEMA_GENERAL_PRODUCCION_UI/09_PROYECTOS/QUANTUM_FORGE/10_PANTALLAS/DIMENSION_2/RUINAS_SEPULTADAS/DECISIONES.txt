@@ -1,0 +1,33 @@
+DECISIONES — RUINAS SEPULTADAS / ARQUEOLOGÍA
+
+2 de septiembre de 2026
+
+1. La referencia permanente V4 manda sobre el adjunto temporal del chat.
+2. La pantalla pertenece a Civilización 3 dentro de Dimensión 2; no define el
+   perfil visual de una Dimensión 3 independiente.
+3. Se sustituyó el módulo provisional por una composición V4 de producción sin
+   crear un segundo propietario de datos o mecánicas.
+4. La placa limpia conserva marcos, ilustraciones, iconos y textura; textos,
+   cifras, barras, selección y estados son capas dinámicas de Unity.
+5. Las tres tarjetas completas son áreas táctiles y cambian un único
+   selectedZoneId en D2Civilization3System.
+6. Las barras usan researchProgress real y ajustan su ancho a 65/60/46 % en el
+   fixture; no dependen de una cifra horneada en la placa.
+7. La Zona 3 seleccionada comparte acento violeta entre título, número, barra,
+   marco y marcador lateral.
+8. El panel inferior siempre refleja la zona seleccionada: nombre, excavación,
+   restos, erudito, indicios y acumulación.
+9. INICIAR EXCAVACIÓN llama TryStartExcavation; no modifica el estado desde la UI.
+10. ARCHIVO y ENTE abren sus secciones existentes. ANALIZAR permanece visual y
+    deshabilitado hasta implementar su pantalla específica.
+11. La navegación global queda debajo del Canvas propio de Civilización 3 para
+    no cubrir el botón principal ni la barra inferior de la referencia.
+12. La fuente Cinzel existente sigue siendo canónica; sólo se aplicaron tamaños
+    locales para evitar truncamiento de rótulos largos.
+13. La escena y el constructor permanecen sincronizados; reconstruir la pantalla
+    vuelve a producir la versión validada.
+14. El capturador suprime escrituras persistentes, restaura el fixture antes de
+    cada resolución y cierra Unity después de varios fotogramas.
+15. Cualquier cambio futuro de placa, texto, geometría, estado o navegación exige
+    regenerar ambas capturas y repetir el gate perceptual AA del 95 %.
+16. Superar el gate técnico no sustituye la aprobación visual y creativa del usuario.

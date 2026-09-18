@@ -4,12 +4,15 @@ using UnityEngine.UI;
 
 public class KeycardPurchaseUI : MonoBehaviour
 {
+    private const float RefreshInterval = 0.25f;
+
     [Header("Referencias UI")]
     public TextMeshProUGUI nameText;
     public TextMeshProUGUI descText;
     public TextMeshProUGUI costText;
     public TextMeshProUGUI buttonText;
     public Button buyButton;
+    private float nextRefreshTime;
 
     private void Awake()
     {
@@ -18,6 +21,9 @@ public class KeycardPurchaseUI : MonoBehaviour
 
     private void Update()
     {
+        if (Time.unscaledTime < nextRefreshTime)
+            return;
+        nextRefreshTime = Time.unscaledTime + RefreshInterval;
         RefreshUI();
     }
 

@@ -1,0 +1,63 @@
+QUANTUM FORGE — MOCKUP MÓVIL DEL MONOLITO 2D
+Fecha: 2026-08-25
+
+DECISIÓN POSTERIOR — 2026-08-25
+- La pestaña SEMILLAS mostrada en estos mockups queda retirada.
+- El sector 4 normal queda sustituido en el diseño futuro por una reserva oscura
+  para Prestigio 2, con `???` y cuatro posiciones decorativas no interactivas.
+- El mockup continúa siendo referencia de composición para cabecera, monolito,
+  acercamiento y tarjeta de nodos; no es autoridad para Semillas ni para el sector 4.
+- La autoridad funcional vigente está en `10_PANTALLAS/MAQUINA/DECISIONES.txt`.
+
+Archivos:
+- mockup_monolito_vista_general_cerrada_v01.png
+- mockup_monolito_sector1_cercano_nodo_seleccionado_v01.png
+
+Clasificación:
+- Mockups estáticos en revisión.
+- No son assets finales.
+- No son capturas de Unity.
+- No están integrados en Main.unity.
+- Resolución generada: 941 x 1672, proporción vertical aproximada 9:16.
+- La validación real posterior debe capturarse a 1080 x 1920 y 720 x 1280.
+
+Objetivo:
+- Validar la composición vertical antes de trabajar en Unity.
+- Separar con claridad la vista general y la interacción con nodos.
+- Comprobar que los nodos sólo aparecen después del acercamiento.
+- Comprobar la legibilidad del circuito y la tarjeta en un teléfono.
+
+Vista general representada:
+- Monolito completo, inmóvil y frontal.
+- Cuatro tapas cerradas.
+- Ningún nodo ni circuito visible.
+- Estado físico aproximado de 0–20 % de reparación.
+- Cabecera con LE, TRAZAS, MÁQUINA y reparación total.
+- Pestañas canónicas NODOS, MEZCLAS y SEMILLAS; NODOS activo.
+
+Vista cercana representada:
+- Sector 1 / 4: Enlace con el Cuarto 1.
+- Siete posiciones simultáneas, de acuerdo con GetDisplayNodesByZone.
+- Ningún texto directamente sobre los nodos.
+- Lectura de Protocolo seleccionada como nodo dañado real.
+- Sólo se ofrece ANALIZAR porque el nodo dañado aún no fue analizado.
+- La tarjeta utiliza texto proveniente de machine_nodes.json y de la UI actual.
+
+Datos canónicos considerados:
+- Assets/Project/Resources/Data/machine_nodes.json
+- Assets/Project/Scripts/UI/MachinePanelUI.cs
+- Assets/Project/Scripts/UI/MachineCubeVisualUI.cs
+- Assets/Project/UI/Vertical/References/Machine_Block1_Approved_Reference.png
+- SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/MAQUINA/MONOLITO_2D_2026-08-24
+
+Origen visual:
+- Generados con la herramienta integrada de creación de imágenes.
+- La vista general pidió monolito cerrado sin nodos y sin valores fijos de recursos.
+- La vista cercana pidió exactamente siete nodos, tarjeta real de Lectura de
+  Protocolo y las pestañas canónicas NODOS, MEZCLAS y SEMILLAS.
+
+Pendiente:
+- Aprobación explícita del usuario sobre ambas composiciones.
+- Validar posteriormente estados neutral, seleccionado, bloqueado y reparado.
+- Crear los assets por capas sólo después de aprobar la composición estática.
+- Implementar y capturar en Unity únicamente después de aprobar los assets.

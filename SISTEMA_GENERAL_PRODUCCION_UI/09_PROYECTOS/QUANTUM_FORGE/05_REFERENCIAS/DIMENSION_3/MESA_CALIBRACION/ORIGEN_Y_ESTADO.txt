@@ -1,0 +1,24 @@
+REFERENCIA — MESA DE CALIBRACIÓN · DIMENSIÓN 3
+================================================
+
+Archivo canónico:
+- referencia_mesa_calibracion_final_1080x1920.png
+
+Origen:
+- copia exacta de ENTREGABLES/Dimension3_11_Pantallas_Finales_1080x1920_ORDENADAS_01-11/02_Mesa_Calibracion.png;
+- confirmada nuevamente por el usuario el 7 de septiembre de 2026 mediante una
+  captura temporal del chat;
+- SHA-256: 30CA853DF1E8DD6AC89197A21C40569CD839080CF4D862721642A48A4483B7C5.
+
+Estado:
+- autoridad visual vigente para implementar la composición estática de Mesa de
+  Calibración;
+- no es una captura de Unity ni un asset aprobado de forma aislada;
+- la aprobación final requiere una captura nueva de Unity a 1080x1920 y 720x1280,
+  comparación visual mínima del 95 % y aprobación explícita del usuario.
+
+Autoridad funcional:
+- D3CalibrationPanelUI, D3CalibrationSystem, Dimension3Catalog y la matriz de
+  correcciones D3;
+- la imagen manda en composición, jerarquía, márgenes, proporciones y acabado;
+- el código manda en reglas, disponibilidad, datos, estados y efectos.

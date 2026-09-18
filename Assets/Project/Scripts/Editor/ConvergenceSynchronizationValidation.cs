@@ -65,9 +65,6 @@ public static class ConvergenceSynchronizationValidation
             if (node != null)
                 repairedNodeIds.Add(node.id);
         }
-        if (!repairedNodeIds.Contains("z3_convergence_channel"))
-            repairedNodeIds.Add("z3_convergence_channel");
-
         machine.LoadProgressFromSave(new SaveData
         {
             machineIntroSeen = true,

@@ -14,6 +14,8 @@ public static partial class Dimension1GalaxyPremiumSetup
     private const string MoltenPlanetSourcePath = ArtPath + "/d1_body_planet_molten_v1.png";
     private const string MoltenPlanetPath = ArtPath + "/d1_body_planet_molten_alpha_v2.png";
     private const string MoltenMaterialPath = "Assets/Project/Materials/UI/D1MoltenPlanetChromaKey.mat";
+    private const string GalacticCenterBlackKeyMaterialPath =
+        "Assets/Project/UI/Dimension1/Generated/NavigationPremium/d1_nav_premium_black_key.mat";
     private const string RajdhaniFontPath = "Assets/Project/UI/Vertical/Fonts/Rajdhani-Medium SDF.asset";
 
     private sealed class ReferenceDetails
@@ -36,7 +38,11 @@ public static partial class Dimension1GalaxyPremiumSetup
     {
         ConfigureFinalArt();
         GenerateMoltenTransparentAsset();
+        AssetDatabase.ImportAsset(DebrisRingArtPath,
+            ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
         ConfigureSingleSprite(MoltenPlanetPath, Vector4.zero, 2048, false);
+        ConfigureSingleSprite(GalacticCenterArtPath, Vector4.zero, 2048, false);
+        ConfigureSingleSprite(DebrisRingArtPath, Vector4.zero, 2048, false);
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
 
         Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
@@ -101,9 +107,16 @@ public static partial class Dimension1GalaxyPremiumSetup
         RectTransform map = CreateRect("FullBleedGalaxyMap", root,
             new Vector2(0f, -246f), new Vector2(1080f, 1260f));
         SetTopLeft(map, new Vector2(0f, -246f), new Vector2(1080f, 1260f));
+        map.gameObject.AddComponent<RectMask2D>();
         Image mapBase = CreateImage("MapBase", map, null, Hex("01070C"));
         Stretch(mapBase.rectTransform);
         mapBase.raycastTarget = false;
+
+        Image mapStars = CreateImage("MapStarfield", map, starfieldSprite,
+            Hex("9ADFF4", 76));
+        Stretch(mapStars.rectTransform);
+        mapStars.preserveAspect = false;
+        mapStars.raycastTarget = false;
 
         Image animatedGalaxy = CreateImage("GalaxyAnimated", map,
             LoadSprite(GalaxyArtPath), Color.clear);
@@ -113,44 +126,73 @@ public static partial class Dimension1GalaxyPremiumSetup
 
         CreateReferenceMapTitle(map, font);
 
-        var routeCores = new List<Image>();
-        Image[] routeTopLeft = CreateReferenceRoute(map, new Vector2(432f, 610f), new Vector2(367f, 550f), routeCores);
-        Image[] routeTopRight = CreateReferenceRoute(map, new Vector2(648f, 610f), new Vector2(713f, 550f), routeCores);
-        Image[] routeBottomLeft = CreateReferenceRoute(map, new Vector2(432f, 860f), new Vector2(367f, 920f), routeCores);
-        Image[] routeBottomRight = CreateReferenceRoute(map, new Vector2(648f, 860f), new Vector2(713f, 920f), routeCores);
+        // Sistema orbital aprobado: siete cuerpos reales, siete trayectorias fijas
+        // y un centro separado. Las trayectorias exteriores se recortan por el mapa.
+        Vector2 orbitalCenter = new Vector2(540f, 650f);
+        Vector2[] orbitSizes =
+        {
+            new Vector2(430f, 250f), new Vector2(590f, 330f),
+            new Vector2(760f, 420f), new Vector2(920f, 510f),
+            new Vector2(1100f, 610f), new Vector2(1280f, 720f),
+            new Vector2(1480f, 830f)
+        };
+        Graphic[] orbitPaths = new Graphic[7];
+        for (int i = 0; i < orbitPaths.Length; i++)
+            orbitPaths[i] = CreateSystemOrbitPath(map, i + 1, orbitalCenter,
+                orbitSizes[i], -8f, i >= 5);
 
         var ambientRotators = new List<RectTransform>();
         var pulsingBodies = new List<RectTransform>();
-        var nodes = new Dimension1GalaxyVisualUI.SectorNodeView[5];
-        nodes[0] = CreateReferenceSectorNode("Sector01", map, frame, orbit, glow, lockSprite,
-            nebula, bodies, font, Dimension1System.Sector01OuterRim,
-            new Vector2(240f, 355f), new Vector2(420f, 380f), routeTopLeft,
-            ambientRotators, pulsingBodies);
-        nodes[1] = CreateReferenceSectorNode("Sector02", map, frame, orbit, glow, lockSprite,
-            nebula, bodies, font, Dimension1System.Sector02DebrisRing,
-            new Vector2(840f, 355f), new Vector2(420f, 380f), routeTopRight,
-            ambientRotators, pulsingBodies);
-        nodes[2] = CreateReferenceSectorNode("Sector03", map, frame, orbit, glow, lockSprite,
-            nebula, bodies, font, Dimension1System.Sector03AncientOrbits,
-            new Vector2(235f, 1045f), new Vector2(420f, 380f), routeBottomLeft,
-            ambientRotators, pulsingBodies);
-        nodes[3] = CreateReferenceSectorNode("Sector04", map, frame, orbit, glow, lockSprite,
-            nebula, bodies, font, Dimension1System.Sector04SilentFrontier,
-            new Vector2(845f, 1045f), new Vector2(420f, 380f), routeBottomRight,
-            ambientRotators, pulsingBodies);
-        nodes[4] = CreateReferenceSectorNode("GalacticCenter", map, frame, orbit, glow, lockSprite,
-            nebula, bodies, font, Dimension1System.Sector05GalacticCenter,
-            new Vector2(540f, 735f), new Vector2(400f, 365f), Array.Empty<Image>(),
-            ambientRotators, pulsingBodies);
-        BringRouteForward(routeTopLeft);
-        BringRouteForward(routeTopRight);
-        BringRouteForward(routeBottomLeft);
-        BringRouteForward(routeBottomRight);
-        nodes[4].root.SetAsLastSibling();
-        // The lower pair needs to sit above the central rim; otherwise the overlapping
-        // hexagons hide the short luminous connectors completely.
-        BringRouteForward(routeBottomLeft);
-        BringRouteForward(routeBottomRight);
+        Dimension1GalaxyVisualUI.SectorNodeView centerNode = CreateSystemCenterNode(
+            map, bodies["black_hole"], orbit, glow, lockSprite, font,
+            orbitalCenter, ambientRotators, pulsingBodies);
+
+        var nodes = new Dimension1GalaxyVisualUI.SectorNodeView[8];
+        nodes[0] = CreateSystemBodyNode("Sector01", "PlanetBlue", map,
+            bodies["planet_blue"], lockSprite, font, Dimension1System.Sector01OuterRim,
+            Dimension1System.Planet01, AlignNodeCenterToOrbit(orbitalCenter, orbitSizes[0],
+                -8f, new Vector2(735f, 585f)), 126f, Color.white,
+            orbitPaths[0], ambientRotators);
+        nodes[1] = CreateSystemBodyNode("Sector02", "DebrisRing", map,
+            bodies["debris_ring"], lockSprite, font, Dimension1System.Sector02DebrisRing,
+            Dimension1System.Planet03, AlignNodeCenterToOrbit(orbitalCenter, orbitSizes[2],
+                -8f, new Vector2(850f, 705f)), 164f, Color.white,
+            orbitPaths[2], ambientRotators);
+        nodes[2] = CreateSystemBodyNode("Sector03", "PlanetAncient", map,
+            bodies["planet_ancient"], lockSprite, font, Dimension1System.Sector03AncientOrbits,
+            Dimension1System.Planet04, AlignNodeCenterToOrbit(orbitalCenter, orbitSizes[3],
+                -8f, new Vector2(225f, 475f)), 126f, Color.white,
+            orbitPaths[3], ambientRotators);
+        nodes[3] = CreateSystemBodyNode("Sector04", "SilentPlanetA", map,
+            bodies["planet_silent"], lockSprite, font, Dimension1System.Sector04SilentFrontier,
+            Dimension1System.Planet06, AlignNodeCenterToOrbit(orbitalCenter, orbitSizes[5],
+                -8f, new Vector2(850f, 1005f)), 114f, Hex("9CA7AE", 235),
+            orbitPaths[5], ambientRotators);
+        nodes[4] = centerNode;
+        nodes[5] = CreateSystemBodyNode("Planet02Node", "PlanetMolten", map,
+            bodies["planet_molten"], lockSprite, font, Dimension1System.Sector01OuterRim,
+            Dimension1System.Planet02, AlignNodeCenterToOrbit(orbitalCenter, orbitSizes[1],
+                -8f, new Vector2(360f, 790f)), 122f, Color.white,
+            orbitPaths[1], ambientRotators);
+        nodes[6] = CreateSystemBodyNode("Planet05Node", "PlanetBlue", map,
+            bodies["planet_blue"], lockSprite, font, Dimension1System.Sector03AncientOrbits,
+            Dimension1System.Planet05, AlignNodeCenterToOrbit(orbitalCenter, orbitSizes[4],
+                -8f, new Vector2(790f, 325f)), 118f, Hex("CDEEFF"),
+            orbitPaths[4], ambientRotators);
+        nodes[7] = CreateSystemBodyNode("Planet07Node", "SilentPlanetB", map,
+            bodies["planet_silent"], lockSprite, font, Dimension1System.Sector04SilentFrontier,
+            Dimension1System.Planet07, AlignNodeCenterToOrbit(orbitalCenter, orbitSizes[6],
+                -8f, new Vector2(150f, 1015f)), 108f, Hex("747F88", 225),
+            orbitPaths[6], ambientRotators);
+
+        AddPersistent(nodes[0].root.GetComponent<Button>().onClick, visual.SelectElysia);
+        AddPersistent(nodes[5].root.GetComponent<Button>().onClick, visual.SelectVulkar);
+        AddPersistent(nodes[1].root.GetComponent<Button>().onClick, visual.SelectCoronaDeTantalo);
+        AddPersistent(nodes[2].root.GetComponent<Button>().onClick, visual.SelectMnemos);
+        AddPersistent(nodes[6].root.GetComponent<Button>().onClick, visual.SelectOrpheon);
+        AddPersistent(nodes[3].root.GetComponent<Button>().onClick, visual.SelectNyxara);
+        AddPersistent(nodes[7].root.GetComponent<Button>().onClick, visual.SelectErebon);
+        AddPersistent(nodes[4].root.GetComponent<Button>().onClick, visual.SelectGalacticCenter);
 
         ReferenceDetails details = CreateReferenceSelectionPanel(root, frame, font, bodies, panel);
 
@@ -164,7 +206,7 @@ public static partial class Dimension1GalaxyPremiumSetup
                 -Dimension1SharedLayoutTokens.NavigationY),
             new Vector2(Dimension1SharedLayoutTokens.NavigationWidth,
                 Dimension1SharedLayoutTokens.NavigationHeight));
-        CreateReferenceBottomNavigation(navigation, font, panel);
+        CreateReferenceBottomNavigation(navigation, font, panel, visual);
         Dimension1SharedShellApply.ApplyToRoot(root);
 
         TMP_Text titleProxy = CreateText("GalaxyTitleProxy", root, font, "", 1f,
@@ -185,6 +227,7 @@ public static partial class Dimension1GalaxyPremiumSetup
 
         SerializedObject serializedVisual = new SerializedObject(visual);
         Assign(serializedVisual, "panel", panel);
+        Assign(serializedVisual, "commandCenter", FindSceneComponent<Dimension1CommandCenterUI>(scene));
         Assign(serializedVisual, "currentSectorText", currentSector);
         Assign(serializedVisual, "unlockedSectorText", unlockedSectors);
         Assign(serializedVisual, "selectedTitleText", details.title);
@@ -198,10 +241,10 @@ public static partial class Dimension1GalaxyPremiumSetup
         Assign(serializedVisual, "neutralInstructionText", details.neutralInstruction);
         SetObjectArray(serializedVisual, "selectedDetailRoots", details.detailRoots);
         SetObjectArray(serializedVisual, "hideWhileOpen", FindNavigationRoots(scene));
-        SetObjectArray(serializedVisual, "routeLines", routeCores.ToArray());
+        SetObjectArray(serializedVisual, "routeLines", Array.Empty<Image>());
         SetObjectArray(serializedVisual, "rotatingBodies", Array.Empty<RectTransform>());
         SetObjectArray(serializedVisual, "driftingAsteroids", Array.Empty<RectTransform>());
-        SetObjectArray(serializedVisual, "pulsingRouteLines", routeCores.ToArray());
+        SetObjectArray(serializedVisual, "pulsingRouteLines", Array.Empty<Image>());
         SetObjectArray(serializedVisual, "ambientRotatingBodies", ambientRotators.ToArray());
         SetObjectArray(serializedVisual, "pulsingBodies", pulsingBodies.ToArray());
         SetMetalChipArray(serializedVisual, chips);
@@ -214,7 +257,7 @@ public static partial class Dimension1GalaxyPremiumSetup
             throw new InvalidOperationException("No se pudo guardar Main.unity.");
 
         Validate(scene);
-        Debug.Log("[D1 Carta Galactica V11] CONFIGURATION_PASS | referencia hexagonal | datos reales | animaciones por capas");
+        Debug.Log("[D1 Carta Galactica V12] CONFIGURATION_PASS | 7 cuerpos | 7 órbitas | nombres canónicos | centro integrado");
     }
 
     private static Button CreateReferenceHeader(
@@ -349,6 +392,204 @@ public static partial class Dimension1GalaxyPremiumSetup
         }, 2f, Cyan, 1080f, 1260f);
     }
 
+    private static Graphic CreateSystemOrbitPath(
+        Transform parent, int index, Vector2 centerTop, Vector2 ellipseSize,
+        float tiltDegrees, bool locked)
+    {
+        const int segments = 96;
+        var points = new List<Vector2>(segments);
+        float radians = tiltDegrees * Mathf.Deg2Rad;
+        float cos = Mathf.Cos(radians);
+        float sin = Mathf.Sin(radians);
+        Vector2 localCenter = new Vector2(centerTop.x - 540f, 630f - centerTop.y);
+        for (int i = 0; i < segments; i++)
+        {
+            float angle = Mathf.PI * 2f * i / segments;
+            float x = Mathf.Cos(angle) * ellipseSize.x * 0.5f;
+            float y = Mathf.Sin(angle) * ellipseSize.y * 0.5f;
+            points.Add(localCenter + new Vector2(x * cos - y * sin, x * sin + y * cos));
+        }
+
+        Color color = locked ? Hex("53616B", 62) : Hex("22BFE9", 104);
+        Dimension1CommandCenterLineGraphic line = CreateLocalLine(
+            "OrbitPath0" + index, parent, new Vector2(1080f, 1260f),
+            points, index == 3 ? 2.7f : 2.15f, color, true);
+        // Detrás del título y de los cuerpos, pero por encima del fondo opaco.
+        line.transform.SetSiblingIndex(Mathf.Min(2, parent.childCount - 1));
+        return line;
+    }
+
+    private static Vector2 AlignNodeCenterToOrbit(
+        Vector2 centerTop, Vector2 ellipseSize, float tiltDegrees, Vector2 nodeCenterHintTop)
+    {
+        // El área táctil reserva 72 px para los dos rótulos inferiores. Por ello el
+        // centro visible del cuerpo queda 36 px por encima del centro de la raíz.
+        const float bodyCenterOffset = 36f;
+        Vector2 bodyHintTop = nodeCenterHintTop - new Vector2(0f, bodyCenterOffset);
+        Vector2 relative = new Vector2(bodyHintTop.x - centerTop.x,
+            centerTop.y - bodyHintTop.y);
+
+        float radians = tiltDegrees * Mathf.Deg2Rad;
+        float cos = Mathf.Cos(radians);
+        float sin = Mathf.Sin(radians);
+        Vector2 unrotated = new Vector2(
+            relative.x * cos + relative.y * sin,
+            -relative.x * sin + relative.y * cos);
+        Vector2 semi = ellipseSize * 0.5f;
+        float angle = Mathf.Atan2(unrotated.y / semi.y, unrotated.x / semi.x);
+        Vector2 point = new Vector2(semi.x * Mathf.Cos(angle), semi.y * Mathf.Sin(angle));
+        Vector2 rotated = new Vector2(
+            point.x * cos - point.y * sin,
+            point.x * sin + point.y * cos);
+        Vector2 bodyCenterTop = new Vector2(centerTop.x + rotated.x,
+            centerTop.y - rotated.y);
+        return bodyCenterTop + new Vector2(0f, bodyCenterOffset);
+    }
+
+    private static Dimension1GalaxyVisualUI.SectorNodeView CreateSystemBodyNode(
+        string name, string bodyName, Transform parent, Sprite sprite, Sprite lockSprite,
+        TMP_FontAsset font, string sectorId, string planetId, Vector2 centerTop,
+        float bodySize, Color bodyColor, Graphic orbitPath,
+        List<RectTransform> ambientRotators)
+    {
+        float width = planetId == Dimension1System.Planet03 ? 300f : 230f;
+        float height = bodySize + 72f;
+        RectTransform root = CreateRect(name, parent, Vector2.zero, new Vector2(width, height));
+        CenterAt(root, new Vector2(centerTop.x, -centerTop.y));
+        root.sizeDelta = new Vector2(width, height);
+        Image hit = root.gameObject.AddComponent<Image>();
+        hit.color = Color.clear;
+        hit.canvasRenderer.cullTransparentMesh = false;
+        Button button = root.gameObject.AddComponent<Button>();
+        button.targetGraphic = hit;
+        button.transition = Selectable.Transition.None;
+
+        Image halo = CreateImage("BodyHalo", root, LoadSprite(ArtPath + "/d1_glow_v3.png"),
+            Hex("20CFFF", 46));
+        SetCenteredTopRect(halo.rectTransform, (width - bodySize * 1.38f) * 0.5f,
+            -bodySize * 0.18f, bodySize * 1.38f, bodySize * 1.38f);
+        halo.raycastTarget = false;
+
+        Image body = CreateImage(bodyName, root, sprite, bodyColor);
+        SetCenteredTopRect(body.rectTransform, (width - bodySize) * 0.5f, 0f,
+            bodySize, bodySize);
+        body.preserveAspect = true;
+        body.raycastTarget = false;
+        ambientRotators.Add(body.rectTransform);
+
+        TMP_Text title = CreateText("Title", root, font,
+            Dimension1System.GetDimension1PlanetVisualName(planetId).ToUpperInvariant(),
+            planetId == Dimension1System.Planet03 ? 20f : 22f,
+            FontStyles.Bold, Primary);
+        SetTopRect(title.rectTransform, 4f, bodySize - 3f, width - 8f, 34f);
+        title.alignment = TextAlignmentOptions.Center;
+        title.textWrappingMode = TextWrappingModes.NoWrap;
+
+        TMP_Text state = CreateText("State", root, font, "SECTOR", 17f,
+            FontStyles.Bold, Cyan);
+        SetTopRect(state.rectTransform, 4f, bodySize + 28f, width - 8f, 31f);
+        state.alignment = TextAlignmentOptions.Center;
+        state.textWrappingMode = TextWrappingModes.NoWrap;
+
+        GameObject lockGroup = new GameObject("LockState", typeof(RectTransform));
+        RectTransform lockRect = lockGroup.GetComponent<RectTransform>();
+        lockRect.SetParent(root, false);
+        Stretch(lockRect);
+        CreateLockIcon(lockRect, lockSprite, new Vector2(width * 0.5f, bodySize * 0.5f),
+            Mathf.Clamp(bodySize * 0.34f, 38f, 54f));
+        lockGroup.transform.SetAsLastSibling();
+
+        return new Dimension1GalaxyVisualUI.SectorNodeView
+        {
+            sectorId = sectorId,
+            planetId = planetId,
+            root = root,
+            planet = body,
+            orbitPath = orbitPath,
+            orbitRing = null,
+            glow = null,
+            labelPlate = null,
+            labelBorder = null,
+            routes = Array.Empty<Image>(),
+            lockBadge = lockGroup,
+            currentBadge = null,
+            titleText = title,
+            stateText = state
+        };
+    }
+
+    private static Dimension1GalaxyVisualUI.SectorNodeView CreateSystemCenterNode(
+        Transform parent, Sprite blackHole, Sprite orbit, Sprite glow, Sprite lockSprite,
+        TMP_FontAsset font, Vector2 centerTop, List<RectTransform> ambientRotators,
+        List<RectTransform> pulsingBodies)
+    {
+        Vector2 size = new Vector2(450f, 440f);
+        RectTransform root = CreateRect("GalacticCenter", parent, Vector2.zero, size);
+        CenterAt(root, new Vector2(centerTop.x, -centerTop.y));
+        root.sizeDelta = size;
+        Image hit = root.gameObject.AddComponent<Image>();
+        hit.color = Color.clear;
+        hit.canvasRenderer.cullTransparentMesh = false;
+        Button button = root.gameObject.AddComponent<Button>();
+        button.targetGraphic = hit;
+        button.transition = Selectable.Transition.None;
+
+        // El disco oscuro central oculta las órbitas detrás del evento sin crear
+        // otra placa rectangular. El arte recortado conserva partículas y nave.
+        var occlusion = new List<Vector2>();
+        for (int i = 0; i < 64; i++)
+        {
+            float angle = Mathf.PI * 2f * i / 64f;
+            occlusion.Add(new Vector2(Mathf.Cos(angle) * 168f, Mathf.Sin(angle) * 118f));
+        }
+        CreateLocalPolygon("CenterOcclusion", root, size, occlusion, Hex("01070C", 248));
+
+        Image body = CreateImage("BlackHole", root, blackHole, Hex("A7A0A0", 220));
+        SetCenteredTopRect(body.rectTransform, 25f, 20f, 400f, 400f);
+        body.preserveAspect = true;
+        body.raycastTarget = false;
+        body.material = AssetDatabase.LoadAssetAtPath<Material>(GalacticCenterBlackKeyMaterialPath);
+        if (body.material == null)
+            throw new InvalidOperationException("Falta el material canónico de recorte negro para el Centro Galáctico.");
+
+        TMP_Text title = CreateText("Title", root, font, "CENTRO GALÁCTICO", 24f,
+            FontStyles.Bold, Amber);
+        SetTopRect(title.rectTransform, 45f, 16f, 360f, 38f);
+        title.alignment = TextAlignmentOptions.Center;
+        title.textWrappingMode = TextWrappingModes.NoWrap;
+
+        TMP_Text state = CreateText("State", root, font, "ACCESO BLOQUEADO", 18f,
+            FontStyles.Bold, Amber);
+        SetTopRect(state.rectTransform, 70f, 395f, 310f, 34f);
+        state.alignment = TextAlignmentOptions.Center;
+        state.textWrappingMode = TextWrappingModes.NoWrap;
+
+        GameObject lockGroup = new GameObject("LockState", typeof(RectTransform));
+        RectTransform lockRect = lockGroup.GetComponent<RectTransform>();
+        lockRect.SetParent(root, false);
+        Stretch(lockRect);
+        CreateLockIcon(lockRect, lockSprite, new Vector2(225f, 350f), 52f);
+        lockGroup.transform.SetAsLastSibling();
+
+        return new Dimension1GalaxyVisualUI.SectorNodeView
+        {
+            sectorId = Dimension1System.Sector05GalacticCenter,
+            planetId = "",
+            root = root,
+            planet = body,
+            orbitPath = null,
+            orbitRing = null,
+            glow = null,
+            labelPlate = null,
+            labelBorder = null,
+            routes = Array.Empty<Image>(),
+            lockBadge = lockGroup,
+            currentBadge = null,
+            titleText = title,
+            stateText = state
+        };
+    }
+
     private static Image[] CreateReferenceRoute(
         Transform parent, Vector2 from, Vector2 to, List<Image> cores)
     {
@@ -433,7 +674,7 @@ public static partial class Dimension1GalaxyPremiumSetup
             isCenter ? 25f : 27f, FontStyles.Bold, Primary);
         SetTopRect(title.rectTransform, 35f, 18f, size.x - 70f, 42f);
         title.alignment = TextAlignmentOptions.Center;
-        title.enableWordWrapping = false;
+        title.textWrappingMode = TextWrappingModes.NoWrap;
 
         Image primaryPlanet;
         GameObject lockGroup = new GameObject("LockState", typeof(RectTransform));
@@ -476,7 +717,6 @@ public static partial class Dimension1GalaxyPremiumSetup
                 70f, 49f, 260f, Hex("FF9800", 150));
             primaryPlanet = CreateBodyImage("BlackHole", root, bodies["black_hole"],
                 78f, 54f, 244f, Color.white);
-            ambientRotators.Add(primaryPlanet.rectTransform);
             pulsingBodies.Add(centerGlow.rectTransform);
             CreateLockIcon(lockRect, lockSprite, new Vector2(size.x * 0.5f, 238f), 58f);
         }
@@ -622,27 +862,37 @@ public static partial class Dimension1GalaxyPremiumSetup
         RectTransform selectedData = CreateRect("SelectedData", selection, Vector2.zero,
             new Vector2(1036f, 182f));
         Stretch(selectedData);
-        Image selectedHit = CreateImage("Hit", selectedData, null, Color.clear);
-        Stretch(selectedHit.rectTransform);
-        details.enterButton = selectedData.gameObject.AddComponent<Button>();
-        details.enterButton.targetGraphic = selectedHit;
-        details.enterButton.transition = Selectable.Transition.None;
 
-        details.explorations = CreateText("ExplorationCount", selectedData, font, "0",
-            34f, FontStyles.Bold, Cyan);
-        SetTopRect(details.explorations.rectTransform, 155f, 92f, 110f, 50f);
-        details.explorations.alignment = TextAlignmentOptions.Center;
+        RectTransform enterRoot = CreateReferencePanel("EnterSectorButton", selectedData,
+            new Vector2(54f, -91f), new Vector2(235f, 62f), Hex("211804", 252), Amber);
+        Image enterHit = enterRoot.Find("Fill").GetComponent<Image>();
+        enterHit.color = Hex("F4A300", 16);
+        enterHit.canvasRenderer.cullTransparentMesh = false;
+        details.enterButton = enterRoot.gameObject.AddComponent<Button>();
+        details.enterButton.targetGraphic = enterHit;
+        details.enterButton.transition = Selectable.Transition.ColorTint;
+        TMP_Text enterLabel = CreateText("Label", enterRoot, font, "ENTRAR AL SECTOR",
+            19f, FontStyles.Bold, Amber);
+        Stretch(enterLabel.rectTransform, new Vector2(12f, 5f), new Vector2(-12f, -5f));
+        enterLabel.alignment = TextAlignmentOptions.Center;
+        enterLabel.textWrappingMode = TextWrappingModes.NoWrap;
+
+        // Proxy serializado para conservar compatibilidad con el controlador visual.
+        // El dato ya se muestra en cada nodo; aquí la acción principal debe ser inequívoca.
+        details.explorations = CreateText("ExplorationCount", selectedData, font, "",
+            1f, FontStyles.Normal, Color.clear);
+        SetTopRect(details.explorations.rectTransform, 1f, 1f, 1f, 1f);
         details.status = CreateText("SelectedStatus", selectedData, font, "SECTOR DISPONIBLE",
             22f, FontStyles.Bold, Amber);
-        SetTopRect(details.status.rectTransform, 275f, 94f, 310f, 45f);
+        SetTopRect(details.status.rectTransform, 300f, 94f, 270f, 45f);
         details.status.alignment = TextAlignmentOptions.Center;
         details.destinations = CreateText("Destinations", selectedData, font, "DESTINOS",
             18f, FontStyles.Normal, Secondary);
-        SetTopRect(details.destinations.rectTransform, 605f, 80f, 230f, 72f);
+        SetTopRect(details.destinations.rectTransform, 575f, 80f, 235f, 72f);
         details.destinations.alignment = TextAlignmentOptions.Center;
         details.requirements = CreateText("Requirements", selectedData, font, "REQUISITOS",
             17f, FontStyles.Normal, Secondary);
-        SetTopRect(details.requirements.rectTransform, 820f, 75f, 190f, 82f);
+        SetTopRect(details.requirements.rectTransform, 810f, 75f, 200f, 82f);
         details.requirements.alignment = TextAlignmentOptions.Center;
         details.planetPreview = CreateImage("PlanetPreviewProxy", selectedData,
             bodies["planet_blue"], Color.clear);
@@ -748,7 +998,8 @@ public static partial class Dimension1GalaxyPremiumSetup
     }
 
     private static void CreateReferenceBottomNavigation(
-        RectTransform navigation, TMP_FontAsset font, Dimension1PanelUI panel)
+        RectTransform navigation, TMP_FontAsset font, Dimension1PanelUI panel,
+        Dimension1GalaxyVisualUI visual)
     {
         const float width = Dimension1SharedLayoutTokens.NavigationCardWidth;
         Sprite[] icons =
@@ -783,7 +1034,7 @@ public static partial class Dimension1GalaxyPremiumSetup
             label.alignment = TextAlignmentOptions.Center;
         }
         buttons[0].interactable = false;
-        AddPersistent(buttons[1].onClick, panel.OnClickCloseGalaxyPanel);
+        AddPersistent(buttons[1].onClick, visual.OpenExplore);
         AddPersistent(buttons[2].onClick, panel.OnClickCloseGalaxyPanel);
         AddPersistent(buttons[2].onClick, panel.OnClickOpenHangarPanel);
         AddPersistent(buttons[3].onClick, panel.OnClickCloseGalaxyPanel);

@@ -179,10 +179,13 @@ public static class Dimension1HangarReferenceSetup
         Dot(decor, new Vector2(205f, 2f), 7f, CyanMuted);
 
         Button command = ButtonPanel("CommandCenter", root, frame, fill,
-            new Vector2(28f, 58f), new Vector2(168f, 76f), Fill, CyanMuted, out _, out _);
+            new Vector2(Dimension1SharedLayoutTokens.CommandCenterX,
+                Dimension1SharedLayoutTokens.CommandCenterY),
+            new Vector2(Dimension1SharedLayoutTokens.CommandCenterWidth,
+                Dimension1SharedLayoutTokens.CommandCenterHeight), Fill, CyanMuted, out _, out _);
         DrawHomeIcon(command.transform, new Vector2(-58f, 0f), 23f, Secondary);
-        TMP_Text home = Text("Label", command.transform, font, "CENTRO\nDE MANDO", 15f, FontStyles.Bold, Secondary);
-        Top(home.rectTransform, 50f, 17f, 104f, 44f);
+        TMP_Text home = Text("Label", command.transform, font, "CENTRO\nDE MANDO", 16f, FontStyles.Bold, Secondary);
+        Top(home.rectTransform, 52f, 27f, 112f, 48f);
         home.alignment = TextAlignmentOptions.Center;
         AddPersistent(command.onClick, visual.OpenCommandCenter);
 
@@ -327,9 +330,10 @@ public static class Dimension1HangarReferenceSetup
             Top(label.rectTransform, 108f, 17f, 250f, 34f);
             TMP_Text level = Text("PartLevel", stat.transform, font, levels[i], 18f, FontStyles.Bold, Secondary);
             Top(level.rectTransform, 108f, 49f, 210f, 27f);
-            TMP_Text value = Text("PartValue", stat.transform, font, values[i], 23f, FontStyles.Normal, Secondary);
-            Top(value.rectTransform, 388f, 27f, 144f, 38f);
+            TMP_Text value = Text("PartValue", stat.transform, font, values[i], 18f, FontStyles.Normal, Secondary);
+            Top(value.rectTransform, 330f, 25f, 202f, 42f);
             value.alignment = TextAlignmentOptions.Right;
+            value.textWrappingMode = TextWrappingModes.NoWrap;
             Image barBg = Image("BarBackground", stat.transform, null, Hex("253541", 210));
             Top(barBg.rectTransform, 108f, 82f, 424f, 15f);
             barBg.raycastTarget = false;
@@ -368,6 +372,9 @@ public static class Dimension1HangarReferenceSetup
             Top(name.rectTransform, 78f, 20f, 142f, 25f);
             TMP_Text value = Text("CostValue", cost, font, i == 0 ? "45K" : "12", 28f, FontStyles.Normal, Primary);
             Top(value.rectTransform, 78f, 43f, 142f, 40f);
+            value.enableAutoSizing = true;
+            value.fontSizeMin = 16f;
+            value.fontSizeMax = 28f;
             refs.costNames.Add(name);
             refs.costValues.Add(value);
         }
@@ -394,9 +401,11 @@ public static class Dimension1HangarReferenceSetup
         DrawMissionIcon(icon, Vector2.zero, 38f, CyanMuted);
         TMP_Text eyebrow = Text("BonusTitle", bonus, font, "BONIFICACIÓN DE MISIÓN", 23f, FontStyles.Bold, Hex("48BDE8"));
         Top(eyebrow.rectTransform, 160f, 28f, 440f, 34f);
-        refs.missionBonus = Text("BonusValue", bonus, font, "+12% VELOCIDAD DE EXPLORACIÓN", 22f, FontStyles.Normal, Secondary);
-        Top(refs.missionBonus.rectTransform, 160f, 66f, 700f, 36f);
-        refs.missionBonus.characterSpacing = 2f;
+        refs.missionBonus = Text("BonusValue", bonus, font,
+            "TIEMPO: ×0.82 → ×0.76 EN RUTAS COMPATIBLES", 18f, FontStyles.Normal, Secondary);
+        Top(refs.missionBonus.rectTransform, 160f, 61f, 750f, 55f);
+        refs.missionBonus.characterSpacing = 1f;
+        refs.missionBonus.textWrappingMode = TextWrappingModes.Normal;
     }
 
     private static void BuildNavigation(Transform root, Sprite frame, Sprite fill, TMP_FontAsset font,
@@ -1032,8 +1041,8 @@ public static class Dimension1HangarReferenceSetup
         text.fontSize = size;
         text.fontStyle = style;
         text.color = color;
-        text.enableWordWrapping = false;
-        text.overflowMode = TextOverflowModes.Ellipsis;
+        text.textWrappingMode = TextWrappingModes.NoWrap;
+        text.overflowMode = TextOverflowModes.Truncate;
         text.raycastTarget = false;
         return text;
     }

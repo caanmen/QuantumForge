@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using TMPro;
 
@@ -18,12 +19,17 @@ public class HUD : MonoBehaviour
 
     private void Update()
     {
-        var gs = GameState.I;
-        if (gs == null) return;
-
         _uiTimer += Time.unscaledDeltaTime;
         if (_uiTimer < uiRefreshInterval) return;
         _uiTimer = 0f;
+
+        RefreshNow();
+    }
+
+    public void RefreshNow()
+    {
+        var gs = GameState.I;
+        if (gs == null) return;
 
         // LE y LE/s
         if (leText != null)
@@ -31,7 +37,7 @@ public class HUD : MonoBehaviour
             double leps = gs.GetTotalLEps();
             string leLabel = Localize("hud.le", "LE");
 
-            leText.SetText($"{leLabel} {(float)gs.LE:0}\n+{(float)leps:0.00}/s");
+            leText.SetText($"{leLabel} {Compact(gs.LE)}\n+{CompactRate(leps)}/s");
         }
 
         // Trazas
@@ -40,14 +46,14 @@ public class HUD : MonoBehaviour
             double tracesPs = gs.CalculateTracesPs();
             string tracesLabel = Localize("hud.traces", "TRAZAS");
             tracesText.SetText(
-                $"{tracesLabel} {(float)gs.Traces:0}\n+{(float)tracesPs:0.00}/s");
+                $"{tracesLabel} {Compact(gs.Traces)}\n+{CompactRate(tracesPs)}/s");
         }
 
         if (energyText != null)
         {
             string energyLabel = Localize("hud.triangle_energy", "ENERGÍA");
             energyText.SetText(
-                $"{energyLabel} {gs.triangleEnergy:0}\n+{gs.CalculateTriangleEnergyPerSecond():0.00}/s");
+                $"{energyLabel} {Compact(gs.triangleEnergy)}\n+{CompactRate(gs.CalculateTriangleEnergyPerSecond())}/s");
         }
 
         // VP
@@ -66,5 +72,24 @@ public class HUD : MonoBehaviour
             return fallback;
         string value = LocalizationManager.I.T(key);
         return string.IsNullOrEmpty(value) || value == key ? fallback : value;
+    }
+
+    private static string Compact(double value)
+    {
+        double absolute = Math.Abs(value);
+        if (absolute >= 1_000_000_000_000.0)
+            return (value / 1_000_000_000_000.0).ToString("0.##") + "T";
+        if (absolute >= 1_000_000_000.0)
+            return (value / 1_000_000_000.0).ToString("0.##") + "B";
+        if (absolute >= 1_000_000.0)
+            return (value / 1_000_000.0).ToString("0.##") + "M";
+        if (absolute >= 1_000.0)
+            return (value / 1_000.0).ToString("0.##") + "K";
+        return value.ToString("0");
+    }
+
+    private static string CompactRate(double value)
+    {
+        return Math.Abs(value) >= 1000.0 ? Compact(value) : value.ToString("0.00");
     }
 }

@@ -5,7 +5,7 @@ using UnityEngine.UI;
 public sealed class GalaxyParticleFieldUI : MaskableGraphic
 {
     private const int MaxParticleCount = 36;
-    private const float UpdateStep = 1f / 30f;
+    private const float UpdateStep = 1f / 20f;
 
     [SerializeField] private Vector2 orbitCenter = new Vector2(0f, 5f);
     [SerializeField] private float axisRotation = 0f;

@@ -1,0 +1,24 @@
+QUANTUM FORGE — INVESTIGACIÓN DEL ENTE — PLACA BASE LIMPIA V1
+Fecha: 2026-09-03
+
+Referencia visual canónica:
+SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/19_Investigacion_Del_Ente_Corregida_V5.png
+
+Asset generado:
+D2_EntityResearch_CleanBasePlate_v1.png
+Resolución recibida de ImageGen: 941x1671. Unity la presenta ajustada al lienzo canónico 941x1672 / 1080x1920.
+
+Uso:
+- Capa visual estática exclusiva de la subvista Investigación del Ente.
+- Conserva marcos, materiales, ilustración central, iconos fijos y navegación.
+- Todos los textos, cifras, progreso, selección de hito, conocimiento llenado y estado de botones pertenecen a Unity.
+- No usar como fuente de datos ni como referencia de reglas.
+
+Prompt final de generación:
+Use case: precise-object-edit.
+Asset type: production clean base plate for the Unity screen "Investigación del Ente".
+Input images: Image 1 is the exact V5 edit target and sole authority for composition.
+Primary request: Create a clean 941x1672 base plate from Image 1. Preserve exactly the full portrait canvas, outer frame, back-button plate and arrow, all panel borders and dividers, the header's purple knowledge icon, the large circular rune structure and its central purple entity sigil, the empty lower percentage plaque, the milestone tablet illustration, the four milestone node frames and connector line with diamonds, all four milestone card frames, both Recursos and Datos panel frames, all six fixed resource/data pictorial icons and their row plates, the six empty diamond markers in the Conocimiento del Ente rail, both empty action-button plates, both fixed result/objective row icons and dividers, and the complete bottom navigation including all four pictorial icons and the purple selected Ente tab. Preserve stone/metal textures, scratches, lighting, spacing, and geometry.
+Remove ONLY every letter, word, numeral, percentage, punctuation mark used as interface text, and typographic glyph everywhere on the screen. Remove the teal 24% progress arc from the large circular rune while preserving its empty structural ring. Remove all state-dependent purple highlight/glow from the large next-milestone circle and the first 30% tracker node, converting every milestone ring to the same neutral bronze structural treatment. Remove the purple active fill/glow from the left research action button, leaving both action-button plates empty and neutral. Keep genuine decorative runes and markings that are part of the central entity sigil, circular artifact, tablet illustration, icons, and surface ornamentation.
+Reconstruct removed areas seamlessly from the immediately surrounding local material.
+Constraints: Keep the original exact 941x1672 full portrait composition and pixel-aligned layout. Do not crop, resize, redesign, move, recolor, simplify, or add any object. Do not alter the central sigil, tablet, fixed pictorial icons, or bottom navigation art. No interface text, numbers, alphabetic glyphs, watermark, green screen, or checkerboard. Output one complete clean production plate.

@@ -1,0 +1,31 @@
+QUANTUM FORGE — CONTINUIDAD DEL MONOLITO 2D V11
+Fecha: 2026-08-27
+
+ESTADO CANDIDATO V29
+
+- La vista general mantiene Monolito 2D a escala 0,80, posición `(-22, 6)`, fondo V08 y
+  cuatro luces canónicas.
+- `OverviewSupportForeground` renderiza el travesaño inferior exacto de V08 delante del
+  Monolito. Su base queda parcialmente oculta por el marco y deja de leerse colocada encima.
+- La capa frontal usa el shader `MachineMonolithSupportForeground.shader`, altura UV 0,235
+  y recorte del viewport.
+- Las cuatro caras cercanas mantienen alto 0,78 y apoyo 11 %, pero pasan a ancho 0,86.
+- El sector 2 conserva once nodos y adopta columnas escalonadas con coordenadas seguras.
+- Firmas: 64 px visuales, 104 px táctiles, alfa 0,16 dañada, 0,30 seleccionada y 1,00
+  reparada.
+- El fondo cercano V27, la transición continua V28, los conteos 7 + 11 + 7 + 0 y el sector
+  4 reservado permanecen vigentes.
+
+VALIDACIÓN
+
+- VALIDATION PASS: `Logs/machine_monolith_support_layout_v29_setup.log`.
+- CAPTURE PASS: `Logs/machine_monolith_support_layout_v29_capture.log`.
+- 32 capturas en 1080×1920 y 720×1280.
+- Se validaron soporte frontal, recorte, márgenes de sector 2, tamaño visual/táctil, brillo
+  dañado/reparado, transición 0/25/50/75/100, navegación, regreso y guardado restaurado.
+- Estado: `candidata`; requiere aprobación visual explícita antes de archivar o declarar 95 %.
+
+SIGUIENTE PASO
+
+- Mostrar al usuario la vista general, el sector 2 dañado y el sector 2 reparado V29.
+- Si se aprueba, archivar evidencia V29 y actualizar el estado a aprobado.

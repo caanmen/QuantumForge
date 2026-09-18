@@ -1,0 +1,37 @@
+QUANTUM FORGE — CANDIDATOS V43 — CARAS INDIVIDUALES
+Fecha: 2026-08-28
+Estado: diseño aprobado por el usuario e implementado en Unity; aprobación visual de las
+capturas reales pendiente.
+
+AUTORIDAD ÚNICA
+- La cara superior izquierda suministrada por el usuario es el único diseño maestro.
+- Se descarta por completo la variante baja/ancha del candidato V42.
+
+ARCHIVOS Y ORIENTACIÓN
+- cara_superior_derecha_v43.png
+  Columna interior izquierda, daño exterior derecho, silueta alta, 7 símbolos de muestra.
+- cara_inferior_izquierda_reservada_v43.png
+  Columna interior derecha, daño exterior izquierdo, silueta alta, superficie oscura opaca,
+  sin símbolos y con ???.
+- cara_inferior_derecha_v43.png
+  Columna interior izquierda, daño exterior derecho, silueta alta, 11 símbolos de muestra.
+
+INVARIANTES DEL PROMPT
+- Conservar la proporción alta y ancha, altura, ancho, contacto con el piso, columna acanalada,
+  base escalonada, piedra estriada continua, cámara, escala, laboratorio, luz y materiales de
+  la cara superior izquierda.
+- Cambiar únicamente orientación, patrón de daño exterior y contenido de símbolos.
+- No crear variantes bajas, triangulares o ensanchadas.
+- No crear huecos, tapas, paneles cerrados ni relieves sobre la zona útil.
+- Ningún símbolo o halo puede tocar el borde roto ni la columna.
+
+NOTA DE PRODUCCIÓN
+- Estas imágenes son conceptos visuales y no deben importarse directamente como láminas finales.
+- En Unity, los símbolos continúan siendo overlays dinámicos separados del bitmap.
+- Las hojas transparentes de producción están archivadas en PRODUCCION_V43 y contienen cuatro
+  estados por cara: daño fuerte, daño medio, daño leve y reparado.
+- S2: monolith_sector_2_exposed_surface_progression_v43.png
+- S3: monolith_sector_3_exposed_surface_progression_v43.png
+- S4: monolith_sector_4_exposed_surface_progression_v43.png
+- La cuarta cara sigue reservada: Unity muestra únicamente su estado inicial oscuro y superpone ???.
+- No mover capturas a 06_CAPTURAS_APROBADAS hasta recibir aprobación visual explícita del usuario.

@@ -1,0 +1,29 @@
+ORIGEN Y USO — PLACA LIMPIA ANALIZAR RESTOS
+
+Fecha: 2 de septiembre de 2026.
+Herramienta: ImageGen integrada de Codex.
+Tipo: edit / precise-object-edit.
+
+Referencia de autoridad:
+SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/
+DIMENSION_2/CORREGIDAS_V4_2026-08-21/17_Analizar_Restos_Corregido_V4.png
+
+Salida consumida por Unity:
+D2_AnalyzeRemains_CleanBasePlate_v2.png — 941×1672.
+
+Prompts finales:
+1. Crear una placa limpia conservando marco, piedra, separadores, ornamentos,
+   ilustraciones arqueológicas, retrato, recursos e iconos; retirar todo texto,
+   cifra, porcentaje, barra y etiqueta para reconstruirlos dinámicamente.
+2. Neutralizar únicamente el marco violeta horneado de la tarjeta Media y su
+   contador, manteniendo intacta la pestaña Analizar seleccionada.
+
+La salida original de la segunda edición fue 941×1671. Se añadió de forma
+determinista una fila inferior duplicada para restaurar la resolución contractual
+941×1672 sin escalar, recortar ni mover el contenido.
+
+Uso permitido:
+- placa raster de fondo para la subvista Analizar Restos;
+- textos, cifras, progreso, selección, estados y áreas táctiles pertenecen a Unity.
+
+No es una captura de Unity ni una referencia canónica independiente.

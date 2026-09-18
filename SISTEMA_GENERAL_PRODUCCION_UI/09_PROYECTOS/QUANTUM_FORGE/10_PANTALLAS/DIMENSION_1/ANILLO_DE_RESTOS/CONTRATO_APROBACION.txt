@@ -1,0 +1,16 @@
+CONTRATO DE APROBACIÓN: ANILLO DE RESTOS
+=======================================
+
+[x] Proyecto, datos y assets existentes auditados.
+[x] Familia visual reutilizada sin reconstrucción simplificada.
+[x] Composición estática creada en 1080 x 1920.
+[x] Comprobación 720 x 1280.
+[x] Entrada real desde Carta Galáctica.
+[x] Planeta único centrado y acción real conectada.
+[x] Cuatro destinos exactos validados por ID.
+[x] Inventario, regreso y navegación conectados.
+[x] Instalación y captura PASS sin excepciones relacionadas.
+[ ] Similitud mínima del 95 % aprobada por el usuario.
+[ ] Capturas promovidas a 06_CAPTURAS_APROBADAS.
+
+Resultado: CANDIDATA FUNCIONAL LISTA PARA REVISIÓN; NO APROBADA AÚN.

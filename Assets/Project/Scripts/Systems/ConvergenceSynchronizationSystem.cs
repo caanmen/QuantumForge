@@ -20,11 +20,6 @@ public static class ConvergenceSynchronizationSystem
             reason = "Alcanza 80 % de reparación de la Máquina.";
             return false;
         }
-        if (!machine.Prestige1Prepared)
-        {
-            reason = "Activa el Canal de Convergencia en la Máquina.";
-            return false;
-        }
         if (!DimensionCompletionService.AreAllDimensionsCompleted(gameState))
         {
             reason = "Las tres dimensiones deben completar su hito final.";

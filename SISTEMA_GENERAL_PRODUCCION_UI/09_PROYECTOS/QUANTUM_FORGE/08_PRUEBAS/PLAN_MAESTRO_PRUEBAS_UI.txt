@@ -1,0 +1,105 @@
+PLAN MAESTRO DE PRUEBAS UI
+
+ALCANCE
+Este plan es general y se instancia para cada pantalla. Los escenarios con prefijo de
+dimensión o nombre de pantalla son regresiones específicas y no definen la estética ni
+los datos de otras dimensiones.
+
+PRECHECK ANTES DE ABRIR UNITY BATCH
+[ ] La ruta absoluta del proyecto objetivo está identificada y registrada.
+[ ] El Editor normal que usa esa misma carpeta está cerrado y el proyecto objetivo no
+    está en Play Mode.
+[ ] Ninguna segunda instancia normal o batch utiliza la ruta objetivo; los Editores de
+    otros proyectos independientes pueden permanecer abiertos.
+[ ] No se confundió la lista de proyectos de Unity Hub con instancias realmente abiertas.
+[ ] La referencia permanente existe.
+[ ] La escena/prefab y el generador están identificados.
+[ ] Package Manager no está deshabilitado cuando puede requerirse resolución.
+[ ] Existe espacio para capturas y registros.
+
+PRUEBA ESTRUCTURAL
+[ ] Objetos esenciales presentes.
+[ ] Referencias serializadas no nulas.
+[ ] Un solo EventSystem y navegación esperada.
+[ ] Jerarquía y orden de capas válidos.
+[ ] Safe Area aplicada por un único sistema.
+[ ] Una sola herramienta canónica puede reconstruir cada raíz de producción.
+[ ] Escena, constructor, registro maestro y ficha describen la misma pantalla actual.
+
+PRUEBA VISUAL
+[ ] 1080×1920.
+[ ] 720×1280 cuando corresponda.
+[ ] Proporciones conservadas.
+[ ] Zonas seguras respetadas.
+[ ] Tipografía legible.
+[ ] Comparación con referencia y diferencias registradas.
+[ ] Comparación realizada contra la referencia de esta pantalla, no contra un ejemplo
+    histórico de otra dimensión.
+
+PRUEBA DE ESTADOS
+[ ] Neutral.
+[ ] Normal.
+[ ] Preseleccionado/seleccionado.
+[ ] Bloqueado/deshabilitado con causa.
+[ ] Vacío.
+[ ] Completado.
+[ ] Valores mínimos, máximos y textos largos.
+[ ] Cada selección dinámica sincroniza ID, nombre, sprite, material, estadísticas y acción.
+[ ] Cambio de ámbito con cero, uno y varios resultados pendientes.
+
+PRUEBA DE INTERACCIÓN
+[ ] Validación inmediata después del toque.
+[ ] Validación después del refresco periódico.
+[ ] Toques rápidos y repetidos.
+[ ] Apertura/cierre repetidos.
+[ ] Botón Atrás.
+[ ] Botones ocultos no reciben eventos.
+[ ] Entrada desde la pantalla anterior mediante GraphicRaycaster y Button físico.
+[ ] Segunda acción interna después de varios refrescos.
+[ ] Controles indispensables visibles y tocables a 720×1280.
+[ ] Ningún texto ajeno aparece en el mismo frame ni tras el refresco periódico.
+
+PRUEBA DE ANIMACIÓN
+[ ] La intención y las capas se documentaron antes de producir los assets finales.
+[ ] La implementación comenzó sólo después de aprobar la composición estática.
+[ ] Cada movimiento coincide con el contrato; no hay animaciones inventadas durante Unity.
+[ ] Pivotes centrados.
+[ ] Posiciones base sin deriva.
+[ ] Sólo se anima la capa prevista.
+[ ] Evidencia renderizada.
+[ ] Sin pérdida de legibilidad ni movimiento del layout.
+
+PRUEBA DE INTEGRACIÓN
+[ ] Datos y reglas reales.
+[ ] Guardado/carga cuando corresponda.
+[ ] Partida nueva y antigua cuando exista migración.
+[ ] Navegación hacia pantallas vecinas.
+[ ] Sin excepciones relacionadas.
+[ ] Ningún panel legacy bloquea cíclicamente el skin ni borra su selección.
+[ ] Las acciones que gastan recursos o cambian progreso persistente guardan inmediatamente
+    o demuestran la transacción/autoguardado autorizado.
+[ ] Colecciones simultáneas y finalizaciones en el mismo tick conservan y presentan todos
+    los resultados según el diseño.
+
+PRUEBA DE BUILD ANDROID CUANDO CORRESPONDA
+[ ] Paquete, versionName, versionCode, firma, ABI, Min SDK y Target SDK verificados.
+[ ] El versionCode supera la última APK distribuida del mismo paquete.
+[ ] La firma coincide antes de intentar una actualización; ninguna contraseña está dentro
+    del proyecto o de sus documentos.
+[ ] Tamaño y SHA-256 registrados.
+[ ] Tamaño comparado con la entrega anterior y delta explicado mediante Build Report y
+    grupos internos, especialmente sharedassets, Resources y bibliotecas nativas.
+[ ] Instalación nueva probada en un objetivo limpio independiente.
+[ ] Actualización probada sobre progreso real después de respaldar save.json, save.json.bak
+    y las copias históricas, sin desinstalar ni borrar datos.
+
+CIERRE
+[ ] Mensaje PASS específico.
+[ ] Capturas nuevas identificadas.
+[ ] Captura aprobada archivada.
+[ ] La captura es posterior a la última modificación visible o funcional relevante.
+[ ] Registro de pantalla actualizado.
+[ ] La matriz de cobertura coincide con raíces de escena, fichas, pruebas y capturas.
+[ ] Diferencias restantes documentadas.
+[ ] Similitud visual mínima del 95 % aprobada.
+[ ] Decisiones exclusivas y aprendizajes generalizables archivados por separado.

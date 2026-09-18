@@ -1,0 +1,31 @@
+Pantalla: Carta Galáctica — Dimensión 1
+Archivo: referencia_carta_galactica.png
+Tipo: REFERENCIA VISUAL
+Origen: imagen proporcionada por el usuario en chat
+Estado: referencia utilizada para la implementación actual
+Resolución original: 755×1315
+Notas: las correcciones posteriores aprobadas incluyen rutas simétricas, ausencia
+de marcos alrededor de expediciones, ausencia de órbitas añadidas y títulos estables.
+
+Archivo adicional: concepto_arte_centro_galactico_2026-08-21.png
+Tipo: CONCEPTO DE ARTE DEL NODO, NO DISEÑO DE PANTALLA
+Origen: propuesta 2 elegida por el usuario el 21 de agosto de 2026.
+Estado: determina únicamente el agujero negro naranja con nave. La composición V11 de
+Carta Galáctica se conserva sin cambios.
+
+ACTUALIZACIÓN V12 — 21 DE AGOSTO DE 2026
+
+Archivo: CONCEPTO_APROBADO_SISTEMA_ORBITAL_V12_2026-08-21.png
+Tipo: CONCEPTO DE COMPOSICIÓN APROBADO POR EL USUARIO
+Origen: propuesta visual iterada en chat y elegida antes de implementar.
+Estado: autoridad actual de composición para Carta Galáctica V12.
+Notas: vista superior ligeramente inclinada, siete cuerpos fijos, siete órbitas, Centro
+Galáctico integrado y órbitas exteriores recortadas por el viewport.
+
+Archivos: CAPTURA_CANDIDATA_V12_NEUTRAL_* y
+CAPTURA_CANDIDATA_V12_SELECCIONADA_* en 1080×1920 y 720×1280.
+Tipo: CAPTURAS REALES DE UNITY, CANDIDATAS
+Estado: validación técnica PASS; aprobación perceptual del usuario pendiente.
+
+La nota anterior que limitaba el concepto del Centro a un cambio de arte pertenece a
+V11 y fue reemplazada por la aprobación expresa posterior del rediseño orbital V12.

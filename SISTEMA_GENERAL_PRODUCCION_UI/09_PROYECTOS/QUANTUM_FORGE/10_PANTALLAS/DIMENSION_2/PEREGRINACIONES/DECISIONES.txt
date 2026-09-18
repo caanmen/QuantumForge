@@ -1,0 +1,22 @@
+DECISIONES — PEREGRINACIONES
+
+30 de agosto de 2026
+
+1. La referencia V4 permanente es la autoridad visual; el marco del visor y sus
+   tiradores blancos no pertenecen al diseño.
+2. D2PilgrimagesPanelUI conserva la propiedad única de selección, datos y acciones.
+3. Las cinco tarjetas siempre conservan su geometría. El progreso controla su
+   interactividad, no su presencia ni el tamaño de la lista.
+4. Tocar una tarjeta solo selecciona un ID estable. Iniciar/cancelar pertenece al CTA
+   único del panel derecho.
+5. El valor de Confianza se presenta contra el máximo real 500; 300 sigue siendo
+   únicamente el umbral de localización del segundo territorio.
+6. D2PilgrimageSystem.IsUnlocked centraliza la progresión y CanStart la respeta,
+   evitando que llamadas directas salten los requisitos.
+7. Valores, costes, recompensas y estados son TMP dinámicos con cultura invariante;
+   no están horneados en la placa ni en los overlays.
+8. La placa bloquea raycasts de secciones inferiores; iconos y resplandores no
+   interceptan entrada.
+9. La placa limpia se generó con ImageGen; los overlays se derivan de la referencia
+   permanente y se pueden reconstruir con PrepareD2PilgrimagesAssets.ps1.
+10. La composición estática y los estados funcionales se aprobaron antes de animar.

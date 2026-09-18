@@ -9,10 +9,20 @@ public class D2ContainmentPanelUI : MonoBehaviour
     public GameObject containmentAttemptRoot;
     public GameObject majorPactRoot;
     public TMP_Text stateText;
+    public TMP_Text availableMembersText;
+    public TMP_Text dominanceHeaderText;
+    public TMP_Text attemptsHeaderText;
+    public TMP_Text failuresHeaderText;
     public TMP_Text probabilityText;
+    public TMP_Text probabilityDetailText;
+    public TMP_Text dominanceCardText;
     public TMP_Text cooldownText;
     public TMP_Text rulesText;
+    public TMP_Text failureRuleText;
+    public TMP_Text successRuleText;
     public TMP_Text assignmentText;
+    public TMP_Text assignedMembersText;
+    public TMP_Text assignmentAvailableText;
     public TMP_Text attemptsText;
     public TMP_Text lastResultText;
     public Button attemptButton;
@@ -22,10 +32,23 @@ public class D2ContainmentPanelUI : MonoBehaviour
     public Button releaseOneButton;
     public Button releaseAllButton;
     public TMP_Text majorPactStateText;
+    public TMP_Text majorPactMilestoneText;
+    public TMP_Text majorPactAvailableMembersText;
+    public TMP_Text majorPactAssignedHeaderText;
     public TMP_Text stabilityText;
+    public TMP_Text majorPactFragmentsHeaderText;
     public TMP_Dropdown majorPactLineDropdown;
     public TMP_Text majorPactLineText;
+    public TMP_Text[] majorPactLineLevelTexts;
+    public TMP_Text majorPactDetailEffectText;
+    public TMP_Text majorPactDetailCostText;
+    public TMP_Text majorPactAssignedValueText;
+    public TMP_Text majorPactFooterTitleText;
     public TMP_Text majorPactLastResultText;
+    public Button[] majorPactLineButtons;
+    public GameObject[] majorPactLineSelections;
+    public GameObject[] majorPactCentralIcons;
+    public GameObject[] majorPactDetailIcons;
     public Button establishMajorPactButton;
     public Button upgradeMajorPactLineButton;
     private bool _lowChanceConfirmationArmed;
@@ -57,6 +80,16 @@ public class D2ContainmentPanelUI : MonoBehaviour
             majorPactLineDropdown.AddOptions(options);
             majorPactLineDropdown.onValueChanged.AddListener(_ => Refresh());
         }
+        if (majorPactLineButtons != null)
+        {
+            for (int index = 0; index < majorPactLineButtons.Length; index++)
+            {
+                int capturedIndex = index;
+                if (majorPactLineButtons[index] != null)
+                    majorPactLineButtons[index].onClick.AddListener(
+                        () => SelectMajorPactLine(capturedIndex));
+            }
+        }
     }
 
     private void OnEnable()
@@ -85,74 +118,82 @@ public class D2ContainmentPanelUI : MonoBehaviour
         if (!requiresConfirmation)
             _lowChanceConfirmationArmed = false;
         string status = state.entityContained
-            ? "ENTE CONTENIDO — PACTO MAYOR PREPARADO"
+            ? "ENTE CONTENIDO\nPACTO MAYOR PREPARADO"
             : state.containmentAvailable
-                ? "CONTENCIÓN DISPONIBLE"
-                : "CONTENCIÓN BLOQUEADA";
+                ? "CONTENCIÓN\nDISPONIBLE"
+                : "CONTENCIÓN\nBLOQUEADA";
         SetText(stateText, status);
-        SetText(
-            probabilityText,
-            "Dominio total: " + dominance.ToString("0.##") + "% | Probabilidad: " +
-            (probability * 100.0).ToString("0.##") + "%" +
-            (probability < 0.50
-                ? "\nRECOMENDACIÓN: reduce Dominio o mejora Protección antes de confirmar."
-                : "\nProbabilidad favorable según el estado actual.")
-        );
+        SetText(availableMembersText, state.membersAvailable.ToString("N0"));
+        SetText(dominanceHeaderText, dominance.ToString("0.##") + "%");
+        SetText(attemptsHeaderText, state.totalContainmentAttempts.ToString("N0"));
+        SetText(failuresHeaderText, state.totalContainmentFailures.ToString("N0"));
+        SetText(probabilityText, (probability * 100.0).ToString("0.##") + "%");
+        SetText(probabilityDetailText, probability < 0.50
+            ? "REDUCE DOMINIO O MEJORA PROTECCIÓN\nANTES DE CONFIRMAR."
+            : "PROBABILIDAD FAVORABLE\nSEGÚN EL ESTADO ACTUAL.");
+        SetText(dominanceCardText, dominance.ToString("0.##") + "%");
         SetText(
             cooldownText,
             state.containmentCooldownSeconds > 0.0
-                ? "Reintento disponible en " + FormatDuration(state.containmentCooldownSeconds)
+                ? "REINTENTO EN\n" + FormatDuration(state.containmentCooldownSeconds)
                 : state.entityContained
-                    ? "La Contención es permanente."
-                    : "Sin cooldown."
+                    ? "CONTENCIÓN\nPERMANENTE"
+                    : "SIN COOLDOWN"
         );
-        SetText(
-            rulesText,
-            "Fallo: +20% Amenaza y -5% de Miembros regionales sin Protección. " +
-            "Éxito: cesan las marcas y se prepara el pacto mayor."
-        );
-        SetText(
-            assignmentText,
+        SetText(rulesText, "");
+        SetText(failureRuleText,
+            "<color=#E55339>FALLO</color> · +20% AMENAZA Y -5% DE MIEMBROS\n" +
+            "REGIONALES SIN PROTECCIÓN.");
+        SetText(successRuleText,
+            "<color=#789A72>ÉXITO</color> · CESAN LAS MARCAS Y SE PREPARA\n" +
+            "EL PACTO MAYOR.");
+        SetText(assignmentText,
             "SOSTENIMIENTO — Asignados: " +
             state.membersAssignedToContainment.ToString("N0") +
-            " | Disponibles: " + state.membersAvailable.ToString("N0")
-        );
-        SetText(
-            attemptsText,
-            "Intentos: " + state.totalContainmentAttempts.ToString("N0") +
-            " | Fallos: " + state.totalContainmentFailures.ToString("N0")
-        );
-        SetText(
-            lastResultText,
-            string.IsNullOrEmpty(state.lastContainmentResult)
-                ? "Todavía no se ha intentado la Contención."
-                : state.lastContainmentResult
-        );
+            " | Disponibles: " + state.membersAvailable.ToString("N0"));
+        SetText(assignedMembersText,
+            "ASIGNADOS  " + state.membersAssignedToContainment.ToString("N0"));
+        SetText(assignmentAvailableText,
+            "DISPONIBLES  " + state.membersAvailable.ToString("N0"));
+        SetText(attemptsText, state.totalContainmentAttempts.ToString("N0"));
+        SetText(lastResultText, BuildLastResult(state));
 
         string lineId = GetSelectedMajorPactLineId();
         int level = D2Civilization2System.GetMajorPactLineLevel(state, lineId);
         int nextLevel = Mathf.Min(level + 1,
             D2Civilization2System.MaxMajorPactLineLevel);
         SetText(majorPactStateText, state.majorPactEstablished
-            ? "PACTO MAYOR DE CIVILIZACIÓN 2 — ESTABLECIDO\nHITO RECONOCIDO PARA CERRAR DIMENSIÓN 2"
-            : "ENTE CONTENIDO — ESTABLECE EL PACTO MAYOR");
-        SetText(stabilityText,
-            "ESTABILIDAD DE CONTENCIÓN: " + state.containmentStability.ToString("0.##") +
-            " | Fragmentos de Control: " + state.controlFragments.ToString("N0"));
+            ? "Ente Contenido · Pacto Mayor Establecido"
+            : "Ente Contenido · Pacto Mayor Disponible");
+        SetText(majorPactMilestoneText, state.majorPactEstablished
+            ? "Hito Reconocido para Cerrar Dimensión 2."
+            : "Establece el Pacto Mayor para habilitar sus líneas.");
+        SetText(majorPactAvailableMembersText, state.membersAvailable.ToString("N0"));
+        SetText(majorPactAssignedHeaderText,
+            state.membersAssignedToContainment.ToString("N0"));
+        SetText(stabilityText, state.containmentStability.ToString("0"));
+        SetText(majorPactFragmentsHeaderText, state.controlFragments.ToString("N0"));
         SetText(majorPactLineText,
-            D2Civilization2System.GetMajorPactLineName(lineId) + " — Nivel " +
-            level + "/3\n" + D2Civilization2System.GetMajorPactLineDescription(lineId) +
-            (level < D2Civilization2System.MaxMajorPactLineLevel
-                ? "\nSiguiente: " +
+            D2Civilization2System.GetMajorPactLineName(lineId) +
+            " — Nivel " + level + " / 3");
+        SetText(majorPactDetailEffectText,
+            D2Civilization2System.GetMajorPactLineDescription(lineId));
+        SetText(majorPactDetailCostText,
+            level < D2Civilization2System.MaxMajorPactLineLevel
+                ? "Siguiente · " +
                   D2Civilization2System.GetMajorPactStabilityCost(nextLevel).ToString("0") +
                   " Estabilidad + " +
                   D2Civilization2System.GetMajorPactFragmentCost(nextLevel).ToString("N0") +
                   " Fragmentos"
-                : "\nNIVEL MÁXIMO"));
-        SetText(majorPactLastResultText,
-            string.IsNullOrEmpty(state.lastMajorPactResult)
-                ? "Establece el pacto y asigna Miembros para generar Estabilidad."
-                : state.lastMajorPactResult);
+                : "Nivel Máximo");
+        SetText(majorPactAssignedValueText,
+            state.membersAssignedToContainment.ToString("N0"));
+        SetText(majorPactFooterTitleText, state.majorPactEstablished
+            ? "Pacto Mayor Establecido" : "Pacto Mayor Disponible");
+        SetText(majorPactLastResultText, state.majorPactEstablished
+            ? "LA CONTENCIÓN YA GENERA ESTABILIDAD."
+            : "ESTABLECE EL PACTO Y ASIGNA MIEMBROS PARA GENERAR ESTABILIDAD.");
+        RefreshMajorPactLineVisuals(state);
 
         SetInteractable(attemptButton, D2Civilization2System.CanAttemptContainment(state));
         SetButtonLabel(attemptButton, _lowChanceConfirmationArmed
@@ -173,10 +214,15 @@ public class D2ContainmentPanelUI : MonoBehaviour
         }
         SetInteractable(upgradeMajorPactLineButton,
             D2Civilization2System.CanUpgradeMajorPactLine(gameState, lineId));
+        if (majorPactLineButtons != null)
+            foreach (Button lineButton in majorPactLineButtons)
+                SetInteractable(lineButton, state.majorPactEstablished);
         SetActive(majorPactLineDropdown, state.majorPactEstablished);
         SetActive(majorPactLineText, state.majorPactEstablished);
+        SetActive(majorPactDetailEffectText, state.majorPactEstablished);
+        SetActive(majorPactDetailCostText, state.majorPactEstablished);
         SetActive(upgradeMajorPactLineButton, state.majorPactEstablished);
-        SetActive(stabilityText, state.majorPactEstablished);
+        SetActive(stabilityText, true);
         SetActive(assignOneButton, !state.entityContained || state.majorPactEstablished);
         SetActive(assignTenButton, !state.entityContained || state.majorPactEstablished);
         SetActive(assignAllButton, !state.entityContained || state.majorPactEstablished);
@@ -244,6 +290,35 @@ public class D2ContainmentPanelUI : MonoBehaviour
             Mathf.Clamp(index, 0, D2Civilization2System.MajorPactLineIds.Length - 1)];
     }
 
+    private void SelectMajorPactLine(int index)
+    {
+        if (majorPactLineDropdown != null)
+            majorPactLineDropdown.SetValueWithoutNotify(Mathf.Clamp(
+                index, 0, D2Civilization2System.MajorPactLineIds.Length - 1));
+        Refresh();
+    }
+
+    private void RefreshMajorPactLineVisuals(D2Civilization2State state)
+    {
+        int selectedIndex = majorPactLineDropdown != null
+            ? Mathf.Clamp(majorPactLineDropdown.value, 0,
+                D2Civilization2System.MajorPactLineIds.Length - 1)
+            : 0;
+        for (int index = 0; index < D2Civilization2System.MajorPactLineIds.Length; index++)
+        {
+            if (majorPactLineLevelTexts != null && index < majorPactLineLevelTexts.Length)
+            {
+                int lineLevel = D2Civilization2System.GetMajorPactLineLevel(
+                    state, D2Civilization2System.MajorPactLineIds[index]);
+                SetText(majorPactLineLevelTexts[index], "NIVEL " + lineLevel + "/3");
+            }
+            SetActiveAt(majorPactLineSelections, index,
+                state.majorPactEstablished && index == selectedIndex);
+            SetActiveAt(majorPactCentralIcons, index, index == selectedIndex);
+            SetActiveAt(majorPactDetailIcons, index, index == selectedIndex);
+        }
+    }
+
     private void EstablishMajorPact()
     {
         D2Civilization2System.TryEstablishMajorPact(GameState.I);
@@ -264,6 +339,23 @@ public class D2ContainmentPanelUI : MonoBehaviour
             (totalSeconds % 60).ToString("00");
     }
 
+    private static string BuildLastResult(D2Civilization2State state)
+    {
+        if (state.entityContained)
+            return "CONTENCIÓN EXITOSA · EL PACTO MAYOR ESTÁ PREPARADO";
+        if (state.totalContainmentFailures > 0L ||
+            (!string.IsNullOrEmpty(state.lastContainmentResult) &&
+             state.lastContainmentResult.IndexOf(
+                 "fall", System.StringComparison.OrdinalIgnoreCase) >= 0))
+        {
+            return "EL INTENTO ANTERIOR FALLÓ · " +
+                (state.containmentCooldownSeconds > 0.0
+                    ? "REINTENTO EN " + FormatDuration(state.containmentCooldownSeconds)
+                    : "NUEVO INTENTO DISPONIBLE");
+        }
+        return "NINGÚN INTENTO REALIZADO";
+    }
+
     private static void SetText(TMP_Text target, string value)
     {
         if (target != null)
@@ -279,6 +371,12 @@ public class D2ContainmentPanelUI : MonoBehaviour
     private static void SetActive(Component component, bool active)
     {
         if (component != null) component.gameObject.SetActive(active);
+    }
+
+    private static void SetActiveAt(GameObject[] values, int index, bool active)
+    {
+        if (values != null && index >= 0 && index < values.Length && values[index] != null)
+            values[index].SetActive(active);
     }
 
     private static void SetButtonLabel(Button button, string value)

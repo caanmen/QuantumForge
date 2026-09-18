@@ -1,0 +1,32 @@
+TRAZABILIDAD DE PRODUCCIÓN — V35
+
+MODO
+
+- Las cuatro hojas de caras V35 se generaron como edición raster asistida por ImageGen a
+  partir de las referencias del Monolito y después se prepararon como hojas RGBA 2×2.
+- El receptáculo raster V35 también fue un candidato de ImageGen, pero fue rechazado y no
+  se integró.
+- El receptáculo activo se construye por shader a partir del asset canónico del Monolito;
+  no usa generación de imagen.
+
+INSTRUCCIÓN VISUAL APLICADA A LAS CARAS
+
+Mantener exactamente el lenguaje material y la silueta del Monolito 2D. Mostrar una cara
+alienígena abierta como superficie continua de piedra oscura, no como tapa cerrada. Limitar
+el daño a su borde exterior correspondiente y conservar intacta la zona central destinada
+a los símbolos. No añadir huecos, cráteres, sockets, relieves, runas, símbolos, textos ni
+interfaz. S1/S4 deben llevar la columna estructural hacia la derecha; S2/S3 hacia la
+izquierda. Producir cuatro intensidades coherentes: daño fuerte, medio, leve y reparado,
+con transparencia real fuera de la silueta.
+
+INSTRUCCIÓN VISUAL DEL CANDIDATO DE RECEPTÁCULO RECHAZADO
+
+Conservar el laboratorio humano abandonado, su cámara e iluminación. Modificar sólo el
+soporte del suelo para alojar la huella del Monolito y dejar un borde frontal por delante.
+No añadir Monolito, símbolos, textos ni interfaz.
+
+RESULTADO
+
+- Caras V35: candidatas activas pendientes de captura y aprobación en Unity.
+- Receptáculo raster: rechazado porque seguía siendo una aproximación visual.
+- Lámina `node_safe_zone_preview_v35.png`: evidencia métrica auxiliar, no asset final.

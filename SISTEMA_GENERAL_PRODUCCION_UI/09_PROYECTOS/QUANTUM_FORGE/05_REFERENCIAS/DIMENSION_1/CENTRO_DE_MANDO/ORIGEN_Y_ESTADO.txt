@@ -1,0 +1,12 @@
+Pantalla: Centro de Mando — Dimensión 1
+Archivo: referencia_centro_de_mando.png
+Tipo: REFERENCIA VISUAL
+Origen: imagen proporcionada por el usuario en chat
+Estado: referencia utilizada para la pantalla aprobada
+Resolución original: 643×1259
+Notas: conservar composición, identidad cian/ámbar y navegación local inferior.
+
+Archivo adicional: concepto_elegido_redisenio_2026-08-21.png
+Origen: propuesta elegida por el usuario el 21 de agosto de 2026.
+Estado: autoridad de intención visual para enriquecer la cabina y las seis tarjetas.
+Las ilustraciones de la propuesta no se copian: la producción reutiliza assets D1 reales.

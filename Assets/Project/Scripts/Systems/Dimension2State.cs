@@ -112,6 +112,8 @@ public class D2RegionState
     public string weakenedOperationId = "";
     public double weakenedOperationRemainingSeconds;
     public long totalReprisals;
+    public bool hasLastReprisalResult;
+    public long lastReprisalMemberLosses;
     public bool alertMarked;
 }
 
@@ -270,6 +272,7 @@ public class Dimension2State
 {
     public int progressVersion = Dimension2System.ProgressVersion;
     public bool firstEntrySeen;
+    public int firstEntryVisualVersionSeen;
     public string selectedTerritoryId = Dimension2System.Civilization1TerritoryId;
 
     public bool civilization1Unlocked = true;

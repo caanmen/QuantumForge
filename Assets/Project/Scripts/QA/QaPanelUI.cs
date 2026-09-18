@@ -1,6 +1,7 @@
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 public class QaPanelUI : MonoBehaviour
@@ -15,6 +16,8 @@ public class QaPanelUI : MonoBehaviour
     public Button[] advanceButtons;
     public Button[] checkpointSaveButtons;
     public Button[] checkpointLoadButtons;
+    public TMP_Text[] checkpointStatusTexts;
+    public Button resetSaveButton;
     public Button closeButton;
 
     public GameObject confirmationRoot;
@@ -25,21 +28,26 @@ public class QaPanelUI : MonoBehaviour
     public event Action<double> AdvanceRequested;
     public event Action<char> SaveCheckpointRequested;
     public event Action<char> LoadCheckpointRequested;
+    public event Action ResetSaveRequested;
 
     public bool IsOpen => panelRoot != null && panelRoot.activeSelf;
 
     private enum PendingConfirmation
     {
         None,
-        AdvanceOneHour,
-        LoadCheckpoint
+        AdvanceTime,
+        LoadCheckpoint,
+        ResetSave
     }
 
     private PendingConfirmation pendingConfirmation;
+    private double pendingAdvanceSeconds;
     private char pendingCheckpointSlot;
     private int lastScreenWidth = -1;
     private int lastScreenHeight = -1;
     private Rect lastSafeArea;
+    private bool qaControlsInteractable = true;
+    private readonly bool[] checkpointLoadAvailable = { true, true, true };
 
     private void Awake()
     {
@@ -81,6 +89,10 @@ public class QaPanelUI : MonoBehaviour
         {
             ApplySafeArea();
         }
+
+        Keyboard keyboard = Keyboard.current;
+        HandleBackRequest(keyboard != null &&
+            keyboard.escapeKey.wasPressedThisFrame);
     }
 
     public void TogglePanel()
@@ -113,22 +125,64 @@ public class QaPanelUI : MonoBehaviour
             panelRoot.SetActive(false);
     }
 
+    private void HandleBackRequest(bool backRequested)
+    {
+        if (!backRequested || !IsOpen)
+            return;
+
+        if (confirmationRoot != null && confirmationRoot.activeSelf)
+            HideConfirmation();
+        else
+            ClosePanel();
+    }
+
     public void SetQaControlsInteractable(bool interactable)
     {
+        qaControlsInteractable = interactable;
         if (toolsButton != null)
             toolsButton.interactable = interactable;
         SetButtonsInteractable(speedButtons, interactable);
         SetButtonsInteractable(advanceButtons, interactable);
         SetButtonsInteractable(checkpointSaveButtons, interactable);
-        SetButtonsInteractable(checkpointLoadButtons, interactable);
+        ApplyCheckpointLoadAvailability();
+        if (resetSaveButton != null)
+            resetSaveButton.interactable = interactable;
+        // CERRAR es navegación, no una mutación del estado. Debe seguir
+        // disponible aunque un avance QA esté guardando o calculando recursos.
         if (closeButton != null)
-            closeButton.interactable = interactable;
+            closeButton.interactable = true;
     }
 
     public void SetOperationStatus(string status)
     {
         if (operationStatusText != null)
             operationStatusText.SetText(status ?? "");
+    }
+
+    public void SetCheckpointSlotStatus(
+        int index, string status, bool loadAvailable)
+    {
+        if (index < 0 || index >= checkpointLoadAvailable.Length)
+            return;
+
+        checkpointLoadAvailable[index] = loadAvailable;
+        TMP_Text label = Get(checkpointStatusTexts, index);
+        if (label != null)
+        {
+            string visibleStatus = string.IsNullOrWhiteSpace(status)
+                ? "VACÍO"
+                : status;
+            label.SetText(visibleStatus);
+            label.color = visibleStatus.StartsWith(
+                    "GUARDADO", StringComparison.OrdinalIgnoreCase)
+                ? new Color(0.45f, 0.90f, 0.64f)
+                : visibleStatus.StartsWith(
+                    "NO LEGIBLE", StringComparison.OrdinalIgnoreCase)
+                    ? new Color(1f, 0.45f, 0.42f)
+                    : new Color(0.60f, 0.68f, 0.76f);
+        }
+
+        ApplyCheckpointLoadAvailability();
     }
 
     public void ApplySafeArea()
@@ -182,6 +236,9 @@ public class QaPanelUI : MonoBehaviour
         Wire(Get(advanceButtons, 0), RequestAdvanceFiveMinutes);
         Wire(Get(advanceButtons, 1), RequestAdvanceThirtyMinutes);
         Wire(Get(advanceButtons, 2), RequestAdvanceOneHour);
+        Wire(Get(advanceButtons, 3), RequestAdvanceEightHours);
+        Wire(Get(advanceButtons, 4), RequestAdvanceTwelveHours);
+        Wire(Get(advanceButtons, 5), RequestAdvanceTwentyFourHours);
 
         Wire(Get(checkpointSaveButtons, 0), SaveCheckpointA);
         Wire(Get(checkpointSaveButtons, 1), SaveCheckpointB);
@@ -189,6 +246,7 @@ public class QaPanelUI : MonoBehaviour
         Wire(Get(checkpointLoadButtons, 0), LoadCheckpointA);
         Wire(Get(checkpointLoadButtons, 1), LoadCheckpointB);
         Wire(Get(checkpointLoadButtons, 2), LoadCheckpointC);
+        Wire(resetSaveButton, RequestResetSave);
     }
 
     private void UnwireListeners()
@@ -206,6 +264,9 @@ public class QaPanelUI : MonoBehaviour
         Unwire(Get(advanceButtons, 0), RequestAdvanceFiveMinutes);
         Unwire(Get(advanceButtons, 1), RequestAdvanceThirtyMinutes);
         Unwire(Get(advanceButtons, 2), RequestAdvanceOneHour);
+        Unwire(Get(advanceButtons, 3), RequestAdvanceEightHours);
+        Unwire(Get(advanceButtons, 4), RequestAdvanceTwelveHours);
+        Unwire(Get(advanceButtons, 5), RequestAdvanceTwentyFourHours);
 
         Unwire(Get(checkpointSaveButtons, 0), SaveCheckpointA);
         Unwire(Get(checkpointSaveButtons, 1), SaveCheckpointB);
@@ -213,6 +274,7 @@ public class QaPanelUI : MonoBehaviour
         Unwire(Get(checkpointLoadButtons, 0), LoadCheckpointA);
         Unwire(Get(checkpointLoadButtons, 1), LoadCheckpointB);
         Unwire(Get(checkpointLoadButtons, 2), LoadCheckpointC);
+        Unwire(resetSaveButton, RequestResetSave);
     }
 
     private void SetSpeed1() => QaRuntimeService.TrySetSpeed(1f);
@@ -223,10 +285,17 @@ public class QaPanelUI : MonoBehaviour
     private void RequestAdvanceFiveMinutes() => AdvanceRequested?.Invoke(300.0);
     private void RequestAdvanceThirtyMinutes() => AdvanceRequested?.Invoke(1800.0);
 
-    private void RequestAdvanceOneHour()
+    private void RequestAdvanceOneHour() => RequestConfirmedAdvance(3600.0);
+    private void RequestAdvanceEightHours() => RequestConfirmedAdvance(28800.0);
+    private void RequestAdvanceTwelveHours() => RequestConfirmedAdvance(43200.0);
+    private void RequestAdvanceTwentyFourHours() => RequestConfirmedAdvance(86400.0);
+
+    private void RequestConfirmedAdvance(double seconds)
     {
-        pendingConfirmation = PendingConfirmation.AdvanceOneHour;
-        ShowConfirmation("¿Avanzar exactamente 1 hora de tiempo de juego?");
+        pendingConfirmation = PendingConfirmation.AdvanceTime;
+        pendingAdvanceSeconds = seconds;
+        ShowConfirmation("¿Aplicar +" + FormatDuration(seconds) +
+            " mediante progreso de ausencia QA?");
     }
 
     private void SaveCheckpointA() => SaveCheckpointRequested?.Invoke('A');
@@ -244,16 +313,27 @@ public class QaPanelUI : MonoBehaviour
             "? El estado actual será reemplazado.");
     }
 
+    private void RequestResetSave()
+    {
+        pendingConfirmation = PendingConfirmation.ResetSave;
+        ShowConfirmation("¿BORRAR TODA LA PARTIDA Y EMPEZAR DE NUEVO? " +
+            "Esta acción no se puede deshacer. " +
+            "Los checkpoints QA A/B/C se conservarán.");
+    }
+
     private void AcceptConfirmation()
     {
         PendingConfirmation accepted = pendingConfirmation;
         char slot = pendingCheckpointSlot;
+        double advanceSeconds = pendingAdvanceSeconds;
         HideConfirmation();
 
-        if (accepted == PendingConfirmation.AdvanceOneHour)
-            AdvanceRequested?.Invoke(3600.0);
+        if (accepted == PendingConfirmation.AdvanceTime)
+            AdvanceRequested?.Invoke(advanceSeconds);
         else if (accepted == PendingConfirmation.LoadCheckpoint)
             LoadCheckpointRequested?.Invoke(slot);
+        else if (accepted == PendingConfirmation.ResetSave)
+            ResetSaveRequested?.Invoke();
     }
 
     private void ShowConfirmation(string message)
@@ -268,8 +348,18 @@ public class QaPanelUI : MonoBehaviour
     {
         pendingConfirmation = PendingConfirmation.None;
         pendingCheckpointSlot = '\0';
+        pendingAdvanceSeconds = 0.0;
         if (confirmationRoot != null)
             confirmationRoot.SetActive(false);
+    }
+
+    private static string FormatDuration(double seconds)
+    {
+        if (seconds >= 3600.0 && seconds % 3600.0 == 0.0)
+            return (seconds / 3600.0).ToString("0") + " H";
+        if (seconds >= 60.0 && seconds % 60.0 == 0.0)
+            return (seconds / 60.0).ToString("0") + " MIN";
+        return seconds.ToString("0.#") + " S";
     }
 
     private void OnSpeedChanged(float multiplier)
@@ -289,6 +379,29 @@ public class QaPanelUI : MonoBehaviour
         return buttons != null && index >= 0 && index < buttons.Length
             ? buttons[index]
             : null;
+    }
+
+    private static TMP_Text Get(TMP_Text[] labels, int index)
+    {
+        return labels != null && index >= 0 && index < labels.Length
+            ? labels[index]
+            : null;
+    }
+
+    private void ApplyCheckpointLoadAvailability()
+    {
+        if (checkpointLoadButtons == null)
+            return;
+
+        for (int index = 0; index < checkpointLoadButtons.Length; index++)
+        {
+            Button button = checkpointLoadButtons[index];
+            if (button == null)
+                continue;
+            bool slotAvailable = index < checkpointLoadAvailable.Length &&
+                checkpointLoadAvailable[index];
+            button.interactable = qaControlsInteractable && slotAvailable;
+        }
     }
 
     private static void Wire(Button button, UnityEngine.Events.UnityAction action)

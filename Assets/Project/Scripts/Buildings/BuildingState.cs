@@ -22,6 +22,23 @@ public class BuildingState
             return int.MaxValue;
         }
 
+    public static double CalculateCostForLevel(BuildingDef definition, int level)
+    {
+        if (definition == null) return 0.0;
+        int safeLevel = Math.Max(0, level);
+        if (definition.id == "fluctuation_antenna")
+            return definition.baseCost * Math.Pow(definition.costMult, safeLevel);
+
+        // El inicio conserva la curva original. Después del nivel 25 la
+        // pendiente se suaviza para que un nivel ordinario no escale a horas.
+        double exponent = safeLevel <= 25
+            ? safeLevel
+            : safeLevel <= 75
+                ? 25.0 + (safeLevel - 25) * 0.55
+                : 52.5 + (safeLevel - 75) * 0.30;
+        return definition.baseCost * Math.Pow(definition.costMult, exponent);
+    }
+
     
 
     /// <summary>
@@ -44,11 +61,7 @@ public class BuildingState
         {
             if (def != null)
             {
-                currentCost = def.baseCost;
-                for (int i = 0; i < level; i++)
-                {
-                    currentCost *= def.costMult;
-                }
+                currentCost = CalculateCostForLevel(def, level);
             }
             else
             {
@@ -73,11 +86,7 @@ public class BuildingState
 
         if (currentCost <= 0.0)
         {
-            currentCost = def.baseCost;
-            for (int i = 0; i < level; i++)
-            {
-                currentCost *= def.costMult;
-            }
+            currentCost = CalculateCostForLevel(def, level);
         }
 
         return currentLE >= currentCost;
@@ -103,11 +112,7 @@ public class BuildingState
 
         if (currentCost <= 0.0)
         {
-            currentCost = def.baseCost;
-            for (int i = 0; i < level; i++)
-            {
-                currentCost *= def.costMult;
-            }
+            currentCost = CalculateCostForLevel(def, level);
         }
 
         // Si estaba en 0 y lo compras, arranca el ciclo desde 0
@@ -115,7 +120,7 @@ public class BuildingState
             tickTimer = 0f;
 
         level++;
-        currentCost *= def.costMult;
+        currentCost = CalculateCostForLevel(def, level);
     }
 
 
@@ -129,7 +134,7 @@ public class BuildingState
 
         if (def != null)
         {
-            currentCost = def.baseCost;
+            currentCost = CalculateCostForLevel(def, 0);
         }
         else
         {
@@ -155,6 +160,8 @@ public class BuildingState
         if (def.tickInterval > 0.0 && def.lePerTickBase > 0.0)
         {
             double lePerTick = def.lePerTickBase * level;
+            lePerTick *= GameState.GetArtifactLevelMilestoneMultiplier(
+                def.id, level);
 
             // El buff especial del B1 por el B2 lo aplicaremos en GameState,
             // donde tenemos acceso a todos los edificios. Aquí solo devolvemos
@@ -168,7 +175,8 @@ public class BuildingState
         // Comportamiento clásico (Fases anteriores): LE/s directo
         if (def.baseLEps > 0.0)
         {
-            return def.baseLEps * level;
+            return def.baseLEps * level *
+                GameState.GetArtifactLevelMilestoneMultiplier(def.id, level);
         }
 
         return 0.0;

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEditor;
+using UnityEditor.Events;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -86,6 +87,19 @@ public static class Dimension1SharedShellApply
         ApplyToRootInternal(root, hangar, frame, fill, font);
     }
 
+    public static void ApplyFrameToSubscreen(RectTransform root)
+    {
+        if (root == null) throw new ArgumentNullException(nameof(root));
+        Sprite frame = LoadRequired<Sprite>(FramePath, "marco canónico D1");
+        root.anchorMin = root.anchorMax = new Vector2(.5f, .5f);
+        root.pivot = new Vector2(.5f, .5f);
+        root.anchoredPosition = Dimension1SharedLayoutTokens.RootOffset;
+        root.sizeDelta = new Vector2(Dimension1SharedLayoutTokens.Width,
+            Dimension1SharedLayoutTokens.Height);
+        EnsureOuterFrame(root, frame);
+        EditorUtility.SetDirty(root);
+    }
+
     private static void ApplyToRootInternal(RectTransform root, RectTransform hangar, Sprite frame,
         Sprite fill, TMP_FontAsset font)
     {
@@ -97,6 +111,7 @@ public static class Dimension1SharedShellApply
 
         EnsureOuterFrame(root, frame);
         NormalizeHeader(root, hangar, frame, fill, font);
+        NormalizeSectorHeading(root, font);
         NormalizeExploreContent(root);
         NormalizeTreeContentStart(root);
         NormalizeNavigation(root, frame, fill, font);
@@ -107,6 +122,21 @@ public static class Dimension1SharedShellApply
     private static void NormalizeExploreContent(RectTransform root)
     {
         if (root.name != "D1_ExploreVisualRoot") return;
+        // La composición visual elegida en 2026-08-21 posee un selector de modo
+        // propio. Sus bloques ya están construidos con el contrato 1080x1920 y
+        // no deben recibir las coordenadas de la composición radar anterior.
+        if (FindDirectChild(root, "ModePanel") != null)
+        {
+            SetTopIfPresent(root, "ScannerPanel", 62f, 276f, 954f, 350f);
+            SetTopIfPresent(root, "DestinationPanel", 62f, 640f, 954f, 350f);
+            SetTopIfPresent(root, "ShipPanel", 62f, 1004f, 462f, 224f);
+            SetTopIfPresent(root, "SupportPanel", 550f, 1004f, 466f, 224f);
+            SetTopIfPresent(root, "ModePanel", 62f, 1242f, 954f, 146f);
+            SetTopIfPresent(root, "ActiveExpedition", 62f, 1402f, 954f, 146f);
+            SetTopIfPresent(root, "StartExpedition", 62f, 1562f, 544f, 122f);
+            SetTopIfPresent(root, "ExplorationRecord", 648f, 1562f, 368f, 122f);
+            return;
+        }
         SetTopIfPresent(root, "ScannerPanel", 62f, 334f, 460f, 628f);
         SetTopIfPresent(root, "DestinationPanel", 550f, 334f, 468f, 319f);
         SetTopIfPresent(root, "ShipPanel", 550f, 674f, 468f, 300f);
@@ -114,6 +144,56 @@ public static class Dimension1SharedShellApply
         SetTopIfPresent(root, "ActiveExpedition", 62f, 1272f, 954f, 216f);
         SetTopIfPresent(root, "StartExpedition", 62f, 1513f, 544f, 122f);
         SetTopIfPresent(root, "ExplorationRecord", 648f, 1513f, 368f, 122f);
+    }
+
+    private static void NormalizeSectorHeading(RectTransform root, TMP_FontAsset font)
+    {
+        if (!IsSectorDetailRoot(root.name)) return;
+        RectTransform heading = FindDirectChild(root, "Heading") as RectTransform;
+        if (heading == null) return;
+
+        // El botón de regreso pertenece al encabezado compartido. El nombre del
+        // sector y su ruta forman una banda propia inmediatamente antes del contenido.
+        SetTop(heading, 0f, 0f, Dimension1SharedLayoutTokens.Width, 258f);
+        SetGraphicEnabled(FindDirectChild(heading, "Fill"), false);
+        SetGraphicEnabled(FindDirectChild(heading, "Border"), false);
+
+        RectTransform back = FindDirectChild(heading, "BackButton") as RectTransform;
+        if (back != null) SetTop(back, 28f, 58f, 84f, 72f);
+
+        TMP_Text title = FindDirectChild(heading, "Title")?.GetComponent<TMP_Text>();
+        if (title != null)
+        {
+            string value = title.text;
+            SetTop(title.rectTransform, 142f, 184f, 796f, 44f);
+            ConfigureTmp(title, value, 30f, FontStyles.Bold, Primary,
+                TextAlignmentOptions.Center);
+            title.characterSpacing = 2f;
+        }
+
+        TMP_Text subtitle = FindDirectChild(heading, "Subtitle")?.GetComponent<TMP_Text>();
+        if (subtitle != null)
+        {
+            string value = subtitle.text;
+            SetTop(subtitle.rectTransform, 242f, 228f, 596f, 24f);
+            ConfigureTmp(subtitle, value, 18f, FontStyles.Normal, Cyan,
+                TextAlignmentOptions.Center);
+            subtitle.characterSpacing = 1.5f;
+        }
+    }
+
+    private static bool IsSectorDetailRoot(string rootName)
+    {
+        return rootName == "D1_AncientOrbitsVisualRoot" ||
+            rootName == "D1_OuterRimDetailVisualRoot" ||
+            rootName == "D1_DebrisRingDetailVisualRoot" ||
+            rootName == "D1_SilentFrontierDetailVisualRoot";
+    }
+
+    private static void SetGraphicEnabled(Transform transform, bool enabled)
+    {
+        Graphic graphic = transform != null ? transform.GetComponent<Graphic>() : null;
+        if (graphic != null) graphic.enabled = enabled;
     }
 
     private static void SetTopIfPresent(Transform parent, string name, float x, float y,
@@ -176,8 +256,8 @@ public static class Dimension1SharedShellApply
                     Dimension1SharedLayoutTokens.CommandCenterWidth,
                     Dimension1SharedLayoutTokens.CommandCenterHeight);
                 NormalizeCardFrame(command, frame, fill, false);
-                NormalizeHeaderText(command, "Label", font, "CENTRO\nDE MANDO", 15f,
-                    FontStyles.Bold, Secondary, TextAlignmentOptions.Center, 50f, 17f, 104f, 44f);
+                NormalizeHeaderText(command, "Label", font, "CENTRO\nDE MANDO", 16f,
+                    FontStyles.Bold, Secondary, TextAlignmentOptions.Center, 52f, 27f, 112f, 48f);
                 CopyHangarArt(source, command);
             }
         }
@@ -205,11 +285,16 @@ public static class Dimension1SharedShellApply
             CopyHangarArt(source, card);
         }
 
-        RectTransform allMetals = FindHeaderCard(root,
-            root.name == "D1_GalaxyVisualRoot" ? "AllMetals" : "MetalsButton");
+        bool usesAllMetals = root.name == "D1_GalaxyVisualRoot" ||
+            root.name == "D1_AncientOrbitsVisualRoot" ||
+            root.name == "D1_OuterRimDetailVisualRoot" ||
+            root.name == "D1_DebrisRingDetailVisualRoot" ||
+            root.name == "D1_SilentFrontierDetailVisualRoot";
+        RectTransform allMetals = FindHeaderCard(root, usesAllMetals ? "AllMetals" : "MetalsButton");
         RectTransform allMetalsSource = FindHeaderCard(hangar, "MetalsButton");
         if (allMetals != null)
         {
+            EnsureMetalsButton(allMetals, root.gameObject.scene);
             SetTop(allMetals, Dimension1SharedLayoutTokens.AllMetalsX,
                 Dimension1SharedLayoutTokens.AllMetalsY,
                 Dimension1SharedLayoutTokens.AllMetalsWidth,
@@ -219,6 +304,26 @@ public static class Dimension1SharedShellApply
                 Cyan, TextAlignmentOptions.Center, 55f, 29f, 145f, 36f);
             CopyHangarArt(allMetalsSource, allMetals);
         }
+    }
+
+    private static void EnsureMetalsButton(RectTransform card, Scene scene)
+    {
+        Button button = card.GetComponent<Button>();
+        if (button == null) button = card.gameObject.AddComponent<Button>();
+        button.interactable = true;
+        button.transition = Selectable.Transition.None;
+
+        Transform inventoryRoot = FindSceneTransform(scene, "D1_MetalsInventoryRoot");
+        Dimension1MetalsInventoryUI inventory = inventoryRoot != null
+            ? inventoryRoot.GetComponent<Dimension1MetalsInventoryUI>()
+            : null;
+        if (inventory != null)
+        {
+            while (button.onClick.GetPersistentEventCount() > 0)
+                UnityEventTools.RemovePersistentListener(button.onClick, 0);
+            UnityEventTools.AddPersistentListener(button.onClick, inventory.Open);
+        }
+        EditorUtility.SetDirty(card.gameObject);
     }
 
     private static void NormalizeNavigation(RectTransform root, Sprite frame, Sprite fill,
@@ -292,7 +397,12 @@ public static class Dimension1SharedShellApply
         {
             pointerTransform.gameObject.SetActive(true);
             polygon = pointerTransform.GetComponent<Dimension1CommandCenterPolygonGraphic>();
-            if (polygon == null) polygon = pointerTransform.gameObject.AddComponent<Dimension1CommandCenterPolygonGraphic>();
+            if (polygon == null)
+            {
+                Graphic previousGraphic = pointerTransform.GetComponent<Graphic>();
+                if (previousGraphic != null) UnityEngine.Object.DestroyImmediate(previousGraphic);
+                polygon = pointerTransform.gameObject.AddComponent<Dimension1CommandCenterPolygonGraphic>();
+            }
             Stretch((RectTransform)pointerTransform);
         }
 
@@ -421,8 +531,8 @@ public static class Dimension1SharedShellApply
             tmp.fontStyle = style;
             tmp.color = color;
             tmp.alignment = alignment;
-            tmp.enableWordWrapping = false;
-            tmp.overflowMode = TextOverflowModes.Ellipsis;
+            tmp.textWrappingMode = TextWrappingModes.NoWrap;
+            tmp.overflowMode = TextOverflowModes.Truncate;
             tmp.raycastTarget = false;
             EditorUtility.SetDirty(tmp);
             return;
@@ -471,8 +581,8 @@ public static class Dimension1SharedShellApply
         text.fontStyle = style;
         text.color = color;
         text.alignment = alignment;
-        text.enableWordWrapping = false;
-        text.overflowMode = TextOverflowModes.Ellipsis;
+        text.textWrappingMode = TextWrappingModes.NoWrap;
+        text.overflowMode = TextOverflowModes.Truncate;
         text.raycastTarget = false;
         EditorUtility.SetDirty(text);
     }
@@ -546,6 +656,10 @@ public static class Dimension1SharedShellApply
         if (rootName == "D1_HangarVisualRoot") return 2;
         if (rootName == "D1_RelicsVisualRoot") return 3;
         if (rootName == "D1_TreeVisualRoot") return 4;
+        if (rootName == "D1_AncientOrbitsVisualRoot" ||
+            rootName == "D1_OuterRimDetailVisualRoot" ||
+            rootName == "D1_DebrisRingDetailVisualRoot" ||
+            rootName == "D1_SilentFrontierDetailVisualRoot") return 0;
         return -1;
     }
 
@@ -568,6 +682,35 @@ public static class Dimension1SharedShellApply
                     Dimension1SharedLayoutTokens.HeaderTitleHeight))
                 throw new InvalidOperationException("Título compartido inválido en " + rootName);
 
+            bool usesAllMetals = rootName == "D1_GalaxyVisualRoot" ||
+                rootName == "D1_AncientOrbitsVisualRoot" ||
+                IsSectorDetailRoot(rootName);
+            RectTransform metalsEntry = FindHeaderCard(root,
+                usesAllMetals ? "AllMetals" : "MetalsButton");
+            Button metalsButton = metalsEntry != null ? metalsEntry.GetComponent<Button>() : null;
+            Image metalsHit = metalsEntry != null ? metalsEntry.GetComponent<Image>() : null;
+            if (metalsButton == null || metalsHit == null ||
+                metalsButton.targetGraphic != metalsHit || !metalsButton.interactable ||
+                !metalsHit.raycastTarget)
+            {
+                throw new InvalidOperationException(
+                    "Acceso compartido a 10 METALES inválido en " + rootName);
+            }
+
+            bool opensInventory = false;
+            for (int i = 0; i < metalsButton.onClick.GetPersistentEventCount(); i++)
+            {
+                if (metalsButton.onClick.GetPersistentTarget(i) != null &&
+                    metalsButton.onClick.GetPersistentMethodName(i) == "Open")
+                {
+                    opensInventory = true;
+                    break;
+                }
+            }
+            if (!opensInventory)
+                throw new InvalidOperationException(
+                    "10 METALES no conserva su ruta persistente en " + rootName);
+
             Transform nav = FindDirectChild(root, "BottomNavigation") ??
                 FindDirectChild(root, "D1BottomNavigation");
             List<RectTransform> cards = CollectNavigationCards(nav != null ? nav : root);
@@ -581,6 +724,15 @@ public static class Dimension1SharedShellApply
                         Dimension1SharedLayoutTokens.NavigationLabelWidth,
                         Dimension1SharedLayoutTokens.NavigationLabelHeight))
                     throw new InvalidOperationException("Etiqueta inferior inválida en " + rootName);
+            }
+
+            if (IsSectorDetailRoot(rootName))
+            {
+                RectTransform heading = FindDirectChild(root, "Heading") as RectTransform;
+                RectTransform sectorTitle = FindDirectChild(heading, "Title") as RectTransform;
+                if (!MatchesTop(heading, 0f, 0f, Dimension1SharedLayoutTokens.Width, 258f) ||
+                    !MatchesTop(sectorTitle, 142f, 184f, 796f, 44f))
+                    throw new InvalidOperationException("Encabezado de sector inválido en " + rootName);
             }
         }
     }

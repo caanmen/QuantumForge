@@ -342,9 +342,44 @@ public static class Dimension1MetalsInventorySetup
                 throw new InvalidOperationException("Falta MetalCard_" + i + ".");
         int entries = 0;
         foreach (Transform transform in root.parent.GetComponentsInChildren<Transform>(true))
-            if ((transform.name == "MetalsButton" || transform.name == "AllMetals") && transform.GetComponent<Button>() != null)
-                entries++;
+        {
+            if (transform.name != "MetalsButton" && transform.name != "AllMetals") continue;
+
+            Button button = transform.GetComponent<Button>();
+            Image hit = transform.GetComponent<Image>();
+            if (button == null || hit == null || button.targetGraphic != hit ||
+                !button.interactable || !hit.raycastTarget)
+            {
+                throw new InvalidOperationException(
+                    "Acceso de metales incompleto o sin área táctil: " + GetHierarchyPath(transform));
+            }
+
+            bool opensInventory = false;
+            for (int i = 0; i < button.onClick.GetPersistentEventCount(); i++)
+            {
+                if (button.onClick.GetPersistentTarget(i) == root.GetComponent<Dimension1MetalsInventoryUI>() &&
+                    button.onClick.GetPersistentMethodName(i) == "Open")
+                {
+                    opensInventory = true;
+                    break;
+                }
+            }
+
+            if (!opensInventory)
+                throw new InvalidOperationException(
+                    "Acceso de metales sin ruta persistente al inventario: " + GetHierarchyPath(transform));
+            entries++;
+        }
         if (entries < 6) throw new InvalidOperationException("No están conectados los seis accesos de metales.");
+    }
+
+    private static string GetHierarchyPath(Transform transform)
+    {
+        if (transform == null) return "<nulo>";
+        string path = transform.name;
+        for (Transform parent = transform.parent; parent != null; parent = parent.parent)
+            path = parent.name + "/" + path;
+        return path;
     }
 
     private static RectTransform Panel(string name, Transform parent, Sprite frame, Sprite fill,
@@ -407,7 +442,7 @@ public static class Dimension1MetalsInventorySetup
         text.fontStyle = style;
         text.color = color;
         text.alignment = TextAlignmentOptions.Left;
-        text.enableWordWrapping = false;
+        text.textWrappingMode = TextWrappingModes.NoWrap;
         text.overflowMode = TextOverflowModes.Truncate;
         text.raycastTarget = false;
         return text;

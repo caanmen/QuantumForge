@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -129,6 +130,7 @@ public static class Dimension1TreeNavigationRuntimeValidation
                 break;
             case 1:
                 ValidateTreeVisible();
+                ValidateTreeInteraction();
                 Click("D1_TreeVisualRoot", "CommandCenter");
                 break;
             case 2:
@@ -335,6 +337,30 @@ public static class Dimension1TreeNavigationRuntimeValidation
             if (target != null && target.gameObject.activeSelf)
                 throw new InvalidOperationException("Navegación global superpuesta: " + name);
         }
+    }
+
+    private static void ValidateTreeInteraction()
+    {
+        Transform root = FindSceneTransform("D1_TreeVisualRoot");
+        Dimension1TreeVisualUI visual = root != null
+            ? root.GetComponent<Dimension1TreeVisualUI>()
+            : null;
+        if (visual == null)
+            throw new InvalidOperationException("Falta Dimension1TreeVisualUI para validar el Árbol.");
+
+        visual.SetReferencePreviewForVisualQa(true);
+        Click("D1_TreeVisualRoot", "TreeNode_1");
+        if (visual.SelectedNodeIndex != 0)
+            throw new InvalidOperationException("El clic físico no seleccionó Lectura de Destinos.");
+        Click("D1_TreeVisualRoot", "TreeNode_9");
+        if (visual.SelectedNodeIndex != 8)
+            throw new InvalidOperationException("El clic físico no seleccionó Cartografía Avanzada.");
+        Click("D1_TreeVisualRoot", "UnlockButton");
+        TMP_Text points = FindChild(root, "AvailablePoints")?.GetComponent<TMP_Text>();
+        TMP_Text progress = FindChild(FindChild(root, "TreeNode_9"), "Progress")?.GetComponent<TMP_Text>();
+        if (points == null || points.text != "0" || progress == null || progress.text != "1 / 1")
+            throw new InvalidOperationException("La compra visual no actualizó puntos y nivel del nodo.");
+        visual.SetReferencePreviewForVisualQa(false);
     }
 
     private static void ValidateTreeClosed(string destination)

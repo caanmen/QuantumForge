@@ -1,0 +1,50 @@
+DECISIONES — CONTENCIÓN
+
+1 de septiembre de 2026
+
+1. La referencia permanente V4 manda sobre el adjunto temporal del chat.
+2. La sección conserva el nombre CONTENCIÓN antes del cierre; PACTO MAYOR sólo
+   corresponde a la fase posterior de la vista 15.
+3. La placa limpia mantiene ilustración, cadenas, anillo, marcos, iconos y botones;
+   únicamente los textos, valores y selección son capas dinámicas de Unity.
+4. Miembros, Dominio, intentos, fallos, probabilidad, cooldown y resultado se
+   refrescan desde D2Civilization2State y D2Civilization2System.
+5. La probabilidad no se recalcula en la UI; la pantalla consume el valor del
+   sistema para evitar dos fórmulas divergentes.
+6. La primera pulsación con riesgo alto sólo arma la confirmación. La prueba
+   comprueba que no incrementa intentos ni resuelve aleatoriamente la Contención.
+7. Los cinco controles de Sostenimiento visibles antes del éxito son Buttons
+   deshabilitados. Las acciones funcionales permanecen reservadas para la fase
+   posterior del Pacto Mayor.
+8. Fallo y Éxito son textos separados con acentos propios dentro del mismo panel;
+   no dependen de espacios escritos para alineación.
+9. La etiqueta de resultado distingue reintento inmediato y cooldown activo.
+10. La acción principal conserva un único Button con etiqueta dinámica y no se
+    duplica encima de la placa ornamental.
+11. El fondo, la navegación y toda ornamentación mantienen raycast desactivado;
+    únicamente los controles reales pueden recibir eventos.
+12. El capturador congela el tiempo, restaura el fixture antes de cada resolución
+    y mantiene suprimidas las escrituras hasta cerrar Unity.
+13. La captura comprueba geometría TMP, disponibilidad de la acción, ruta física,
+    regreso, reapertura y conservación de save.json y save.json.bak.
+14. Toda modificación futura de placa, texto, botón, controlador o navegación
+    obliga a regenerar 1080, 720 y la comparación oficial.
+15. Superar el 95 % y pasar QA convierte la pantalla en candidata técnica; la
+    aprobación visual y creativa sigue perteneciendo al usuario.
+
+2 de septiembre de 2026
+
+16. Los cuatro valores de la cabecera usan el ancho completo de sus etiquetas y
+    alineación centrada para evitar desplazamientos ópticos entre rótulo y cifra.
+17. DOMINIO TOTAL, 15 % y el medallón del ojo comparten ahora el eje central de
+    la tarjeta; el reloj de cooldown se centra dentro de su propia tarjeta.
+18. El contenido de los cinco botones de Sostenimiento sube ocho píxeles de
+    diseño sin alterar placas, hit areas, estado deshabilitado ni mecánicas.
+19. La placa V2 sustituye a V1 sólo para estas correcciones de iconos y mantiene
+    la resolución canónica 941×1672.
+20. El ajuste óptico final sube el valor 15 % ocho píxeles de diseño y usa la
+    placa V3 para desplazar el ojo y el reloj ligeramente a la izquierda, sin
+    modificar tamaño, altura, tarjetas, datos ni interacción.
+21. SIN COOLDOWN baja doce píxeles de diseño para reducir la separación vertical
+    respecto al reloj; ambos conservan su centro horizontal y la placa V3 no se
+    modifica.

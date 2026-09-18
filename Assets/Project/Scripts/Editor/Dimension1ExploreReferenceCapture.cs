@@ -4,16 +4,24 @@ using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.UI;
 
 public static class Dimension1ExploreReferenceCapture
 {
     private const string ActiveKey = "QF.D1ExploreCapture.Active";
     private const string FrameKey = "QF.D1ExploreCapture.Frame";
     private const string FailureKey = "QF.D1ExploreCapture.Failed";
+    private const string DebrisRingKey = "QF.D1ExploreCapture.DebrisRing";
     private const string ScenePath = "Assets/Project/Scenes/Main.unity";
     private static string OutputDirectory => Path.GetFullPath("Logs/VisualQA/Dimension1/ExploreReference");
-    private static string OutputPath => Path.Combine(OutputDirectory, "Explore_reference_1080x1920.png");
-    private static string OutputPath720 => Path.Combine(OutputDirectory, "Explore_reference_720x1280.png");
+    private static string OutputPath => Path.Combine(OutputDirectory,
+        SessionState.GetBool(DebrisRingKey, false)
+            ? "Explore_anillo_de_restos_1080x1920.png"
+            : "Explore_reference_1080x1920.png");
+    private static string OutputPath720 => Path.Combine(OutputDirectory,
+        SessionState.GetBool(DebrisRingKey, false)
+            ? "Explore_anillo_de_restos_720x1280.png"
+            : "Explore_reference_720x1280.png");
 
     [InitializeOnLoadMethod]
     private static void Resume()
@@ -30,6 +38,17 @@ public static class Dimension1ExploreReferenceCapture
 
     public static void Run()
     {
+        Begin(false);
+    }
+
+    public static void RunDebrisRing()
+    {
+        Begin(true);
+    }
+
+    private static void Begin(bool debrisRing)
+    {
+        SessionState.SetBool(DebrisRingKey, debrisRing);
         Directory.CreateDirectory(OutputDirectory);
         if (File.Exists(OutputPath)) File.Delete(OutputPath);
         if (File.Exists(OutputPath720)) File.Delete(OutputPath720);
@@ -89,6 +108,20 @@ public static class Dimension1ExploreReferenceCapture
     private static void Prepare()
     {
         SaveService.SuppressWritesForVisualQa = true;
+        if (SessionState.GetBool(DebrisRingKey, false))
+        {
+            GameState state = Object.FindFirstObjectByType<GameState>(FindObjectsInactive.Include);
+            if (state == null) throw new System.InvalidOperationException("Falta GameState para preparar Anillo de Restos.");
+            state.ResetDimension1MvpState();
+            state.dimension01Unlocked = true;
+            state.EnsureDimension1State();
+            if (state.dimension1Sectors != null)
+                foreach (D1SectorState sector in state.dimension1Sectors)
+                    if (sector != null && sector.sectorId == Dimension1System.Sector02DebrisRing)
+                        sector.unlocked = true;
+            if (!state.TrySelectD1Sector(Dimension1System.Sector02DebrisRing))
+                throw new System.InvalidOperationException("No se pudo seleccionar Anillo de Restos para la captura.");
+        }
         TabsUI tabs = TabsUI.Instance != null ? TabsUI.Instance : Object.FindFirstObjectByType<TabsUI>();
         if (tabs != null) tabs.ShowDimension1();
         SetSceneObjectActive("Dimension1Panel", true);
@@ -138,7 +171,9 @@ public static class Dimension1ExploreReferenceCapture
         }
         Dimension1ExploreVisualUI visual = root.GetComponent<Dimension1ExploreVisualUI>();
         if (visual == null) throw new System.InvalidOperationException("Falta Dimension1ExploreVisualUI.");
-        visual.SetReferencePreviewForVisualQa(true);
+        bool debrisRing = SessionState.GetBool(DebrisRingKey, false);
+        visual.SetReferencePreviewForVisualQa(!debrisRing);
+        if (debrisRing) visual.RefreshFromStateForUi();
         Canvas.ForceUpdateCanvases();
     }
 
@@ -150,13 +185,23 @@ public static class Dimension1ExploreReferenceCapture
         string[] required =
         {
             "DimensionTitle", "ExploreTitle", "ScannerPanel", "DestinationPanel", "ShipPanel",
-            "SupportPanel", "ActiveExpedition", "StartExpedition", "ExplorationRecord", "BottomNavigation"
+            "SupportPanel", "ModePanel", "ActiveExpedition", "StartExpedition", "ExplorationRecord", "BottomNavigation"
         };
         foreach (string name in required)
             if (FindChild(root, name) == null) throw new System.InvalidOperationException("Falta bloque: " + name);
         TMP_Text title = FindChild(root, "ExploreTitle")?.GetComponent<TMP_Text>();
         if (title == null || title.text != "EXPLORAR")
             throw new System.InvalidOperationException("Título Explorar inválido.");
+        if (SessionState.GetBool(DebrisRingKey, false))
+        {
+            TMP_Text sectorName = FindChild(root, "SectorName")?.GetComponent<TMP_Text>();
+            Image artwork = FindChild(root, "SectorArtwork")?.GetComponent<Image>();
+            if (sectorName == null || !sectorName.text.Contains("ANILLO DE RESTOS"))
+                throw new System.InvalidOperationException("La captura no quedó en Anillo de Restos.");
+            if (artwork == null || artwork.sprite == null ||
+                artwork.sprite.name != "d1_debris_ring_option_1_dense_orbit")
+                throw new System.InvalidOperationException("La captura no usa la opción 1 del Anillo de Restos.");
+        }
         if (FindSceneTransform("PrimaryNavigationSlot")?.gameObject.activeSelf == true)
             throw new System.InvalidOperationException("La navegación global se mezcló con Explorar.");
     }

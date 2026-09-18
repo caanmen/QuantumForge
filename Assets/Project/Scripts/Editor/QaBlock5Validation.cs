@@ -54,7 +54,8 @@ public static class QaBlock5Validation
         {
             Check(services[0].panel != null &&
                 services[0].panel.checkpointSaveButtons.Length == 3 &&
-                services[0].panel.checkpointLoadButtons.Length == 3,
+                services[0].panel.checkpointLoadButtons.Length == 3 &&
+                services[0].panel.checkpointStatusTexts.Length == 3,
                 "El servicio no está conectado a los tres slots del panel.",
                 failures);
         }
@@ -80,8 +81,10 @@ public static class QaBlock5Validation
             "El servicio no reutiliza guardado, validación y escritura atómica.",
             failures);
         Check(source.Contains("data.lastUnix = nowUnix") &&
+            source.Contains("saveService.Load()") &&
+            source.Contains("saveService.TrySave") &&
             source.Contains("SceneManager.LoadScene(\"Main\")"),
-            "La restauración no neutraliza offline o no recarga Main.", failures);
+            "La restauración no activa memoria, confirma save o recarga Main.", failures);
         Check(source.Contains("QaRuntimeService.IsAvailable") &&
             panelSource.Contains("safeAreaRoot.gameObject.SetActive(false)") &&
             !source.Contains("Resources/") &&
@@ -99,6 +102,12 @@ public static class QaBlock5Validation
             source.Contains("convergencePhase") &&
             source.Contains("qaSimulationMultiplier"),
             "Faltan metadatos QA requeridos.", failures);
+        Check(source.Contains("RefreshSlotStatuses") &&
+            panelSource.Contains("checkpointStatusTexts") &&
+            panelSource.Contains("SetCheckpointSlotStatus") &&
+            panelSource.Contains("checkpointLoadAvailable"),
+            "Las ranuras no publican estado visible o no bloquean CARGAR vacío.",
+            failures);
     }
 
     private static void ValidateCheckpointRoundTrip(

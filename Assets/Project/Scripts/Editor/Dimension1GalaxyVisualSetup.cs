@@ -27,8 +27,9 @@ public static class Dimension1GalaxyVisualSetup
     private static readonly Color Primary = Hex("EAF4F8");
     private static readonly Color Secondary = Hex("9FB5C2");
 
-    [MenuItem("Quantum Forge/Dimension 1/Configure Galaxy Visual V2")]
-    public static void Configure()
+    // Constructor histórico conservado sólo para trazabilidad. No debe volver a
+    // ejecutar ni reemplazar la raíz canónica V11.
+    private static void ConfigureLegacyV2()
     {
         EnsureGeneratedArt();
 
@@ -157,7 +158,7 @@ public static class Dimension1GalaxyVisualSetup
         summary.rectTransform.anchoredPosition = new Vector2(0f, -14f);
         summary.rectTransform.sizeDelta = new Vector2(-34f, 300f);
         summary.alignment = TextAlignmentOptions.TopLeft;
-        summary.enableWordWrapping = true;
+        summary.textWrappingMode = TextWrappingModes.Normal;
         summary.overflowMode = TextOverflowModes.Overflow;
         ContentSizeFitter summaryFitter = summary.gameObject.AddComponent<ContentSizeFitter>();
         summaryFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
@@ -220,8 +221,7 @@ public static class Dimension1GalaxyVisualSetup
         Debug.Log("[D1 Galaxy Visual V2] CONFIGURATION_PASS | metales reales | 5 sectores | UI portrait");
     }
 
-    [MenuItem("Quantum Forge/Dimension 1/Validate Galaxy Visual V2")]
-    public static void ValidateMenu()
+    private static void ValidateLegacyV2()
     {
         Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
         Validate(scene);
@@ -456,7 +456,7 @@ public static class Dimension1GalaxyVisualSetup
         text.fontStyle = style;
         text.color = color;
         text.raycastTarget = false;
-        text.enableWordWrapping = true;
+        text.textWrappingMode = TextWrappingModes.Normal;
         return text;
     }
 

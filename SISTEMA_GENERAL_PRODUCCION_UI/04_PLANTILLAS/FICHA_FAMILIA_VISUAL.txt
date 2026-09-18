@@ -1,0 +1,86 @@
+PERFIL DE FAMILIA VISUAL
+========================
+
+IDENTIDAD
+Proyecto:
+Familia visual / dimensión / facción / zona / modo:
+Estado: PENDIENTE / CANDIDATO / PARCIAL / APROBADO
+Responsable:
+Fecha:
+
+AUTORIDAD Y EVIDENCIA
+Diseño canónico:
+Pantallas utilizadas como evidencia:
+Capturas reales aprobadas:
+Referencias candidatas:
+Decisiones pendientes:
+
+ALCANCE
+Principios generales heredados:
+Módulos técnicos aplicables:
+Rasgos exclusivos:
+Componentes compartidos autorizados:
+Estéticas de otras familias que NO se heredan:
+
+CONTRATO DE ASSETS REPETIDOS
+Tipos de elementos incluidos en la familia:
+Contrato por tipo: ELEMENTO COMPLETO / CAPA INTERIOR / COMPOSICIÓN MODULAR
+Plantilla o geometría maestra:
+Capas compartidas:
+Capas variables:
+Relación de aspecto y resolución final:
+Regla de encuadre: CONTENER / CUBRIR / RECORTAR / NO APLICA
+Zonas reservadas normalizadas:
+Perfil de colocación de texto, cifras, símbolos e iconos:
+Excepciones autorizadas:
+Unidad representativa que debe aprobarse antes del lote:
+Fuente definitiva y herramienta de generación:
+Cuadrícula de revisión de la colección:
+
+LENGUAJE VISUAL
+Debe sentirse como:
+Debe destacar:
+No debe parecer:
+Paleta y función de cada color:
+Materiales y superficies:
+Marcos y zonas interiores:
+Tipografías y escala:
+Iconografía:
+Fondos y profundidad:
+Ilustraciones y medio gráfico:
+
+CONSISTENCIA DE FAMILIA
+Qué geometría debe ser idéntica entre variantes:
+Qué puede cambiar intencionalmente:
+Cómo se verificará que no exista deformación:
+Cómo se revisarán zonas reservadas y alineación óptica:
+Evidencia real posterior al último cambio:
+Iluminación y efectos:
+Movimiento:
+
+ESTRUCTURA
+Encabezado:
+Contenido:
+Contexto:
+Navegación:
+Comportamiento responsivo:
+
+ESTADOS
+Neutral:
+Seleccionado:
+Bloqueado o deshabilitado:
+Vacío:
+Completado:
+Error:
+
+ASSETS Y COMPONENTES
+Canónicos:
+Candidatos:
+Temas, prefabs o componentes autorizados:
+Variantes y excepciones:
+
+VALIDACIÓN
+[ ] Cada decisión tiene evidencia identificable.
+[ ] No se heredó estética de otra familia por comodidad.
+[ ] Candidatos y aprobados están separados.
+[ ] El estado del perfil coincide con la evidencia disponible.

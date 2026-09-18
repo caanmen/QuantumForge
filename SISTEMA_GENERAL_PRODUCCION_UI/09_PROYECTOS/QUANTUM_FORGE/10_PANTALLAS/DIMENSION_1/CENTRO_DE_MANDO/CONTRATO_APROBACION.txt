@@ -1,0 +1,24 @@
+CONTRATO DE APROBACIÓN: CENTRO DE MANDO
+=======================================
+
+Referencia permanente: registrada.
+Resolución objetivo: 1080 x 1920 vertical.
+Estados mínimos de captura: neutral y navegación/drawer cuando corresponda.
+Meta visual: 95 % de parecido percibido con la referencia aprobada.
+
+Comprobaciones realizadas el 20 de agosto de 2026:
+[x] Captura neutral 1080 x 1920 y 720 x 1280.
+[x] Captura del cajón abierto 1080 x 1920 y 720 x 1280.
+[x] Estado cerrado → abierto → cerrado probado en modo juego.
+[x] Navegación interna validada dentro de la raíz propietaria.
+[x] Textos de objetivo y progreso sin invadir iconos.
+[x] Marcador visual persistente después de cerrar y recargar Unity.
+
+CIERRE — 8 DE SEPTIEMBRE DE 2026
+[x] Aprobación visual explícita del usuario con similitud mínima del 95 %.
+[x] Capturas finales neutral y selector abierto archivadas en 1080×1920 y 720×1280.
+[x] Botón DIMENSIONES ampliado y validado con 15/15 muestras táctiles por resolución.
+
+Resultado: APROBADA Y CERRADA.
+Aprobada por: usuario.
+Fecha: 8 de septiembre de 2026.

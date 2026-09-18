@@ -106,6 +106,11 @@ public static class VerticalUiBlock1Setup
         gridImage.type = Image.Type.Tiled;
         gridImage.color = new Color(0.23f, 0.72f, 1f, 0.16f);
         gridImage.raycastTarget = false;
+        // La reticula era una guia decorativa del shell inicial. Al quedar
+        // visible a traves de margenes transparentes parecia un borde tecnico
+        // distinto en cada pantalla, asi que se conserva el asset canonico
+        // pero no se renderiza en produccion.
+        grid.SetActive(false);
 
         GameObject safeArea = GetOrCreateUiObject("VerticalSafeAreaRoot", root.transform);
         Stretch((RectTransform)safeArea.transform);
@@ -127,6 +132,7 @@ public static class VerticalUiBlock1Setup
         layout.secondaryNavigationSlot = (RectTransform)secondary.transform;
         layout.primaryNavigationSlot = (RectTransform)primary.transform;
         layout.horizontalMargin = 24f;
+        layout.contentHorizontalMargin = 0f;
         layout.headerHeight = 0f;
         layout.primaryNavigationHeight = 132f;
         layout.secondaryNavigationHeight = 104f;

@@ -38,7 +38,9 @@ public static class QaBlock4Validation
                 "El runner no está conectado al estado visible del panel.", failures);
 
             ValidateSourceContract(failures);
+            ValidateHudPrecision(failures);
             ValidateExactDeterministicSteps(failures);
+            ValidateAggregateOfflineAdvance(failures);
             ValidateMachineAndCooldownStep(failures);
             ValidateConcurrentGuard(runner, availabilityOverride, failures);
         }
@@ -54,6 +56,19 @@ public static class QaBlock4Validation
         Finish(failures);
     }
 
+    private static void ValidateHudPrecision(List<string> failures)
+    {
+        string source = File.ReadAllText(
+            "Assets/Project/Scripts/UI/HUD.cs");
+        Check(source.Contains("public void RefreshNow()") &&
+            source.Contains("{gs.LE:0}") &&
+            source.Contains("{gs.Traces:0}") &&
+            !source.Contains("(float)gs.LE") &&
+            !source.Contains("(float)gs.Traces"),
+            "El HUD todavía pierde precisión o no ofrece refresco inmediato.",
+            failures);
+    }
+
     private static void ValidateSourceContract(List<string> failures)
     {
         string source = File.ReadAllText(
@@ -61,24 +76,59 @@ public static class QaBlock4Validation
         Check(source.Contains("StepSeconds = 1.0") &&
             source.Contains("StepsPerYield = 50") &&
             source.Contains("yield return null"),
-            "El runner no usa pasos de 1 s con cesión periódica.", failures);
+            "La ruta corta no usa pasos de 1 s con cesión periódica.", failures);
         Check(source.Contains("state.Tick(step)") &&
-            source.Contains(
-                "GetTrianglePhaseAnalysisSpeedMultiplierForPeriod(step)") &&
             source.Contains("machine.AdvanceAnalysis(") &&
             source.Contains("room2.AdvanceQaFusionCooldown(step)"),
             "El paso no cubre juego, Máquina y cooldown en el orden requerido.",
             failures);
-        Check(!source.Contains("ScaleOnlineSeconds") &&
-            !source.Contains("ApplyOfflineProgress") &&
-            !source.Contains("ApplyOfflineAnalysis") &&
+        Check(source.Contains("AggregateOfflineThresholdSeconds = 3600.0") &&
+            source.Contains("state.ApplyOfflineBaseProgress(seconds)") &&
+            source.Contains("ApplyAggregateOfflineProgress(") &&
             !source.Contains("lastUnix"),
-            "El avance manual usa velocidad QA, reglas offline o lastUnix.",
+            "La ruta larga no usa el cálculo agregado de ausencia o altera lastUnix.",
             failures);
         Check(source.Contains("TrySave(\"antes de comenzar\")") &&
             source.Contains("TrySave(\"al finalizar\")") &&
+            source.Contains("RefreshAfterAdvance()") &&
+            source.Contains("LE +") && source.Contains("TRAZAS +") &&
             source.Contains("SetControlsInteractable(false)"),
-            "Falta guardado previo/final o bloqueo de controles.", failures);
+            "Falta guardado, refresco, reporte de ganancia o bloqueo de controles.",
+            failures);
+    }
+
+    private static void ValidateAggregateOfflineAdvance(
+        List<string> failures)
+    {
+        GameState state = CreateState("QA B4 Aggregate 24H");
+        MethodInfo aggregate = typeof(QaFastForwardRunner).GetMethod(
+            "ApplyAggregateOfflineProgress",
+            BindingFlags.NonPublic | BindingFlags.Static);
+        try
+        {
+            state.baseLEps = 2.0;
+            state.LE = 10.0;
+            SetGameStateSingleton(state);
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            object rawReport = aggregate?.Invoke(null,
+                new object[] { 86400.0, state, null, null });
+            stopwatch.Stop();
+            TriangleOfflineReport report = rawReport as TriangleOfflineReport;
+
+            Check(aggregate != null && report != null,
+                "No se pudo ejecutar la ruta agregada de ausencia.", failures);
+            Check(report != null && report.appliedSeconds == 86400.0 &&
+                report.leGained >= 172800.0 &&
+                Math.Abs(state.LE - 10.0 - report.leGained) < 0.000001,
+                "+24 H no concedió la ganancia base agregada esperada.", failures);
+            Check(stopwatch.ElapsedMilliseconds < 1000,
+                "+24 H tardó demasiado y puede volver a bloquear el dispositivo: " +
+                stopwatch.ElapsedMilliseconds + " ms.", failures);
+        }
+        finally
+        {
+            UnityEngine.Object.DestroyImmediate(state.gameObject);
+        }
     }
 
     private static void ValidateExactDeterministicSteps(List<string> failures)
@@ -133,7 +183,11 @@ public static class QaBlock4Validation
         {
             SetField(machine, "_analysisNodeId", "qa_test_node");
             SetField(machine, "_analysisRemainingSeconds", 100.0);
-            SetField(room, "currentFusionCooldownSeconds", 100.0);
+            state.fusionCooldownRemainingSeconds = 100.0;
+            state.pendingFusion = new ExperimentalPendingFusionState
+            {
+                active = true
+            };
             SetGameStateSingleton(state);
 
             GetProcessStep()?.Invoke(null,
@@ -143,8 +197,10 @@ public static class QaBlock4Validation
                 "El análisis de Máquina no avanzó con el paso QA.", failures);
             double cooldown = (double)GetField(room,
                 "currentFusionCooldownSeconds");
-            Check(Math.Abs(cooldown - 90.0) < 0.000001,
-                "El cooldown del Cuarto 2 no avanzó con el paso QA.", failures);
+            Check(Math.Abs(cooldown - 90.0) < 0.000001 &&
+                Math.Abs(state.fusionCooldownRemainingSeconds - 90.0) < 0.000001,
+                "El cooldown persistente del Cuarto 2 no avanzó con el paso QA.",
+                failures);
         }
         finally
         {
@@ -214,8 +270,8 @@ public static class QaBlock4Validation
         if (failures.Count == 0)
         {
             Debug.Log("[QA Block 4] PASS | 300 s exactos | pasos de 1 s | " +
-                "independiente de xN | Máquina | cooldown | guardado previo/final | " +
-                "progreso | sin offline | una sola coroutine");
+                "independiente de xN | +24 H agregado | ganancia visible | Máquina | " +
+                "cooldown | guardado previo/final | una sola coroutine");
             return;
         }
 

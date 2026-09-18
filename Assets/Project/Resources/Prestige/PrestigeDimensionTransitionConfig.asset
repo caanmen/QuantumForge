@@ -15,6 +15,8 @@ MonoBehaviour:
   cardsTexture: {fileID: 2800000, guid: d5e540345ffd2664b80573cdba67f119, type: 3}
   portraitReference: {fileID: 2800000, guid: 48d040ca6a2ee3e4fa497c8c1084fc7c, type: 3}
   laboratoryBackground: {fileID: 2800000, guid: 5a8d9bb988e43a246bd2d2d0d524695b, type: 3}
-  cube2DTexture: {fileID: 2800000, guid: 09fdf4c3b1835204c89db43c15889272, type: 3}
-  characterTexture: {fileID: 2800000, guid: 34899f4ec3bd18d42b7c483a647bef23, type: 3}
+  monolithTexture: {fileID: 2800000, guid: d52d588848da4514386522f9d198dbff, type: 3}
+  monolithCutoutMaterial: {fileID: 2100000, guid: bf30b64499da23a48994cf2c935b134e, type: 2}
+  entryLightTexture: {fileID: 2800000, guid: 544ccc541dc921f4186212549e7c571a, type: 3}
+  entryLightAdditiveMaterial: {fileID: 2100000, guid: 9ea4f1da91b680e4f838dc6df349e091, type: 2}
   portalRingTexture: {fileID: 2800000, guid: 71e176afbedb37e47a3c77281f8a0c0b, type: 3}

@@ -483,7 +483,7 @@ public static class MachineFusionApprovedStyleSetup
                 continue;
             text.enableAutoSizing = true;
             text.fontSizeMin = Mathf.Min(text.fontSizeMin, 13f);
-            text.overflowMode = TextOverflowModes.Ellipsis;
+            text.overflowMode = TextOverflowModes.Truncate;
         }
     }
 

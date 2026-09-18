@@ -79,19 +79,29 @@ public static class D3DiagnosticSystem
         D3DiagnosticSettingsState settings = gameState.dimension3.diagnosticSettings;
         if (offline && !CanRunOffline(gameState))
         {
+            // El análisis manual ya iniciado avanza aunque la automatización esté bloqueada.
+            MachineManager.I?.ApplyOfflineAnalysis(seconds);
             settings.evaluationRemainingSeconds = GetEvaluationInterval(
                 gameState.dimension3);
             return;
         }
-        if (offline && MachineManager.I != null)
-            MachineManager.I.ApplyOfflineAnalysis(seconds);
-        settings.evaluationRemainingSeconds -= seconds;
-        int safety = 0;
-        while (settings.evaluationRemainingSeconds <= 0.0 && safety++ < 1000)
+        if (double.IsNaN(settings.evaluationRemainingSeconds) ||
+            double.IsInfinity(settings.evaluationRemainingSeconds))
+            settings.evaluationRemainingSeconds = GetEvaluationInterval(gameState.dimension3);
+        // Una deuda de versiones anteriores no representa tiempo nuevo para analizar.
+        settings.evaluationRemainingSeconds = Math.Max(0.0, settings.evaluationRemainingSeconds);
+        while (seconds > 0.0)
         {
-            settings.evaluationRemainingSeconds += GetEvaluationInterval(
-                gameState.dimension3);
-            EvaluateOnce(gameState);
+            double step = Math.Min(seconds, settings.evaluationRemainingSeconds);
+            if (offline && step > 0.0)
+                MachineManager.I?.ApplyOfflineAnalysis(step);
+            seconds -= step;
+            settings.evaluationRemainingSeconds -= step;
+            if (settings.evaluationRemainingSeconds <= 0.0)
+            {
+                EvaluateOnce(gameState);
+                settings.evaluationRemainingSeconds = GetEvaluationInterval(gameState.dimension3);
+            }
         }
     }
 

@@ -1,52 +1,48 @@
 using System;
+using System.Globalization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-
 public class D2NovitiatePanelUI : MonoBehaviour
 {
-    public TMP_Text acolytesText;
-    public TMP_Text resourcesText;
-    public TMP_Text batchText;
-    public TMP_Text activeTrainingText;
-    public TMP_Text supportText;
-    public Button addSupportButton;
-    public Button removeSupportButton;
-    public TMP_Text lastResultText;
-    public Button startTrainingButton;
-    public TMP_Text startTrainingButtonText;
-    public Button cancelTrainingButton;
-    public Button upgradeButton;
-    public TMP_Text upgradeButtonText;
+    public TMP_Text headerFollowersText, headerAcolytesText, headerPresentText, headerWaxText, headerBreadText;
+    public TMP_Text levelText, batchAcolytesText, batchDurationText;
+    public TMP_Text batchFollowerCostText, batchWaxCostText, batchBreadCostText;
+    public TMP_Text supportText, activeTrainingText, startTrainingButtonText, startCostText;
+    public TMP_Text upgradeButtonText, upgradeCostText;
+    public Button addSupportButton, removeSupportButton, startTrainingButton, cancelTrainingButton, upgradeButton;
+    public Button backButton, refugeNavButton, altarsNavButton, pilgrimagesNavButton;
+    public Button ritesNavButton, pactsNavButton, thresholdNavButton;
+
+    // Compatibilidad serializada con escenas anteriores.
+    public TMP_Text acolytesText, resourcesText, batchText, lastResultText;
 
     private float _refreshTimer;
+    private static readonly CultureInfo StableCulture = CultureInfo.InvariantCulture;
 
     private void Awake()
     {
-        if (startTrainingButton != null)
-            startTrainingButton.onClick.AddListener(StartTraining);
-        if (cancelTrainingButton != null)
-            cancelTrainingButton.onClick.AddListener(CancelTraining);
-        if (upgradeButton != null)
-            upgradeButton.onClick.AddListener(Upgrade);
-        if (addSupportButton != null)
-            addSupportButton.onClick.AddListener(() => ChangeSupport(1L));
-        if (removeSupportButton != null)
-            removeSupportButton.onClick.AddListener(() => ChangeSupport(-1L));
+        Add(startTrainingButton, StartTraining);
+        Add(cancelTrainingButton, CancelTraining);
+        Add(upgradeButton, Upgrade);
+        Add(addSupportButton, () => ChangeSupport(1L));
+        Add(removeSupportButton, () => ChangeSupport(-1L));
+        Add(backButton, ShowMap);
+        Add(refugeNavButton, () => Parent()?.ShowRefugeSection());
+        Add(altarsNavButton, () => Parent()?.ShowAltarsSection());
+        Add(pilgrimagesNavButton, () => Parent()?.ShowPilgrimagesSection());
+        Add(ritesNavButton, () => Parent()?.ShowRitesSection());
+        Add(pactsNavButton, () => Parent()?.ShowPactsSection());
+        Add(thresholdNavButton, () => Parent()?.ShowVeiledThresholdSection());
     }
 
-    private void OnEnable()
-    {
-        _refreshTimer = 0f;
-        Refresh();
-    }
+    private void OnEnable() { _refreshTimer = 0f; Refresh(); }
 
     private void Update()
     {
         _refreshTimer -= Time.unscaledDeltaTime;
-        if (_refreshTimer > 0f)
-            return;
+        if (_refreshTimer > 0f) return;
         _refreshTimer = 0.2f;
         Refresh();
     }
@@ -54,165 +50,78 @@ public class D2NovitiatePanelUI : MonoBehaviour
     public void Refresh()
     {
         GameState gameState = GameState.I;
-        if (!Dimension2System.CanAccessDimension2(gameState))
-            return;
-
+        if (!Dimension2System.CanAccessDimension2(gameState)) return;
         Dimension2System.EnsureState(gameState);
         D2Civilization1State state = gameState.dimension2.civilization1;
         int level = state.novitiateLevel;
         D2AltarState wax = D2AltarSystem.GetAltar(state, D2AltarSystem.WaxAltarId);
         D2AltarState bread = D2AltarSystem.GetAltar(state, D2AltarSystem.RitualBreadAltarId);
-        long totalAcolytes = D2NovitiateSystem.GetTotalAcolytes(state);
-
-        SetText(
-            acolytesText,
-            "NOVICIADO — Nivel actual " + level +
-            "   |   Acólitos disponibles: " + state.acolytesAvailable.ToString("N0") +
-            "   |   Totales presentes: " + totalAcolytes.ToString("N0")
-        );
-        SetText(
-            resourcesText,
-            "Seguidores disponibles: " + state.followersAvailable.ToString("N0") +
-            "   |   Cera: " + (wax?.offeringAmount ?? 0.0).ToString("N2") +
-            "   |   Pan ritual: " + (bread?.offeringAmount ?? 0.0).ToString("N2")
-        );
-        SetText(
-            batchText,
-            "Tanda actual: " + D2NovitiateSystem.GetCurrentAcolytesPerBatch(state, level)
-                .ToString("0.##") +
-            " Acólitos en " + FormatTime(
-                D2NovitiateSystem.GetCurrentDurationSeconds(state, level)
-            ) +
-            " — Convierte " + D2NovitiateSystem.GetFollowerCost(level).ToString("N0") +
-            " Seguidores" +
-            (D2CivilizationPactSystem.IsPactActive(
-                state,
-                D2CivilizationPactSystem.InnerDoorId
-            ) ? " — BLOQUEADO POR PUERTA INTERIOR" : "")
-        );
-
-        D2NovitiateTrainingState active = state.activeNovitiateTraining;
-        long support = active.active
-            ? active.supportFollowersCommitted
-            : state.novitiateSupportFollowersSelected;
-        SetText(
-            supportText,
-            "Apoyo adicional: " + support.ToString("N0") +
-            "/4 Seguidores — Reducción propia: " +
-            (D2NovitiateSystem.GetSupportDurationReduction(support) * 100.0)
-                .ToString("0.#") + "%"
-        );
-        SetText(
-            activeTrainingText,
-            active.active
-                ? "Formación en curso — Restante: " + FormatTime(
-                    D2NovitiateSystem.GetDisplayedRemainingSeconds(state)
-                  ) +
-                  " — Resultado: " + active.acolytesToCreate.ToString("N0") + " Acólitos" +
-                  (active.supportFollowersCommitted > 0L
-                      ? " — Apoyo: " + active.supportFollowersCommitted.ToString("N0")
-                      : "")
-                : "No hay una tanda en formación."
-        );
-        SetText(
-            lastResultText,
-            string.IsNullOrEmpty(state.lastNovitiateResult)
-                ? "Los Seguidores se convierten en Acólitos al completar la tanda."
-                : state.lastNovitiateResult
-        );
-
         double offeringCost = D2NovitiateSystem.GetOfferingCost(level);
-        SetText(
-            startTrainingButtonText,
-            "FORMAR TANDA\nCoste: " +
-            D2NovitiateSystem.GetFollowerCost(level).ToString("N0") +
-            " Seguidores · " + offeringCost.ToString("0") +
-            " Cera · " + offeringCost.ToString("0") + " Pan"
-        );
-        SetInteractable(
-            startTrainingButton,
-            D2NovitiateSystem.CanStartTraining(gameState)
-        );
+        D2NovitiateTrainingState active = state.activeNovitiateTraining;
+        long support = active.active ? active.supportFollowersCommitted : state.novitiateSupportFollowersSelected;
+
+        SetText(headerFollowersText, FormatLong(state.followersAvailable));
+        SetText(headerAcolytesText, FormatLong(state.acolytesAvailable));
+        SetText(headerPresentText, FormatLong(D2NovitiateSystem.GetTotalAcolytes(state)));
+        SetText(headerWaxText, FormatWhole(wax?.offeringAmount ?? 0.0));
+        SetText(headerBreadText, FormatWhole(bread?.offeringAmount ?? 0.0));
+        SetText(levelText, "NIVEL " + Roman(level));
+        SetText(batchAcolytesText, D2NovitiateSystem.GetCurrentAcolytesPerBatch(state, level)
+            .ToString("0.##", StableCulture) + "\nACÓLITOS");
+        SetText(batchDurationText, FormatTime(D2NovitiateSystem.GetCurrentDurationSeconds(state, level)));
+        SetText(batchFollowerCostText, FormatLong(D2NovitiateSystem.GetFollowerCost(level)) + " SEGUIDORES");
+        SetText(batchWaxCostText, FormatWhole(offeringCost) + " CERA");
+        SetText(batchBreadCostText, FormatWhole(offeringCost) + " PAN RITUAL");
+        SetText(supportText, FormatLong(support) + " / 4\nSEGUIDORES");
+        SetText(activeTrainingText, active.active
+            ? "FORMACIÓN EN CURSO · " + FormatTime(D2NovitiateSystem.GetDisplayedRemainingSeconds(state))
+            : "NO HAY UNA TANDA EN FORMACIÓN");
+        SetText(startTrainingButtonText, active.active ? "FORMACIÓN EN CURSO" : "FORMAR TANDA");
+        SetText(startCostText, FormatLong(D2NovitiateSystem.GetFollowerCost(level)) + " SEGUIDORES     " +
+            FormatWhole(offeringCost) + " CERA     " + FormatWhole(offeringCost) + " PAN RITUAL");
+
+        bool maxed = level >= D2NovitiateSystem.MaxLevel;
+        double upgradeCost = D2NovitiateSystem.GetUpgradeOfferingCost(level);
+        SetText(upgradeButtonText, maxed ? "NOVICIADO AL MÁXIMO" : "MEJORAR A NIVEL " + Roman(level + 1));
+        SetText(upgradeCostText, maxed ? string.Empty :
+            FormatLong(D2NovitiateSystem.GetUpgradeFollowerCost(level)) + " SEGUIDORES     " +
+            FormatWhole(upgradeCost) + " CERA     " + FormatWhole(upgradeCost) + " PAN RITUAL");
+
+        SetInteractable(startTrainingButton, D2NovitiateSystem.CanStartTraining(gameState));
         SetInteractable(cancelTrainingButton, active.active);
         SetInteractable(addSupportButton, !active.active &&
             state.novitiateSupportFollowersSelected < D2NovitiateSystem.MaxSupportFollowers &&
             state.novitiateSupportFollowersSelected < state.followersAvailable);
-        SetInteractable(removeSupportButton, !active.active &&
-            state.novitiateSupportFollowersSelected > 0L);
-
-        bool maxed = level >= D2NovitiateSystem.MaxLevel;
-        double upgradeOfferingCost = D2NovitiateSystem.GetUpgradeOfferingCost(level);
-        SetText(
-            upgradeButtonText,
-            maxed
-                ? "NOVICIADO AL MÁXIMO"
-                : "MEJORAR A NIVEL " + (level + 1) + "\nCoste: " +
-                  D2NovitiateSystem.GetUpgradeFollowerCost(level).ToString("N0") +
-                  " Seguidores · " + upgradeOfferingCost.ToString("0") +
-                  " Cera · " + upgradeOfferingCost.ToString("0") + " Pan"
-        );
+        SetInteractable(removeSupportButton, !active.active && state.novitiateSupportFollowersSelected > 0L);
         SetInteractable(upgradeButton, !maxed && D2NovitiateSystem.CanUpgrade(gameState));
-        bool learned = state.novitiateBatchesCompleted > 0L ||
-            state.totalAcolytesCreated > 0L;
-        SetActive(supportText, learned || active.active);
-        SetActive(addSupportButton, learned && !active.active);
-        SetActive(removeSupportButton, learned && !active.active);
-        SetActive(upgradeButton, learned);
     }
 
-    public void StartTraining()
+    public void StartTraining() { D2NovitiateSystem.TryStartTraining(GameState.I); RefreshAll(); }
+    public void CancelTraining() { D2NovitiateSystem.TryCancelTraining(GameState.I); RefreshAll(); }
+    public void Upgrade() { D2NovitiateSystem.TryUpgrade(GameState.I); RefreshAll(); }
+    private void ChangeSupport(long delta) { D2NovitiateSystem.TryChangeSupportFollowers(GameState.I, delta); RefreshAll(); }
+
+    private void ShowMap()
     {
-        D2NovitiateSystem.TryStartTraining(GameState.I);
-        RefreshAll();
+        Dimension2PanelUI panel = GetComponentInParent<Dimension2PanelUI>(true);
+        if (panel != null) panel.ShowMap();
     }
 
-    public void CancelTraining()
+    private D2Civilization1PanelUI Parent() => GetComponentInParent<D2Civilization1PanelUI>(true);
+    private void RefreshAll() { D2Civilization1PanelUI parent = Parent(); if (parent != null) parent.Refresh(); else Refresh(); }
+    private static string FormatLong(long value) => value.ToString("N0", StableCulture);
+    private static string FormatWhole(double value) => value.ToString("N0", StableCulture);
+    private static string Roman(int value)
     {
-        D2NovitiateSystem.TryCancelTraining(GameState.I);
-        RefreshAll();
+        string[] values = { "", "I", "II", "III", "IV", "V" };
+        return value >= 1 && value < values.Length ? values[value] : value.ToString(StableCulture);
     }
-
-    public void Upgrade()
-    {
-        D2NovitiateSystem.TryUpgrade(GameState.I);
-        RefreshAll();
-    }
-
-    private void ChangeSupport(long delta)
-    {
-        D2NovitiateSystem.TryChangeSupportFollowers(GameState.I, delta);
-        RefreshAll();
-    }
-
-    private void RefreshAll()
-    {
-        D2Civilization1PanelUI parent = GetComponentInParent<D2Civilization1PanelUI>(true);
-        if (parent != null)
-            parent.Refresh();
-        else
-            Refresh();
-    }
-
     private static string FormatTime(double seconds)
     {
         int total = Math.Max(0, (int)Math.Ceiling(seconds));
-        return (total / 60).ToString("00") + ":" + (total % 60).ToString("00");
+        return (total / 60).ToString("00", StableCulture) + ":" + (total % 60).ToString("00", StableCulture);
     }
-
-    private static void SetText(TMP_Text target, string value)
-    {
-        if (target != null)
-            target.text = value;
-    }
-
-    private static void SetInteractable(Button target, bool value)
-    {
-        if (target != null)
-            target.interactable = value;
-    }
-
-    private static void SetActive(Component target, bool value)
-    {
-        if (target != null) target.gameObject.SetActive(value);
-    }
+    private static void Add(Button button, UnityEngine.Events.UnityAction action) { if (button != null) button.onClick.AddListener(action); }
+    private static void SetText(TMP_Text target, string value) { if (target != null) target.text = value; }
+    private static void SetInteractable(Button target, bool value) { if (target != null) target.interactable = value; }
 }

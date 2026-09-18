@@ -1,0 +1,36 @@
+ORIGEN Y USO — ASSETS CANDIDATOS D2_MAP V1
+
+Fecha: 30 de agosto de 2026.
+Pantalla propietaria: D2_PactMap / Mapa de los Pactos.
+Referencia visual de autoridad:
+SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/
+DIMENSION_2/CORREGIDAS_V4_2026-08-21/01_Mapa_De_Los_Pactos_Corregido_V5.png
+
+Origen:
+- Generados con ImageGen integrado en modo edición, usando exclusivamente la V5.
+- Cada territorio se produjo sin textos, estados, requisitos, botones ni emblemas.
+- Medallones, controles y recursos se produjeron como capas separadas.
+- D2_Map_Shell_v1 contiene sólo el marco, divisores y panel contextual, sin datos.
+- Las salidas no contienen alfa real. Se renderizan con un material WhiteKey propio
+  del Mapa; el canal RGB original se conserva sin una limpieza destructiva.
+
+Assets:
+- D2_Map_CleanBasePlate_v1.png (placa estática sin texto, datos ni iconos)
+- D2_Map_Shell_v1.png
+- D2_Map_Territory_Sanctuary_v1.png
+- D2_Map_Territory_Resistance_v1.png
+- D2_Map_Territory_Ruins_v1.png
+- D2_Map_Medallion_Sanctuary_v1.png
+- D2_Map_Medallion_Resistance_v1.png
+- D2_Map_Medallion_Lock_v1.png
+- D2_Map_Button_Help_v1.png
+- D2_Map_Button_Back_v1.png
+- D2_Map_Button_Sanctuary_v1.png
+- D2_Map_Icon_Followers_v1.png
+- D2_Map_Icon_Trust_v1.png
+
+Clasificación:
+- CANDIDATOS integrables para la composición estática.
+- No son assets canónicos de Dimensión 2 hasta la aprobación visual explícita.
+- No deben reutilizarse fuera de esta pantalla por semejanza.
+- Textos, cifras, bloqueo, selección y botones continúan como UGUI/TMP reales.

@@ -150,9 +150,9 @@ Este prototipo es la evidencia de viabilidad visual más avanzada, pero todavía
 
 El perfil oficial de D2 sigue pendiente:
 
-- `SISTEMA_UI_QUANTUM_FORGE/03_ESTILOS/DIMENSION_2/PERFIL_ESTILO_DIMENSION_2.txt`
+- `SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/03_ESTILOS/DIMENSION_2/PERFIL_ESTILO_DIMENSION_2.txt`
 
-No existen todavía referencias D2 consolidadas en `SISTEMA_UI_QUANTUM_FORGE/05_REFERENCIAS`, fichas D2 en `10_PANTALLAS`, ni entradas D2 completas en el catálogo y registro de pantallas.
+No existen todavía referencias D2 consolidadas en `SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS`, fichas D2 en `10_PANTALLAS`, ni entradas D2 completas en el catálogo y registro de pantallas.
 
 ## 9. Trabajo paralelo y protección del proyecto
 

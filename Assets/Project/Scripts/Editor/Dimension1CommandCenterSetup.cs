@@ -11,8 +11,60 @@ using UnityEngine.UI;
 public static class Dimension1CommandCenterSetup
 {
     private const string ScenePath = "Assets/Project/Scenes/Main.unity";
+    private const string CommandEmblemPath =
+        "Assets/Project/UI/Dimension1/Generated/Candidates/CommandCenter/" +
+        "d1_command_center_emblem_candidate_v1.png";
     private const float Width = 1080f;
     private const float Height = 1920f;
+    private const float ObjectiveY = -472f;
+    private const float ObjectiveHeight = 128f;
+    private const float ProgressY = -602f;
+    private const float ProgressHeight = 116f;
+    private const float DrawerToggleY = -702f;
+    private const float DrawerToggleHeight = 68f;
+    private const float DrawerToggleWidth = 360f;
+
+    public static void RepairAuditLayout()
+    {
+        Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        Transform root = FindSceneTransform(scene, "D1CommandCenterProductionRoot");
+        if (root == null) throw new InvalidOperationException("Falta Centro de Mando.");
+        SetAuditPanel(root, "CurrentObjective", ObjectiveY, ObjectiveHeight);
+        SetAuditPanel(root, "GlobalProgress", ProgressY, ProgressHeight);
+        SetAuditPanel(root, "DimensionDrawerToggle", DrawerToggleY, DrawerToggleHeight, DrawerToggleWidth);
+        Text drawerLabel = root.Find("DimensionDrawerToggle/Label")?.GetComponent<Text>();
+        if (drawerLabel == null) throw new InvalidOperationException("Falta etiqueta de Dimensiones.");
+        drawerLabel.rectTransform.sizeDelta = new Vector2(330f, 48f);
+        drawerLabel.fontSize = 18;
+        EditorUtility.SetDirty(drawerLabel);
+        Transform hangar = FindSceneTransform(scene, "D1_HangarVisualRoot");
+        if (hangar == null) throw new InvalidOperationException("Falta Hangar.");
+        int costs = 0;
+        foreach (TMPro.TMP_Text text in hangar.GetComponentsInChildren<TMPro.TMP_Text>(true))
+        {
+            if (text.name != "CostValue") continue;
+            text.enableAutoSizing = true;
+            text.fontSizeMin = 16f;
+            text.fontSizeMax = 28f;
+            EditorUtility.SetDirty(text);
+            costs++;
+        }
+        if (costs == 0) throw new InvalidOperationException("Faltan textos de coste.");
+        EditorSceneManager.MarkSceneDirty(scene);
+        if (!EditorSceneManager.SaveScene(scene, ScenePath))
+            throw new InvalidOperationException("No se pudo guardar Main.");
+        Debug.Log("[D1 Audit Layout] REPAIR_PASS | Centro y costes Hangar");
+    }
+
+    private static void SetAuditPanel(Transform root, string name, float y, float height, float width = 1044f)
+    {
+        RectTransform rect = root.Find(name) as RectTransform;
+        if (rect == null) throw new InvalidOperationException("Falta " + name);
+        rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, y);
+        rect.sizeDelta = new Vector2(width, height);
+        (rect.Find(name + "_Border") as RectTransform).sizeDelta = rect.sizeDelta;
+        (rect.Find(name + "_InnerBorder") as RectTransform).sizeDelta = rect.sizeDelta - new Vector2(13, 13);
+    }
 
     private static readonly Color Background = Hex("01070C");
     private static readonly Color PanelBase = Hex("031019", 0.98f);
@@ -28,6 +80,8 @@ public static class Dimension1CommandCenterSetup
     private static Font font;
     private static Sprite frame;
     private static Sprite galaxyIcon;
+    private static Sprite starfield;
+    private static Sprite commandEmblem;
 
     private sealed class BuildReferences
     {
@@ -69,7 +123,12 @@ public static class Dimension1CommandCenterSetup
             "Assets/Project/UI/Dimension1/Generated/d1_premium_frame_v4.png");
         galaxyIcon = AssetDatabase.LoadAssetAtPath<Sprite>(
             "Assets/Project/UI/Dimension1/Generated/d1_nav_galaxy_v3.png");
-        if (font == null || frame == null || galaxyIcon == null)
+        starfield = AssetDatabase.LoadAssetAtPath<Sprite>(
+            "Assets/Project/UI/Dimension1/Generated/d1_starfield.png");
+        EnsureSpriteImport(CommandEmblemPath);
+        commandEmblem = AssetDatabase.LoadAssetAtPath<Sprite>(CommandEmblemPath);
+        if (font == null || frame == null || galaxyIcon == null || starfield == null ||
+            commandEmblem == null)
             throw new InvalidOperationException("Faltan recursos visuales del Centro de Mando.");
 
         Transform previous = FindChild(panel, "D1CommandCenterProductionRoot");
@@ -146,6 +205,19 @@ public static class Dimension1CommandCenterSetup
             refs.navigationCards.ToArray(),
             refs.crystal);
 
+        Transform exploreRoot = FindSceneTransform(scene, "D1_ExploreVisualRoot");
+        if (exploreRoot != null)
+        {
+            controller.ConfigureExploreScreen(exploreRoot.gameObject);
+            Dimension1ExploreVisualUI exploreVisual =
+                exploreRoot.GetComponent<Dimension1ExploreVisualUI>();
+            if (exploreVisual != null)
+                exploreVisual.ConfigureCommandCenter(controller);
+        }
+
+        if (legacyMain != null)
+            legacyMain.SetActive(false);
+        RebindCommandCenterConsumers(scene, controller);
         refs.metalsDrawer.SetActive(false);
         EditorUtility.SetDirty(controller);
         EditorSceneManager.MarkSceneDirty(scene);
@@ -162,6 +234,73 @@ public static class Dimension1CommandCenterSetup
         Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
         ValidateInternal(scene);
         Debug.Log("[D1 Command Center] VALIDATION_PASS");
+    }
+
+    [MenuItem("Quantum Forge/Dimension 1/Repair Explore Navigation Link")]
+    public static void RepairExploreNavigationLink()
+    {
+        Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        Dimension1CommandCenterUI controller =
+            FindSceneTransform(scene, "D1CommandCenterProductionRoot")?
+                .GetComponent<Dimension1CommandCenterUI>();
+        Dimension1ExploreVisualUI exploreVisual =
+            FindSceneTransform(scene, "D1_ExploreVisualRoot")?
+                .GetComponent<Dimension1ExploreVisualUI>();
+        if (controller == null || exploreVisual == null)
+            throw new InvalidOperationException(
+                "No se encontraron Centro de Mando y Explorar modernos.");
+
+        controller.ConfigureExploreScreen(exploreVisual.gameObject);
+        exploreVisual.ConfigureCommandCenter(controller);
+        RebindCommandCenterConsumers(scene, controller);
+        EditorUtility.SetDirty(controller);
+        EditorUtility.SetDirty(exploreVisual);
+        EditorSceneManager.MarkSceneDirty(scene);
+        if (!EditorSceneManager.SaveScene(scene, ScenePath))
+            throw new InvalidOperationException("Unity no pudo guardar Main.unity.");
+
+        ValidateCommandCenterConsumers(scene, controller);
+        Debug.Log("[D1 Explore Navigation Link] REPAIR_PASS | todos los enlaces al Centro persistidos");
+    }
+
+    private static bool IsCommandCenterConsumer(MonoBehaviour component)
+    {
+        return component is Dimension1ExploreVisualUI || component is Dimension1GalaxyVisualUI ||
+            component is Dimension1HangarVisualUI || component is Dimension1RelicsVisualUI ||
+            component is Dimension1TreeNavigationUI || component is Dimension1AncientOrbitsUI ||
+            component is Dimension1SectorDetailUI;
+    }
+
+    private static void RebindCommandCenterConsumers(Scene scene, Dimension1CommandCenterUI controller)
+    {
+        // Recreating the hub invalidates incoming references, including inactive screens.
+        // Rebind every D1 consumer without rebuilding its artwork or changing its state.
+        foreach (GameObject sceneRoot in scene.GetRootGameObjects())
+        foreach (MonoBehaviour component in sceneRoot.GetComponentsInChildren<MonoBehaviour>(true))
+        {
+            if (!IsCommandCenterConsumer(component)) continue;
+            var serialized = new SerializedObject(component);
+            SerializedProperty link = serialized.FindProperty("commandCenter");
+            if (link == null) throw new InvalidOperationException("Falta enlace de Centro en " + component.GetType().Name);
+            if (link.objectReferenceValue == controller) continue;
+            link.objectReferenceValue = controller;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(component);
+        }
+        ValidateCommandCenterConsumers(scene, controller);
+    }
+
+    private static void ValidateCommandCenterConsumers(Scene scene, Dimension1CommandCenterUI controller)
+    {
+        foreach (GameObject sceneRoot in scene.GetRootGameObjects())
+        foreach (MonoBehaviour component in sceneRoot.GetComponentsInChildren<MonoBehaviour>(true))
+        {
+            if (!IsCommandCenterConsumer(component)) continue;
+            var serialized = new SerializedObject(component);
+            SerializedProperty link = serialized.FindProperty("commandCenter");
+            if (link == null || link.objectReferenceValue != controller)
+                throw new InvalidOperationException("Enlace de Centro roto en " + component.GetType().Name);
+        }
     }
 
     [MenuItem("Quantum Forge/Dimension 1/Capture Installed Command Center")]
@@ -190,7 +329,7 @@ public static class Dimension1CommandCenterSetup
         SetSceneObjectActive(scene, "SecondaryNavigationSlot", drawerOpen);
 
         SetSceneObjectActive(scene, "Dimension1Panel", true);
-        SetSceneObjectActive(scene, "Dimension1MainContent", true);
+        SetSceneObjectActive(scene, "Dimension1MainContent", false);
         string[] close =
         {
             "GalaxyPanel", "HangarPanel", "RelicChamberPanel", "Dimension1TreePanel",
@@ -213,7 +352,22 @@ public static class Dimension1CommandCenterSetup
         {
             Transform secondary = FindSceneTransform(scene, "SecondaryNavigationSlot");
             if (secondary is RectTransform secondaryRect)
+            {
                 secondaryRect.anchoredPosition = new Vector2(secondaryRect.anchoredPosition.x, 16f);
+
+                // En una captura de Edit Mode no se ejecuta RefreshAvailability. Activar
+                // los controles reales existentes evita documentar una bandeja vacía.
+                foreach (string systemName in new[]
+                {
+                    "System_Room2", "System_Dimension1", "System_Dimension2", "System_Dimension3"
+                })
+                {
+                    Transform systemButton = FindChild(secondaryRect, systemName);
+                    if (systemButton != null) systemButton.gameObject.SetActive(true);
+                }
+                Transform prestige = FindChild(secondaryRect, "System_Prestige");
+                if (prestige != null) prestige.gameObject.SetActive(false);
+            }
 
             string[] commandNavigation =
             {
@@ -228,21 +382,36 @@ public static class Dimension1CommandCenterSetup
             Transform toggle = FindChild(root, "DimensionDrawerToggle");
             Text label = toggle == null ? null : FindChild(toggle, "Label")?.GetComponent<Text>();
             if (label != null) label.text = "CENTRO DE MANDO ▲";
+
+            int visibleSystems = 0;
+            if (secondary != null)
+            {
+                foreach (Button button in secondary.GetComponentsInChildren<Button>(false))
+                    if (button.gameObject.activeInHierarchy) visibleSystems++;
+            }
+            if (visibleSystems == 0)
+                throw new InvalidOperationException("La captura del cajón no contiene controles visibles.");
         }
 
-        string output = Path.GetFullPath(
+        string output1080 = Path.GetFullPath(
             drawerOpen
                 ? "Logs/VisualQA/dimension1_command_center_drawer_open_1080x1920.png"
                 : "Logs/VisualQA/dimension1_command_center_integrated_1080x1920.png");
-        Directory.CreateDirectory(Path.GetDirectoryName(output));
-        RenderToPng(1080, 1920, output);
-        Debug.Log("[D1 Command Center] CAPTURE_PASS | " + output);
+        string output720 = Path.GetFullPath(
+            drawerOpen
+                ? "Logs/VisualQA/dimension1_command_center_drawer_open_720x1280.png"
+                : "Logs/VisualQA/dimension1_command_center_integrated_720x1280.png");
+        Directory.CreateDirectory(Path.GetDirectoryName(output1080));
+        RenderToPng(1080, 1920, output1080);
+        RenderToPng(720, 1280, output720);
+        Debug.Log("[D1 Command Center] CAPTURE_PASS | 1080x1920 + 720x1280 | " + output1080);
     }
 
     private static void ValidateInternal(Scene scene)
     {
         Transform root = FindSceneTransform(scene, "D1CommandCenterProductionRoot");
         if (root == null) throw new InvalidOperationException("Falta la pantalla de Centro de Mando.");
+        ValidateCommandCenterConsumers(scene, root.GetComponent<Dimension1CommandCenterUI>());
         if (root.GetComponent<Dimension1CommandCenterUI>() == null ||
             root.GetComponent<Dimension1VisualSkinRoot>() == null ||
             root.GetComponent<CanvasGroup>() == null)
@@ -261,12 +430,44 @@ public static class Dimension1CommandCenterSetup
             if (FindChild(root, name) == null)
                 throw new InvalidOperationException("Elemento faltante: " + name);
 
+        if (FindChild(root, "CommandEmblemArtwork") == null)
+            throw new InvalidOperationException("Falta el nuevo emblema del Centro de Mando.");
+
+        foreach (string cardName in new[]
+        {
+            "SectorCard", "ScannerCard", "FleetCard", "RelicsCard", "TreeCard",
+            "ExpeditionsCard"
+        })
+        {
+            Transform card = FindChild(root, cardName);
+            if (FindChild(card, "DetailedLineIcon") == null)
+                throw new InvalidOperationException(
+                    "Falta el icono lineal detallado de " + cardName + ".");
+        }
+
+        ValidateMissionTextClearance(root, "CurrentObjective");
+        ValidateMissionTextClearance(root, "GlobalProgress");
+
         if (root.GetComponentsInChildren<Button>(true).Length < 12)
             throw new InvalidOperationException("Faltan controles interactivos del Centro de Mando.");
         if (root.GetComponentsInChildren<Text>(true).Length < 30)
             throw new InvalidOperationException("Faltan textos del Centro de Mando.");
         if (UnityEngine.Object.FindFirstObjectByType<VerticalNavigationUI>(FindObjectsInactive.Include) == null)
             throw new InvalidOperationException("Falta el controlador del selector global de dimensiones.");
+    }
+
+    private static void ValidateMissionTextClearance(Transform root, string panelName)
+    {
+        foreach (string textName in new[] { "Label", "Value" })
+        {
+            RectTransform rect = FindChild(FindChild(root, panelName), textName) as RectTransform;
+            if (rect == null)
+                throw new InvalidOperationException("Falta " + panelName + "/" + textName + ".");
+            float left = rect.anchoredPosition.x - rect.sizeDelta.x * rect.pivot.x;
+            if (left < -355f)
+                throw new InvalidOperationException(panelName + "/" + textName +
+                    " invade el espacio reservado al icono.");
+        }
     }
 
     private static void SetSceneObjectActive(Scene scene, string name, bool active)
@@ -421,7 +622,11 @@ public static class Dimension1CommandCenterSetup
         GameObject emblem = Panel("CommandEmblem", banner.transform,
             new Vector2(-402, 0), new Vector2(145, 145), Color.clear);
         CreateHexagon(emblem.transform, Vector2.zero, 68, CyanMuted, 3f);
-        CreateCommandGlyph(emblem.transform);
+        Image emblemArt = CreateImage("CommandEmblemArtwork", emblem.transform, commandEmblem,
+            Vector2.zero, new Vector2(124, 124), Color.white);
+        emblemArt.type = Image.Type.Simple;
+        emblemArt.preserveAspect = true;
+        emblemArt.raycastTarget = false;
         Text("Title", banner.transform, "CENTRO DE MANDO", new Vector2(104, 27),
             new Vector2(720, 88), 54, White, TextAnchor.MiddleLeft);
         Text("Subtitle", banner.transform, "Tu base de operaciones en la Dimensión 1.",
@@ -433,15 +638,20 @@ public static class Dimension1CommandCenterSetup
         GameObject dashboard = Panel("CommandDashboard", parent, new Vector2(0, 45),
             new Vector2(1080, 900), Color.clear);
         Button sectorButton = CreateSideCard(dashboard.transform, "SectorCard", "SECTOR ACTUAL",
-            "ÓRBITAS\nANTIGUAS", new Vector2(-389, 303), Amber, IconKind.Radar, out refs.sectorValue);
+            "ÓRBITAS\nANTIGUAS", new Vector2(-389, 303), Amber, IconKind.Radar,
+            out refs.sectorValue);
         Button scannerButton = CreateSideCard(dashboard.transform, "ScannerCard", "ESCÁNER",
-            "NIVEL 3/15", new Vector2(-389, 0), Cyan, IconKind.Scanner, out refs.scannerValue);
+            "NIVEL 3/15", new Vector2(-389, 0), Cyan, IconKind.Scanner,
+            out refs.scannerValue);
         Button fleetButton = CreateSideCard(dashboard.transform, "FleetCard", "FLOTA",
-            "4 NAVES", new Vector2(-389, -303), Cyan, IconKind.Ship, out refs.fleetValue);
+            "4 NAVES", new Vector2(-389, -303), Cyan, IconKind.Ship,
+            out refs.fleetValue);
         Button relicButton = CreateSideCard(dashboard.transform, "RelicsCard", "RELIQUIAS",
-            "12/20", new Vector2(389, 303), Cyan, IconKind.Relic, out refs.relicsValue);
+            "12/20", new Vector2(389, 303), Cyan, IconKind.Relic,
+            out refs.relicsValue);
         Button treeButton = CreateSideCard(dashboard.transform, "TreeCard", "PUNTOS DEL\nÁRBOL",
-            "3", new Vector2(389, 0), Cyan, IconKind.Tree, out refs.treeValue);
+            "3", new Vector2(389, 0), Cyan, IconKind.Tree,
+            out refs.treeValue);
         Button expeditionButton = CreateSideCard(dashboard.transform, "ExpeditionsCard",
             "EXPEDICIONES\nACTIVAS", "1", new Vector2(389, -303), Cyan,
             IconKind.Compass, out refs.expeditionsValue);
@@ -455,6 +665,10 @@ public static class Dimension1CommandCenterSetup
 
         GameObject hologram = Panel("CentralHologram", dashboard.transform,
             new Vector2(0, -4), new Vector2(500, 880), Color.clear);
+        Image stars = CreateImage("CommandStarfield", hologram.transform, starfield,
+            Vector2.zero, new Vector2(480, 850), Hex("7FD9FF", 0.18f));
+        stars.preserveAspect = false;
+        stars.raycastTarget = false;
         CreateHolographicInstrument(hologram.transform);
         refs.crystal = CreateCrystal(hologram.transform, new Vector2(0, 28));
 
@@ -469,17 +683,19 @@ public static class Dimension1CommandCenterSetup
     private enum IconKind { Radar, Scanner, Ship, Relic, Tree, Compass }
 
     private static Button CreateSideCard(Transform parent, string name, string label,
-        string value, Vector2 position, Color valueColor, IconKind iconKind, out Text valueText)
+        string value, Vector2 position, Color valueColor, IconKind icon, out Text valueText)
     {
         GameObject card = FramedPanel(name, parent, position, new Vector2(286, 284),
             PanelInner, CyanMuted, 0.76f);
         Button button = card.AddComponent<Button>();
         button.targetGraphic = card.GetComponent<Image>();
-        CreateCardIcon(card.transform, iconKind, new Vector2(0, 69));
-        Text("Label", card.transform, label, new Vector2(0, -24),
-            new Vector2(238, 62), 26, Steel, TextAnchor.MiddleCenter);
-        valueText = Text("Value", card.transform, value, new Vector2(0, -88),
-            new Vector2(244, 88), 29, valueColor, TextAnchor.MiddleCenter);
+        GameObject iconRoot = Panel("DetailedLineIcon", card.transform,
+            new Vector2(0, 70), new Vector2(180, 132), Color.clear);
+        CreateCardIcon(iconRoot.transform, icon, Vector2.zero);
+        Text("Label", card.transform, label, new Vector2(0, -27),
+            new Vector2(242, 58), 24, Steel, TextAnchor.MiddleCenter);
+        valueText = Text("Value", card.transform, value, new Vector2(0, -94),
+            new Vector2(244, 76), 28, valueColor, TextAnchor.MiddleCenter);
         Dot("CornerMark", card.transform, new Vector2(-108, 116), 2.5f, CyanMuted);
         Dot("CornerMark", card.transform, new Vector2(108, -116), 2.5f, CyanMuted);
         return button;
@@ -489,6 +705,8 @@ public static class Dimension1CommandCenterSetup
     {
         Vector2 center = new Vector2(0, 40);
         Circle("OrbitOuter", parent, center, 226, 62, 2f, Hex("0ABFF5", 0.70f));
+        Circle("OrbitTelemetry", parent, center, 210, 58, 1.2f,
+            Hex("54DFFF", 0.35f), true);
         Circle("OrbitMid", parent, center, 190, 56, 2f, Hex("0ABFF5", 0.70f));
         Circle("OrbitInner", parent, center, 150, 48, 2f, Hex("0ABFF5", 0.50f));
         Circle("OrbitDotted", parent, center, 118, 42, 2.4f, Hex("3AD6FF", 0.44f), true);
@@ -501,10 +719,41 @@ public static class Dimension1CommandCenterSetup
             Line("RadialTick", parent, new[] { inner, outer }, i % 3 == 0 ? 2f : 1f,
                 Hex("22C8F5", i % 3 == 0 ? 0.65f : 0.35f));
         }
+        Line("TelemetryLeft", parent, new[]
+        {
+            new Vector2(-242, 40), new Vector2(-205, 40), new Vector2(-184, 61),
+            new Vector2(-166, 61)
+        }, 1.7f, Hex("65E5FF", 0.56f));
+        Line("TelemetryRight", parent, new[]
+        {
+            new Vector2(242, 40), new Vector2(205, 40), new Vector2(184, 61),
+            new Vector2(166, 61)
+        }, 1.7f, Hex("65E5FF", 0.56f));
+        Dot("TelemetryAmberLeft", parent, new Vector2(-205, 40), 3.5f, Amber);
+        Dot("TelemetryAmberRight", parent, new Vector2(205, 40), 3.5f, Amber);
         Ellipse("PedestalOuter", parent, new Vector2(0, -307), 198, 68, 60, 2.2f, Hex("18C8FF", 0.90f));
+        Line("PedestalMechanicalFrame", parent, new[]
+        {
+            new Vector2(-158, -307), new Vector2(-126, -341),
+            new Vector2(126, -341), new Vector2(158, -307),
+            new Vector2(126, -273), new Vector2(-126, -273)
+        }, 2f, Hex("087BA7", 0.86f), true);
         Ellipse("PedestalMid", parent, new Vector2(0, -307), 150, 50, 56, 2f, Hex("18C8FF", 0.90f));
+        Ellipse("PedestalTelemetry", parent, new Vector2(0, -307), 121, 40, 52,
+            1.1f, Hex("91EEFF", 0.48f));
         Ellipse("PedestalInner", parent, new Vector2(0, -307), 93, 31, 48, 2f, CyanBright);
         Ellipse("PedestalCore", parent, new Vector2(0, -307), 35, 13, 36, 3f, CyanBright);
+        Line("PedestalLowerRail", parent, new[]
+        {
+            new Vector2(-112, -354), new Vector2(112, -354)
+        }, 2f, Hex("18C8FF", 0.48f));
+        for (int i = -3; i <= 3; i++)
+        {
+            Line("PedestalVent", parent, new[]
+            {
+                new Vector2(i * 24f, -343), new Vector2(i * 24f, -359)
+            }, 1.2f, Hex("3AD6FF", 0.52f));
+        }
         Line("EnergyBeam", parent, new[] { new Vector2(0, -310), new Vector2(0, 328) },
             4f, Hex("51DFFF", 0.86f));
         for (int i = 0; i < 68; i++)
@@ -519,33 +768,108 @@ public static class Dimension1CommandCenterSetup
 
     private static RectTransform CreateCrystal(Transform parent, Vector2 center)
     {
-        GameObject root = Panel("QuantumCrystal", parent, center, new Vector2(220, 520), Color.clear);
+        GameObject root = Panel("QuantumCrystal", parent, center, new Vector2(300, 560), Color.clear);
         Vector2[] outer =
         {
-            new Vector2(0, 242), new Vector2(62, 123), new Vector2(58, -122),
-            new Vector2(0, -242), new Vector2(-58, -122), new Vector2(-62, 123)
+            new Vector2(0, 250), new Vector2(72, 128), new Vector2(64, -125),
+            new Vector2(0, -250), new Vector2(-64, -125), new Vector2(-72, 128)
         };
-        Polygon("FacetFillTopLeft", root.transform, new[] { outer[0], outer[5], new Vector2(0, 65) }, Hex("0586C4", 0.48f));
-        Polygon("FacetFillTopRight", root.transform, new[] { outer[0], new Vector2(0, 65), outer[1] }, Hex("00B9F2", 0.34f));
-        Polygon("FacetFillMidLeft", root.transform, new[] { outer[5], new Vector2(0, 65), new Vector2(0, -24), outer[4] }, Hex("006FAE", 0.30f));
-        Polygon("FacetFillMidRight", root.transform, new[] { new Vector2(0, 65), outer[1], outer[2], new Vector2(0, -24) }, Hex("009DDB", 0.36f));
-        Polygon("FacetFillBottomLeft", root.transform, new[] { outer[4], new Vector2(0, -24), outer[3] }, Hex("007FBC", 0.42f));
-        Polygon("FacetFillBottomRight", root.transform, new[] { new Vector2(0, -24), outer[2], outer[3] }, Hex("00B6E9", 0.31f));
-        Line("CrystalOuterGlow", root.transform, outer, 13f, Hex("19CAFF", 0.22f), true);
+        Vector2 upperCore = new Vector2(0, 70);
+        Vector2 lowerCore = new Vector2(0, -28);
+        Polygon("FacetFillTopLeft", root.transform,
+            new[] { outer[0], outer[5], upperCore }, Hex("0586C4", 0.52f));
+        Polygon("FacetFillTopRight", root.transform,
+            new[] { outer[0], upperCore, outer[1] }, Hex("00B9F2", 0.39f));
+        Polygon("FacetFillMidLeft", root.transform,
+            new[] { outer[5], upperCore, lowerCore, outer[4] }, Hex("006FAE", 0.34f));
+        Polygon("FacetFillMidRight", root.transform,
+            new[] { upperCore, outer[1], outer[2], lowerCore }, Hex("009DDB", 0.40f));
+        Polygon("FacetFillBottomLeft", root.transform,
+            new[] { outer[4], lowerCore, outer[3] }, Hex("007FBC", 0.46f));
+        Polygon("FacetFillBottomRight", root.transform,
+            new[] { lowerCore, outer[2], outer[3] }, Hex("00B6E9", 0.35f));
+        Line("CrystalOuterGlow", root.transform, outer, 15f, Hex("19CAFF", 0.22f), true);
         Line("CrystalOuter", root.transform, outer, 5.5f, CyanBright, true);
-        Line("CrystalSpine", root.transform, new[] { outer[0], outer[3] }, 3f, Hex("D5FCFF", 0.95f));
-        Line("CrystalUpperFacet", root.transform, new[] { outer[5], new Vector2(0, 65), outer[1] }, 3.2f, CyanBright);
-        Line("CrystalLowerFacet", root.transform, new[] { outer[4], new Vector2(0, -24), outer[2] }, 3.2f, CyanBright);
-        Line("CrystalFacetLeft", root.transform, new[] { outer[0], outer[5], new Vector2(0, 65), outer[4], outer[3] }, 2f, Cyan);
-        Line("CrystalFacetRight", root.transform, new[] { outer[0], outer[1], new Vector2(0, 65), outer[2], outer[3] }, 2f, Cyan);
-        for (int i = 0; i < 18; i++)
+        Line("CrystalInnerShell", root.transform, new[]
         {
-            float y = -175 + i * 20.5f;
-            float x = ((i * 37) % 82) - 41;
-            Dot("CrystalSpark", root.transform, new Vector2(x, y), i % 5 == 0 ? 2.2f : 1.2f,
+            new Vector2(0, 224), new Vector2(55, 119), new Vector2(49, -115),
+            new Vector2(0, -222), new Vector2(-49, -115), new Vector2(-55, 119)
+        }, 1.5f, Hex("BDF6FF", 0.48f), true);
+        Line("CrystalSpine", root.transform, new[] { outer[0], outer[3] }, 3f, Hex("D5FCFF", 0.95f));
+        Line("CrystalUpperFacet", root.transform, new[] { outer[5], upperCore, outer[1] }, 3.2f, CyanBright);
+        Line("CrystalLowerFacet", root.transform, new[] { outer[4], lowerCore, outer[2] }, 3.2f, CyanBright);
+        Line("CrystalFacetLeft", root.transform,
+            new[] { outer[0], outer[5], upperCore, outer[4], outer[3] }, 2f, Cyan);
+        Line("CrystalFacetRight", root.transform,
+            new[] { outer[0], outer[1], upperCore, outer[2], outer[3] }, 2f, Cyan);
+        Line("CrystalCrownFacet", root.transform, new[]
+        {
+            new Vector2(-42, 127), new Vector2(0, 178), new Vector2(42, 127),
+            upperCore, new Vector2(-42, 127)
+        }, 1.7f, Hex("D7FBFF", 0.72f));
+        Line("CrystalLowerCrownFacet", root.transform, new[]
+        {
+            new Vector2(-43, -122), new Vector2(0, -76), new Vector2(43, -122),
+            lowerCore, new Vector2(-43, -122)
+        }, 1.7f, Hex("91EEFF", 0.68f));
+
+        Polygon("CoreAura", root.transform, new[]
+        {
+            new Vector2(0, 48), new Vector2(31, 8), new Vector2(0, -38),
+            new Vector2(-31, 8)
+        }, Hex("18C8FF", 0.18f));
+        Polygon("CoreDiamond", root.transform, new[]
+        {
+            new Vector2(0, 35), new Vector2(22, 7), new Vector2(0, -26),
+            new Vector2(-22, 7)
+        }, Hex("91EEFF", 0.32f));
+        Line("CoreDiamondOutline", root.transform, new[]
+        {
+            new Vector2(0, 35), new Vector2(22, 7), new Vector2(0, -26),
+            new Vector2(-22, 7)
+        }, 2.2f, Hex("D7FBFF", 0.94f), true);
+        Circle("CoreTelemetryOuter", root.transform, new Vector2(0, 7), 38, 40,
+            1.1f, Hex("91EEFF", 0.42f), true);
+        Circle("CoreTelemetryInner", root.transform, new Vector2(0, 7), 25, 34,
+            1.2f, Hex("91EEFF", 0.62f));
+        Dot("CrystalCoreGlow", root.transform, new Vector2(0, 7), 10f, Hex("91EEFF", 0.48f));
+        Dot("CrystalCore", root.transform, new Vector2(0, 7), 4.5f, Hex("EFFFFF"));
+        Line("CoreCrossHorizontal", root.transform,
+            new[] { new Vector2(-47, 7), new Vector2(47, 7) }, 1.2f, Hex("91EEFF", 0.58f));
+
+        CreateFloatingCrystalShard(root.transform, new Vector2(-96, 72), 1f);
+        CreateFloatingCrystalShard(root.transform, new Vector2(96, 83), 0.92f);
+        CreateFloatingCrystalShard(root.transform, new Vector2(-95, -91), 0.88f);
+        CreateFloatingCrystalShard(root.transform, new Vector2(94, -84), 0.82f);
+
+        for (int i = 0; i < 28; i++)
+        {
+            float y = -205 + i * 15.4f;
+            float x = ((i * 37) % 116) - 58;
+            Dot("CrystalSpark", root.transform, new Vector2(x, y), i % 6 == 0 ? 2.2f : 1.15f,
                 Hex("C6F9FF", i % 3 == 0 ? 0.95f : 0.65f));
         }
         return root.GetComponent<RectTransform>();
+    }
+
+    private static void CreateFloatingCrystalShard(Transform parent, Vector2 center, float scale)
+    {
+        Vector2[] shard =
+        {
+            center + new Vector2(0, 25) * scale,
+            center + new Vector2(12, 4) * scale,
+            center + new Vector2(4, -25) * scale,
+            center + new Vector2(-12, -4) * scale
+        };
+        Polygon("FloatingShardFill", parent, shard, Hex("0789BA", 0.34f));
+        Line("FloatingShard", parent, shard, 1.8f * scale, CyanBright, true);
+        Line("FloatingShardFacet", parent, new[]
+        {
+            shard[0], center, shard[2], shard[1], center, shard[3]
+        }, 1.05f * scale, Hex("BDF6FF", 0.72f));
+        Dot("FloatingShardCore", parent, center, 2.3f * scale, CyanBright);
+        Ellipse("FloatingShardOrbit", parent, center, 20f * scale, 7f * scale,
+            24, 0.9f * scale, Hex("18C8FF", 0.32f));
     }
 
     private static void CreateCircuitConnection(Transform parent, Vector2 cardEdge, Vector2 coreEdge)
@@ -560,21 +884,23 @@ public static class Dimension1CommandCenterSetup
 
     private static void CreateMissionCards(Transform parent, BuildReferences refs)
     {
-        GameObject objective = FramedPanel("CurrentObjective", parent, new Vector2(0, -520),
-            new Vector2(1044, 152), PanelBase, CyanMuted, 0.78f);
+        GameObject objective = FramedPanel("CurrentObjective", parent, new Vector2(0, ObjectiveY),
+            new Vector2(1044, ObjectiveHeight), PanelBase, CyanMuted, 0.78f);
         CreateRadarGlyph(objective.transform, new Vector2(-421, 0), 42, Cyan);
-        Text("Label", objective.transform, "OBJETIVO ACTUAL", new Vector2(-190, 24),
-            new Vector2(390, 38), 26, Cyan, TextAnchor.MiddleLeft);
+        // El texto comienza después del glifo. Mantener el borde izquierdo en -350
+        // evita la superposición tanto a 1080x1920 como al escalar a 720x1280.
+        Text("Label", objective.transform, "RECOMENDACIÓN ACTUAL", new Vector2(-115, 24),
+            new Vector2(470, 38), 26, Cyan, TextAnchor.MiddleLeft);
         refs.objectiveValue = Text("Value", objective.transform, "Explora 3 señales desconocidas.",
-            new Vector2(-92, -28), new Vector2(590, 42), 30, Amber, TextAnchor.MiddleLeft);
+            new Vector2(20, -28), new Vector2(740, 42), 30, Amber, TextAnchor.MiddleLeft);
 
-        GameObject progress = FramedPanel("GlobalProgress", parent, new Vector2(0, -691),
-            new Vector2(1044, 136), PanelBase, CyanMuted, 0.78f);
+        GameObject progress = FramedPanel("GlobalProgress", parent, new Vector2(0, ProgressY),
+            new Vector2(1044, ProgressHeight), PanelBase, CyanMuted, 0.78f);
         CreateCompassGlyph(progress.transform, new Vector2(-421, 0), 41, Cyan);
-        Text("Label", progress.transform, "PROGRESO GLOBAL", new Vector2(-190, 20),
-            new Vector2(390, 36), 25, Cyan, TextAnchor.MiddleLeft);
-        refs.progressValue = Text("Value", progress.transform, "42%", new Vector2(-190, -27),
-            new Vector2(390, 44), 34, Amber, TextAnchor.MiddleLeft);
+        Text("Label", progress.transform, "PROGRESO PRESTIGIO 1", new Vector2(-115, 20),
+            new Vector2(470, 36), 25, Cyan, TextAnchor.MiddleLeft);
+        refs.progressValue = Text("Value", progress.transform, "42%", new Vector2(-115, -27),
+            new Vector2(470, 44), 34, Amber, TextAnchor.MiddleLeft);
         Circle("RingBack", progress.transform, new Vector2(428, 0), 42, 52, 9f, Hex("17465B"));
         refs.progressLine = Line("RingProgress", progress.transform, BuildProgressPoints(0.42f), 9f, Cyan);
     }
@@ -643,13 +969,13 @@ public static class Dimension1CommandCenterSetup
         }
 
         GameObject drawerToggle = FramedPanel("DimensionDrawerToggle", parent,
-            new Vector2(0, -781), new Vector2(250, 34),
+            new Vector2(0, DrawerToggleY), new Vector2(DrawerToggleWidth, DrawerToggleHeight),
             Hex("020D14", 0.98f), CyanMuted, 0.78f);
         refs.dimensionDrawerToggle = drawerToggle.AddComponent<Button>();
         refs.dimensionDrawerToggle.targetGraphic = drawerToggle.GetComponent<Image>();
         refs.dimensionDrawerToggleLabel = Text("Label", drawerToggle.transform,
-            "DIMENSIONES ▼", Vector2.zero, new Vector2(230, 28),
-            16, Cyan, TextAnchor.MiddleCenter, FontStyle.Bold);
+            "DIMENSIONES ▼", Vector2.zero, new Vector2(330, 48),
+            18, Cyan, TextAnchor.MiddleCenter, FontStyle.Bold);
     }
 
     private static void CreateMetalsDrawer(Transform parent, BuildReferences refs)
@@ -684,22 +1010,238 @@ public static class Dimension1CommandCenterSetup
 
     private static void CreateCardIcon(Transform parent, IconKind kind, Vector2 center)
     {
+        CreateCardIconTechnicalShell(parent, center);
+        Line("HaloTicks", parent, new[]
+        {
+            center + new Vector2(-70, 0), center + new Vector2(-58, 0),
+            center + new Vector2(-52, 0)
+        }, 1.5f, Hex("56DFFF", 0.72f));
+        Line("HaloTicks", parent, new[]
+        {
+            center + new Vector2(52, 0), center + new Vector2(58, 0),
+            center + new Vector2(70, 0)
+        }, 1.5f, Hex("56DFFF", 0.72f));
+
         switch (kind)
         {
-            case IconKind.Radar: CreateRadarGlyph(parent, center, 54, Cyan); break;
-            case IconKind.Scanner:
-                CreateRadarGlyph(parent, center, 52, Cyan);
-                Line("Probe", parent, new[]
-                {
-                    center + new Vector2(0, 19), center + new Vector2(12, -5),
-                    center + new Vector2(0, -29), center + new Vector2(-12, -5)
-                }, 2.5f, CyanBright, true);
-                break;
-            case IconKind.Ship: CreateShipGlyph(parent, center, 1f, Cyan); break;
-            case IconKind.Relic: CreateRelicGlyph(parent, center, 1f, Cyan); break;
-            case IconKind.Tree: CreateTreeGlyph(parent, center, 53, Cyan); break;
-            case IconKind.Compass: CreateCompassGlyph(parent, center, 52, Cyan); break;
+            case IconKind.Radar: CreateSectorCardGlyph(parent, center); break;
+            case IconKind.Scanner: CreateScannerCardGlyph(parent, center); break;
+            case IconKind.Ship: CreateFleetCardGlyph(parent, center); break;
+            case IconKind.Relic: CreateRelicCardGlyph(parent, center); break;
+            case IconKind.Tree: CreateTreeCardGlyph(parent, center); break;
+            case IconKind.Compass: CreateExpeditionCardGlyph(parent, center); break;
         }
+    }
+
+    private static void CreateCardIconTechnicalShell(Transform parent, Vector2 center)
+    {
+        var shell = new List<Vector2>();
+        for (int i = 0; i < 6; i++)
+        {
+            float angle = Mathf.PI * 2f * i / 6f + Mathf.PI * 0.5f;
+            shell.Add(center + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * 59f);
+        }
+        Line("TechnicalShell", parent, shell, 1.15f, Hex("168DB4", 0.58f), true);
+        Circle("TechnicalTelemetry", parent, center, 50, 44, 0.9f,
+            Hex("168DB4", 0.34f), true);
+        Line("ShellTopTicks", parent, new[]
+        {
+            center + new Vector2(-10, 58), center + new Vector2(-10, 51),
+            center + new Vector2(10, 51), center + new Vector2(10, 58)
+        }, 1.1f, Hex("56DFFF", 0.52f));
+        Line("ShellBottomTicks", parent, new[]
+        {
+            center + new Vector2(-10, -58), center + new Vector2(-10, -51),
+            center + new Vector2(10, -51), center + new Vector2(10, -58)
+        }, 1.1f, Hex("56DFFF", 0.52f));
+    }
+
+    private static void CreateSectorCardGlyph(Transform parent, Vector2 center)
+    {
+        Ellipse("SectorOrbitOuter", parent, center, 55, 28, 42, 1.7f,
+            Hex("55DFFF", 0.84f));
+        Ellipse("SectorOrbitInner", parent, center, 40, 19, 36, 1.05f,
+            Hex("55DFFF", 0.48f));
+        Circle("SectorWorld", parent, center + new Vector2(-8, 1), 20, 32, 2.4f, Cyan);
+        Polygon("SectorWorldShade", parent, new[]
+        {
+            center + new Vector2(-8, 21), center + new Vector2(4, 13),
+            center + new Vector2(8, -4), center + new Vector2(-2, -18),
+            center + new Vector2(-20, -10), center + new Vector2(-27, 5)
+        }, Hex("0789BA", 0.36f));
+        Line("SectorMeridian", parent, new[]
+        {
+            center + new Vector2(-8, 20), center + new Vector2(-14, 7),
+            center + new Vector2(-14, -8), center + new Vector2(-8, -19)
+        }, 1.45f, Hex("A9F2FF", 0.78f));
+        Line("SectorLatitude", parent, new[]
+        {
+            center + new Vector2(-23, -2), center + new Vector2(-8, 4),
+            center + new Vector2(10, 0)
+        }, 1.3f, Hex("A9F2FF", 0.68f));
+        Dot("SectorMoon", parent, center + new Vector2(43, 11), 5.2f, CyanBright);
+        Circle("SectorMoonLock", parent, center + new Vector2(43, 11), 10, 20,
+            1.15f, Hex("8CEAFF", 0.58f));
+        Dot("SectorBeacon", parent, center + new Vector2(-46, -17), 3.7f, Amber);
+        Dot("SectorWaypoint", parent, center + new Vector2(24, -21), 2.7f, CyanBright);
+        Circle("SectorWaypointLock", parent, center + new Vector2(24, -21), 7, 18,
+            0.9f, Hex("8CEAFF", 0.42f));
+    }
+
+    private static void CreateScannerCardGlyph(Transform parent, Vector2 center)
+    {
+        Polygon("ScannerEmitterFill", parent, new[]
+        {
+            center + new Vector2(0, -37), center + new Vector2(15, -11),
+            center + new Vector2(0, 5), center + new Vector2(-15, -11)
+        }, Hex("0789BA", 0.43f));
+        Line("ScannerEmitter", parent, new[]
+        {
+            center + new Vector2(0, -37), center + new Vector2(15, -11),
+            center + new Vector2(0, 5), center + new Vector2(-15, -11)
+        }, 2.5f, CyanBright, true);
+        Line("ScannerEmitterFacet", parent, new[]
+        {
+            center + new Vector2(0, -33), center + new Vector2(0, 1),
+            center + new Vector2(10, -11), center + new Vector2(0, -20),
+            center + new Vector2(-10, -11)
+        }, 1.35f, Hex("BDF6FF", 0.78f));
+        Line("ScannerConeLeft", parent, new[]
+        {
+            center + new Vector2(0, 4), center + new Vector2(-38, 36)
+        }, 1.6f, Hex("65E5FF", 0.64f));
+        Line("ScannerConeRight", parent, new[]
+        {
+            center + new Vector2(0, 4), center + new Vector2(38, 36)
+        }, 1.6f, Hex("65E5FF", 0.64f));
+        Ellipse("ScannerPulseNear", parent, center + new Vector2(0, 14), 26, 9, 30,
+            1.45f, Hex("9AF0FF", 0.76f));
+        Ellipse("ScannerPulseMid", parent, center + new Vector2(0, 24), 35, 12, 34,
+            1.25f, Hex("9AF0FF", 0.58f));
+        Ellipse("ScannerPulseFar", parent, center + new Vector2(0, 34), 45, 16, 38,
+            1.75f, Cyan);
+        Dot("ScannerSignalA", parent, center + new Vector2(-30, 29), 3.5f, CyanBright);
+        Dot("ScannerSignalB", parent, center + new Vector2(24, 22), 3f, Cyan);
+        Dot("ScannerSignalC", parent, center + new Vector2(4, 40), 2.5f, Amber);
+        Line("ScannerBase", parent, new[]
+        {
+            center + new Vector2(-25, -43), center + new Vector2(25, -43)
+        }, 2.2f, Cyan);
+        Line("ScannerBaseInner", parent, new[]
+        {
+            center + new Vector2(-14, -48), center + new Vector2(14, -48)
+        }, 1.3f, CyanBright);
+    }
+
+    private static void CreateFleetCardGlyph(Transform parent, Vector2 center)
+    {
+        CreateShipGlyph(parent, center + new Vector2(0, 10), 0.70f, CyanBright);
+        CreateShipGlyph(parent, center + new Vector2(-38, -21), 0.36f, Cyan);
+        CreateShipGlyph(parent, center + new Vector2(38, -21), 0.36f, Cyan);
+        Line("FleetLinkLeft", parent, new[]
+        {
+            center + new Vector2(-31, -8), center + new Vector2(-15, 2)
+        }, 1.35f, Hex("55DFFF", 0.58f), true);
+        Line("FleetLinkRight", parent, new[]
+        {
+            center + new Vector2(31, -8), center + new Vector2(15, 2)
+        }, 1.35f, Hex("55DFFF", 0.58f), true);
+        Line("FleetFormationLeft", parent, new[]
+        {
+            center + new Vector2(-48, 16), center + new Vector2(-29, 37),
+            center + new Vector2(-17, 43)
+        }, 1.15f, Hex("8CEAFF", 0.48f), true);
+        Line("FleetFormationRight", parent, new[]
+        {
+            center + new Vector2(48, 16), center + new Vector2(29, 37),
+            center + new Vector2(17, 43)
+        }, 1.15f, Hex("8CEAFF", 0.48f), true);
+        Dot("FleetCommandNode", parent, center + new Vector2(0, -39), 3.7f, Amber);
+        Dot("FleetTelemetryLeft", parent, center + new Vector2(-55, 0), 2.4f, CyanBright);
+        Dot("FleetTelemetryRight", parent, center + new Vector2(55, 0), 2.4f, CyanBright);
+    }
+
+    private static void CreateRelicCardGlyph(Transform parent, Vector2 center)
+    {
+        CreateHexagon(parent, center, 50, Hex("55DFFF", 0.48f), 1.3f);
+        CreateRelicGlyph(parent, center + new Vector2(0, 4), 0.84f, CyanBright);
+        Ellipse("RelicContainment", parent, center + new Vector2(0, -31),
+            43, 13, 38, 1.1f, Hex("8DEBFF", 0.45f));
+        Dot("RelicSideNode", parent, center + new Vector2(-50, 0), 3.1f, Cyan);
+        Dot("RelicSideNode", parent, center + new Vector2(50, 0), 3.1f, Cyan);
+        Line("RelicEnergyLinkLeft", parent, new[]
+        {
+            center + new Vector2(-50, 0), center + new Vector2(-34, 0)
+        }, 1.45f, Hex("8DEBFF", 0.72f));
+        Line("RelicEnergyLinkRight", parent, new[]
+        {
+            center + new Vector2(34, 0), center + new Vector2(50, 0)
+        }, 1.45f, Hex("8DEBFF", 0.72f));
+        Dot("RelicParticle", parent, center + new Vector2(-28, 31), 1.9f, CyanBright);
+        Dot("RelicParticle", parent, center + new Vector2(30, 29), 1.9f, CyanBright);
+        Dot("RelicParticle", parent, center + new Vector2(-32, -29), 1.7f, Cyan);
+        Dot("RelicParticle", parent, center + new Vector2(34, -27), 1.7f, Cyan);
+    }
+
+    private static void CreateTreeCardGlyph(Transform parent, Vector2 center)
+    {
+        CreateTreeGlyph(parent, center + new Vector2(0, 1), 46, Cyan);
+        Circle("TreeNetworkOuter", parent, center + new Vector2(0, 5), 50, 42,
+            1.05f, Hex("55DFFF", 0.38f), true);
+        Circle("TreeNetworkInner", parent, center + new Vector2(0, 5), 34, 36,
+            0.85f, Hex("55DFFF", 0.28f));
+        Line("TreeSecondaryBranchLeft", parent, new[]
+        {
+            center + new Vector2(-15, 4), center + new Vector2(-30, -5),
+            center + new Vector2(-43, -18)
+        }, 1.25f, Hex("8DEBFF", 0.65f));
+        Line("TreeSecondaryBranchRight", parent, new[]
+        {
+            center + new Vector2(15, 8), center + new Vector2(31, -2),
+            center + new Vector2(44, -15)
+        }, 1.25f, Hex("8DEBFF", 0.65f));
+        Dot("TreeSecondaryNode", parent, center + new Vector2(-43, -18), 2.8f, CyanBright);
+        Dot("TreeSecondaryNode", parent, center + new Vector2(44, -15), 2.8f, CyanBright);
+        Line("TreeDataBase", parent, new[]
+        {
+            center + new Vector2(-42, -40), center + new Vector2(-20, -46),
+            center + new Vector2(0, -40), center + new Vector2(20, -46),
+            center + new Vector2(42, -40)
+        }, 1.55f, Hex("8DEBFF", 0.70f));
+        Dot("TreeRootNode", parent, center + new Vector2(-42, -40), 2.8f, CyanBright);
+        Dot("TreeRootNode", parent, center + new Vector2(42, -40), 2.8f, CyanBright);
+        Dot("TreeTierCore", parent, center + new Vector2(0, 4), 3.2f, Amber);
+    }
+
+    private static void CreateExpeditionCardGlyph(Transform parent, Vector2 center)
+    {
+        Circle("ExpeditionRouteOuter", parent, center, 51, 46, 1.8f,
+            Hex("55DFFF", 0.76f), true);
+        Circle("ExpeditionRouteInner", parent, center, 40, 40, 0.95f,
+            Hex("55DFFF", 0.36f));
+        CreateShipGlyph(parent, center + new Vector2(0, 7), 0.52f, CyanBright);
+        Dot("RouteStart", parent, center + new Vector2(-40, 28), 4.2f, Amber);
+        Circle("RouteStartLock", parent, center + new Vector2(-40, 28), 8, 18,
+            1f, Hex("F5A719", 0.62f));
+        Dot("RouteWaypoint", parent, center + new Vector2(42, 18), 3.6f, Cyan);
+        Dot("RouteDestination", parent, center + new Vector2(25, -44), 4.6f, CyanBright);
+        Circle("RouteDestinationLock", parent, center + new Vector2(25, -44), 9, 20,
+            1f, Hex("8DEBFF", 0.55f));
+        Line("RouteVector", parent, new[]
+        {
+            center + new Vector2(-40, 28), center + new Vector2(-9, 39),
+            center + new Vector2(28, 30), center + new Vector2(42, 18)
+        }, 1.65f, Hex("91EEFF", 0.80f), true);
+        Line("RouteReturn", parent, new[]
+        {
+            center + new Vector2(39, 3), center + new Vector2(39, -19),
+            center + new Vector2(25, -44)
+        }, 1.15f, Hex("8DEBFF", 0.48f), true);
+        Line("RouteArrow", parent, new[]
+        {
+            center + new Vector2(35, 24), center + new Vector2(42, 18),
+            center + new Vector2(32, 15)
+        }, 1.8f, CyanBright);
     }
 
     private static void CreateRadarGlyph(Transform parent, Vector2 center, float radius, Color color)
@@ -710,6 +1252,13 @@ public static class Dimension1CommandCenterSetup
         Line("RadarH", parent, new[] { center + new Vector2(-radius - 9, 0), center + new Vector2(radius + 9, 0) }, 1.2f, color);
         Line("RadarV", parent, new[] { center + new Vector2(0, -radius - 9), center + new Vector2(0, radius + 9) }, 1.2f, color);
         Line("RadarSweep", parent, new[] { center, center + new Vector2(radius * 0.72f, radius * 0.48f) }, 2f, CyanBright);
+        for (int i = 0; i < 8; i++)
+        {
+            float angle = i * Mathf.PI * 0.25f;
+            Vector2 a = center + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * (radius - 6f);
+            Vector2 b = center + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius;
+            Line("RadarTick", parent, new[] { a, b }, 1.3f, Hex("91EEFF", 0.78f));
+        }
     }
 
     private static void CreateShipGlyph(Transform parent, Vector2 center, float scale, Color color)
@@ -728,6 +1277,37 @@ public static class Dimension1CommandCenterSetup
             center + new Vector2(0, 29) * scale, center + new Vector2(8, 6) * scale,
             center + new Vector2(0, -6) * scale, center + new Vector2(-8, 6) * scale
         }, 2.4f * scale, CyanBright, true);
+        Line("ShipSpine", parent, new[]
+        {
+            center + new Vector2(0, 44) * scale,
+            center + new Vector2(0, -35) * scale
+        }, 1.8f * scale, Hex("91EEFF", 0.82f));
+        Line("ShipWingPanel", parent, new[]
+        {
+            center + new Vector2(-15, 13) * scale,
+            center + new Vector2(-32, -17) * scale,
+            center + new Vector2(-15, -10) * scale
+        }, 1.6f * scale, Hex("5DDEFF", 0.78f));
+        Line("ShipWingPanel", parent, new[]
+        {
+            center + new Vector2(15, 13) * scale,
+            center + new Vector2(32, -17) * scale,
+            center + new Vector2(15, -10) * scale
+        }, 1.6f * scale, Hex("5DDEFF", 0.78f));
+        Dot("Engine", parent, center + new Vector2(-12, -28) * scale,
+            3.4f * scale, CyanBright);
+        Dot("Engine", parent, center + new Vector2(12, -28) * scale,
+            3.4f * scale, CyanBright);
+        Line("EngineTrail", parent, new[]
+        {
+            center + new Vector2(-12, -33) * scale,
+            center + new Vector2(-12, -49) * scale
+        }, 2f * scale, Hex("38D8FF", 0.62f));
+        Line("EngineTrail", parent, new[]
+        {
+            center + new Vector2(12, -33) * scale,
+            center + new Vector2(12, -49) * scale
+        }, 2f * scale, Hex("38D8FF", 0.62f));
     }
 
     private static void CreateRelicGlyph(Transform parent, Vector2 center, float scale, Color color)
@@ -744,10 +1324,26 @@ public static class Dimension1CommandCenterSetup
         {
             center + new Vector2(0, 43) * scale, center + new Vector2(0, -40) * scale
         }, 2f * scale, CyanBright);
+        Line("RelicFacet", parent, new[]
+        {
+            center + new Vector2(0, 45) * scale,
+            center + new Vector2(-12, 18) * scale,
+            center + new Vector2(0, 4) * scale,
+            center + new Vector2(12, 18) * scale,
+            center + new Vector2(0, 45) * scale
+        }, 1.7f * scale, Hex("BDF6FF", 0.88f));
+        Line("RelicFacet", parent, new[]
+        {
+            center + new Vector2(-11, -17) * scale,
+            center + new Vector2(0, 4) * scale,
+            center + new Vector2(11, -17) * scale
+        }, 1.7f * scale, Hex("64DFFF", 0.78f));
         Ellipse("RelicOrbitOuter", parent, center + new Vector2(0, -34) * scale,
             45 * scale, 13 * scale, 38, 1.8f * scale, color);
         Ellipse("RelicOrbitInner", parent, center + new Vector2(0, -34) * scale,
             27 * scale, 7 * scale, 32, 1.4f * scale, CyanBright);
+        Dot("RelicCore", parent, center + new Vector2(0, 4) * scale,
+            4.2f * scale, CyanBright);
     }
 
     private static void CreateTreeGlyph(Transform parent, Vector2 center, float radius, Color color)
@@ -769,8 +1365,12 @@ public static class Dimension1CommandCenterSetup
         foreach (Vector2[] branch in branches)
         {
             Line("TreeBranch", parent, branch, 2f, color);
-            Dot("TreeNode", parent, branch[branch.Length - 1], 3f * s, CyanBright);
+            Vector2 node = branch[branch.Length - 1];
+            Dot("TreeNode", parent, node, 3f * s, CyanBright);
+            Circle("TreeNodeOrbit", parent, node, 7f * s, 18, 1.1f,
+                Hex("91EEFF", 0.62f));
         }
+        Dot("TreeCore", parent, center + new Vector2(0, 1) * s, 4f * s, CyanBright);
         Line("TreeRoots", parent, new[]
         {
             basePoint + new Vector2(-37, -7) * s, basePoint,
@@ -781,6 +1381,8 @@ public static class Dimension1CommandCenterSetup
     private static void CreateCompassGlyph(Transform parent, Vector2 center, float radius, Color color)
     {
         Circle("CompassRing", parent, center, radius, 44, 2f, color);
+        Circle("CompassInner", parent, center, radius * 0.58f, 36, 1.2f,
+            Hex("64DFFF", 0.62f), true);
         Vector2[] star =
         {
             center + new Vector2(0, radius * 0.72f), center + new Vector2(8, 8),
@@ -789,6 +1391,22 @@ public static class Dimension1CommandCenterSetup
             center + new Vector2(-radius * 0.72f, 0), center + new Vector2(-8, 8)
         };
         Line("CompassStar", parent, star, 2.5f, CyanBright, true);
+        Dot("CompassCore", parent, center, 4.2f, CyanBright);
+        for (int i = 0; i < 8; i++)
+        {
+            float angle = i * Mathf.PI * 0.25f;
+            Vector2 a = center + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * (radius - 7f);
+            Vector2 b = center + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * (radius + 1f);
+            Line("CompassTick", parent, new[] { a, b }, 1.4f,
+                Hex("91EEFF", i % 2 == 0 ? 0.9f : 0.55f));
+        }
+        Dot("RouteNode", parent, center + new Vector2(-33, 23), 3.4f, Cyan);
+        Dot("RouteNode", parent, center + new Vector2(30, -25), 3.4f, CyanBright);
+        Line("RoutePath", parent, new[]
+        {
+            center + new Vector2(-33, 23), center + new Vector2(-8, 13),
+            center + new Vector2(11, -9), center + new Vector2(30, -25)
+        }, 1.5f, Hex("5DDEFF", 0.75f), false);
     }
 
     private static void CreateCommandGlyph(Transform parent)
@@ -886,6 +1504,39 @@ public static class Dimension1CommandCenterSetup
         Vector2 size, Color color)
     {
         return Panel(name, parent, position, size, color, sprite).GetComponent<Image>();
+    }
+
+    private static void EnsureSpriteImport(string assetPath)
+    {
+        string absolutePath = Path.GetFullPath(assetPath);
+        if (!File.Exists(absolutePath))
+            throw new InvalidOperationException("No existe el asset requerido: " + assetPath);
+
+        AssetDatabase.ImportAsset(assetPath,
+            ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+        TextureImporter importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
+        if (importer == null)
+            throw new InvalidOperationException("No se pudo importar como textura: " + assetPath);
+
+        bool changed = importer.textureType != TextureImporterType.Sprite ||
+            importer.spriteImportMode != SpriteImportMode.Single ||
+            !importer.alphaIsTransparency || importer.mipmapEnabled ||
+            importer.wrapMode != TextureWrapMode.Clamp ||
+            importer.textureCompression != TextureImporterCompression.Uncompressed ||
+            importer.maxTextureSize != 512;
+
+        if (!changed)
+            return;
+
+        importer.textureType = TextureImporterType.Sprite;
+        importer.spriteImportMode = SpriteImportMode.Single;
+        importer.alphaIsTransparency = true;
+        importer.mipmapEnabled = false;
+        importer.wrapMode = TextureWrapMode.Clamp;
+        importer.filterMode = FilterMode.Bilinear;
+        importer.textureCompression = TextureImporterCompression.Uncompressed;
+        importer.maxTextureSize = 512;
+        importer.SaveAndReimport();
     }
 
     private static Text Text(string name, Transform parent, string value, Vector2 position,

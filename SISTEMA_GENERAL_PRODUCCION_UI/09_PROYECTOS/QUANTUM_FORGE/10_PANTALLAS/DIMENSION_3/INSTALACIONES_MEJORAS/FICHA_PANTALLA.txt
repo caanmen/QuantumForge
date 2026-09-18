@@ -1,0 +1,26 @@
+FICHA — INSTALACIONES CONECTADAS / MEJORA
+=========================================
+
+Dimensión: 3
+Tipo: variante de mejora y asignación de D3FacilitiesPanelUI
+Referencia visual: 05_REFERENCIAS/DIMENSION_3/INSTALACIONES_MEJORAS/
+Implementación funcional: D3FacilitiesPanelUI + D3FacilitySystem
+
+ESCENARIO CANÓNICO DE QA
+- recursos: 3.25M LE, 4.2K Trazas y 56 Autómatas;
+- Consola de Producción nivel 2;
+- siguiente nivel: N3;
+- canal: Capacidad;
+- autómata: MK2 Rápido;
+- asignados: 2; estables: 2;
+- capacidad efectiva: sqrt(2 × 4) = 2.83;
+- función de compra de producción base N2 activa;
+- acciones: +1 ASIGNAR, −1 RETIRAR, AMPLIAR A NIVEL 3,
+  CONTROL DE CONSOLA y VOLVER AL BANCO;
+- navegación inferior: CONTROL seleccionado.
+
+ESTADOS POSTERIORES A VALIDAR
+- instalación sin construir y niveles N1–N5;
+- mejora disponible, en cola y nivel máximo;
+- requisito de ensamblajes insuficiente;
+- asignación pendiente de estabilización, estable y retirada.

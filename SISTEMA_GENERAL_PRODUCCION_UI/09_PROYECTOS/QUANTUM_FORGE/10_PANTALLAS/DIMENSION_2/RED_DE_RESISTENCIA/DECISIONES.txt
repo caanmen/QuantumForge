@@ -1,0 +1,27 @@
+DECISIONES — RED DE RESISTENCIA / REGIONES
+
+1 de septiembre de 2026
+
+1. La referencia V4 permanente es la autoridad visual; el marco del visor y sus
+   tiradores del adjunto temporal no pertenecen a la pantalla.
+2. Esta vista representa Regiones. La pestaña RESISTENCIA conserva las mejoras y
+   Pactos globales existentes y no se mezcla con la red regional.
+3. No se alteran balance ni reglas: las tres regiones jugables, desbloqueos,
+   Dominio, Amenaza y asignaciones pertenecen a D2Civilization2System.
+4. La placa limpia conserva arte e iconos; todos los textos y valores se dibujan
+   con TMP y campos separados para mantener ejes y márgenes independientes.
+5. Las regiones se seleccionan por Region1Id, Region2Id y Region3Id; su posición
+   visual no es la autoridad de datos.
+6. Los cinco controles de asignación son botones UGUI reales. El QA prueba cada
+   acción y restaura el estado de referencia antes de capturar.
+7. El estado visual de prueba usa 3,845 disponibles, 1,325 asignados, total 5,170,
+   Dominio total 72 % y Región 1 con 120 Miembros sin destinar.
+8. El porcentaje visual global no basta: también se comprobarán truncamiento,
+   solapamiento, centro óptico y salida de placa en 1080×1920 y 720×1280.
+9. Dimension2ResistanceRegionsCapture es el QA aislado de esta vista y suprime
+   escrituras de guardado durante las pruebas.
+10. La evidencia permanece candidata hasta la aprobación visual del usuario.
+11. El gate TEXT_GEOMETRY_PASS recorre todo texto activo, ignora únicamente datos
+    invisibles y falla si los glifos exceden su caja o si la caja sale del lienzo.
+12. La captura final supera el gate perceptual AA con 95.57 % en 1080×1920 y
+    95.96 % en 720×1280; el porcentaje no sustituye la revisión visual del usuario.

@@ -1,0 +1,40 @@
+QUANTUM FORGE — FICHA DE PANTALLA — MÁQUINA / PRESTIGIO 1
+
+Estado: composición estática reabierta tras rechazo visual del 2026-09-09.
+
+Función:
+Mostrar si Prestigio 1 está disponible, qué requisitos faltan y qué reinicia,
+conserva y revela antes de iniciar la transición dimensional.
+
+Entrada:
+Pestaña PRESTIGIO dentro de MÁQUINA.
+
+Salida:
+Pestaña NODOS, pestaña MEZCLAS o navegación vertical existente.
+
+Acción principal:
+REQUISITOS PENDIENTES cuando está bloqueado; INICIAR PRESTIGIO cuando está listo.
+
+Datos reales:
+- LE y Trazas de GameState.
+- Reparación pública total de MachineManager.
+- Canal de Convergencia de MachineManager.Prestige1Prepared.
+- Estado y bloqueo por hito de GameState.GetPrestige1StatusText().
+- Disponibilidad final de GameState.CanDoPrestige1().
+
+Estados obligatorios:
+- Bloqueado por reparación.
+- Bloqueado por Canal de Convergencia.
+- Bloqueado por hito dimensional.
+- Listo.
+- Ciclo de tres dimensiones completo.
+
+Referencia:
+05_REFERENCIAS/MAQUINA/PRESTIGIO_1_2026-09-09_V01/01_referencia_aprobada_1080x1920.png
+
+Resoluciones:
+1080×1920 y 720×1280.
+
+Puerta actual:
+Puerta 2 — composición estática. La interacción no constituye aprobación visual.
+

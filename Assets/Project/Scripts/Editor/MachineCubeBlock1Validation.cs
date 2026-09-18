@@ -18,7 +18,9 @@ public static class MachineCubeBlock1Validation
     {
         List<string> failures = new();
         ValidateCatalog(failures);
+        ValidateProgressiveFaceReveal(failures);
         ValidateProgressContract(failures);
+        ValidateSeedRetirementMigration(failures);
         ValidateRequirementContract(failures);
         ValidateFourFaceNavigationContract(failures);
         ValidateScene(failures);
@@ -27,8 +29,8 @@ public static class MachineCubeBlock1Validation
             throw new InvalidOperationException("[Machine Cube Block 1] FAIL\n- " +
                 string.Join("\n- ", failures));
 
-        Debug.Log("[Machine Cube Block 1] PASS | 55 public | 8 secret | " +
-            "44/55 threshold | exact requirements | 4 functional faces");
+        Debug.Log("[Machine Cube Block 1] PASS | 36 public | 6 secret | " +
+            "29/36 threshold | 21 retired | retired-node refunds preserved");
     }
 
     public static void ValidateBatch()
@@ -48,35 +50,47 @@ public static class MachineCubeBlock1Validation
         if (data?.nodes == null)
             return;
 
-        int publicCount = data.nodes.Count(node => node != null && !node.hidden);
-        int hiddenCount = data.nodes.Count(node => node != null && node.hidden);
-        Check(publicCount == 55, "El catálogo ya no contiene 55 nodos públicos.", failures);
-        Check(hiddenCount == 8, "El catálogo ya no contiene 8 nodos secretos.", failures);
-        Check(Mathf.CeilToInt(publicCount * 0.8f) == 44,
-            "El umbral de 80% ya no equivale a 44 nodos públicos.", failures);
+        List<MachineNodeDef> activeNodes = data.nodes
+            .Where(node => node != null && !node.retired).ToList();
+        List<MachineNodeDef> retiredNodes = data.nodes
+            .Where(node => node != null && node.retired).ToList();
+        int publicCount = activeNodes.Count(node => !node.hidden);
+        int hiddenCount = activeNodes.Count(node => node.hidden);
+        Check(publicCount == 36, "El catálogo activo ya no contiene 36 nodos públicos.", failures);
+        Check(hiddenCount == 6, "El catálogo activo ya no contiene 6 nodos secretos.", failures);
+        Check(retiredNodes.Count(node => !node.hidden) == 19 &&
+              retiredNodes.Count(node => node.hidden) == 2,
+            "El catálogo no conserva 19 nodos públicos y 2 secretos retirados.",
+            failures);
+        Check(retiredNodes.Count(node => node.zone != MachineZoneType.InstantChamber) == 1 &&
+              retiredNodes.Any(node => node.id == "z3_convergence_channel"),
+            "El Canal de Convergencia no es el único nodo retirado fuera de Semillas.", failures);
+        Check(activeNodes.All(node => node.zone != MachineZoneType.InstantChamber),
+            "El sector de Semillas todavía contiene nodos activos.", failures);
+        Check(Mathf.CeilToInt(publicCount * 0.8f) == 29,
+            "El umbral de 80% ya no equivale a 29 nodos públicos.", failures);
 
         Dictionary<MachineZoneType, int> expectedDisplayCounts = new()
         {
             { MachineZoneType.Room1Link, 7 },
             { MachineZoneType.FusionSector, 11 },
-            { MachineZoneType.InternalSupport, 7 },
-            { MachineZoneType.InstantChamber, 10 }
+            { MachineZoneType.InternalSupport, 6 }
         };
         foreach (KeyValuePair<MachineZoneType, int> expected in expectedDisplayCounts)
         {
-            int displayCount = CountDisplayBranches(data.nodes, expected.Key, false);
+            int displayCount = CountDisplayBranches(activeNodes, expected.Key, false);
             Check(displayCount == expected.Value,
                 expected.Key + " debe mostrar " + expected.Value +
                 " sockets públicos y muestra " + displayCount + ".", failures);
-            int withSecrets = CountDisplayBranches(data.nodes, expected.Key, true);
+            int withSecrets = CountDisplayBranches(activeNodes, expected.Key, true);
             Check(withSecrets <= 13,
                 expected.Key + " supera los 13 sockets reutilizables al revelar secretos.",
                 failures);
         }
 
-        HashSet<string> ids = data.nodes.Where(node => node != null)
+        HashSet<string> ids = activeNodes
             .Select(node => node.id).ToHashSet();
-        foreach (MachineNodeDef node in data.nodes)
+        foreach (MachineNodeDef node in activeNodes)
         {
             if (node?.requiredNodeIds == null)
                 continue;
@@ -99,6 +113,17 @@ public static class MachineCubeBlock1Validation
             !secondSlot.requiredNodeIds.Contains("z2_fusion_table")),
             "Ranura de Fusión II todavía depende del antiguo nodo de Mezclas.",
             failures);
+
+        List<MachineNodeDef> publicNodes = activeNodes.Where(node => !node.hidden).ToList();
+        Check(Math.Abs(publicNodes.Sum(node => node.cost?.le ?? 0.0) - 32050000.0) < 0.001,
+            "El coste público activo ya no suma 32.050.000 LE.", failures);
+        Check(Math.Abs(publicNodes.Sum(node => node.cost?.traces ?? 0.0) - 29795.0) < 0.001,
+            "El coste público activo ya no suma 29.795 Trazas.", failures);
+        Check(publicNodes.Sum(node => node.cost?.hallazgo ?? 0) == 27 &&
+              publicNodes.Sum(node => node.cost?.muestra ?? 0) == 25 &&
+              publicNodes.Sum(node => node.cost?.lecturaIncompleta ?? 0) == 21 &&
+              publicNodes.Sum(node => node.cost?.compuestoUtil ?? 0) == 8,
+            "Los materiales públicos ya no conservan los totales 27/25/21/8.", failures);
     }
 
     private static void ValidateProgressContract(List<string> failures)
@@ -129,16 +154,16 @@ public static class MachineCubeBlock1Validation
                 machineUnlocked = true,
                 machineAllZonesUnlocked = true,
                 machineSelectedFaceIndex = 3,
-                machineRepairedNodeIds = publicIds.Take(43).ToList()
+                machineRepairedNodeIds = publicIds.Take(28).ToList()
             };
             manager.LoadProgressFromSave(save);
             Check(!manager.HasEnoughRepairForPrestige1(),
-                "43/55 activa incorrectamente el 80%.", failures);
+                "28/36 activa incorrectamente el 80%.", failures);
 
-            save.machineRepairedNodeIds = publicIds.Take(44).ToList();
+            save.machineRepairedNodeIds = publicIds.Take(29).ToList();
             manager.LoadProgressFromSave(save);
             Check(manager.HasEnoughRepairForPrestige1(),
-                "44/55 no activa el 80%.", failures);
+                "29/36 no activa el 80%.", failures);
             Check(manager.SelectedMachineFaceIndex == 3,
                 "La cara seleccionada no se carga.", failures);
 
@@ -146,6 +171,9 @@ public static class MachineCubeBlock1Validation
             manager.WriteProgressToSave(roundTrip);
             Check(roundTrip.machineSelectedFaceIndex == 3,
                 "La cara seleccionada no se guarda.", failures);
+            Check(roundTrip.machineSeedRetirementMigrationVersion ==
+                    MachineManager.SeedRetirementMigrationVersion,
+                "La versión de retiro de Semillas no se guarda.", failures);
 
             double beforeSecrets = manager.GetTotalMachineRepairProgress01();
             save.machineRepairedNodeIds.AddRange(hiddenIds);
@@ -154,8 +182,7 @@ public static class MachineCubeBlock1Validation
                 "Los secretos alteran el progreso global.", failures);
 
             foreach (MachineZoneType zone in new[] { MachineZoneType.Room1Link,
-                MachineZoneType.FusionSector, MachineZoneType.InternalSupport,
-                MachineZoneType.InstantChamber })
+                MachineZoneType.FusionSector, MachineZoneType.InternalSupport })
             {
                 List<string> zonePublic = manager.GetAllNodes(true)
                     .Where(node => node != null && node.zone == zone && !node.hidden)
@@ -171,6 +198,123 @@ public static class MachineCubeBlock1Validation
                 Check(Math.Abs(manager.GetZoneRepairProgress01(zone) - publicOnly) < 0.000001,
                     "Los secretos alteran el progreso de " + zone + ".", failures);
             }
+        }
+        finally
+        {
+            UnityEngine.Object.DestroyImmediate(host);
+            ResetMachineSingleton();
+        }
+    }
+
+    private static void ValidateProgressiveFaceReveal(List<string> failures)
+    {
+        TextAsset json = Resources.Load<TextAsset>("Data/machine_nodes");
+        MachineNodeDefList data = json != null
+            ? JsonUtility.FromJson<MachineNodeDefList>(json.text)
+            : null;
+        if (data?.nodes == null)
+        {
+            Check(false, "No se pudo validar la revelación progresiva de caras.", failures);
+            return;
+        }
+
+        List<MachineNodeDef> publicNodes = data.nodes
+            .Where(node => node != null && !node.retired && !node.hidden)
+            .ToList();
+        var repaired = new HashSet<string>();
+        int guard = publicNodes.Count * 4;
+        bool changed = true;
+        while (changed && guard-- > 0)
+        {
+            changed = false;
+            int stage = MachineMonolith2DVisualUI.GetRepairStage(
+                publicNodes.Count > 0
+                    ? (double)repaired.Count / publicNodes.Count
+                    : 0.0);
+            foreach (MachineNodeDef node in publicNodes)
+            {
+                if (repaired.Contains(node.id))
+                    continue;
+                string branch = string.IsNullOrWhiteSpace(node.tierGroup)
+                    ? node.id
+                    : node.tierGroup;
+                if (!MachineMonolith2DVisualUI.IsBranchVisibleAtStage(branch, stage))
+                    continue;
+                if (node.requiredNodeIds != null &&
+                    node.requiredNodeIds.Any(required => !repaired.Contains(required)))
+                {
+                    continue;
+                }
+                repaired.Add(node.id);
+                changed = true;
+            }
+        }
+
+        Check(repaired.Count == publicNodes.Count,
+            "La revelación 3/5/7/8 bloquea la reparación en " + repaired.Count +
+            "/" + publicNodes.Count + " nodos públicos.", failures);
+        Check(repaired.Count >= Mathf.CeilToInt(publicNodes.Count * .8f),
+            "Las caras progresivas no permiten alcanzar el 80% de reparación.", failures);
+    }
+
+    private static void ValidateSeedRetirementMigration(List<string> failures)
+    {
+        GameObject host = new GameObject("Machine Seed Retirement Validation Manager");
+        MachineManager manager = host.AddComponent<MachineManager>();
+        try
+        {
+            SaveData save = new SaveData
+            {
+                LE = 10.0,
+                Traces = 20.0,
+                experimentalHallazgos = 3,
+                experimentalMuestras = 4,
+                experimentalLecturasIncompletas = 5,
+                chronalStableInstants = 2,
+                chronalArchivedInstants = 2,
+                machineRepairedNodeIds = new List<string>
+                {
+                    "z1_energy_coupling_1",
+                    "z4_basic_chamber",
+                    "z4_archive_expansion_2",
+                    "z3_convergence_channel"
+                },
+                machineAnalyzedNodeIds = new List<string>
+                {
+                    "z4_seed_reading_1"
+                },
+                machineAnalysisNodeId = "z4_seed_reading_1",
+                machineAnalysisRemainingSeconds = 2.5
+            };
+
+            bool migrated = manager.ApplySeedRetirementMigration(save);
+            Check(migrated, "La migración de Semillas no se ejecutó.", failures);
+            Check(save.machineSeedRetirementMigrationVersion ==
+                    MachineManager.SeedRetirementMigrationVersion,
+                "La migración de Semillas no registra su versión.", failures);
+            Check(save.machineRepairedNodeIds.SequenceEqual(
+                    new[] { "z1_energy_coupling_1" }),
+                "La migración no retiró todos los nodos obsoletos.", failures);
+            Check(save.machineAnalyzedNodeIds.Count == 0 &&
+                  string.IsNullOrEmpty(save.machineAnalysisNodeId) &&
+                  Math.Abs(save.machineAnalysisRemainingSeconds) < 0.000001,
+                "La migración conserva análisis activos del sector retirado.", failures);
+            Check(Math.Abs(save.LE - 3820010.0) < 0.001 &&
+                  Math.Abs(save.Traces - 3720.0) < 0.001,
+                "La migración no devuelve el coste nominal de LE y Trazas.", failures);
+            Check(save.experimentalHallazgos == 6 &&
+                  save.experimentalMuestras == 7 &&
+                  save.experimentalLecturasIncompletas == 6 &&
+                  save.experimentalCompuestosUtiles == 1,
+                "La migración no devuelve los materiales experimentales.", failures);
+            Check(save.chronalStableInstants == 3 &&
+                  save.chronalArchivedInstants == 3,
+                "La migración no devuelve el Anclaje Estable consumido.", failures);
+
+            double leAfterFirstMigration = save.LE;
+            Check(!manager.ApplySeedRetirementMigration(save) &&
+                  Math.Abs(save.LE - leAfterFirstMigration) < 0.001,
+                "La devolución puede aplicarse más de una vez.", failures);
         }
         finally
         {
@@ -199,8 +343,8 @@ public static class MachineCubeBlock1Validation
             if (method == null)
                 return;
 
-            MachineNodeDef target = manager.GetDef("z3_convergence_channel");
-            MachineNodeDef exactRequired = manager.GetDef("z3_structural_reinforcement");
+            MachineNodeDef target = manager.GetDef("z3_structural_reinforcement");
+            MachineNodeDef exactRequired = manager.GetDef("z3_machine_memory");
             SaveData save = new SaveData
             {
                 machineUnlocked = true,
@@ -277,6 +421,36 @@ public static class MachineCubeBlock1Validation
 
         Check(panelObject.GetComponents<MachinePanelUI>().Length == 1,
             "Debe existir un solo MachinePanelUI.", failures);
+
+        Transform monolithRoot = panelObject.transform.Find("MachineMonolith2DRoot");
+        if (monolithRoot != null)
+        {
+            Check(panelObject.GetComponents<MachineMonolith2DVisualUI>().Length == 1,
+                "Debe existir un solo MachineMonolith2DVisualUI.", failures);
+            Check(panelObject.GetComponent<MachineCubeVisualUI>() == null &&
+                panelObject.transform.Find("MachineCubeVisualRoot") == null,
+                "La composición 3D antigua sigue activa junto al Monolito 2D.",
+                failures);
+            try
+            {
+                MachineMonolith2DSetup.Validate();
+            }
+            catch (Exception exception)
+            {
+                failures.Add("El Monolito 2D no superó su validación estructural: " +
+                    exception.Message);
+            }
+
+            VerticalSettingsPanelUI settings =
+                UnityEngine.Object.FindFirstObjectByType<VerticalSettingsPanelUI>(
+                    FindObjectsInactive.Include);
+            Check(settings != null &&
+                settings.transform.Find("Machine3DGraphicsCard") == null,
+                "La tarjeta obsoleta de gráficos 3D reapareció en Ajustes.", failures);
+            return;
+        }
+
+        failures.Add("Falta MachineMonolith2DRoot.");
         Check(panelObject.GetComponents<MachineCubeVisualUI>().Length == 1,
             "Debe existir un solo MachineCubeVisualUI.", failures);
         MachineCubeVisualUI visual = panelObject.GetComponent<MachineCubeVisualUI>();

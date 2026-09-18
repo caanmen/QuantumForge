@@ -1,0 +1,139 @@
+{
+  "schema_version": "1.1",
+  "name": "Alcance visual para nuevas modalidades de Solitario",
+  "status": "ACTIVE",
+  "applies_to": ["new_solitaire_variant", "new_visual_theme", "representative_visual_mockup"],
+  "principle": "La modalidad obtiene identidad propia dentro del shell común y reutiliza todo componente universal aprobado.",
+  "authorities": {
+    "current_shell_code": "Assets/Solitario/Scripts/Runtime",
+    "current_shell_evidence": "fresh_runtime_capture_required",
+    "universal_card_contract": "04_PLANTILLAS/CONTRATO_GEOMETRIA_UNIVERSAL_CARTAS.json",
+    "universal_card_required_status": "LOCKED",
+    "universal_card_geometry_sha256": "ea3603284333a5698b9db8ea293184ce530a58d98d7964bad569c224d12c7b77"
+  },
+  "immutable_shared_shell": [
+    "header_hierarchy_and_placement",
+    "status_and_profile_placement",
+    "bottom_toolbar_geometry",
+    "bottom_toolbar_action_order",
+    "shared_button_style_and_interaction_language",
+    "navigation_behavior",
+    "modal_behavior",
+    "safe_area_and_mobile_coordinate_system"
+  ],
+  "expected_bottom_toolbar_actions": [
+    "Juegos",
+    "Nueva",
+    "Reiniciar",
+    "Deshacer",
+    "Pista",
+    "Tienda_when_supported",
+    "Ajustes"
+  ],
+  "theme_owned_layers": [
+    "table_background_or_felt",
+    "card_back_art",
+    "card_frame_around_locked_reserved_zones",
+    "ornaments_outside_locked_reserved_zones",
+    "court_art",
+    "palette_and_texture_inside_authorized_theme_layers",
+    "foundation_and_tableau_slot_decoration_without_layout_change"
+  ],
+  "universal_card_invariants": {
+    "A_to_10_must_use_locked_master": true,
+    "placeholder_numeric_cards_forbidden": true,
+    "theme_specific_translation_allowed": false,
+    "theme_specific_scale_allowed": false,
+    "theme_specific_position_override_allowed": false,
+    "invalid_frame_must_be_redesigned": true
+  },
+  "required_gate_modules": [
+    "visual_layer_composition"
+  ],
+  "layer_composition_contract": {
+    "principle": "Integrar significa recomponer una sola superficie desde propietarios separados; no colocar una cara completa o parche opaco encima de otra superficie.",
+    "authorized_bottom_to_top_order": [
+      "theme_card_surface",
+      "locked_universal_A_to_10_content_with_transparent_non_content_pixels",
+      "theme_frame_with_transparent_protected_interior"
+    ],
+    "single_surface_owner_per_visible_region": true,
+    "theme_card_surface_must_remain_visible_in_ink_free_samples": true,
+    "locked_master_may_be_used_as_full_opaque_face": false,
+    "locked_master_content_may_be_extracted_deterministically_without_geometry_change": true,
+    "universal_content_transparent_outside_rank_suit_and_pips": true,
+    "frame_transparent_inside_protected_field": true,
+    "transparent_pixels_require_neutral_rgb": true,
+    "final_must_match_deterministic_recomposition_from_declared_layers": true,
+    "runtime_imported_dimensions_must_match_approved_sources": true,
+    "npot_resizing_for_contractual_aspect_assets_allowed": false,
+    "interaction_zones_may_occlude_continuous_theme_background": false,
+    "required_gate_criterion": {
+      "id": "VLC01",
+      "phase": "unit",
+      "status": "PASS",
+      "automatic_command_evidence_required": true
+    }
+  },
+  "required_order": [
+    "inspect_current_runtime_shell_and_fresh_capture",
+    "inventory_immutable_and_theme_owned_layers",
+    "verify_locked_universal_master_path_status_and_hash",
+    "define_distinct_theme_identity_without_reusing_prior_theme",
+    "generate_only_authorized_art_layers",
+    "assemble_exact_shell_and_universal_content_deterministically",
+    "validate_integrated_composition_and_theme_visibility",
+    "compare_shell_against_current_reference",
+    "validate_one_representative_mobile_unit",
+    "wait_for_explicit_user_approval",
+    "implement_variant",
+    "produce_additional_themes_only_after_separate_authorization"
+  ],
+  "blocking_conditions": {
+    "concept_changes_shared_shell_without_explicit_authorization": true,
+    "concept_changes_bottom_buttons_or_their_layout": true,
+    "concept_uses_custom_or_placeholder_A_to_10_when_locked_master_exists": true,
+    "concept_does_not_reference_locked_master_hash": true,
+    "concept_reuses_an_existing_theme_identity": true,
+    "implementation_before_visual_approval": true,
+    "batch_before_representative_unit_approval": true,
+    "opaque_full_face_over_theme_surface": true,
+    "duplicate_surface_or_frame_owner": true,
+    "frame_opaque_inside_protected_field": true,
+    "transparent_pixels_with_hidden_artifacts": true,
+    "final_not_reproducible_from_declared_layers": true,
+    "visual_layer_module_without_VLC01_command_evidence": true
+    ,"runtime_texture_dimensions_differ_from_approved_source": true
+    ,"opaque_interaction_slots_cover_continuous_theme_background": true
+  },
+  "required_evidence": [
+    "fresh_current_shell_capture",
+    "layer_ownership_matrix",
+    "locked_master_hash_validation",
+    "before_after_shell_comparison",
+    "distinctness_comparison_against_existing_theme_catalog",
+    "isolated_theme_surface_universal_content_and_frame_layers",
+    "automatic_alpha_occlusion_and_pixel_recomposition_result",
+    "ink_free_sample_proving_theme_surface_visibility",
+    "negative_fixture_with_opaque_full_face_rejected",
+    "runtime_loaded_texture_dimensions",
+    "interaction_slot_alpha_audit",
+    "representative_mobile_render",
+    "explicit_user_approval_before_implementation"
+  ],
+  "negative_fixtures": {
+    "redesigned_bottom_toolbar": "FAIL",
+    "moved_header_or_shared_status": "FAIL",
+    "placeholder_numeric_card": "FAIL",
+    "wrong_or_missing_universal_hash": "FAIL",
+    "theme_specific_numeric_translation_or_scale": "FAIL",
+    "copied_existing_theme_identity": "FAIL",
+    "opaque_locked_master_hides_theme_surface": "FAIL",
+    "second_card_face_or_background_is_composited_on_top": "FAIL",
+    "frame_fills_protected_card_interior": "FAIL",
+    "checker_or_hidden_RGB_remains_under_zero_alpha": "FAIL",
+    "VLC01_has_only_visual_observation_and_no_command": "FAIL",
+    "npot_runtime_resize_changes_contractual_aspect": "FAIL",
+    "opaque_drop_targets_cover_theme_surface": "FAIL"
+  }
+}

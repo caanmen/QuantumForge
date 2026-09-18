@@ -201,6 +201,13 @@ public static class TriangleRedesignValidation
             state.triangleActiveCircuit = TriangleCircuitType.Energy;
             Check(state.HasExperimentalChamberTriangleRequirement(),
                 "Un circuito activo no habilita el requisito del Triángulo.", failures);
+            UpgradeStudyState studies = UpgradeStudySystem.EnsureState(state);
+            if (!studies.discoveredIds.Contains(
+                UpgradeStudySystem.KeycardProjectUnlockId))
+            {
+                studies.discoveredIds.Add(
+                    UpgradeStudySystem.KeycardProjectUnlockId);
+            }
             Check(state.TryBuyExperimentalChamberKeycard(),
                 "La keycard no se puede comprar con todos sus requisitos.", failures);
             Check(state.experimentalChamberUnlocked,
@@ -236,7 +243,7 @@ public static class TriangleRedesignValidation
                  repairedIds.Count < requiredRepairCount; i++)
             {
                 MachineNodeDef node = visibleNodes[i];
-                if (node == null || node.id == "z3_convergence_channel")
+                if (node == null)
                     continue;
                 repairedIds.Add(node.id);
             }
@@ -261,14 +268,8 @@ public static class TriangleRedesignValidation
             machine.LoadProgressFromSave(save);
             Check(TabsUI.ShouldShowPrestige1Button(state, machine),
                 "La pestaña Prestigio no aparece al desbloquear la Máquina.", failures);
-            Check(!state.CanDoPrestige1(machine),
-                "El 80% permite Prestigio 1 sin Canal de Convergencia.", failures);
-
-            repairedIds.Add("z3_convergence_channel");
-            save.machineRepairedNodeIds = new List<string>(repairedIds);
-            machine.LoadProgressFromSave(save);
             Check(state.CanDoPrestige1(machine),
-                "Máquina al 80% con Convergencia no habilita Prestigio 1.", failures);
+                "La Máquina al 80% no habilita Prestigio 1 por sí sola.", failures);
             state.hasDonePrestige1 = true;
             state.prestige1Count = 1;
             Check(!TabsUI.ShouldShowPrestige1Button(state, machine),
@@ -365,10 +366,9 @@ public static class TriangleRedesignValidation
                  repairedIds.Count < requiredRepairCount; i++)
             {
                 MachineNodeDef node = visibleNodes[i];
-                if (node != null && node.id != "z3_convergence_channel")
+                if (node != null)
                     repairedIds.Add(node.id);
             }
-            repairedIds.Add("z3_convergence_channel");
             machine.LoadProgressFromSave(new SaveData
             {
                 machineIntroSeen = true,

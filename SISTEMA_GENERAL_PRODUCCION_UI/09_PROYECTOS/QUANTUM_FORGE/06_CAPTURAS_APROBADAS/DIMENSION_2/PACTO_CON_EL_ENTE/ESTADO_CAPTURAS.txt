@@ -1,0 +1,21 @@
+CAPTURAS APROBADAS — PACTO CON EL ENTE
+
+Fecha: 4 de septiembre de 2026.
+Aprobación explícita del usuario: «sí, confirmada esa».
+
+- pacto_con_el_ente_aprobada_1080x1920.png
+  Similitud percibida AA: 96.37 %.
+
+- pacto_con_el_ente_aprobada_720x1280.png
+  Similitud percibida AA: 96.68 %.
+
+Validación de Unity:
+- STRUCTURE_PASS.
+- STATE_PASS.
+- ACTIONS_PASS.
+- ROUTE_PASS.
+- SAVE_INTACT_PASS.
+- TEXT_GEOMETRY_PASS.
+
+Referencia comparada:
+05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/20_Pacto_Opcional_Con_El_Ente_Corregido_V5.png

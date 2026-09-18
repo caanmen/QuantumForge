@@ -1,0 +1,28 @@
+PAQUETE VISUAL — RITOS DEL SANTUARIO
+
+Referencia autorizada:
+SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/06_Ritos_Del_Santuario_Corregidos_V4.png
+SHA-256: C212C68A1EE8C350EB79BB6679EFC83D072738AAB09937800EE04C7B9442BC78.
+
+D2_Rites_ImageGenNeutralClean_v1.png
+- Edición limpia generada con ImageGen el 31-08-2026.
+- Primer prompt: conservar exactamente composición, marcos, piedra, metal, relieves,
+  medallones e iconografía; retirar texto, cifras y estados funcionales para obtener una
+  placa limpia; no añadir contenido ni cambiar geometría.
+- Segundo prompt: retirar únicamente el resplandor de selección de la tarjeta Rito de
+  Recibimiento y conservar intacta la selección dorada de Ritos en la navegación inferior.
+- Modo: edición con la referencia permanente y la primera edición como entradas sucesivas.
+- SHA-256 final: 71DB3CE8C8DDEB14917470CEA852B514A0BFCC152EEE218990D8F0E79AE383FB.
+
+D2_Rites_CleanBasePlate_v1.png
+- Placa híbrida reproducible que conserva marcos, arte e iconos canónicos exactos de V4.
+- Las regiones de contenido dinámico se sustituyen por superficies de la edición limpia.
+- SHA-256: A1E195ED5B1110E1365A2BFFF7678233101EB5DA5F2F494C4B0768F3FDDC45E8.
+
+D2_Rites_WelcomeNeutralOverlay_v1.png y overlays de selección
+- Separan el estado neutral de Recibimiento y la selección de Ofrenda, Camino,
+  Noviciado y Respeto.
+- Son decorativos; los botones y el estado pertenecen a D2RitesPanelUI.
+
+Tools/VisualQA/PrepareD2RitesAssets.ps1 reconstruye la placa y los overlays.
+Los títulos, cifras, estados, efectos, asignaciones y acciones se renderizan en Unity.

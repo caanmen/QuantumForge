@@ -1,0 +1,23 @@
+DECISIONES — OPERACIONES DE RESISTENCIA
+
+1 de septiembre de 2026
+
+1. La referencia V4 permanente es la autoridad; el marco y los tiradores del
+   visor del adjunto temporal no pertenecen a la pantalla.
+2. La placa limpia contiene únicamente arte estático. Nombres, cifras, estados,
+   tasas y selección se renderizan y actualizan en Unity.
+3. Las cuatro tarjetas usan los IDs existentes de Rescate, Protección, Espionaje
+   y Sabotaje; no se añadieron operaciones ni reglas nuevas.
+4. El desplegable histórico se conserva oculto como mapa serializado compatible,
+   pero la interacción visible ocurre mediante cuatro botones UGUI reales.
+5. La repoblación del desplegable bloquea temporalmente su callback para evitar
+   recursión de Refresh; la selección visible conserva un solo propietario.
+6. El estado de referencia usa Región 1 con 130 Miembros regionales: 5 en Rescate,
+   5 en Protección y 120 sin destinar.
+7. Los botones se prueban contra D2Civilization2System y el estado se restaura
+   antes de capturar para que el QA no modifique la evidencia.
+8. Los marcos activos son geometría de Unity colocada sobre los marcos canónicos;
+   no hornean la selección en la placa y no invaden texto ni valores.
+9. TEXT_GEOMETRY_PASS comprueba cada texto activo en el lienzo; el porcentaje de
+   similitud no sustituye la revisión visual a 1080×1920 y 720×1280.
+10. La evidencia sigue siendo candidata hasta la aprobación explícita del usuario.

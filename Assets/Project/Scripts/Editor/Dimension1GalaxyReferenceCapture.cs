@@ -17,8 +17,9 @@ public static class Dimension1GalaxyReferenceCapture
     private const string RegressionKey = "QF.D1GalaxyReferenceCapture.Regression";
     private const string NeutralOnlyKey = "QF.D1GalaxyReferenceCapture.NeutralOnly";
     private const string ScenePath = "Assets/Project/Scenes/Main.unity";
-    private static string OutputDirectory => Path.GetFullPath("Logs/VisualQA/Dimension1/V11Reference");
+    private static string OutputDirectory => Path.GetFullPath("Logs/VisualQA/Dimension1/V12OrbitalSystem");
     private static readonly Dictionary<string, Vector2> StableBodyPositions = new Dictionary<string, Vector2>();
+    private static readonly Dictionary<string, Quaternion> InitialBodyRotations = new Dictionary<string, Quaternion>();
 
     [InitializeOnLoadMethod]
     private static void Resume()
@@ -79,13 +80,14 @@ public static class Dimension1GalaxyReferenceCapture
         }
         else if (state == PlayModeStateChange.EnteredEditMode)
         {
-            SaveService.SuppressWritesForVisualQa = false;
+            // La guarda QA permanece enclavada hasta cerrar el proceso para impedir
+            // que OnApplicationQuit persista el escenario de captura.
             SessionState.SetBool(ActiveKey, false);
             EditorApplication.playModeStateChanged -= OnPlayModeChanged;
             bool failed = SessionState.GetBool(FailureKey, false);
             Debug.Log(failed
-                ? "[D1 Carta Galactica V11] CAPTURE_FAIL"
-                : "[D1 Carta Galactica V11] CAPTURE_PASS | neutral + selected | 1080x1920");
+                ? "[D1 Carta Galactica V12] CAPTURE_FAIL"
+                : "[D1 Carta Galactica V12] CAPTURE_PASS | neutral + selected | 1080x1920 + 720x1280");
             EditorApplication.Exit(failed ? 1 : 0);
         }
     }
@@ -118,7 +120,8 @@ public static class Dimension1GalaxyReferenceCapture
             if (neutralOnly && frame == 85)
             {
                 ValidateNeutral();
-                RenderToPng(Path.Combine(OutputDirectory, "Galaxy_v11_neutral_1080x1920.png"));
+                RenderToPng(1080, 1920, Path.Combine(OutputDirectory, "Galaxy_v12_neutral_1080x1920.png"));
+                RenderToPng(720, 1280, Path.Combine(OutputDirectory, "Galaxy_v12_neutral_720x1280.png"));
                 EditorApplication.update -= Tick;
                 EditorApplication.isPlaying = false;
                 return;
@@ -126,7 +129,8 @@ public static class Dimension1GalaxyReferenceCapture
             if (!neutralOnly && !selectedOnly && frame == 55)
             {
                 ValidateNeutral();
-                RenderToPng(Path.Combine(OutputDirectory, "Galaxy_v11_neutral_1080x1920.png"));
+                RenderToPng(1080, 1920, Path.Combine(OutputDirectory, "Galaxy_v12_neutral_1080x1920.png"));
+                RenderToPng(720, 1280, Path.Combine(OutputDirectory, "Galaxy_v12_neutral_720x1280.png"));
                 Dimension1PanelUI panel = UnityEngine.Object.FindFirstObjectByType<Dimension1PanelUI>();
                 if (panel == null) throw new InvalidOperationException("Dimension1PanelUI no existe.");
                 panel.OnClickPreviewGalaxySector3();
@@ -134,7 +138,8 @@ public static class Dimension1GalaxyReferenceCapture
             if (!neutralOnly && ((selectedOnly && frame == 85) || (!selectedOnly && frame == 125)))
             {
                 ValidateSelected();
-                RenderToPng(Path.Combine(OutputDirectory, "Galaxy_v11_selected_1080x1920.png"));
+                RenderToPng(1080, 1920, Path.Combine(OutputDirectory, "Galaxy_v12_selected_1080x1920.png"));
+                RenderToPng(720, 1280, Path.Combine(OutputDirectory, "Galaxy_v12_selected_720x1280.png"));
                 EditorApplication.update -= Tick;
                 EditorApplication.isPlaying = false;
             }
@@ -175,7 +180,7 @@ public static class Dimension1GalaxyReferenceCapture
         else if (frame == 110)
         {
             ValidateInteractionLayout(Dimension1System.Sector04SilentFrontier);
-            Debug.Log("[D1 Carta Galactica V11] INTERACTION_PASS | pivotes centrados | sin órbitas | texto sin marco | 4 rutas | sectores 1, 3 y 4");
+            Debug.Log("[D1 Carta Galactica V12] INTERACTION_PASS | 7 cuerpos | 7 órbitas | rotación axial | posiciones estables | sin contadores de expediciones");
             EditorApplication.update -= Tick;
             EditorApplication.isPlaying = false;
         }
@@ -185,10 +190,13 @@ public static class Dimension1GalaxyReferenceCapture
     {
         (string nodeName, string expectedTitle)[] expectedTitles =
         {
-            ("Sector01", "BORDE EXTERIOR"),
-            ("Sector02", "ANILLO DE RESTOS"),
-            ("Sector03", "ÓRBITAS ANTIGUAS"),
-            ("Sector04", "FRONTERA SILENCIOSA"),
+            ("Sector01", "ELYSIA"),
+            ("Planet02Node", "VULKAR"),
+            ("Sector02", "CORONA DE TÁNTALO"),
+            ("Sector03", "MNEMOS"),
+            ("Planet05Node", "ORPHEON"),
+            ("Sector04", "NYXARA"),
+            ("Planet07Node", "EREBON"),
             ("GalacticCenter", "CENTRO GALÁCTICO")
         };
 
@@ -212,12 +220,15 @@ public static class Dimension1GalaxyReferenceCapture
     private static void CaptureBodyBaselines()
     {
         StableBodyPositions.Clear();
+        InitialBodyRotations.Clear();
         foreach ((string nodeName, string bodyName) in TestedBodies())
         {
             Transform node = FindSceneTransform(nodeName);
             RectTransform body = node != null ? FindChild(node, bodyName) as RectTransform : null;
             if (body == null) throw new InvalidOperationException("Falta cuerpo de prueba: " + bodyName);
-            StableBodyPositions[bodyName] = body.anchoredPosition;
+            string key = nodeName + "/" + bodyName;
+            StableBodyPositions[key] = body.anchoredPosition;
+            InitialBodyRotations[key] = body.localRotation;
         }
     }
 
@@ -236,44 +247,30 @@ public static class Dimension1GalaxyReferenceCapture
             if (body == null) throw new InvalidOperationException("Desapareció cuerpo: " + bodyName);
             if (Vector2.Distance(body.pivot, new Vector2(0.5f, 0.5f)) > 0.001f)
                 throw new InvalidOperationException(bodyName + " no gira desde el centro.");
-            if (!StableBodyPositions.TryGetValue(bodyName, out Vector2 baseline) ||
+            string key = nodeName + "/" + bodyName;
+            if (!StableBodyPositions.TryGetValue(key, out Vector2 baseline) ||
                 Vector2.Distance(body.anchoredPosition, baseline) > 0.01f)
                 throw new InvalidOperationException(bodyName + " salió volando al seleccionar un sector.");
             Bounds bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(node, body);
             if (!node.rect.Contains(bounds.center))
-                throw new InvalidOperationException(bodyName + " quedó fuera de su hexágono.");
+                throw new InvalidOperationException(bodyName + " quedó fuera de su área táctil.");
+            if (nodeName != "GalacticCenter" &&
+                (!InitialBodyRotations.TryGetValue(key, out Quaternion initialRotation) ||
+                 Quaternion.Angle(initialRotation, body.localRotation) < 0.1f))
+                throw new InvalidOperationException(bodyName + " no mostró rotación axial entre fotogramas.");
         }
 
-        if (FindChild(root, "AncientOrbitA") != null || FindChild(root, "AncientOrbitB") != null)
-            throw new InvalidOperationException("Persisten círculos alrededor de Órbitas Antiguas.");
-
-        string[] exteriorNodes = { "Sector01", "Sector02", "Sector03", "Sector04" };
-        foreach (string nodeName in exteriorNodes)
-        {
-            Transform node = FindSceneTransform(nodeName);
-            if (node != null && (FindChild(node, "LabelPlate") != null || FindChild(node, "LabelBorder") != null))
-                throw new InvalidOperationException(nodeName + " conserva un marco detrás de expediciones.");
-        }
-
-        int routeCount = 0;
-        float shortestRoute = float.MaxValue;
-        float longestRoute = 0f;
+        int orbitCount = 0;
         foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
         {
-            if (child.name != "RouteCore" || !child.gameObject.activeInHierarchy) continue;
-            routeCount++;
-            RectTransform routeRect = child as RectTransform;
-            if (routeRect == null) continue;
-            float length = routeRect.rect.width;
-            shortestRoute = Mathf.Min(shortestRoute, length);
-            longestRoute = Mathf.Max(longestRoute, length);
+            if (child.name.StartsWith("OrbitPath0")) orbitCount++;
+            if (child.name != "State") continue;
+            TMP_Text stateText = child.GetComponent<TMP_Text>();
+            if (stateText != null && stateText.text.Contains("EXPEDICI"))
+                throw new InvalidOperationException("Persiste un contador de expediciones en " + child.parent.name + ".");
         }
-        if (routeCount != 4)
-            throw new InvalidOperationException("Se esperaban 4 conexiones visibles y hay " + routeCount + ".");
-        if (longestRoute - shortestRoute > 0.1f)
-            throw new InvalidOperationException(
-                "Las cuatro conexiones no tienen el mismo peso visual: " +
-                shortestRoute.ToString("0.##") + "–" + longestRoute.ToString("0.##") + " px.");
+        if (orbitCount != 7)
+            throw new InvalidOperationException("Se esperaban 7 trayectorias orbitales y hay " + orbitCount + ".");
     }
 
     private static (string nodeName, string bodyName)[] TestedBodies()
@@ -281,9 +278,12 @@ public static class Dimension1GalaxyReferenceCapture
         return new[]
         {
             ("Sector01", "PlanetBlue"),
+            ("Planet02Node", "PlanetMolten"),
             ("Sector02", "DebrisRing"),
             ("Sector03", "PlanetAncient"),
+            ("Planet05Node", "PlanetBlue"),
             ("Sector04", "SilentPlanetA"),
+            ("Planet07Node", "SilentPlanetB"),
             ("GalacticCenter", "BlackHole")
         };
     }
@@ -333,7 +333,11 @@ public static class Dimension1GalaxyReferenceCapture
         Transform root = FindSceneTransform("D1_GalaxyVisualRoot");
         if (root == null || !root.gameObject.activeInHierarchy)
             throw new InvalidOperationException("La Carta Galáctica no está visible.");
-        string[] expected = { "Sector01", "Sector02", "Sector03", "Sector04", "GalacticCenter" };
+        string[] expected =
+        {
+            "Sector01", "Planet02Node", "Sector02", "Sector03",
+            "Planet05Node", "Sector04", "Planet07Node", "GalacticCenter"
+        };
         foreach (string name in expected)
         {
             Transform node = FindChild(root, name);
@@ -396,10 +400,8 @@ public static class Dimension1GalaxyReferenceCapture
         Canvas.ForceUpdateCanvases();
     }
 
-    private static void RenderToPng(string path)
+    private static void RenderToPng(int width, int height, string path)
     {
-        const int width = 1080;
-        const int height = 1920;
         Camera camera = Camera.main != null ? Camera.main : UnityEngine.Object.FindFirstObjectByType<Camera>();
         if (camera == null) throw new InvalidOperationException("No hay cámara de captura.");
         Canvas[] canvases = UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);

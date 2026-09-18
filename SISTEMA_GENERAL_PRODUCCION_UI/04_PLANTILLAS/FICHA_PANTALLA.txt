@@ -1,0 +1,95 @@
+FICHA GENERAL DE PANTALLA
+========================
+
+IDENTIDAD
+Proyecto:
+Pantalla visible:
+ID interno estable:
+Familia visual:
+Tipo: principal / secundaria / modal / informe / overlay / navegación
+Ruta elegida: A / B / C
+Riesgo principal que justifica la ruta:
+
+FUNCIÓN
+Objetivo en una frase:
+Entrada real:
+Salida y regreso:
+Acción principal:
+Datos que modifica:
+Datos que sólo previsualiza:
+Persistencia:
+
+AUTORIDADES
+Diseño funcional:
+Referencia visual permanente:
+Clasificación: referencia / concepto / asset final / captura real
+Perfil visual:
+Ambigüedades pendientes:
+
+AUDITORÍA DE REUTILIZACIÓN
+Lugares inspeccionados:
+Matriz: concepto | origen | ruta o ID | estado | alcance | decisión
+Faltantes confirmados:
+Candidatos nuevos autorizados:
+Simplificaciones prohibidas:
+Diferencias autorizadas:
+
+CONTENIDO Y LAYOUT
+Resoluciones y relaciones de aspecto:
+Zonas seguras:
+Bloques y medidas:
+Contenido máximo:
+Tipografía ideal y mínima:
+Localización y formatos:
+Jerarquía prevista:
+
+ESTADOS APLICABLES
+[ ] Neutral
+[ ] Normal
+[ ] Seleccionado
+[ ] Bloqueado
+[ ] Deshabilitado
+[ ] Vacío
+[ ] Completado
+[ ] Error
+[ ] Carga
+Otros:
+Qué cambia y qué permanece fijo:
+
+PROPIETARIOS
+Layout:
+Datos:
+Estado visual:
+Interacción:
+Navegación:
+Animación:
+Persistencia:
+
+INTERACCIÓN Y ACCESIBILIDAD
+Controles y acciones:
+Respuesta inmediata:
+Toques o entradas repetidas:
+Atrás / cancelar:
+Accesibilidad:
+
+ANIMACIÓN
+Capa:
+Propiedad:
+Pivote y base:
+Duración y amplitud:
+Inicio y fin:
+Elementos inmóviles:
+Evidencia requerida:
+
+FUENTE DEFINITIVA
+Escena, prefab, componente o plantilla:
+Constructor o generador:
+Método de reconstrucción:
+
+QA Y APROBACIÓN
+Escenarios:
+Recorrido real:
+Evidencia:
+Umbral y método de fidelidad:
+Diferencias aceptadas:
+Estado: PENDIENTE / CANDIDATA / APROBADA

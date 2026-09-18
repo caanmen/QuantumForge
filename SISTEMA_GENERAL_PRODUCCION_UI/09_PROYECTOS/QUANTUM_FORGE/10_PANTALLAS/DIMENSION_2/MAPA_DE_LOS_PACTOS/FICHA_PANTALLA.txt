@@ -1,0 +1,78 @@
+FICHA DE PANTALLA — MAPA DE LOS PACTOS
+
+IDENTIDAD
+Nombre visible: MAPA DE LOS PACTOS
+Nombre interno estable: D2_PactMap
+Dimensión: 2
+Tipo: pantalla base y selector de territorio
+Responsable de aprobación visual: usuario
+
+FUNCIÓN
+Objetivo: mostrar siempre los tres territorios y permitir entrar únicamente en los
+territorios desbloqueados, sin ocultar los bloqueados.
+Entrada: desde ABRIR MAPA en la Primera Entrada o desde la pestaña D2 cuando la
+introducción vigente ya fue vista.
+Salida: botón Atrás hacia Generación.
+Acción principal inicial: ENTRAR AL SANTUARIO.
+
+REFERENCIA
+Ruta: 05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/
+01_Mapa_De_Los_Pactos_Corregido_V5.png
+Resolución: 941 x 1672.
+SHA-256: A199660D8728DD012F6F4723DDD068FAB8C5CC36602B53750E51FC6BEE59770E
+Estado: APROBADA VISUALMENTE POR EL USUARIO; CAPTURAS ARCHIVADAS.
+La captura temporal 628 x 1099 con tiradores no es autoridad ni debe archivarse.
+
+PUERTA 0 — REUTILIZACIÓN
+Concepto | origen | estado | decisión
+Fondo piedra carbón | PactsScreen_Background.png | candidato D2 existente | reutilizar
+Tipografía monumental | Cinzel SDF.asset | existente | reutilizar
+Brújula inferior | Icon_SunCompass.png | candidato D2 existente | reutilizar
+Territorio Santuario | D2_Map_Territory_Sanctuary_v1.png | candidato nuevo | integrar
+Territorio Resistencia | D2_Map_Territory_Resistance_v1.png | candidato nuevo | integrar
+Territorio Ruinas | D2_Map_Territory_Ruins_v1.png | candidato nuevo | integrar
+Medallones y controles | Assets/Project/UI/Dimension2/Map/Generated | candidatos nuevos | integrar
+Shell ornamental | D2_Map_Shell_v1.png | candidato nuevo | integrar
+Datos, textos y botones | sistemas D2 + UGUI/TMP | funcional | no hornear en PNG
+
+DATOS REALES
+Seguidores: D2Civilization1System.GetTotalFollowers(civilization1).
+Confianza: civilization1.trust, máximo D2PilgrimageSystem.MaxTrust = 500.
+Civilización 2: disponible al alcanzar 300 de Confianza.
+Dominio: D2Civilization2System.GetTotalDominance(civilization2).
+Civilización 3: permanece visible y se desbloquea persistentemente al llegar a
+Dominio total 30 % o menos.
+
+ESTADO VISUAL DE REFERENCIA
+- Seguidores 3,845.
+- Confianza 280 / 500.
+- Santuario disponible.
+- Territorio Próximo bloqueado y visible.
+- Ruinas Sepultadas bloqueadas y visibles.
+- Sin líneas, nodos, Fragmentos ni adornos adicionales.
+
+COMPOSICIÓN
+Lienzo: 1080 x 1920; validación adicional 720 x 1280.
+Marco exterior: aproximadamente 9,8 / 1060,1906.
+Encabezado: y 20..247.
+Viewport del mapa: y 247..1614.
+Panel contextual: y 1613..1901.
+Islas superiores: x 53..524 y 555..1022, y 274..1093.
+Ruinas: x 275..822, y 990..1603.
+El solape vertical y el orden de capas forman parte de la referencia.
+
+PROPIETARIOS
+Constructor/jerarquía: Dimension2Block1UISetup.BuildMap.
+Datos, visibilidad y navegación: Dimension2PanelUI.
+Reglas y desbloqueos: sistemas D2.
+Arte: capas candidatas de Map/Generated.
+Animación: no autorizada antes de aprobar la composición estática.
+
+PUERTAS
+[x] Referencia seleccionada y archivada.
+[x] Puerta 0 e inventario inicial.
+[x] Composición estática Unity 1080 x 1920.
+[x] Composición estática Unity 720 x 1280.
+[x] Comparación medible y aprobación visual >= 95 % (percibida AA: 95,14 %).
+[x] Estados funcionales y recorrido físico.
+[ ] Animación, sólo si se aprueba y define posteriormente.

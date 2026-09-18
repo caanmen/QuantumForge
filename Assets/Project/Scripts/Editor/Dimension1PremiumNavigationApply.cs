@@ -152,11 +152,17 @@ public static class Dimension1PremiumNavigationApply
     {
         TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
         if (importer == null) throw new InvalidOperationException("No se pudo importar " + path + ".");
+        bool changed = importer.textureType != TextureImporterType.Sprite ||
+                       importer.spriteImportMode != SpriteImportMode.Single ||
+                       !importer.alphaIsTransparency || importer.mipmapEnabled ||
+                       importer.textureCompression != TextureImporterCompression.Uncompressed ||
+                       importer.maxTextureSize != 512;
+        if (!changed) return;
         importer.textureType = TextureImporterType.Sprite;
         importer.spriteImportMode = SpriteImportMode.Single;
-        importer.alphaIsTransparency = false;
+        importer.alphaIsTransparency = true;
         importer.mipmapEnabled = false;
-        importer.textureCompression = TextureImporterCompression.CompressedHQ;
+        importer.textureCompression = TextureImporterCompression.Uncompressed;
         importer.maxTextureSize = 512;
         importer.SaveAndReimport();
     }

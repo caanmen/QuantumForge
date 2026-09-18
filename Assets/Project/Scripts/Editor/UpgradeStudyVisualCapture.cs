@@ -16,7 +16,8 @@ public static class UpgradeStudyVisualCapture
     private const string FailedKey = "QF.UpgradeStudyCapture.Failed";
     private const string SaveExistedKey = "QF.UpgradeStudyCapture.SaveExisted";
     private const string BackupExistedKey = "QF.UpgradeStudyCapture.BackupExisted";
-    private static string OutputDirectory => Path.GetFullPath("Logs/VisualQA/UpgradeStudies");
+    private static string OutputDirectory => Path.GetFullPath(
+        "Logs/VisualQA/UpgradeStudies_PreDimensions_20260918");
     private static string SavePath => Path.Combine(Application.persistentDataPath, "save.json");
     private static string BackupPath => SavePath + ".bak";
     private static string SessionSave => Path.Combine(OutputDirectory, ".save.session");
@@ -74,7 +75,7 @@ public static class UpgradeStudyVisualCapture
         }
         SessionState.SetBool(ActiveKey, false);
         if (!failed)
-            Debug.Log("[Upgrade Studies Capture] PASS | upgrades clues + active observatory | user save restored");
+            Debug.Log("[Upgrade Studies Capture] PASS | upgrades clues + active observatory | 1080x1920 + 720x1280 | user save restored");
         EditorApplication.Exit(failed ? 1 : 0);
     }
 
@@ -95,11 +96,14 @@ public static class UpgradeStudyVisualCapture
                     break;
                 case 1:
                     Capture("01_upgrade_study_clues_es_1080x1920.png", 1080, 1920);
+                    Capture("01_upgrade_study_clues_es_720x1280.png", 720, 1280);
                     PrepareActiveObservatory();
                     Advance(2);
                     break;
                 case 2:
+                    ValidateObservatoryGeometry();
                     Capture("02_triangle_observatory_active_es_1080x1920.png", 1080, 1920);
+                    Capture("02_triangle_observatory_active_es_720x1280.png", 720, 1280);
                     Advance(3);
                     break;
                 default:
@@ -188,6 +192,53 @@ public static class UpgradeStudyVisualCapture
             UnityEngine.Object.FindObjectsByType<VerticalTriangleObservatoryUI>(
                 FindObjectsInactive.Include, FindObjectsSortMode.None))
             observatory.RefreshNow();
+    }
+
+    private static void ValidateObservatoryGeometry()
+    {
+        VerticalTriangleObservatoryUI observatory =
+            UnityEngine.Object.FindFirstObjectByType<VerticalTriangleObservatoryUI>(
+                FindObjectsInactive.Include);
+        Require(observatory != null && observatory.tuningHintText != null &&
+            observatory.tuneButton != null && observatory.conclusionButton != null,
+            "La consola de sintonizacion no esta conectada.");
+
+        RectTransform root = observatory.transform as RectTransform;
+        RectTransform hint = observatory.tuningHintText.rectTransform;
+        RectTransform tune = observatory.tuneButton.transform as RectTransform;
+        RectTransform conclusion =
+            observatory.conclusionButton.transform as RectTransform;
+        Require(root != null && tune != null && conclusion != null,
+            "La consola perdio su geometria rectangular.");
+
+        Canvas.ForceUpdateCanvases();
+        Bounds hintBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(
+            root, hint);
+        Bounds tuneBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(
+            root, tune);
+        Bounds conclusionBounds =
+            RectTransformUtility.CalculateRelativeRectTransformBounds(root, conclusion);
+        float nearestButtonTop = Mathf.Max(
+            tuneBounds.max.y, conclusionBounds.max.y);
+        Require(hintBounds.min.y >= nearestButtonTop + 8f,
+            "El texto de sintonizacion invade el boton de accion.");
+        Require(hintBounds.min.y >= root.rect.yMin &&
+            hintBounds.max.y <= root.rect.yMax,
+            "El texto de sintonizacion queda fuera de la consola.");
+        Vector2 preferred = observatory.tuningHintText.GetPreferredValues(
+            observatory.tuningHintText.text, hint.rect.width, 0f);
+        Require(preferred.y <= hint.rect.height + 1f,
+            "El texto completo de sintonizacion no cabe en su area reservada.");
+
+        VerticalUpgradesScreenUI upgrades =
+            UnityEngine.Object.FindFirstObjectByType<VerticalUpgradesScreenUI>(
+                FindObjectsInactive.Include);
+        ScrollRect scroll = upgrades != null
+            ? upgrades.GetComponentInChildren<ScrollRect>(true)
+            : null;
+        Require(scroll != null &&
+            scroll.movementType == ScrollRect.MovementType.Clamped,
+            "La lista de Mejoras todavia permite sobrepasar sus extremos.");
     }
 
     private static void Advance(int next)

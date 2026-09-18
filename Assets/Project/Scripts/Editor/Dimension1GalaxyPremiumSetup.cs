@@ -22,6 +22,10 @@ public static partial class Dimension1GalaxyPremiumSetup
     private const string GalaxyDustPath = LayeredGalaxyPath + "/d1_galaxy_v10_dust.png";
     private const string GalaxyCorePath = LayeredGalaxyPath + "/d1_galaxy_v10_core.png";
     private const string GalaxyMaterialPath = "Assets/Project/Materials/UI/D1GalaxyLayeredV10.mat";
+    private const string GalacticCenterArtPath =
+        ArtPath + "/Candidates/ArkCenter/d1_galactic_center_black_hole_ship_candidate_v1.png";
+    private const string DebrisRingArtPath =
+        ArtPath + "/Candidates/DebrisRing/d1_debris_ring_option_1_dense_orbit.png";
 
     private static readonly Color Void = Hex("03070D");
     private static readonly Color Fill = Hex("07111A", 242);
@@ -32,8 +36,9 @@ public static partial class Dimension1GalaxyPremiumSetup
     private static readonly Color Primary = Hex("EFF8FC");
     private static readonly Color Secondary = Hex("94ADBC");
 
-    [MenuItem("Quantum Forge/Dimension 1/Configure Layered Galaxy V10")]
-    public static void Configure()
+    // Constructor histórico conservado como fuente de helpers y trazabilidad.
+    // La única reconstrucción ejecutable de Carta Galáctica es V11.
+    private static void ConfigureLegacyV10()
     {
         ConfigureFinalArt();
 
@@ -77,13 +82,13 @@ public static partial class Dimension1GalaxyPremiumSetup
         TMP_Text title = CreateText("Title", header, font, "CARTA GALÁCTICA", 39f, FontStyles.Bold, Primary);
         SetTopRect(title.rectTransform, 42f, 13f, 500f, 58f);
         title.alignment = TextAlignmentOptions.MidlineLeft;
-        title.enableWordWrapping = false;
+        title.textWrappingMode = TextWrappingModes.NoWrap;
         TMP_Text currentSector = CreateText("CurrentSector", header, font, "ACTUAL", 15f, FontStyles.Bold, Cyan);
         SetTopRect(currentSector.rectTransform, 46f, 72f, 360f, 27f);
         TMP_Text unlockedSectors = CreateText("UnlockedSectors", header, font, "1/5 SECTORES", 16f, FontStyles.Bold, Amber);
         SetTopRect(unlockedSectors.rectTransform, 412f, 75f, 130f, 25f);
         unlockedSectors.alignment = TextAlignmentOptions.Right;
-        unlockedSectors.enableWordWrapping = false;
+        unlockedSectors.textWrappingMode = TextWrappingModes.NoWrap;
 
         var chips = new Dimension1GalaxyVisualUI.MetalChip[3];
         for (int i = 0; i < 3; i++)
@@ -229,7 +234,7 @@ public static partial class Dimension1GalaxyPremiumSetup
 
         RectTransform stats = CreatePremiumPanel("ExplorationStats", details, frame,
             new Vector2(322f, -88f), new Vector2(420f, 173f), Hex("07111A", 238), Cyan);
-        TMP_Text explLabel = CreateText("ExplorationLabel", stats, font, "EXPLORACIONES", 20f, FontStyles.Bold, Secondary);
+        TMP_Text explLabel = CreateText("ExplorationLabel", stats, font, "EXPLORACIONES COMPLETADAS", 20f, FontStyles.Bold, Secondary);
         SetTopRect(explLabel.rectTransform, 20f, 16f, 240f, 35f);
         selectedExplorations = CreateText("ExplorationCount", stats, font, "0", 58f, FontStyles.Bold, Cyan);
         SetTopRect(selectedExplorations.rectTransform, 20f, 48f, 190f, 88f);
@@ -594,10 +599,17 @@ public static partial class Dimension1GalaxyPremiumSetup
         string[] required = { "planet_blue", "debris_ring", "planet_ancient", "planet_silent", "black_hole", "planet_habitable" };
         foreach (string key in required)
         {
-            Sprite sprite = LoadSprite(ArtPath + "/d1_body_" + key + "_v3.png");
+            string path = key == "debris_ring"
+                ? DebrisRingArtPath
+                : ArtPath + "/d1_body_" + key + "_v3.png";
+            Sprite sprite = LoadSprite(path);
             if (sprite == null) throw new InvalidOperationException("Falta sprite celestial: " + key);
             result[key] = sprite;
         }
+        Sprite galacticCenter = LoadSprite(GalacticCenterArtPath);
+        if (galacticCenter == null)
+            throw new InvalidOperationException("Falta el arte elegido del Centro Galáctico.");
+        result["black_hole"] = galacticCenter;
         return result;
     }
 
@@ -633,8 +645,12 @@ public static partial class Dimension1GalaxyPremiumSetup
         {
             SerializedProperty item = property.GetArrayElementAtIndex(i);
             item.FindPropertyRelative("sectorId").stringValue = nodes[i].sectorId;
+            SerializedProperty planetId = item.FindPropertyRelative("planetId");
+            if (planetId != null) planetId.stringValue = nodes[i].planetId ?? "";
             item.FindPropertyRelative("root").objectReferenceValue = nodes[i].root;
             item.FindPropertyRelative("planet").objectReferenceValue = nodes[i].planet;
+            SerializedProperty orbitPath = item.FindPropertyRelative("orbitPath");
+            if (orbitPath != null) orbitPath.objectReferenceValue = nodes[i].orbitPath;
             item.FindPropertyRelative("orbitRing").objectReferenceValue = nodes[i].orbitRing;
             item.FindPropertyRelative("glow").objectReferenceValue = nodes[i].glow;
             item.FindPropertyRelative("labelPlate").objectReferenceValue = nodes[i].labelPlate;
@@ -696,7 +712,7 @@ public static partial class Dimension1GalaxyPremiumSetup
         text.fontStyle = style;
         text.color = color;
         text.raycastTarget = false;
-        text.enableWordWrapping = true;
+        text.textWrappingMode = TextWrappingModes.Normal;
         return text;
     }
 

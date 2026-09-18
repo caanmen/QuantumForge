@@ -1,0 +1,51 @@
+QUANTUM FORGE — CONTINUIDAD DEL MONOLITO 2D V12
+Fecha: 2026-08-27
+
+ESTADO CANDIDATO V30
+
+- La vista general usa el fondo V30, creado para que las guías y el travesaño frontal
+  correspondan a la huella real de la base del Monolito. El laboratorio continúa siendo
+  humano, abandonado y sin el Monolito horneado en el fondo.
+- Asset activo:
+  `Assets/Project/UI/Vertical/Machine/Monolith2D/machine_destroyed_lab_monolith_fit_square_v30.png`.
+- Referencia permanente:
+  `machine_lab_overview_frame_fit_candidate_v30.png`.
+- V08 se conserva como historial; no se sobrescribió ni se eliminó.
+- `OverviewSupportForeground` toma el travesaño del fondo V30 y lo dibuja delante del
+  Monolito. La base queda contenida por un soporte que ahora también coincide en ancho.
+- Las cuatro caras usan ancho 0,86, alto 0,78 y apoyo vertical 11 %.
+- La posición horizontal se corrige de manera independiente por sector y por etapa raster
+  para centrar la silueta visible y evitar el salto entre dañada y reparada.
+- Firmas: 64 px visuales, 104 px táctiles; alfa 0,16 dañada, 0,30 seleccionada y 1,00
+  reparada. Conteos: 7 + 11 + 7 + 0.
+- El sector 4 sigue accesible, oscuro, sin nodos y con `???` sólo dentro de la cara.
+- El fondo cercano V27 y la transición continua V28 permanecen vigentes.
+
+GENERACIÓN DEL FONDO V30
+
+- Modo integrado: edición precisa de objeto sobre el fondo canónico V08.
+- Especificación final: conservar exactamente cámara, arquitectura, puerta, ventanas,
+  mesas, consolas, cables, techo, iluminación, materiales y atmósfera de V08; modificar
+  únicamente las dos guías y el travesaño frontal para abrir un soporte simétrico,
+  centrado y ligeramente más ancho que la base real mostrada en las capturas; mantener
+  perspectiva de suelo correcta y el centro completamente vacío; no añadir Monolito,
+  sombra, reflejo, símbolos, interfaz, texto, personas ni maquinaria nueva.
+- Dimensiones: 1254×1254.
+- SHA-256: `F6FAB4B6005AAFF973C5EAE545FFB21756526DB758A7D947EC1770FE37BD6F1A`.
+
+VALIDACIÓN
+
+- VALIDATION PASS: `Logs/machine_monolith_frame_fit_v30_setup.log`.
+- CAPTURE PASS: `Logs/machine_monolith_frame_fit_v30_capture.log`.
+- 32 capturas en 1080×1920 y 720×1280.
+- Revisión visual realizada sobre vista general, cuatro sectores iniciales, sectores 1–3
+  reparados y sector 4 reservado en ambas resoluciones.
+- La prueba cubre transición 0/25/50/75/100 sin pantalla vacía, navegación, regreso,
+  estados y restauración del guardado.
+- Estado: `candidata`; requiere aprobación visual explícita antes de archivar evidencia o
+  declarar similitud mínima del 95 %.
+
+SIGUIENTE PASO
+
+- Mostrar al usuario V30 en la vista general y las cuatro caras.
+- Si la aprueba, archivar la evidencia seleccionada y actualizar el estado a aprobado.

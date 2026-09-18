@@ -8,12 +8,15 @@ using UnityEngine.UI;
 [RequireComponent(typeof(CanvasRenderer))]
 public sealed class FusionEnergyWaveGraphic : MaskableGraphic
 {
+    private const float MeshRefreshInterval = 1f / 20f;
+
     [SerializeField, Range(24, 96)] private int segments = 64;
     [SerializeField] private Color cyan = new Color(0f, 0.79f, 1f, 1f);
     [SerializeField] private Color blue = new Color(0.08f, 0.30f, 1f, 1f);
     [SerializeField] private Color violet = new Color(0.72f, 0.36f, 1f, 1f);
 
     private float _phase;
+    private float _meshRefreshTimer;
     private float _activity = 0.18f;
     private bool _reacting;
 
@@ -38,6 +41,12 @@ public sealed class FusionEnergyWaveGraphic : MaskableGraphic
         float speed = Mathf.Lerp(0.7f, 4.8f, _activity);
         if (_reacting) speed *= 1.45f;
         _phase += Time.unscaledDeltaTime * speed;
+
+        _meshRefreshTimer += Time.unscaledDeltaTime;
+        if (_meshRefreshTimer < MeshRefreshInterval)
+            return;
+
+        _meshRefreshTimer = 0f;
         SetVerticesDirty();
     }
 

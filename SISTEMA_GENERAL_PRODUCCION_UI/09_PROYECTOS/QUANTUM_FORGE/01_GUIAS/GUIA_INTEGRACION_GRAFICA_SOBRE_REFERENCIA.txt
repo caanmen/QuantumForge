@@ -1,0 +1,215 @@
+QUANTUM FORGE
+GUÍA DE INTEGRACIÓN GRÁFICA SOBRE UNA REFERENCIA EXISTENTE
+Actualizado: 24 de agosto de 2026
+
+PROPÓSITO
+Esta guía se aplica cuando se debe añadir, sustituir o animar una pieza gráfica
+encima de una referencia aprobada: una compuerta, una pieza de robot, un marco,
+un icono, una tarjeta, una reparación visual o una capa de interfaz.
+
+Su objetivo es evitar que un elemento parezca "pegado" sobre la referencia. No
+autoriza copiar estilos, colores, iconos ni contenido entre proyectos. El método
+es transferible; la apariencia final debe proceder siempre de la referencia del
+proyecto actual.
+
+USAR JUNTO CON
+
+- GUIA_CREACION_CORRECTA_PANTALLAS.txt
+- GUIA_PREVENCION_ERRORES_PANTALLAS.txt
+
+======================================================================
+REGLA PRINCIPAL
+======================================================================
+
+No intentar arreglar un asset de otra imagen sólo cambiando su tamaño, posición o
+rotación. Si su perspectiva, borde, luz, material o textura no pertenecen a la
+referencia, hay que rehacer el asset partiendo de esa referencia.
+
+Un ajuste de Transform puede colocar una pieza correcta. No puede convertir una
+pieza ajena en una pieza correcta.
+
+======================================================================
+MÉTODO OBLIGATORIO PARA UNA PIEZA INTEGRADA
+======================================================================
+
+1. BLOQUEAR LA REFERENCIA
+
+- Usar la captura o asset aprobado exacto que estará en Unity.
+- Marcar el hueco o plano donde irá la pieza y sus cuatro límites visibles.
+- Identificar qué elementos permanecerán visibles: borde, tornillos, sombra,
+  cable, suciedad, reflejo o luz ambiental.
+- No construir desde memoria ni desde una imagen parecida.
+
+2. DEFINIR EL TIPO DE PIEZA
+
+Elegir antes de producirla:
+
+- Pieza cerrada que cubre un hueco.
+- Pieza abierta que deja ver el interior.
+- Pieza retirada que se mueve fuera del plano.
+- Marco de interfaz reutilizable.
+- Estado visual de un botón.
+
+Cada tipo necesita un asset y una responsabilidad propios. No usar una captura
+completa como si fuera una pieza móvil.
+
+3. HACER COINCIDIR EL PLANO
+
+- Dibujar o editar la pieza sobre el mismo plano de la referencia.
+- Hacer que las aristas sigan la inclinación y perspectiva del hueco real.
+- Igualar el grosor del bisel, redondeo de esquinas y tamaño de tornillos.
+- Revisar la pieza al 100 % de su tamaño final en pantalla, no sólo ampliada.
+
+TIP
+Si el hueco es casi cuadrado, la compuerta debe ser casi cuadrada por diseño. No
+partir de un rectángulo vertical y estirarlo hasta que parezca cuadrado.
+
+4. HACER COINCIDIR EL MATERIAL Y LA LUZ
+
+- Muestrear los colores del área vecina de la referencia, no usar colores
+  aproximados.
+- Igualar brillo, sombra, temperatura de la luz, óxido, rayones y escala de la
+  textura.
+- Comprobar de qué lado llega la luz y dónde cae la sombra del borde.
+- Añadir sólo detalles que existan o estén aprobados en la referencia.
+
+Una pieza puede tener un buen diseño aislado y aun así fallar si su luz o textura
+no coincide con las del resto de la imagen.
+
+5. PREPARAR EL ASSET FINAL
+
+- Exportar PNG con canal alfa real cuando la pieza necesite transparencia.
+- El tablero de cuadros de un editor NO es transparencia si quedó guardado como
+  píxeles dentro del PNG.
+- Abrir el PNG sobre fondo claro, oscuro y de color antes de importarlo.
+- Conservar margen transparente alrededor de la pieza; nunca un rectángulo
+  blanco, gris o cuadriculado.
+- Mantener un archivo fuente por capas antes de exportar la versión final.
+
+6. PRUEBA ESTÁTICA EN UNITY
+
+- Importar una sola pieza de prueba.
+- Colocarla en la referencia sin interacción ni animación.
+- Comparar captura de Unity y referencia lado a lado.
+- Corregir primero: plano/perspectiva, proporción, bordes, luz, textura y alfa.
+- Sólo después aprobar la posición y conectar clic, arrastre o animación.
+
+7. ANIMACIÓN Y ESTADOS
+
+- Preparar por separado el estado cerrado, abierto y retirado si hacen falta.
+- Definir pivote físico antes de animar una compuerta.
+- Mantener una única fuente de verdad para posición, rotación, visibilidad y
+  estado de la pieza.
+- No compensar una imagen incorrecta con una animación compleja.
+
+======================================================================
+BOTONES, HERRAMIENTAS Y MARCOS DE SELECCIÓN
+======================================================================
+
+1. La imagen base del dock debe contener los cuatro botones neutrales.
+2. El estado seleccionado debe ser un asset o capa transparente independiente.
+3. Sólo un botón puede mostrar el marco seleccionado a la vez.
+4. Al seleccionar otro botón, el estado anterior vuelve inmediatamente a normal.
+5. Los botones sin seleccionar no reciben marcos negros, naranjas ni overlays
+   añadidos para ocultar otro error.
+6. El marco debe construirse para las dimensiones reales del botón, con el mismo
+   redondeo, borde, luz y margen interior; no como una caja genérica superpuesta.
+7. Validar los cuatro estados: inicial, seleccionar cada botón, volver a elegir
+   el actual y entrar/salir de la pantalla.
+
+TIP PARA MARCOS REUTILIZABLES
+
+Si un marco debe adaptarse a varios tamaños, prepararlo como asset con bordes
+definidos para 9-slicing. Las esquinas no se estiran; sólo el centro y los lados
+se adaptan. No usar 9-slicing para corregir una silueta que no corresponde.
+
+======================================================================
+ERRORES REALES DETECTADOS EN UN PROTOTIPO DE RESTAURACIÓN DE ROBOT
+======================================================================
+
+Estos aprendizajes describen problemas observados y su prevención. Son ejemplos
+de proceso; no autorizan reutilizar arte de ese prototipo en otro proyecto.
+
+ERROR 1 — COMPuERTA AJENA REESCALADA
+
+Se colocó una compuerta generada de forma aislada sobre un hueco de circuitos.
+Aunque se ajustaron escala, posición y giro, el borde, la perspectiva, el óxido y
+la luz no coincidían con el pecho del robot.
+
+PREVENCIÓN
+Detener el ajuste de Transform y recrear la pieza desde el hueco real. Aprobarla
+en composición estática antes de programar su apertura.
+
+ERROR 2 — CUADRICULADO GUARDADO COMO FONDO
+
+Un tablero de transparencia se importó como píxeles blancos/grises. En Unity se
+vio como rectángulos visibles alrededor de la compuerta y de los marcos.
+
+PREVENCIÓN
+Verificar el alfa antes de importar. Si el PNG muestra cuadros al abrirlo sobre
+un fondo de color, no es un asset final y no debe entrar al proyecto.
+
+ERROR 3 — ESTADO SELECCIONADO PINTADO EN LA IMAGEN BASE
+
+La imagen del dock ya traía una herramienta con borde naranja. Al seleccionar
+otra, las dos parecían activas.
+
+PREVENCIÓN
+La base debe exportarse completamente neutral. El marco activo debe ser una capa
+separada controlada por el estado de selección.
+
+ERROR 4 — MARCOS GENÉRICOS ENCIMA DE BOTONES ILUSTRADOS
+
+Se intentó usar cajas o líneas para simular un borde ilustrado. Quedaron
+descentradas, demasiado grandes o con un estilo distinto al botón.
+
+PREVENCIÓN
+Crear el marco con la misma familia visual del botón y probarlo sobre cada botón
+a tamaño real. Si no encaja, sustituir el asset, no añadir otra capa correctora.
+
+ERROR 5 — MODIFICAR UN SHADER COMPARTIDO SIN VALIDACIÓN VISUAL
+
+Un cambio de shader compartido produjo una pantalla fucsia, que es la señal de
+que Unity no puede dibujar correctamente ese material.
+
+PREVENCIÓN
+No cambiar un shader usado por toda la interfaz para resolver un problema local.
+Probar primero un material aislado en una escena de prueba y verificar que Unity
+compile y muestre una captura real antes de aplicarlo a la pantalla principal.
+
+ERROR 6 — DECLARAR UNA CORRECCIÓN SIN PRUEBA EN PLAY
+
+Una captura estática no ejecuta necesariamente los objetos creados al iniciar la
+escena ni la interacción táctil.
+
+PREVENCIÓN
+Después de cada cambio visual dinámico, obtener una captura nueva con Play activo
+y probar el estado inicial y todos los estados alternos.
+
+======================================================================
+LISTA RÁPIDA ANTES DE APROBAR
+======================================================================
+
+- ¿La pieza nació desde la referencia exacta?
+- ¿Su plano, borde, tamaño, material, luz y sombra coinciden?
+- ¿El PNG tiene alfa real y ningún tablero de cuadros guardado?
+- ¿La interfaz base comienza neutral?
+- ¿Sólo un estado seleccionado es visible?
+- ¿No se usó una capa negra, blanca o genérica para tapar un error previo?
+- ¿La captura fue tomada en Unity con Play activo?
+- ¿La captura se comparó a tamaño real en 1080x1920 y 720x1280?
+
+======================================================================
+FUENTES DE CONSULTA
+======================================================================
+
+- Adobe Photoshop — Perspective Warp:
+  https://helpx.adobe.com/photoshop/desktop/repair-retouch/clean-restore-images/edit-different-perspectives-in-the-same-image.html
+- Adobe Photoshop — Match Color:
+  https://helpx.adobe.com/es/photoshop/desktop/adjust-color/selective-color-adjustments/match-color-in-different-images.html
+- Adobe Photoshop — principios de composición: luz, sombra, perspectiva y escala:
+  https://helpx.adobe.com/in_hi/photoshop/how-to/photography-effects.html
+- Unity — importación de texturas y transparencia:
+  https://docs.unity.cn/2020.2/Documentation/Manual/class-TextureImporter.html
+- Unity — 9-slicing de sprites:
+  https://docs.unity.cn/Manual/9SliceSprites.html

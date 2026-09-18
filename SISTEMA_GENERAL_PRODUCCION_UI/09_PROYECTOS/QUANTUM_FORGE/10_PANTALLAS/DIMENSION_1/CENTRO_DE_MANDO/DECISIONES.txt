@@ -1,0 +1,34 @@
+DECISIONES ESPECÍFICAS: CENTRO DE MANDO
+=======================================
+
+- La navegación propia de Dimensión 1 no debe mezclarse visualmente con la
+  navegación global externa.
+- La referencia visual permanente es la almacenada en 05_REFERENCIAS.
+- No convertir observaciones todavía no aprobadas en reglas universales.
+- El consejo contextual se denomina RECOMENDACIÓN ACTUAL; no se presenta como un
+  sistema independiente de objetivos.
+- El porcentaje calculado con el límite preliminar de Prestigio 1 se denomina
+  PROGRESO PRESTIGIO 1; no se presenta como progreso global de toda la dimensión.
+- Todo regreso desde Explorar o una pantalla principal debe cerrar los estados
+  secundarios antes de mostrar exclusivamente el Centro de Mando moderno.
+- Un panel sólo bloquea al Centro si está activo en la jerarquía visible. `activeSelf`
+  dentro de una rama legacy inactiva no representa una pantalla abierta.
+- Centro de Mando y Explorar comparten la propiedad de suprimir la vista funcional antigua;
+  cerrar una pantalla secundaria nunca autoriza a mostrar esa vista entre ambas raíces.
+- La revisión posterior del 21 de agosto reemplaza el arte ráster de las seis tarjetas por
+  iconos lineales UGUI propios del lenguaje original de la pantalla, ahora con detalle
+  técnico adicional. No se crea un segundo sistema de marcos ni navegación.
+- El cristal central sigue siendo el instrumento de mando y conserva un único propietario
+  visual; el campo estelar sólo aporta profundidad y no representa una mecánica nueva.
+- El cristal, su cabina estelar y el instrumento holográfico central se conservan exactamente
+  como estaban en la revisión entregada por el usuario; esta pasada no puede sustituirlos.
+- Decisión posterior aprobada el 21 de agosto de 2026: la restricción anterior queda
+  sustituida para el cristal. Se conserva su ubicación y función visual, pero adopta la
+  propuesta de alto detalle aprobada: doble carcasa facetada, núcleo multicapa, cuatro
+  fragmentos flotantes, telemetría radial y pedestal mecánico. No añade una mecánica nueva.
+- Las seis tarjetas adoptan la propuesta 3 aprobada: iconos vectoriales de detalle medio-alto
+  para sector, escáner, formación de flota, reliquia, árbol y ruta de expedición. Deben seguir
+  siendo legibles a 720×1280 y mantener un único propietario en el constructor del Centro.
+- El antiguo emblema con lectura ambigua de M/puerta se sustituye por el candidato
+  `d1_command_center_emblem_candidate_v1.png`: baliza de mando central y tres nodos tácticos,
+  sin texto ni significado mecánico nuevo.

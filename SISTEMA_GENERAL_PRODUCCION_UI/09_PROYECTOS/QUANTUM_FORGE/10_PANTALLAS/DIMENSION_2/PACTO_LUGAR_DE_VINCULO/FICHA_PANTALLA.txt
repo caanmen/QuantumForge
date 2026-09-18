@@ -1,0 +1,36 @@
+FICHA DE PANTALLA — PACTO / LUGAR DE VÍNCULO
+
+Fecha: 1 de septiembre de 2026
+Estado: APROBADA VISUALMENTE POR EL USUARIO; CAPTURAS ARCHIVADAS
+
+Referencia de autoridad visual:
+05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/08_Pacto_Lugar_De_Vinculo_Corregido_V4.png
+SHA-256: 23FC0E846C869198440F6DBD2D747F19125AFE4E1DFB95955217063D27C7AFCF
+
+Propietarios:
+- D2VeiledThresholdPanelUI: presentación, selección por ID, navegación y acciones.
+- D2BondSystem: niveles, costes, progreso, asignación y efectos.
+- Dimension2Block1UISetup: constructor canónico de escena y referencias serializadas.
+- Dimension2BondCapture: captura QA aislada, interacción real y restauración del estado V4.
+
+Contenido implementado:
+- Encabezado PACTO — LUGAR DE VÍNCULO.
+- Incienso, Tela Sagrada, Piedra Tallada y Progreso desde el estado real.
+- Cinco líneas seleccionables por ID estable, cada una con tres niveles.
+- Detalle dinámico de efecto y coste siguiente.
+- Asignación/liberación de Acólitos mediante botones reales.
+- Mejora real de línea con descuento de progreso y las tres Ofrendas avanzadas.
+- Estado PACTO ESTABLECIDO / PREPARACIÓN COMPLETADA.
+- Regreso, navegación a las seis secciones hermanas y pestaña dinámica UMBRAL/PACTO.
+
+Evidencia vigente:
+- Captura 1080×1920: CAPTURAS_CANDIDATAS/D2_Pacto_Lugar_De_Vinculo_1080x1920.png
+- Captura 720×1280: CAPTURAS_CANDIDATAS/D2_Pacto_Lugar_De_Vinculo_720x1280.png
+- Similitud percibida AA tras ampliar la placa central y recuperar la navegación legible:
+  95.79 % en 1080 y 96.22 % en 720.
+- QA: STRUCTURE_PASS, STATE_PASS, ACTIONS_PASS y ROUTE_PASS.
+- Log de reconstrucción: Logs/dimension2_bond_user_spacing_setup_v6.log
+- Log de captura: Logs/dimension2_bond_user_spacing_capture_v6.log
+- Log de comparación: Logs/dimension2_bond_user_spacing_compare_v6.log
+
+La captura no se archiva como aprobada hasta recibir confirmación visual explícita.

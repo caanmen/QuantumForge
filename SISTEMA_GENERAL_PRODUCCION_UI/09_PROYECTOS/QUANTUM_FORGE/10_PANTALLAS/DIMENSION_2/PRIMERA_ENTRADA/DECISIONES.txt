@@ -1,0 +1,44 @@
+DECISIONES — PRIMERA ENTRADA DE DIMENSIÓN 2
+
+Estado: implementación estática candidata construida y validada en Unity; aprobación visual final pendiente.
+Fecha: 24 de agosto de 2026.
+
+- Nombre interno: D2_FirstEntry.
+- Título visible: DIMENSIÓN 2 · PACTOS.
+- Aparece una sola vez antes del Mapa de los Pactos.
+- Acción única: ABRIR MAPA.
+- No mostrar un recurso llamado Influencia: no existe en los sistemas de D2.
+- Texto narrativo aprobado:
+  «Ante ti aparece un mundo dividido en tres territorios. Solo el Santuario de
+  Peregrinos responde a tu llegada.»
+- Por decisión explícita del usuario, no se muestra ningún segundo bloque de texto.
+- Se eliminan de esta introducción las menciones a Seguidores, Ofrendas,
+  Peregrinaciones, Confianza y 300.
+- Lenguaje visual: piedra carbón y bronce envejecido de la colección candidata D2.
+- La ilustración puede reutilizar las identidades ya visibles del Mapa V5, con el
+  Santuario destacado y los otros dos territorios en segundo plano.
+- Sin recursos, pestañas, flecha de regreso, líneas de conexión ni información adicional.
+- La imagen `REFERENCIA_ELEGIDA_D2_PRIMERA_ENTRADA_2026-08-24.png` es la
+  referencia vigente seleccionada explícitamente por el usuario.
+- Las composiciones V1 y V2 se conservan sólo como historial.
+- El concepto completo será una referencia candidata, no un fondo para Unity.
+- La referencia completa no se integró como imagen plana. La composición se construyó
+  con jerarquía real, textos independientes y un botón UGUI funcional.
+- La única ilustración nueva es `D2_FirstEntry_Hero_v1.png`, una capa limpia sin UI,
+  texto ni marco, y conserva estado de candidata.
+- `Dimension2Block1UISetup` y `Dimension2PanelUI` son autoridades sincronizadas de
+  construcción y comportamiento.
+- `Dimension2FirstEntryCapture.Run` produjo PASS en 1080 x 1920 y 720 x 1280 y validó
+  que ABRIR MAPA registra `firstEntrySeen` y muestra el mapa.
+- La introducción visual usa una versión propia. Las partidas que ya habían marcado la
+  introducción provisional como vista reciben esta composición una sola vez; después
+  continúan abriendo directamente el mapa.
+- No se añaden animaciones antes de la aprobación de esta composición estática.
+- La revisión ornamental sustituye los marcos lineales provisionales por capas talladas
+  separadas para marco exterior, título, ilustración, relato y placa del botón.
+- Esta revisión es la versión visual 2 de la primera entrada; aparece una vez también
+  para partidas que ya hubieran aceptado la candidata plana anterior.
+- Título, relato y ABRIR MAPA siguen siendo textos TMP reales. La placa visual no
+  contiene texto y el botón conserva su componente UGUI, estados y acción.
+- La candidata ornamental final tiene BUILD_PASS y Capture PASS en ambas resoluciones;
+  sigue pendiente la aprobación visual explícita del usuario.

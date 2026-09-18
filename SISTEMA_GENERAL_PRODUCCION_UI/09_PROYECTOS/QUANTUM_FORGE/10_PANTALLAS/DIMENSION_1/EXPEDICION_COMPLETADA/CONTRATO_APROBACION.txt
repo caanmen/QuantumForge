@@ -1,0 +1,22 @@
+CONTRATO DE APROBACIÓN: EXPEDICIÓN COMPLETADA
+============================================
+
+Referencia permanente: registrada.
+Resolución principal: 1080 x 1920 vertical.
+Meta visual: 95 % de parecido percibido con la referencia aprobada.
+
+CONDICIONES
+- No mostrar un premio que no figure en el último registro real.
+- No perder metales adicionales ni matrices cuando haya más de dos recompensas.
+- No reutilizar el fondo cuadriculado de transparencia como parte visible del asset.
+- Mantener imágenes centradas, preserveAspect activo y márgenes simétricos.
+- No modificar el guardado al abrir, refrescar o capturar la pantalla.
+- No añadir animación antes de aprobar la composición estática.
+
+ESTADO
+- Implementación: COMPLETA PARA REVISIÓN.
+- Captura candidata 1080×1920: GENERADA.
+- Captura responsiva 720×1280: GENERADA.
+- Prueba de cierre sin bloqueo: PASS.
+- Prueba de cero a cuatro metales y alineación entre secciones: PASS.
+- Aprobación final del usuario: PENDIENTE.

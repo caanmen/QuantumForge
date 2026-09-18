@@ -1,0 +1,84 @@
+{
+  "schema_version": "1.0",
+  "name": "Geometría universal inmutable de cartas A–10",
+  "scope": "Temas de cartas nuevos o modificados",
+  "lock_status": "LOCKED",
+  "required_status_before_frame_validation": "LOCKED",
+  "geometry_sha256": "ea3603284333a5698b9db8ea293184ce530a58d98d7964bad569c224d12c7b77",
+  "coordinate_system": {
+    "units": "normalized_card",
+    "origin": "top_left",
+    "reference_card_pixels": {"width": 512, "height": 768},
+    "pixel_rounding": "nearest_integer"
+  },
+  "ownership": {
+    "universal_geometry_owner": "CONTRATO_GEOMETRIA_UNIVERSAL_CARTAS.json",
+    "theme_owner": ["frame", "background", "ornaments", "court_art", "court_typography"],
+    "theme_may_override_universal_geometry": false
+  },
+  "immutable_transform": {
+    "translation": [0.0, 0.0],
+    "scale": [1.0, 1.0],
+    "rotation_degrees": 0,
+    "theme_translation_allowed": false,
+    "theme_scale_allowed": false,
+    "theme_rotation_allowed": false
+  },
+  "geometry": {
+    "upper_index_center": [0.140625, 0.109375],
+    "lower_index_center": [0.859375, 0.890625],
+    "lower_index_rotation_degrees": 180,
+    "upper_index_reserved_zone": [0.048828125, 0.0299479167, 0.234375, 0.1875],
+    "lower_index_reserved_zone": [0.765625, 0.8125, 0.951171875, 0.9700520833],
+    "central_numeric_reserved_zone": [0.23, 0.1458333333, 0.77, 0.8541666667],
+    "index_rank_font_size_ratio_of_card_width": 0.103515625,
+    "index_suit_visible_height_ratio_of_card_width": 0.084,
+    "numeric_pip_visible_height_ratio_of_card_width": 0.140625,
+    "ace_pip_visible_height_ratio_of_card_width": 0.171875,
+    "minimum_numeric_to_index_suit_visible_height_ratio": 1.6,
+    "patterns_top_left": {
+      "1": [[0.500, 0.500]],
+      "2": [[0.500, 0.250], [0.500, 0.750]],
+      "3": [[0.500, 0.250], [0.500, 0.500], [0.500, 0.750]],
+      "4": [[0.300, 0.280], [0.700, 0.280], [0.300, 0.720], [0.700, 0.720]],
+      "5": [[0.300, 0.280], [0.700, 0.280], [0.500, 0.500], [0.300, 0.720], [0.700, 0.720]],
+      "6": [[0.300, 0.250], [0.700, 0.250], [0.300, 0.500], [0.700, 0.500], [0.300, 0.750], [0.700, 0.750]],
+      "7": [[0.300, 0.250], [0.700, 0.250], [0.500, 0.375], [0.300, 0.500], [0.700, 0.500], [0.300, 0.750], [0.700, 0.750]],
+      "8": [[0.300, 0.250], [0.700, 0.250], [0.500, 0.375], [0.300, 0.500], [0.700, 0.500], [0.500, 0.625], [0.300, 0.750], [0.700, 0.750]],
+      "9": [[0.300, 0.240], [0.700, 0.240], [0.300, 0.370], [0.700, 0.370], [0.500, 0.500], [0.300, 0.630], [0.700, 0.630], [0.300, 0.760], [0.700, 0.760]],
+      "10": [[0.300, 0.200], [0.700, 0.200], [0.500, 0.330], [0.300, 0.420], [0.700, 0.420], [0.300, 0.580], [0.700, 0.580], [0.500, 0.670], [0.300, 0.800], [0.700, 0.800]]
+    },
+    "row_orientations_degrees": {
+      "1": [0], "2": [0, 180], "3": [0, 0, 180], "4": [0, 180],
+      "5": [0, 0, 180], "6": [0, 0, 180], "7": [0, 0, 0, 180],
+      "8": [0, 0, 0, 180, 180], "9": [0, 0, 0, 180, 180],
+      "10": [0, 0, 0, 180, 180, 180]
+    }
+  },
+  "frame_interface": {
+    "frame_must_contain_all_reserved_zones": true,
+    "frame_art_must_not_enter_reserved_zones": true,
+    "content_may_not_move_to_resolve_collision": true,
+    "content_may_not_scale_to_resolve_collision": true,
+    "invalid_frame_must_be_redesigned": true,
+    "theme_profile_must_reference_geometry_sha256": true
+  },
+  "approval": {
+    "geometry_candidate_requires_visual_user_approval": true,
+    "changing_any_geometry_field_invalidates_lock": true,
+    "changing_geometry_requires_new_hash_and_reapproval": true,
+    "user_approved_geometry_sha256": "ea3603284333a5698b9db8ea293184ce530a58d98d7964bad569c224d12c7b77",
+    "approved_at": "2026-09-12T09:58:26-05:00"
+  },
+  "mandatory_negative_fixtures": [
+    "translated_numeric_pattern",
+    "scaled_numeric_pattern",
+    "moved_index_center",
+    "reduced_numeric_pip_size",
+    "reduced_index_suit_size",
+    "frame_reserved_zone_too_small",
+    "frame_art_intrudes_reserved_zone",
+    "unapproved_universal_geometry",
+    "modified_locked_geometry_without_reapproval"
+  ]
+}

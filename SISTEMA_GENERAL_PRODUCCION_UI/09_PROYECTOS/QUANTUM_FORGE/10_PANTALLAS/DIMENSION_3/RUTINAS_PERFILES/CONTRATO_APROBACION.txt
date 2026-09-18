@@ -1,0 +1,13 @@
+CONTRATO DE APROBACIÓN — RUTINAS Y PERFILES ONLINE
+==================================================
+
+- La captura real coincide visualmente con la referencia final.
+- Ningún título, botón, símbolo o marco queda cortado o descentrado.
+- Los controles táctiles miden al menos 44x44.
+- Barrido simple figura activo con prioridad 3 y progreso 2/5.
+- Se muestran límites 1/3 de rutinas y 1/1 de perfiles.
+- Reserva 100 y parada tras cinco ejecuciones corresponden al estado real.
+- El selector de objetivo se oculta para Barrido simple.
+- Guardar/cargar perfil, pausar y eliminar permanecen funcionales.
+- Se valida en 1080x1920 y 720x1280.
+- No hay cambios en el guardado del jugador ni regresiones de pantallas aprobadas.

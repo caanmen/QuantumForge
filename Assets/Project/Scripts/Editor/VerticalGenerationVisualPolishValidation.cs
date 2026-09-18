@@ -60,8 +60,8 @@ public static class VerticalGenerationVisualPolishValidation
         if (root != null)
         {
             RectTransform rect = (RectTransform)root.transform;
-            Check(Near(rect.offsetMin.x, 96f, 1f) &&
-                Near(rect.offsetMax.x, -96f, 1f),
+            Check(Near(rect.offsetMin.x, 16f, 1f) &&
+                Near(rect.offsetMax.x, -16f, 1f),
                 "La columna avanzada no conserva el ancho central objetivo.", failures);
             Transform content = root.transform.Find("TriangleScroll/Viewport/Content");
             Check(content != null && content.Find("GenerationTitleFrame") != null,
@@ -70,21 +70,26 @@ public static class VerticalGenerationVisualPolishValidation
                 content.Find("TriangleArtifactCards") != null,
                 "Selectores o artefactos dejaron de conservar la jerarquía validada.", failures);
             if (content is RectTransform contentRect)
-                Check(Near(contentRect.sizeDelta.y, 1440f, 1f),
-                    "El contenido avanzado no ocupa el alto disponible.", failures);
+                Check(Near(contentRect.sizeDelta.y, 1488f, 1f),
+                    "El contenido avanzado no conserva el margen superior y el cierre inferior.", failures);
             Check(content != null && content.Find("TriangleObservatory") == null &&
                 content.Find("TrianglePurchasesFrame") != null,
                 "La pantalla principal conserva el Observatorio antiguo o perdió Compras.", failures);
             RectTransform purchases = content?.Find("TrianglePurchasesFrame") as RectTransform;
             Check(purchases != null && Near(purchases.rect.height, 508f, 1f),
                 "Compras no aprovecha el espacio inferior objetivo.", failures);
+            VerticalLayoutGroup purchaseLayout = content?.Find("TriangleArtifactCards")
+                ?.GetComponent<VerticalLayoutGroup>();
+            Check(purchaseLayout != null && purchaseLayout.childControlWidth &&
+                purchaseLayout.childForceExpandWidth,
+                "Las filas de compras no ocupan todo el ancho disponible.", failures);
         }
 
         if (beforeRoot != null)
         {
             RectTransform rect = (RectTransform)beforeRoot.transform;
-            Check(Near(rect.offsetMin.x, 96f, 1f) &&
-                Near(rect.offsetMax.x, -96f, 1f),
+            Check(Near(rect.offsetMin.x, 16f, 1f) &&
+                Near(rect.offsetMax.x, -16f, 1f),
                 "La columna anterior al Triangulo no coincide con la avanzada.", failures);
             Transform frame = beforeRoot.transform.Find("ArtifactsFrame");
             Check(beforeRoot.transform.Find("EarlyGenerationTitleFrame") != null &&

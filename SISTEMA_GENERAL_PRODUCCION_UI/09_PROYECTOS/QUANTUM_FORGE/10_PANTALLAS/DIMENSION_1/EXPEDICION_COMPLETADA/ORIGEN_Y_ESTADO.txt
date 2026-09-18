@@ -1,0 +1,7 @@
+ORIGEN Y ESTADO DE LA REFERENCIA
+================================
+
+- Origen: imagen entregada por el usuario en el chat el 20 de agosto de 2026.
+- Rol: referencia visual de composición; no es una captura real de Unity ni un asset final.
+- Archivo permanente: referencia_expedicion_completada_v1.png.
+- Los textos y cantidades ilustran un resultado posible y deben sustituirse por datos reales.

@@ -774,7 +774,7 @@ public static class MachineCubeBlock1Setup
         text.enableAutoSizing = true;
         text.fontSizeMin = Mathf.Max(14f, fontSize * 0.72f);
         text.fontSizeMax = fontSize;
-        text.overflowMode = TextOverflowModes.Ellipsis;
+        text.overflowMode = TextOverflowModes.Truncate;
         text.raycastTarget = false;
         return text;
     }

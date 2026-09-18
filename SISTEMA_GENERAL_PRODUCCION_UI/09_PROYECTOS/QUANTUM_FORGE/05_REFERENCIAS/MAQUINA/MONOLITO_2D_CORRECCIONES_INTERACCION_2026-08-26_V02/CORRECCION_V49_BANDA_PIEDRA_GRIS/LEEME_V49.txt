@@ -1,0 +1,28 @@
+QUANTUM FORGE — MONOLITO 2D — CORRECCIÓN V49
+Fecha: 2026-08-29
+Estado: implementación en código realizada; captura y aprobación visual pendientes.
+
+CAUSA DEL RECHAZO V48
+- El límite izquierdo se amplió demasiado y permitió que parte de una firma apareciera
+  sobre la columna o el bisel metálico.
+- Algunas posiciones continuaban perceptualmente próximas a esquinas o erosión.
+
+CONTRATO V49
+- Las firmas sólo pueden ocupar la piedra gris continua.
+- Se excluyen la columna metálica izquierda, la base, las esquinas y el borde erosionado.
+- El límite izquierdo de la huella completa es 0,515 y el derecho sigue la pendiente
+  `0,775 - 0,17*y`.
+- S2 mantiene once posiciones irregulares con separación mínima calculada 0,070.
+- S3 mantiene siete posiciones irregulares con separación mínima calculada 0,068.
+- Todas las firmas funcionales continúan usando exclusivamente la familia ramificada
+  canónica de la cara superior izquierda.
+
+EVIDENCIA
+- 01_simbolos_sobre_metal_v48_rechazado.png
+- 02_sector_2_esquinas_v48_rechazado.png
+- 03_referencia_zona_gris_valida.png
+- 04_sector_3_esquinas_v48_rechazado.png
+
+PENDIENTE
+- Validación visual real a 1080 x 1920 y 720 x 1280.
+- No archivar en capturas aprobadas hasta recibir aprobación explícita del usuario.

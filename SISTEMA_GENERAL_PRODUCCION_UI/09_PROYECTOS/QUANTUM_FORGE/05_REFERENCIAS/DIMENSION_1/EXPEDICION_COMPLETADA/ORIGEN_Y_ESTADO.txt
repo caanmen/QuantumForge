@@ -1,0 +1,8 @@
+ORIGEN Y ESTADO
+===============
+
+- Referencia visual entregada por el usuario el 20 de agosto de 2026.
+- No es una captura real de Unity ni un asset de interfaz utilizable directamente.
+- Autoridad: composición, jerarquía, densidad, paleta y proporciones generales.
+- Los nombres, cantidades y recompensas representados son un escenario visual; la
+  implementación debe usar el último registro real de la expedición.

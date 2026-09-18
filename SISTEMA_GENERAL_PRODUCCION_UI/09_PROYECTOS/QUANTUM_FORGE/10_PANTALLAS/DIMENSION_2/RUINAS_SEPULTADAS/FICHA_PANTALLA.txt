@@ -1,0 +1,63 @@
+FICHA DE PANTALLA — RUINAS SEPULTADAS / ARQUEOLOGÍA
+
+Fecha: 2 de septiembre de 2026
+Estado: APROBADA VISUALMENTE POR EL USUARIO; CAPTURAS ARCHIVADAS
+
+IDENTIDAD Y FUNCIÓN
+- Pantalla principal de Arqueología de Civilización 3 dentro de Dimensión 2.
+- Presenta Conocimiento Antiguo, nivel de Archivo y Conocimiento del Ente.
+- Permite elegir una de tres zonas, consultar su investigación y recurso propio,
+  iniciar una excavación y abrir Archivo o Investigación del Ente.
+- La pestaña ANALIZAR conserva su lugar visual, pero no se conecta hasta construir
+  la pantalla específica siguiente; no se inventó una navegación provisional.
+
+REFERENCIA DE AUTORIDAD
+- Ruta: 05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/16_Ruinas_Sepultadas_Arqueologia_Corregida_V4.png
+- Tipo: referencia visual candidata permanente V4.
+- Resolución: 941×1672; composición objetivo 1080×1920.
+- SHA-256: 26564F6CE769FC2A5C0EB1B9769F87B91375324ADEA36C3149B68CE854551C8E
+- El borde de selección del adjunto temporal del chat no pertenece a la pantalla.
+
+ARQUITECTURA Y PROPIETARIOS
+- D2Civilization3System: zonas, excavación, investigación, recursos, eruditos,
+  indicios, Archivo y Conocimiento del Ente.
+- Dimension2State: persistencia de todos los datos y desbloqueos.
+- D2Civilization3PanelUI: formato visible, selección, refresco y acciones.
+- Dimension2Block1UISetup: geometría, capas, placa, textos y áreas táctiles.
+- Placa limpia: Assets/Project/UI/Dimension2/Archaeology/Generated/D2_RuinsArchaeology_CleanBasePlate_v1.png
+- Procedencia y prompt: Assets/Project/UI/Dimension2/Archaeology/Generated/ORIGEN_Y_USO.txt
+
+ESTADOS CUBIERTOS
+- Zona 1, Zona 2 y Zona 3 seleccionadas.
+- Zonas visibles bloqueadas o desbloqueadas según el sistema.
+- Investigación 0–100 % con barra y cifra sincronizadas.
+- Excavación disponible o en curso.
+- Restos Baja, Media y Alta.
+- Erudito ausente o contratado con nivel real.
+- Indicios, patrón y acumulación.
+- Archivo y Ente disponibles o no interactuables sin ocultar la navegación.
+
+RECONSTRUCCIÓN Y QA
+- Escena: Assets/Project/Scenes/Main.unity.
+- Constructor: Dimension2Block1UISetup.ConfigureBlock1UI.
+- Captura y pruebas: Dimension2RuinsArchaeologyCapture.Run.
+- Comparación: UIReferenceComparison.RunDimension2RuinsArchaeology.
+- Resoluciones: 1080×1920 y 720×1280.
+- Captura 1080: CAPTURAS_CANDIDATAS/D2_RuinasSepultadas_1080x1920.png
+- Captura 720: CAPTURAS_CANDIDATAS/D2_RuinasSepultadas_720x1280.png
+- Log de captura: Logs/dimension2_ruins_capture.log
+- Log de comparación: Logs/dimension2_ruins_comparison.log
+
+EVIDENCIA ACTUALIZADA EL 2 DE SEPTIEMBRE DE 2026
+- STRUCTURE_PASS | STATE_PASS | ACTIONS_PASS | ROUTE_PASS |
+  SAVE_INTACT_PASS | TEXT_GEOMETRY_PASS.
+- Similitud perceptual AA: 96.61 % a 1080×1920 y 96.80 % a 720×1280.
+- El fixture reproduce Zona 3 seleccionada, 78 de Conocimiento Antiguo,
+  Archivo IV, 3/6 de Conocimiento del Ente, progresos 65/60/46 %, recursos
+  120/84/36, Restos 12/5/2, Erudito de Sellos 1/3 e indicios 2/12 al 38 %.
+- La prueba selecciona físicamente Zonas 1 y 3, inicia una excavación, abre
+  Archivo y Ente, vuelve al mapa, reabre la pantalla y verifica los guardados.
+- La placa se compensa 24 px a la izquierda y 32 px hacia arriba respecto del
+  contenedor seguro para coincidir con el lienzo de referencia completo.
+
+Evidencia aprobada por el usuario y archivada el 4 de septiembre de 2026.

@@ -1,0 +1,40 @@
+DECISIONES: REGISTRO DE EXPEDICIONES
+====================================
+
+- La lista muestra datos reales y se ordena de más reciente a más antiguo.
+- El número superior representa el tamaño actual del historial, cuyo límite real es 20.
+- El resumen inferior suma únicamente las entradas recientes conservadas, no estadísticas
+  históricas que el juego no guarda.
+- Una fila es un resumen: presenta hasta cuatro metales reales en fichas adaptativas y
+  señala reliquia, matriz o fragmentos sin inventar premios.
+- El filtro POR SECTOR recorre Borde Exterior, Anillo de Restos, Órbitas Antiguas y
+  Frontera Silenciosa; no incluye Centro Galáctico porque no es un sector de exploración.
+- El registro fijo de la Clave de Acceso Central se conserva como estado condicional y no
+  cuenta como expedición.
+- La jerarquía reserva 21 filas internas: las 20 entradas reales más ARK. La entrada fija
+  nunca desplaza ni oculta la expedición más antigua.
+- Los IDs de destino antiguos sin arte propio usan un marcador D1 compartido, nunca el
+  thumbnail de otro destino con identidad incorrecta.
+- Los tres totales inferiores usan candidatos específicos: emblema de expediciones,
+  conjunto de reliquias y conjunto mixto de metales. No se reutilizan iconos de
+  navegación, un metal individual ni geometría textual como sustitutos.
+- Los candidatos del resumen conservan su color original mediante el material black key
+  canónico D1; permanecen como CANDIDATOS hasta aprobación visual explícita.
+- La subpantalla conserva Explorar debajo y no incorpora navegación inferior.
+- REGISTRO abre directamente `D1_ExpeditionRecordVisualRoot`, la lleva al frente, reinicia
+  el scroll y no depende únicamente del refresco general de `Dimension1PanelUI`.
+- Mientras el Registro está visible, Explorar permanece como pantalla de origen pero su
+  CanvasGroup queda oculto, no interactivo y sin raycasts. Al volver recupera la interacción
+  sin reconstruirse ni perder sus selecciones.
+- El filtro seleccionado usa cian intenso como la referencia; el ámbar queda reservado
+  para reliquias, matrices, nave de apoyo y la acción inferior.
+
+CORRECCIÓN VALIDADA — 22 DE AGOSTO DE 2026
+
+- Las filas aumentan su altura y tipografías para mostrar cerca de cinco registros por
+  pantalla en vez de comprimir seis; conserva desplazamiento para los veinte reales.
+- La Clave de Acceso Central usa un símbolo propio de llave y cuatro ecos sincronizados,
+  no el marcador circular genérico de expedición.
+- VOLVER A EXPLORAR usa un radar de retorno dibujado con líneas D1, legible en móvil y sin
+  depender de un carácter de fuente.
+- Captura y prueba funcional PASS en 1080×1920 y 720×1280.

@@ -1,0 +1,56 @@
+FICHA DE PANTALLA — PACTO CON EL ENTE
+
+Fecha: 3 de septiembre de 2026
+Estado: APROBADA VISUALMENTE POR EL USUARIO; CAPTURAS ARCHIVADAS
+
+IDENTIDAD Y FUNCIÓN
+- Estado posterior de la subvista Ente de Civilización 3 en Dimensión 2.
+- Permite establecer el pacto opcional, seleccionar una de cuatro líneas
+  funcionales y mejorarla hasta nivel 3.
+- Crónica del Primer Umbral se conserva únicamente en persistencia y sistema;
+  permanece oculta mientras no exista un efecto real aprobado.
+
+REFERENCIA DE AUTORIDAD
+- Ruta: 05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/20_Pacto_Opcional_Con_El_Ente_Corregido_V5.png
+- Resolución: 941×1672; composición objetivo 1080×1920.
+- SHA-256: 763920527D0B6FCBE0E9EB5BE83E5DE30CCE456E38DFE0BEE7010E4F31EF127E.
+
+ARQUITECTURA Y PROPIETARIOS
+- D2Civilization3System: costes, umbrales, niveles, efectos y transacciones.
+- Dimension2State: persistencia de investigación, pacto, líneas y recursos.
+- D2EntityResearchPanelUI: presentación dinámica de las fases Investigación/Pacto.
+- Dimension2Block1UISetup: geometría V5, placa, capas y áreas táctiles.
+- Placa limpia: Assets/Project/UI/Dimension2/EntityPact/Generated/D2_EntityPact_CleanBasePlate_v1.png
+- Procedencia y prompt: Assets/Project/UI/Dimension2/EntityPact/Generated/ORIGEN_Y_USO.txt
+
+FIXTURE VISUAL V5
+- Pacto establecido; progreso 100%; Conocimiento Antiguo 200.
+- Expedición Resonante 1/3; las otras tres líneas visibles 0/3.
+- Recursos 100/100/100; Conocimiento del Ente 6/6.
+- Expedición seleccionada; siguiente coste 100 + 50 de cada recurso; umbral 3.
+- Último resultado: Expedición Resonante mejorada a nivel 1.
+
+RECONSTRUCCIÓN Y QA
+- Escena: Assets/Project/Scenes/Main.unity.
+- Constructor: Dimension2Block1UISetup.ConfigureBlock1UI.
+- Captura y pruebas: Dimension2EntityPactCapture.Run.
+- Comparación: UIReferenceComparison.RunDimension2EntityPact.
+
+EVIDENCIA ACTUALIZADA EL 4 DE SEPTIEMBRE DE 2026
+- Captura 1080: CAPTURAS_CANDIDATAS/D2_PactoConElEnte_1080x1920.png
+- Captura 720: CAPTURAS_CANDIDATAS/D2_PactoConElEnte_720x1280.png
+- Log de captura: Logs/dimension2_entity_pact_capture.log
+- Log de comparación: Logs/dimension2_entity_pact_comparison.log
+- STRUCTURE_PASS | STATE_PASS | ACTIONS_PASS | ROUTE_PASS |
+  SAVE_INTACT_PASS | TEXT_GEOMETRY_PASS.
+- Similitud perceptual AA: 96.37 % a 1080×1920 y 96.68 % a 720×1280.
+- La prueba pulsa las cuatro tarjetas, valida selección e icono de detalle, mejora
+  Expedición 1→2 y comprueba los descuentos 200→100 y 100→50×3.
+- También valida el estado preparado, Establecer Pacto, las cuatro rutas visibles,
+  la ausencia interactiva de Crónica y la integridad del guardado personal.
+
+APROBACIÓN Y ARCHIVO
+- Aprobación explícita del usuario recibida el 4 de septiembre de 2026:
+  «sí, confirmada esa».
+- Capturas promovidas a:
+  06_CAPTURAS_APROBADAS/DIMENSION_2/PACTO_CON_EL_ENTE.

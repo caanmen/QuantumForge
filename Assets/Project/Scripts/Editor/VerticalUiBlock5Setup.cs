@@ -70,7 +70,7 @@ public static class VerticalUiBlock5Setup
 
         ScrollRect scroll = BuildScroll(shell.transform, out RectTransform content);
         RectTransform production = BuildSection(
-            "Section_Production", "PRODUCCIÓN",
+            "Section_Production", "LE",
             "upgrades.section.production", theme.energy, content, theme,
             out RectTransform productionRows);
         RectTransform traces = BuildSection(
@@ -78,7 +78,7 @@ public static class VerticalUiBlock5Setup
             "upgrades.section.traces", theme.traces, content, theme,
             out RectTransform tracesRows);
         RectTransform triangle = BuildSection(
-            "Section_Triangle", "TRIÁNGULO",
+            "Section_Triangle", "TRIÁNGULO Y ENERGÍA",
             "upgrades.section.triangle", theme.triangle, content, theme,
             out RectTransform triangleRows);
 
@@ -182,8 +182,8 @@ public static class VerticalUiBlock5Setup
         scroll.content = content;
         scroll.horizontal = false;
         scroll.vertical = true;
-        scroll.movementType = ScrollRect.MovementType.Elastic;
-        scroll.elasticity = 0.08f;
+        scroll.movementType = ScrollRect.MovementType.Clamped;
+        scroll.elasticity = 0f;
         scroll.inertia = true;
         scroll.decelerationRate = 0.12f;
         scroll.scrollSensitivity = 34f;
@@ -449,7 +449,7 @@ public static class VerticalUiBlock5Setup
         label.alignment = alignment;
         label.color = color;
         label.textWrappingMode = TextWrappingModes.Normal;
-        label.overflowMode = TextOverflowModes.Ellipsis;
+        label.overflowMode = TextOverflowModes.Truncate;
         label.raycastTarget = false;
         return label;
     }

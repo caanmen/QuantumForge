@@ -1,0 +1,32 @@
+DECISIONES — ALERTA DEL ENTE
+
+1 de septiembre de 2026
+
+1. La referencia permanente V4 manda sobre el adjunto temporal del chat.
+2. El placeholder textual anterior se reemplaza por la composición completa sin
+   modificar las reglas existentes de D2Civilization2System.
+3. La placa limpia conserva marcos, anillos, placas y materiales; ningún texto,
+   valor, icono dinámico ni selección queda horneado.
+4. La hoja cromática aporta los iconos canónicos de Alerta. El shader existente
+   de Resistencia elimina el fondo verde sin borrar bronces ni sombras oscuras.
+5. Dominio, temporizador y marcas realizadas se refrescan desde el estado real.
+6. El medidor circular pertenece a D2AlertPanelUI y recibe un progreso normalizado;
+   la placa aporta únicamente el anillo estructural vacío.
+7. Cada región usa su ID estable para nombre, marca y Protección. Los escudos
+   activo e inactivo son capas mutuamente excluyentes controladas por el estado.
+8. La línea secundaria de MARCADA usa un tamaño relativo propio para caber completa
+   dentro de la placa sin reducir las etiquetas de toda la familia.
+9. Los efectos de Alerta muestran +50 % de Amenaza y 6 Fragmentos únicamente
+   cuando Alerta está activa o finalizada según las reglas existentes.
+10. El último resultado se deriva del mensaje funcional ya generado por el sistema;
+    no crea una segunda fuente de verdad para marcas o mitigación.
+11. La pestaña ALERTA conserva el Button compartido de Civilización 2. La capa
+    visual no recibe raycasts ni intercepta regreso o navegación hermana.
+12. El capturador congela el tiempo, restaura el fixture antes de cada resolución
+    y mantiene suprimidas las escrituras hasta cerrar Unity.
+13. La captura valida entrada real, cambio a RESISTENCIA, regreso a ALERTA, botón
+    Atrás, reapertura, datos, medidor y geometría TMP.
+14. Las capturas y la comparación oficial deben regenerarse después de cualquier
+    cambio en geometría, tipografía, placa, shader, iconos o controlador.
+15. Superar el 95 % y pasar QA convierte la pantalla en candidata técnica; la
+    aprobación visual y creativa sigue perteneciendo al usuario.

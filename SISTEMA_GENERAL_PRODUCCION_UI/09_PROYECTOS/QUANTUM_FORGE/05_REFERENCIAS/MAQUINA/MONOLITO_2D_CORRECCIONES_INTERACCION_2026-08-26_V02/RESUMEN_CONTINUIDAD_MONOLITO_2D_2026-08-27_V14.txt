@@ -1,0 +1,54 @@
+RESUMEN DE CONTINUIDAD — MONOLITO 2D V14 — 2026-08-27
+
+AUTORIDAD ACTUAL
+
+- No se usa ningún cubo ni representación 3D.
+- El Monolito es alienígena; el laboratorio humano quedó abandonado tras un accidente.
+- La composición general V26 permanece bloqueada: escala 0,72 y posición `(0, 34)`.
+- El fondo es propietario exclusivo del soporte de suelo. El Monolito no se mueve para
+  compensar su geometría.
+- Vista general: sólo cuatro luces de entrada; sin nodos, símbolos, textos explicativos ni
+  `???`.
+
+V31 RECHAZADA
+
+- V31 pasó validación técnica, pero el usuario la rechazó visualmente: conservaba un marco
+  genérico bajo el Monolito; las caras dañadas perdían superficie interior; el sector 2
+  concentraba símbolos hacia un lado y los sectores 1/3 no permitían leer bien sus firmas.
+- Sus assets y capturas se conservan únicamente como historial en `CANDIDATOS_V31`.
+
+ASSETS ACTIVOS V32
+
+- Fondo general:
+  `Assets/Project/UI/Vertical/Machine/Monolith2D/machine_destroyed_lab_exact_footprint_cradle_square_v32.png`.
+- Fondo cercano común V27:
+  `machine_destroyed_lab_close_dolly_square_v27.png`.
+- Caras:
+  `monolith_sector_1_perimeter_damage_progression_v32.png` hasta
+  `monolith_sector_4_perimeter_damage_progression_v32.png`.
+- Copias permanentes y lámina de revisión: `CANDIDATOS_V32`.
+
+COMPOSICIÓN V32
+
+- El soporte general es un alojamiento ancho, trapezoidal y escalonado que sigue la huella
+  real de la base. El travesaño frontal se dibuja delante del Monolito.
+- Las cuatro caras tienen interior sólido y continuo en las cuatro etapas. El daño se limita
+  al perímetro y no invade la zona de símbolos.
+- Sectores 1 y 3: siete firmas centradas. Sector 2: once firmas en una malla central de
+  varias columnas. Sector 4: cero nodos y un único `???` como capa Unity separada.
+- Firma dañada 0,24; dañada seleccionada 0,40; reparada 1,00. Tamaño visible 64 px y área
+  táctil 104 px.
+
+PRUEBAS
+
+- Reconstrucción PASS: `Logs/machine_monolith_v32_setup_2.log`.
+- Captura y prueba completa PASS: `Logs/machine_monolith_v32_capture_2.log`.
+- 32 PNG nuevos en 1080×1920 y 720×1280: vista general, cuatro caras, estados reparados,
+  Mezclas, regreso y transición 0/25/50/75/100.
+- El guardado personal se restauró al finalizar.
+
+ESTADO
+
+- V32 es candidata funcional y visualmente verificada, pendiente de aprobación perceptual
+  explícita del usuario. No archivar estas capturas en `06_CAPTURAS_APROBADAS` ni declarar
+  95 % antes de esa aprobación.

@@ -43,6 +43,7 @@ public static class MachineFusionPanelVisualSetup
     private static readonly Color Violet = Hex("B55CFF");
     private static readonly Color VioletDim = Hex("6C3A83");
     private static readonly Color Amber = Hex("F0A018");
+    private static readonly Color Green = Hex("74E346");
 
     [MenuItem("Tools/Quantum Forge/Machine/Configure Fusion Panel Visual")]
     public static void Configure()
@@ -102,17 +103,19 @@ public static class MachineFusionPanelVisualSetup
         BuildHeading(shell.transform, font);
 
         GameObject inventoryPanel = CreatePanel("FusionInventoryStrip", shell.transform,
-            new Vector2(0.025f, 0.895f), new Vector2(0.975f, 0.932f),
+            new Vector2(0.025f, 0.884f), new Vector2(0.975f, 0.932f),
             selectorSprite, PanelRaised, false);
         TextMeshProUGUI inventoryText = CreateText("InventoryText",
             inventoryPanel.transform,
-            "HALLAZGOS  0     ·     MUESTRAS  0     ·     LECTURAS  0     ·     COMPUESTOS  0",
+            "ANOMALÍAS  0     ·     CONDENSADOS  0\nVESTIGIOS  0     ·     COMPUESTOS  0",
             new Vector2(0.025f, 0.08f), new Vector2(0.975f, 0.92f),
-            font, 18f, TextPrimary, TextAlignmentOptions.Center);
-        inventoryText.fontSizeMin = 13f;
+            font, 19f, TextPrimary, TextAlignmentOptions.Center);
+        inventoryText.fontSizeMin = 17f;
+        inventoryText.textWrappingMode = TextWrappingModes.Normal;
+        inventoryText.overflowMode = TextOverflowModes.Overflow;
 
         GameObject statusPanel = CreatePanel("FusionStatusStrip", shell.transform,
-            new Vector2(0.025f, 0.852f), new Vector2(0.975f, 0.890f),
+            new Vector2(0.025f, 0.838f), new Vector2(0.975f, 0.878f),
             selectorSprite, new Color(0.34f, 0.23f, 0.42f, 0.72f), false);
         TextMeshProUGUI fusionSlotsText = CreateText("FusionStatus",
             statusPanel.transform,
@@ -142,15 +145,14 @@ public static class MachineFusionPanelVisualSetup
 
         Button modeButton = CreateButton("ModeButton", shell.transform,
             new Vector2(0.025f, 0.375f), new Vector2(0.492f, 0.425f),
-            selectorSprite, PanelRaised, font, "MODO: EQUILIBRADO", 22f,
+            selectorSprite, PanelRaised, font,
+            "EQUILIBRADO\n1 RESULTADO · RIESGO NORMAL · +2 INESTABILIDAD", 18f,
             Violet, out TextMeshProUGUI modeButtonText);
-        AddChevron(modeButton.transform, font);
 
         Button guidedButton = CreateButton("GuidedIntentButton", shell.transform,
             new Vector2(0.508f, 0.375f), new Vector2(0.975f, 0.425f),
-            selectorSprite, PanelRaised, font, "INTENCIÓN: HALLAZGO", 22f,
+            selectorSprite, PanelRaised, font, "INTENCIÓN: ANOMALÍA", 22f,
             Violet, out TextMeshProUGUI guidedButtonText);
-        AddChevron(guidedButton.transform, font);
 
         GameObject readingPanel = CreatePanel("CompositionReading", shell.transform,
             new Vector2(0.025f, 0.225f), new Vector2(0.492f, 0.365f),
@@ -177,7 +179,7 @@ public static class MachineFusionPanelVisualSetup
             new Vector2(0.10f, 0.45f), new Vector2(0.90f, 0.56f), Violet);
         Button coolButton = CreateButton("CoolButton", instabilityPanel.transform,
             new Vector2(0.08f, 0.08f), new Vector2(0.92f, 0.38f),
-            selectedSprite, VioletDim, font, "ENFRIAR · 30 TRAZAS", 20f,
+            selectedSprite, VioletDim, font, "ENFRIAR · 30 ENERGÍA", 20f,
             TextPrimary, out TextMeshProUGUI coolButtonText);
 
         Button mixButton = CreateButton("FusionButton", shell.transform,
@@ -221,21 +223,31 @@ public static class MachineFusionPanelVisualSetup
             TextAlignmentOptions.Left);
         TextMeshProUGUI resultMeta = CreateText("ResultMeta", resultPanel.transform,
             "RIESGO Y RECOMPENSA SE ACTUALIZAN EN TIEMPO REAL",
-            new Vector2(0.16f, 0.06f), new Vector2(0.96f, 0.31f), font, 16f,
+            new Vector2(0.16f, 0.06f), new Vector2(0.96f, 0.31f), font, 18f,
             Violet, TextAlignmentOptions.Left);
+        TextMeshProUGUI rewardToast = CreateText("RewardToast", shell.transform,
+            "+1 CONDENSADO", new Vector2(0.22f, 0.445f),
+            new Vector2(0.78f, 0.505f), font, 30f, Green,
+            TextAlignmentOptions.Center);
+        rewardToast.fontStyle = FontStyles.Bold;
+        rewardToast.gameObject.SetActive(false);
 
         GameObject diagnosticPanel = CreatePanel("CoreDiagnostic", shell.transform,
             new Vector2(0.025f, 0.005f), new Vector2(0.975f, 0.045f),
             selectorSprite, PanelRaised, false);
         TextMeshProUGUI diagnosticText = CreateText("DiagnosticText",
             diagnosticPanel.transform, "DIAGNÓSTICO DEL NÚCLEO",
-            new Vector2(0.02f, 0.05f), new Vector2(0.64f, 0.95f), font, 14f,
+            new Vector2(0.02f, 0.05f), new Vector2(0.64f, 0.95f), font, 17f,
             TextSecondary, TextAlignmentOptions.Left);
         Image[] diagnosticBars = BuildDiagnosticBars(diagnosticPanel.transform,
             new Vector2(0.66f, 0.10f), new Vector2(0.98f, 0.90f), 18);
 
         LogParts log = BuildLogOverlay(rootObject.transform, font, panelSprite,
             buttonSprite);
+        Button fusionBack = CreateButton("FusionBackToNodes", rootObject.transform,
+            new Vector2(.040f, .800f), new Vector2(.220f, .838f),
+            buttonSprite, PanelRaised, font, "‹  VOLVER", 20f,
+            TextPrimary, out _);
 
         MachineFusionPanelVisualUI visual = rootObject.GetComponent<MachineFusionPanelVisualUI>();
         if (visual == null)
@@ -265,6 +277,7 @@ public static class MachineFusionPanelVisualSetup
         SetObject(visualSo, "resultTitle", resultTitle);
         SetObject(visualSo, "resultDetail", resultDetail);
         SetObject(visualSo, "resultMeta", resultMeta);
+        SetObject(visualSo, "rewardToast", rewardToast);
         SetObject(visualSo, "diagnosticText", diagnosticText);
         SetObjectArray(visualSo, "diagnosticBars", diagnosticBars);
         visualSo.ApplyModifiedPropertiesWithoutUndo();
@@ -285,6 +298,12 @@ public static class MachineFusionPanelVisualSetup
         SetObject(roomSo, "fragmentSlotAButton", slotA.button);
         SetObject(roomSo, "fragmentSlotBButton", slotB.button);
         SetObject(roomSo, "catalystSlotButton", catalyst.button);
+        SetObject(roomSo, "fragmentSlotAPreviousButton", slotA.previousButton);
+        SetObject(roomSo, "fragmentSlotANextButton", slotA.nextButton);
+        SetObject(roomSo, "fragmentSlotBPreviousButton", slotB.previousButton);
+        SetObject(roomSo, "fragmentSlotBNextButton", slotB.nextButton);
+        SetObject(roomSo, "catalystPreviousButton", catalyst.previousButton);
+        SetObject(roomSo, "catalystNextButton", catalyst.nextButton);
         SetObject(roomSo, "fragmentSlotAText", slotA.value);
         SetObject(roomSo, "fragmentSlotBText", slotB.value);
         SetObject(roomSo, "catalystSlotText", catalyst.value);
@@ -310,7 +329,7 @@ public static class MachineFusionPanelVisualSetup
 
         SerializedObject machineSo = new SerializedObject(machine);
         SetObject(machineSo, "legacyFusionPanel", rootObject);
-        SetObject(machineSo, "btnBackToNodesFromFusion", null);
+        SetObject(machineSo, "btnBackToNodesFromFusion", fusionBack);
         machineSo.ApplyModifiedPropertiesWithoutUndo();
 
         SetLayerRecursively(rootObject, 5);
@@ -346,7 +365,7 @@ public static class MachineFusionPanelVisualSetup
         Sprite panelSprite, Sprite selectorSprite, Sprite iconSprite)
     {
         GameObject card = CreatePanel(name, parent,
-            new Vector2(minX, 0.535f), new Vector2(maxX, 0.847f), panelSprite,
+            new Vector2(minX, 0.522f), new Vector2(maxX, 0.832f), panelSprite,
             Panel, false);
         Outline outline = card.AddComponent<Outline>();
         outline.effectColor = new Color(Violet.r, Violet.g, Violet.b, 0f);
@@ -379,12 +398,10 @@ public static class MachineFusionPanelVisualSetup
             new Vector2(0.04f, 0.05f), new Vector2(0.96f, 0.25f),
             selectorSprite, PanelRaised, font, value, 19f, Violet,
             out TextMeshProUGUI valueText);
-        CreateText("Prev", button.transform, "‹", new Vector2(0.01f, 0.06f),
-            new Vector2(0.14f, 0.94f), font, 31f, Violet,
-            TextAlignmentOptions.Center);
-        CreateText("Next", button.transform, "›", new Vector2(0.86f, 0.06f),
-            new Vector2(0.99f, 0.94f), font, 31f, Violet,
-            TextAlignmentOptions.Center);
+        Button previousButton = CreateDirectionButton("Previous", button.transform,
+            new Vector2(0.00f, 0.00f), new Vector2(0.20f, 1.00f), font, "‹");
+        Button nextButton = CreateDirectionButton("Next", button.transform,
+            new Vector2(0.80f, 0.00f), new Vector2(1.00f, 1.00f), font, "›");
         RectTransform valueRect = valueText.rectTransform;
         valueRect.anchorMin = new Vector2(0.14f, 0.06f);
         valueRect.anchorMax = new Vector2(0.86f, 0.94f);
@@ -395,8 +412,25 @@ public static class MachineFusionPanelVisualSetup
             button = button,
             value = valueText,
             icon = icon,
-            outline = outline
+            outline = outline,
+            previousButton = previousButton,
+            nextButton = nextButton
         };
+    }
+
+    private static Button CreateDirectionButton(string name, Transform parent,
+        Vector2 anchorMin, Vector2 anchorMax, TMP_FontAsset font, string glyph)
+    {
+        GameObject buttonObject = CreateRect(name, parent, anchorMin, anchorMax);
+        Image image = buttonObject.AddComponent<Image>();
+        image.color = new Color(1f, 1f, 1f, 0.001f);
+        Button button = buttonObject.AddComponent<Button>();
+        button.targetGraphic = image;
+        TextMeshProUGUI text = CreateText("Glyph", buttonObject.transform, glyph,
+            new Vector2(0f, 0f), new Vector2(1f, 1f), font, 34f, Violet,
+            TextAlignmentOptions.Center);
+        text.enableAutoSizing = false;
+        return button;
     }
 
     private static ReactorParts BuildReactor(Transform parent, TMP_FontAsset font,
@@ -429,16 +463,7 @@ public static class MachineFusionPanelVisualSetup
         CreateText("CoreGlyph", coreObject.transform, "+", new Vector2(0.1f, 0.1f),
             new Vector2(0.9f, 0.9f), font, 30f, TextPrimary,
             TextAlignmentOptions.Center);
-        Image[] particles = new Image[12];
-        for (int i = 0; i < particles.Length; i++)
-        {
-            float x = 0.08f + i * (0.84f / (particles.Length - 1));
-            float y = 0.28f + (i % 3) * 0.22f;
-            particles[i] = CreateSolidImage("Particle_" + (i + 1),
-                reactor.transform, new Vector2(x - 0.004f, y - 0.035f),
-                new Vector2(x + 0.004f, y + 0.035f),
-                i % 2 == 0 ? Cyan : Violet);
-        }
+        Image[] particles = Array.Empty<Image>();
         coreObject.transform.SetAsLastSibling();
         return new ReactorParts
         {
@@ -499,19 +524,12 @@ public static class MachineFusionPanelVisualSetup
             new Vector2(0.93f, 0.88f), font, 18f, TextSecondary,
             TextAlignmentOptions.TopLeft);
         content.textWrappingMode = TextWrappingModes.Normal;
-        content.overflowMode = TextOverflowModes.Ellipsis;
+        content.overflowMode = TextOverflowModes.Truncate;
         Button close = CreateButton("Close", root.transform,
             new Vector2(0.34f, 0.025f), new Vector2(0.66f, 0.105f),
             buttonSprite, PanelRaised, font, "CERRAR", 22f, TextPrimary, out _);
         root.SetActive(false);
         return new LogParts { root = root, content = content, close = close };
-    }
-
-    private static void AddChevron(Transform parent, TMP_FontAsset font)
-    {
-        CreateText("Chevron", parent, "V", new Vector2(0.88f, 0.08f),
-            new Vector2(0.98f, 0.92f), font, 27f, Violet,
-            TextAlignmentOptions.Center);
     }
 
     private static GameObject CreatePanel(string name, Transform parent,
@@ -569,7 +587,7 @@ public static class MachineFusionPanelVisualSetup
         text.color = color;
         text.alignment = alignment;
         text.raycastTarget = false;
-        text.overflowMode = TextOverflowModes.Ellipsis;
+        text.overflowMode = TextOverflowModes.Truncate;
         return text;
     }
 
@@ -650,6 +668,8 @@ public static class MachineFusionPanelVisualSetup
     {
         Require(root.transform.Find("FusionVisualShell") != null,
             "Falta FusionVisualShell.");
+        Require(root.transform.Find("FusionBackToNodes")?.GetComponent<Button>() != null,
+            "El panel de Mezclas debe conservar una salida visible hacia Nodos.");
         Require(root.transform.Find(
                 "FusionVisualShell/FusionInventoryStrip/InventoryText") != null,
             "Falta el inventario visible de resultados de Mezclas.");
@@ -659,12 +679,17 @@ public static class MachineFusionPanelVisualSetup
             root.GetComponent<MachineFusionPanelVisualUI>());
         Require(visualSo.FindProperty("inventoryText")?.objectReferenceValue != null,
             "MachineFusionPanelVisualUI no tiene enlazado el inventario.");
+        Require(visualSo.FindProperty("rewardToast")?.objectReferenceValue != null,
+            "MachineFusionPanelVisualUI no tiene aviso efímero de recompensa.");
         SerializedObject roomSo = new SerializedObject(room);
         string[] required =
         {
             "mixButton", "logButton", "logPanel", "statusText",
             "fusionSlotsText", "compositionReadingText", "fragmentSlotAButton",
-            "fragmentSlotBButton", "catalystSlotButton", "modeButton",
+            "fragmentSlotBButton", "catalystSlotButton",
+            "fragmentSlotAPreviousButton", "fragmentSlotANextButton",
+            "fragmentSlotBPreviousButton", "fragmentSlotBNextButton",
+            "catalystPreviousButton", "catalystNextButton", "modeButton",
             "guidedIntentButton", "instabilityText", "coolButton"
         };
         foreach (string propertyName in required)
@@ -695,6 +720,8 @@ public static class MachineFusionPanelVisualSetup
     private sealed class SlotParts
     {
         public Button button;
+        public Button previousButton;
+        public Button nextButton;
         public TextMeshProUGUI value;
         public Image icon;
         public Outline outline;

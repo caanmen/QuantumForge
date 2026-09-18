@@ -163,6 +163,8 @@ public sealed class VerticalNavigationUI : MonoBehaviour
 
         commandCenterDrawerMode = active;
         commandCenterDrawerExpanded = false;
+        if (safeAreaLayout != null)
+            safeAreaLayout.SetSecondaryNavigationOverlay(active);
         RefreshAvailability();
         if (safeAreaLayout != null)
             safeAreaLayout.ApplyLayout();
@@ -232,7 +234,8 @@ public sealed class VerticalNavigationUI : MonoBehaviour
         dimension1 = state != null && state.dimension01Unlocked;
         dimension2 = Dimension2System.CanAccessDimension2(state);
         dimension3 = Dimension3System.CanAccessDimension3(state);
-        prestige = TabsUI.ShouldShowPrestige1Button(state, machine);
+        // El acceso a Prestigio se presenta como tercera pestaña de la Máquina.
+        prestige = false;
     }
 
     private void RefreshLabels()

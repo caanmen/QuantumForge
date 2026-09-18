@@ -1,0 +1,59 @@
+RESUMEN DE CONTINUIDAD — MONOLITO 2D V15 — 2026-08-27
+
+AUTORIDAD ACTUAL
+
+- No se usa ningún cubo ni representación 3D.
+- El Monolito es alienígena; el laboratorio humano quedó abandonado tras un accidente.
+- La composición general V26 permanece bloqueada: escala 0,72 y posición `(0, 34)`.
+- El fondo es propietario exclusivo del soporte de suelo. El Monolito no se mueve para
+  compensar su geometría.
+- Vista general: sólo cuatro luces de entrada; sin nodos, símbolos, textos explicativos ni
+  `???`.
+- Sectores: 1 superior izquierdo con 7 nodos; 2 inferior derecho con 11; 3 superior derecho
+  con 7; 4 inferior izquierdo reservado, oscuro, sin nodos y con `???` dentro de la cara.
+
+VERSIONES RECHAZADAS
+
+- V32 pasó técnicamente, pero se rechazó porque el alojamiento frontal era menor que la
+  huella proyectada, las caras 1 y 3 parecían tapas cerradas y la cara 4 tenía orientación
+  de lado derecho.
+- El primer fondo V33 amplió el alojamiento, pero la captura real todavía mostró el hueco
+  frontal demasiado estrecho. Se conserva sólo como historial.
+
+ASSETS ACTIVOS
+
+- Fondo general V34:
+  `Assets/Project/UI/Vertical/Machine/Monolith2D/machine_destroyed_lab_monolith_wide_socket_square_v34.png`.
+- Fondo cercano V27:
+  `Assets/Project/UI/Vertical/Machine/Monolith2D/machine_destroyed_lab_close_dolly_square_v27.png`.
+- Monolito general:
+  `Assets/Project/UI/Vertical/Machine/Monolith2D/monolith_overview_progression_clean_v03.png`.
+- Caras abiertas V33:
+  `monolith_sector_1_open_surface_progression_v33.png` hasta sector 4.
+
+COMPOSICIÓN ACTUAL
+
+- V34 deja las guías laterales fuera de la base proyectada, una cama central ancha y un
+  borde frontal separado delante del Monolito.
+- Las caras V33 son superficies de piedra expuesta, continuas y sin marco interior de tapa.
+- Caras izquierdas 1/4: columna estructural a la derecha, hacia el centro del Monolito.
+- Caras derechas 2/3: columna estructural a la izquierda, hacia el centro del Monolito.
+- Daño sólo perimetral; interior sin huecos, cráteres, sockets ni símbolos horneados.
+- Firmas como capas Unity independientes: 64 px visibles, 104 px táctiles, alfa
+  0,24 dañada, 0,40 seleccionada y 1,00 reparada.
+- Cada sector usa posiciones seguras propias; no se comparte una malla normalizada genérica.
+
+PRUEBAS Y EVIDENCIA
+
+- PASS estructural incluido en `Logs/machine_monolith_v34_capture.log`.
+- PASS visual-funcional final en el mismo archivo.
+- 32 PNG actuales en `Logs/VisualQA/MachineMonolith2D`: 1080×1920 y 720×1280, vista
+  general, cuatro caras, reparadas, Mezclas, regreso y transición 0/25/50/75/100.
+- El guardado personal fue restaurado.
+- Lámina candidata: `CANDIDATOS_V34/revision_unity_v34_contact_sheet.png`.
+
+ESTADO
+
+- V34 es candidata funcional y visualmente verificada por el asistente.
+- Falta aprobación perceptual explícita del usuario. No archivar aún estas capturas en
+  `06_CAPTURAS_APROBADAS` ni declarar similitud del 95 %.

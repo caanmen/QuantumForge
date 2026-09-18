@@ -1,0 +1,33 @@
+FICHA DE PANTALLA — RED DE RESISTENCIA / REGIONES
+
+Fecha: 1 de septiembre de 2026
+Estado: APROBADA VISUALMENTE POR EL USUARIO; CAPTURAS ARCHIVADAS
+
+Referencia de autoridad visual:
+05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/09_Red_De_Resistencia_Regiones_Corregida_V4.png
+SHA-256: F72B6EB2F0390A113907877AAAB008234ABC1E340C4E00EF9F85AA0412DC8733
+
+Propietarios:
+- D2Civilization2PanelUI: presentación, selección regional, saldos y acciones.
+- D2Civilization2System: regiones, Dominio, Amenaza, Miembros y asignaciones.
+- Dimension2Block1UISetup: constructor canónico y referencias serializadas.
+- Dimension2ResistanceRegionsCapture: estado QA, interacción real y capturas.
+
+Contenido implementado:
+- Encabezado RED DE RESISTENCIA y cuatro indicadores globales dinámicos.
+- Tres regiones seleccionables por ID estable.
+- Dominio, Amenaza y Miembros de cada región desde el estado real.
+- Detalle de la región seleccionada y saldo regional sin destinar.
+- Controles reales −1, +1, +10, ASIGNAR TODOS y LIBERAR TODOS.
+- Regreso, ayuda contextual y seis destinos inferiores.
+
+Evidencia vigente:
+- Captura 1080×1920: CAPTURAS_CANDIDATAS/D2_Red_De_Resistencia_1080x1920.png
+- Captura 720×1280: CAPTURAS_CANDIDATAS/D2_Red_De_Resistencia_720x1280.png
+- Similitud percibida AA: 95.57 % en 1080 y 95.96 % en 720.
+- QA: STRUCTURE_PASS, STATE_PASS, ACTIONS_PASS, ROUTE_PASS y TEXT_GEOMETRY_PASS.
+- Log de reconstrucción: Logs/dimension2_resistance_regions_setup_v2.log
+- Log de captura final: Logs/dimension2_resistance_regions_capture_v3.log
+- Log de comparación final: Logs/dimension2_resistance_regions_compare_v3.log
+
+La captura no se archiva como aprobada hasta recibir confirmación visual explícita.

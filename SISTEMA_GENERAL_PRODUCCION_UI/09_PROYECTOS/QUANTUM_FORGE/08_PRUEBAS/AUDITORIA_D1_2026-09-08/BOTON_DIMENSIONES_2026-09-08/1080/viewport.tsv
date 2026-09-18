@@ -1,0 +1,4 @@
+state	requested_width	requested_height	screen_width	screen_height
+01_center	1080	1920	1080	1920
+02_center_drawer_open	1080	1920	1080	1920
+03_center_drawer_closed	1080	1920	1080	1920

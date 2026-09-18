@@ -1,0 +1,68 @@
+QUANTUM FORGE — MONOLITO 2D, REDISEÑO DE NODOS Y PROGRESIÓN
+Fecha: 2026-08-26
+
+CLASIFICACIÓN
+
+- Mockups conceptuales aprobados como autoridad visual para el siguiente bloque.
+- No son assets finales ni capturas reales de Unity.
+- El usuario autorizó después su aplicación a `Main.unity`. La composición 2D y
+  la interacción básica de sectores/nodos quedaron integradas el 2026-08-26.
+- La animación continúa pendiente de una aprobación posterior.
+
+CONTENIDO
+
+- 00: progresión exterior del Monolito entre 0-20 %, 21-40 %, 41-60 % y 80 %.
+- 01: sector 1, cara superior izquierda, 7 nodos.
+- 02: sector 2, cara inferior derecha, 11 nodos.
+- 03: sector 3, cara superior derecha, 7 nodos.
+- 04: sector 4, cara inferior izquierda reservada, `???` y cuatro marcas
+  decorativas no interactivas.
+
+GEOMETRÍA Y MATERIALES
+
+- Cada acercamiento conserva la forma, inclinación, proporciones y grosor de la
+  cara correspondiente en el Monolito completo.
+- Los bordes, la estructura central y la base usan el material canónico del
+  Monolito; no son placas independientes ni marcos de otra tecnología.
+- Textura interior por sector:
+  - Sector 1: textura 1, capas tectónicas.
+  - Sector 2: textura 2, estratos plegados.
+  - Sector 3: textura 5, topografía de presión.
+  - Sector 4: textura 6, gradiente fracturado.
+- La vista completa no muestra símbolos individuales porque a esa distancia sólo
+  se comunica la restauración del material y la estabilización central.
+
+NODOS
+
+- Existen únicamente dos estados visuales persistentes: dañado y reparado.
+- Dañado: alteración compacta de la misma materia del sector, sin símbolo.
+- Reparado: la materia se estabiliza y revela una firma alienígena original en
+  bajorrelieve, integrada en la superficie.
+- Las firmas usan una única gama cian-blanca y no incorporan colores distintos por
+  nodo, formas geométricas simples, componentes humanos ni circuitos.
+- Progresión visual aprobada:
+  - Sectores 1 y 3: 0, 3, 5 y 7 nodos reparados.
+  - Sector 2: 0, 4, 7 y 11 nodos reparados.
+  - Sector 4: 0 nodos en todas las etapas.
+
+SECTOR 4
+
+- Permanece oscuro, sellado y reservado.
+- Mantiene `???` centrado y exactamente cuatro marcas decorativas fijas.
+- La cara completa permite entrada táctil, pero no muestra nodos, símbolos
+  reparados, rutas, ficha, información funcional ni acciones de reparación. Sus
+  cuatro marcas decorativas no responden individualmente.
+
+AUTORIDAD
+
+- Estas cinco imágenes sustituyen como referencia visual vigente a las hojas de
+  progresión anteriores para el rediseño de nodos y texturas.
+- Las hojas de 2026-08-25 se conservan como historial y como apoyo para verificar
+  las posiciones y la intención original de las caras.
+
+IMPLEMENTACIÓN
+
+- Escena: `Assets/Project/Scenes/Main.unity`.
+- Artes importados: `Assets/Project/UI/Vertical/Machine/Monolith2D`.
+- Reconstrucción/validación: `MachineMonolith2DSetup.ConfigureBatch`.
+- Capturas candidatas de Unity: `Logs/VisualQA/MachineMonolith2D`.

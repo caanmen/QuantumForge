@@ -1,0 +1,28 @@
+QUANTUM FORGE — MONOLITO V55 — CARAS INFERIORES
+Fecha: 2026-09-16
+
+ORIGEN
+- Propuestas generadas mediante edición raster integrada a partir de las caras superiores
+  vigentes y de la geometría del Monolito completo.
+- El usuario aprobó la cara inferior izquierda y después autorizó terminar e integrar el
+  bloque completo del Monolito.
+
+CONTRATO
+- Cara 1: superior izquierda.
+- Cara 2: superior derecha.
+- Cara 3: inferior derecha, columna y tuberías a la izquierda.
+- Cara 4: inferior izquierda, columna y tuberías a la derecha.
+- Las caras inferiores comienzan en la división central mediante un borde superior plano;
+  no usan corona, punta ni silueta de cara superior.
+- Cada hoja contiene cuatro etapas en orden: daño fuerte, daño medio, daño leve y reparada.
+- Los símbolos, luces, textos y fondos permanecen como capas separadas de Unity.
+- El fondo de las hojas es transparente.
+
+ARCHIVOS DE PRODUCCIÓN
+- Assets/Project/UI/Vertical/Machine/Monolith2D/monolith_sector_3_lower_right_progression_v55.png
+- Assets/Project/UI/Vertical/Machine/Monolith2D/monolith_sector_4_lower_left_progression_v55.png
+
+ESTADO
+- Aprobadas como dirección visual para integración.
+- La aprobación final en contexto depende de capturas nuevas de Unity a 1080x1920 y
+  720x1280, incluyendo las cuatro etapas, símbolos progresivos y transición.

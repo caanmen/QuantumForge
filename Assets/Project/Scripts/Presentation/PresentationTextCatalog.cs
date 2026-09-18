@@ -15,6 +15,11 @@ public static class PresentationTextCatalog
         new Dictionary<string, Entry>
         {
             { "return.title", new Entry("REGISTRO DE AUSENCIA", "AWAY LOG") },
+            { "load.failed.title", new Entry("NO SE PUDO CARGAR", "COULD NOT LOAD SAVE") },
+            { "load.failed.paused", new Entry("PARTIDA EN PAUSA", "GAME PAUSED") },
+            { "load.failed.protected", new Entry("GUARDADO PROTEGIDO", "SAVE PROTECTED") },
+            { "load.failed.help", new Entry("El progreso está detenido.\nPuedes reintentar la carga o cerrar el juego.", "Progress is paused.\nYou can retry loading or close the game.") },
+            { "load.failed.retry", new Entry("REINTENTAR CARGA", "RETRY LOADING") },
             { "return.away_time", new Entry("ESTUVISTE FUERA  <size=48>{0}</size>", "YOU WERE AWAY  <size=48>{0}</size>") },
             { "return.applied_time", new Entry("<size=27>PROGRESO APLICADO  {0}  ·  MÁXIMO 12 H</size>", "<size=27>PROGRESS APPLIED  {0}  ·  12 H MAXIMUM</size>") },
             { "return.complete", new Entry("Simulación completada", "Simulation complete") },

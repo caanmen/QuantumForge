@@ -1,0 +1,40 @@
+QUANTUM FORGE — MONOLITO 2D — CONTINUIDAD V20
+Fecha: 2026-08-28
+Estado: distribución irregular segura de símbolos implementada y validada; aprobación visual
+del usuario pendiente.
+
+PETICIÓN DEL USUARIO
+- Redistribuir los símbolos de todas las caras reparables.
+- Evitar filas u orden visual específico.
+- Evitar símbolos pegados entre sí.
+- Evitar esquinas, columna, base y borde exterior dañado.
+
+DECISIÓN DE IMPLEMENTACIÓN
+- Se usó una distribución visualmente aleatoria pero determinista: las posiciones parecen
+  irregulares, pero no cambian al volver a abrir la pantalla ni durante una reparación.
+- Se conservaron 7 símbolos en S1, 11 en S2, 7 en S3 y ninguno en S4 reservada.
+- Tamaño visual y área táctil permanecen en 56 px y 80 px.
+- Separación mínima normalizada entre centros: 0,09.
+- Las zonas válidas se estrechan según la inclinación real de cada cara y excluyen la columna,
+  la base, las esquinas superior/inferior y el borde exterior dañado.
+- Las mismas posiciones son válidas en los cuatro estados de reparación; no hay saltos.
+
+ARCHIVOS MODIFICADOS
+- Assets/Project/Scripts/UI/MachineMonolith2DVisualUI.cs
+- Assets/Project/Scripts/Editor/MachineMonolith2DCapture.cs
+- Assets/Project/Scripts/Editor/MachineMonolith2DSetup.cs
+- Assets/Project/Scenes/Main.unity, sincronizada por la herramienta canónica.
+
+VALIDACIÓN
+- PASS de configuración: V44 deterministic irregular symbols with 0.09 minimum separation
+  and corner/edge safety.
+- PASS de captura: V44 RANDOMIZED SAFE SYMBOLS PASS.
+- Resoluciones: 1080 x 1920 y 720 x 1280.
+- Comprobado visualmente en S1, S2 y S3 iniciales y reparadas.
+- El pedestal V39, las caras V35/V43 y la transición V40 permanecen preservados.
+- Log: Logs/machine_monolith_v44_randomized_symbols_capture.log
+- Capturas: Logs/VisualQA/MachineMonolith2D
+
+PENDIENTE
+- Esperar revisión y aprobación visual explícita del usuario.
+- No copiar todavía capturas a 06_CAPTURAS_APROBADAS.

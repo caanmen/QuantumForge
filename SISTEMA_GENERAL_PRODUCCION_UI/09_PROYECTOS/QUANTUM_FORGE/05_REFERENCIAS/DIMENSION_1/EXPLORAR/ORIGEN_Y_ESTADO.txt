@@ -1,0 +1,15 @@
+REFERENCIA: EXPLORAR — DIMENSIÓN 1
+=================================
+
+Archivo: referencia_explorar.png
+Origen: imagen entregada por el usuario el 18 de agosto de 2026.
+Resolución original: 507 x 876.
+Estado: referencia visual prioritaria para la nueva pantalla Explorar.
+
+La imagen anterior `Assets/Project/UI/Dimension1/Mockups/D1_02_Exploracion_v1.png`
+queda como concepto histórico y no determina la composición actual.
+
+Archivo adicional: concepto_elegido_redisenio_2026-08-21.png
+Origen: propuesta elegida explícitamente por el usuario el 21 de agosto de 2026.
+Estado: autoridad de composición para el rediseño actual. Las imágenes espaciales de
+la propuesta no son assets finales; la implementación debe usar el catálogo visual D1.

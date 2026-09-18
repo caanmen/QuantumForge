@@ -8,6 +8,9 @@ using UnityEngine.UI;
 /// </summary>
 public sealed class MachineFusionPanelVisualUI : MonoBehaviour
 {
+    private const float AnimationRefreshInterval = 1f / 20f;
+    private const float StateRefreshInterval = 0.1f;
+
     private static readonly Color Cyan = Hex("00C9FF");
     private static readonly Color Violet = Hex("B55CFF");
     private static readonly Color Amber = Hex("F0A018");
@@ -47,12 +50,18 @@ public sealed class MachineFusionPanelVisualUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI resultTitle;
     [SerializeField] private TextMeshProUGUI resultDetail;
     [SerializeField] private TextMeshProUGUI resultMeta;
+    [SerializeField] private TextMeshProUGUI rewardToast;
     [SerializeField] private TextMeshProUGUI diagnosticText;
     [SerializeField] private Image[] diagnosticBars;
 
     private Color _cyanBase;
     private Color _violetBase;
     private Color _coreBase;
+    private float _nextAnimationRefreshTime;
+    private float _nextStateRefreshTime;
+    private int _lastCompletedFusionSerial;
+    private float _rewardToastStartedAt = -10f;
+    private const float RewardToastDuration = 1.4f;
 
     private void Awake()
     {
@@ -64,20 +73,31 @@ public sealed class MachineFusionPanelVisualUI : MonoBehaviour
     {
         EnsureInventoryUi();
         CacheBaseColors();
+        _nextAnimationRefreshTime = 0f;
+        _nextStateRefreshTime = 0f;
         ApplyPulse(0f);
+        if (rewardToast != null)
+            rewardToast.gameObject.SetActive(false);
         RefreshState();
     }
 
     private void Update()
     {
-        float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 4.2f);
-        ApplyPulse(pulse);
-        AnimateDiagnostics();
-    }
+        float now = Time.unscaledTime;
+        if (now >= _nextAnimationRefreshTime)
+        {
+            _nextAnimationRefreshTime = now + AnimationRefreshInterval;
+            float pulse = 0.5f + 0.5f * Mathf.Sin(now * 4.2f);
+            ApplyPulse(pulse);
+            AnimateDiagnostics();
+            AnimateRewardToast(now);
+        }
 
-    private void LateUpdate()
-    {
-        RefreshState();
+        if (now >= _nextStateRefreshTime)
+        {
+            _nextStateRefreshTime = now + StateRefreshInterval;
+            RefreshState();
+        }
     }
 
     private void CacheBaseColors()
@@ -116,13 +136,13 @@ public sealed class MachineFusionPanelVisualUI : MonoBehaviour
 
         bool english = roomPanel.IsEnglishUi;
         inventoryText.text = english
-            ? "FINDINGS  <b>" + GameState.I.experimentalHallazgos +
-              "</b>     ·     SAMPLES  <b>" + GameState.I.experimentalMuestras +
-              "</b>     ·     READINGS  <b>" + GameState.I.experimentalLecturasIncompletas +
+            ? "ANOMALIES  <b>" + GameState.I.experimentalHallazgos +
+              "</b>     ·     CONDENSATES  <b>" + GameState.I.experimentalMuestras + "</b>\n" +
+              "VESTIGES  <b>" + GameState.I.experimentalLecturasIncompletas +
               "</b>     ·     COMPOUNDS  <b>" + GameState.I.experimentalCompuestosUtiles + "</b>"
-            : "HALLAZGOS  <b>" + GameState.I.experimentalHallazgos +
-              "</b>     ·     MUESTRAS  <b>" + GameState.I.experimentalMuestras +
-              "</b>     ·     LECTURAS  <b>" + GameState.I.experimentalLecturasIncompletas +
+            : "ANOMALÍAS  <b>" + GameState.I.experimentalHallazgos +
+              "</b>     ·     CONDENSADOS  <b>" + GameState.I.experimentalMuestras + "</b>\n" +
+              "VESTIGIOS  <b>" + GameState.I.experimentalLecturasIncompletas +
               "</b>     ·     COMPUESTOS  <b>" + GameState.I.experimentalCompuestosUtiles + "</b>";
     }
 
@@ -150,7 +170,7 @@ public sealed class MachineFusionPanelVisualUI : MonoBehaviour
         stripObject.layer = shell.gameObject.layer;
         RectTransform stripRect = stripObject.GetComponent<RectTransform>();
         stripRect.SetParent(shell, false);
-        SetAnchors(stripRect, 0.025f, 0.895f, 0.975f, 0.932f);
+        SetAnchors(stripRect, 0.025f, 0.884f, 0.975f, 0.932f);
 
         Image stripImage = stripObject.GetComponent<Image>();
         Image statusImage = shell.Find("FusionStatusStrip")?.GetComponent<Image>();
@@ -174,12 +194,12 @@ public sealed class MachineFusionPanelVisualUI : MonoBehaviour
             "FusionStatusStrip/FusionStatus")?.GetComponent<TextMeshProUGUI>();
         if (statusText != null)
             inventoryText.font = statusText.font;
-        inventoryText.fontSize = 18f;
-        inventoryText.fontSizeMin = 13f;
-        inventoryText.fontSizeMax = 18f;
+        inventoryText.fontSize = 19f;
+        inventoryText.fontSizeMin = 17f;
+        inventoryText.fontSizeMax = 19f;
         inventoryText.enableAutoSizing = true;
-        inventoryText.textWrappingMode = TextWrappingModes.NoWrap;
-        inventoryText.overflowMode = TextOverflowModes.Ellipsis;
+        inventoryText.textWrappingMode = TextWrappingModes.Normal;
+        inventoryText.overflowMode = TextOverflowModes.Overflow;
         inventoryText.alignment = TextAlignmentOptions.Center;
         inventoryText.color = Color.white;
         inventoryText.raycastTarget = false;
@@ -192,13 +212,15 @@ public sealed class MachineFusionPanelVisualUI : MonoBehaviour
         SetAnchors(shell.Find("FusionSubtitle") as RectTransform,
             0.10f, 0.934f, 0.90f, 0.964f);
         SetAnchors(shell.Find("FusionStatusStrip") as RectTransform,
-            0.025f, 0.852f, 0.975f, 0.890f);
+            0.025f, 0.838f, 0.975f, 0.878f);
+        SetAnchors(shell.Find("FusionInventoryStrip") as RectTransform,
+            0.025f, 0.884f, 0.975f, 0.932f);
         SetAnchors(shell.Find("FragmentA") as RectTransform,
-            0.025f, 0.535f, 0.325f, 0.847f);
+            0.025f, 0.522f, 0.325f, 0.832f);
         SetAnchors(shell.Find("FragmentB") as RectTransform,
-            0.345f, 0.535f, 0.655f, 0.847f);
+            0.345f, 0.522f, 0.655f, 0.832f);
         SetAnchors(shell.Find("Catalyst") as RectTransform,
-            0.675f, 0.535f, 0.975f, 0.847f);
+            0.675f, 0.522f, 0.975f, 0.832f);
     }
 
     private static void SetAnchors(RectTransform rect,
@@ -214,7 +236,7 @@ public sealed class MachineFusionPanelVisualUI : MonoBehaviour
 
     private void RefreshButtons()
     {
-        bool cooling = roomPanel.FusionCoolingDown;
+        bool cooling = roomPanel.FusionInProgress;
         bool english = roomPanel.IsEnglishUi;
         if (mixButton != null)
             mixButton.interactable = roomPanel.CanExecuteFusion;
@@ -223,7 +245,7 @@ public sealed class MachineFusionPanelVisualUI : MonoBehaviour
             if (!roomPanel.HasUnlockedFusionSlot)
                 mixButtonText.text = english ? "DISCOVER THE MACHINE" : "DESTAPA LA MÁQUINA";
             else if (cooling)
-                mixButtonText.text = (english ? "STABILIZING " : "ESTABILIZANDO ") +
+                mixButtonText.text = (english ? "FUSING " : "FUSIONANDO ") +
                     roomPanel.FusionCooldownRemaining.ToString("0.0") + " S";
             else if (!roomPanel.FusionSelectionComplete)
                 mixButtonText.text = english ? "SELECT COMPONENTS" : "SELECCIONA COMPONENTES";
@@ -239,11 +261,11 @@ public sealed class MachineFusionPanelVisualUI : MonoBehaviour
         if (coolButtonText != null)
         {
             if (roomPanel.CanCoolCurrentInstability)
-                coolButtonText.text = english ? "COOL · 30 TRACES" : "ENFRIAR · 30 TRAZAS";
+                coolButtonText.text = english ? "COOL · 30 ENERGY" : "ENFRIAR · 30 ENERGÍA";
             else if (roomPanel.CurrentInstability <= 0)
                 coolButtonText.text = english ? "COOL · SYSTEM STABLE" : "ENFRIAR · SISTEMA ESTABLE";
             else
-                coolButtonText.text = english ? "COOL · MISSING TRACES" : "ENFRIAR · FALTAN TRAZAS";
+                coolButtonText.text = english ? "COOL · MISSING ENERGY" : "ENFRIAR · FALTA ENERGÍA";
             coolButtonText.color = roomPanel.CanCoolCurrentInstability
                 ? Color.white
                 : Muted;
@@ -265,6 +287,12 @@ public sealed class MachineFusionPanelVisualUI : MonoBehaviour
         ExperimentalResultType result = roomPanel.LastFusionResult;
         bool success = completed && result != ExperimentalResultType.None;
         bool english = roomPanel.IsEnglishUi;
+
+        if (completed && roomPanel.CompletedFusionSerial != _lastCompletedFusionSerial)
+        {
+            _lastCompletedFusionSerial = roomPanel.CompletedFusionSerial;
+            ShowRewardToast();
+        }
 
         if (resultIcon != null)
             resultIcon.color = success ? Violet : completed ? Red : Muted;
@@ -317,6 +345,40 @@ public sealed class MachineFusionPanelVisualUI : MonoBehaviour
                     : "RIESGO Y RECOMPENSA SE ACTUALIZAN EN TIEMPO REAL";
             resultMeta.color = completed ? Violet : Muted;
         }
+    }
+
+    private void ShowRewardToast()
+    {
+        if (rewardToast == null || roomPanel == null)
+            return;
+
+        rewardToast.text = roomPanel.LastFusionRewardDisplayText.ToUpperInvariant();
+        rewardToast.color = Green;
+        rewardToast.transform.localScale = Vector3.one * 0.86f;
+        rewardToast.gameObject.SetActive(true);
+        _rewardToastStartedAt = Time.unscaledTime;
+    }
+
+    private void AnimateRewardToast(float now)
+    {
+        if (rewardToast == null || !rewardToast.gameObject.activeSelf)
+            return;
+
+        float elapsed = now - _rewardToastStartedAt;
+        if (elapsed >= RewardToastDuration)
+        {
+            rewardToast.gameObject.SetActive(false);
+            return;
+        }
+
+        float progress = Mathf.Clamp01(elapsed / RewardToastDuration);
+        rewardToast.transform.localScale = Vector3.one *
+            Mathf.Lerp(0.86f, 1.08f, Mathf.SmoothStep(0f, 1f, progress));
+        Color color = Green;
+        color.a = progress < 0.68f
+            ? 1f
+            : 1f - Mathf.InverseLerp(0.68f, 1f, progress);
+        rewardToast.color = color;
     }
 
     private void RefreshDiagnostics()

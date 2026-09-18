@@ -1,0 +1,57 @@
+RESUMEN DE CONTINUIDAD — MONOLITO 2D V16 — 2026-08-27
+
+AUTORIDAD ACTUAL
+
+- No se usa cubo ni representación 3D.
+- La composición general V26 está bloqueada: escala 0,72 y posición `(0, 34)`.
+- El Monolito no se mueve ni se escala para compensar el fondo.
+- Vista general: sólo cuatro luces V17 en `(0,390; 0,710)`, `(0,725; 0,360)`,
+  `(0,690; 0,710)` y `(0,325; 0,360)`; sin nodos, símbolos, textos ni `???`.
+- S1 superior izquierdo: 7 nodos. S2 inferior derecho: 11. S3 superior derecho: 7.
+  S4 inferior izquierdo: accesible, oscuro, sin nodos y con `???` sólo como capa Unity.
+
+DECISIÓN V35
+
+- Se rechaza el fondo V34 y cualquier receptáculo raster aproximado.
+- La vista general usa el laboratorio limpio V06. Un shader de interfaz construye el
+  receptáculo desde la huella del estado visible del Monolito: cama trasera y labio frontal.
+- El candidato raster
+  `CANDIDATOS_V35/machine_destroyed_lab_monolith_fitted_cradle_square_v35.png` está
+  rechazado y no se integra.
+- Las cuatro caras V35 son superficies expuestas de piedra continua con daño limitado al
+  borde exterior. No contienen huecos, tapas, relieves, firmas ni `???` horneados.
+- Orientación: S1/S4 columna interior a la derecha; S2/S3 columna interior a la izquierda.
+- Firmas independientes: 56 px visibles, 80 px táctiles, alfa 0,24 dañada, 0,40
+  seleccionada y 1,00 reparada.
+- La distribución usa una zona interior por silueta y se comprobó en las cuatro etapas con
+  la proporción vertical usada por Unity. Ninguna firma puede ocupar riel, bisel, daño,
+  escombro o base.
+- El acercamiento interpola también el recorte inferior del viewport; la captura no debe
+  llamar a una actualización que restablezca la geometría durante la transición.
+
+ASSETS CANDIDATOS ACTIVOS
+
+- Laboratorio general limpio:
+  `Assets/Project/UI/Vertical/Machine/Monolith2D/machine_destroyed_industrial_lab_background_square_v06.png`.
+- Laboratorio cercano:
+  `Assets/Project/UI/Vertical/Machine/Monolith2D/machine_destroyed_lab_close_dolly_square_v27.png`.
+- Monolito general:
+  `Assets/Project/UI/Vertical/Machine/Monolith2D/monolith_overview_progression_clean_v03.png`.
+- Caras V35:
+  `Assets/Project/UI/Vertical/Machine/Monolith2D/monolith_sector_1_exposed_surface_progression_v35.png`
+  hasta sector 4.
+- Receptáculo dinámico:
+  `Assets/Project/Shaders/UI/MachineMonolithFittedSupport.shader`.
+- Lámina de comprobación, no asset:
+  `CANDIDATOS_V35/node_safe_zone_preview_v35.png`.
+
+ESTADO Y BLOQUEO
+
+- Código, shader, caras y validación estática V35 están preparados.
+- `Main.unity` todavía no fue reconstruida con V35: los intentos batch fallaron antes de
+  ejecutar el configurador por errores reiterados de Unity Package Manager/licencias.
+- No hay PASS, capturas nuevas ni aprobación visual del usuario para V35.
+- Cuando Unity vuelva a estar estable: ejecutar el configurador, comprobar compilación del
+  shader, capturar vista general, cuatro caras, estados dañados/reparados, transición
+  0/25/50/75/100, regreso y ambas resoluciones. Restaurar el guardado al finalizar.
+- No archivar en `06_CAPTURAS_APROBADAS` ni declarar 95 % hasta aprobación explícita.

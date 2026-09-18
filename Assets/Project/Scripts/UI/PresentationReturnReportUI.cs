@@ -40,6 +40,8 @@ public sealed class PresentationReturnReportUI : MonoBehaviour
     private VerticalUiTheme _theme;
     private int _localizationRevision = -1;
     private bool _subscribedToReportService;
+    private bool _showingLoadFailure;
+    private bool _retryRequested;
 
     private Color Background => _theme != null ? _theme.background : FallbackBackground;
     private Color Panel => _theme != null ? _theme.panel : FallbackPanel;
@@ -135,6 +137,14 @@ public sealed class PresentationReturnReportUI : MonoBehaviour
     private void Update()
     {
         if (_modalRoot == null) return;
+        // Reintentar fuera de OnPointerClick evita cambiar Selectables dentro del evento.
+        if (_retryRequested)
+        {
+            _retryRequested = false;
+            try { SaveService.I?.Load(); }
+            catch (Exception exception) { Debug.LogException(exception); }
+        }
+        RefreshLoadFailure();
         TryShowPendingReport();
 
         int revision = LocalizationManager.I != null
@@ -160,7 +170,8 @@ public sealed class PresentationReturnReportUI : MonoBehaviour
 
     private void TryShowPendingReport()
     {
-        if (_modalRoot == null || _report != null) return;
+        if (_modalRoot == null || _report != null || _showingLoadFailure ||
+            (SaveService.I != null && SaveService.I.HasLoadFailure)) return;
         PresentationReturnReport pending = PresentationReturnReportService.Consume();
         if (pending == null) return;
 
@@ -172,11 +183,25 @@ public sealed class PresentationReturnReportUI : MonoBehaviour
 
     private void RefreshText()
     {
-        if (_report == null) return;
+        if (_report == null && !_showingLoadFailure) return;
         _localizationRevision = LocalizationManager.I != null
             ? LocalizationManager.I.Revision : -1;
         bool english = LocalizationManager.I != null &&
             LocalizationManager.I.CurrentLanguage == LocalizationManager.Language.EN;
+
+        if (_showingLoadFailure)
+        {
+            _title.text = PresentationTextCatalog.Get("load.failed.title", english);
+            _duration.text = PresentationTextCatalog.Get("load.failed.paused", english);
+            _balanceTitle.text = PresentationTextCatalog.Get("load.failed.protected", english);
+            _noBalance.text = PresentationTextCatalog.Get("load.failed.help", english);
+            _continueLabel.text = PresentationTextCatalog.Get("load.failed.retry", english);
+            _leChip.SetActive(false);
+            _tracesChip.SetActive(false);
+            _energyChip.SetActive(false);
+            _noBalance.gameObject.SetActive(true);
+            return;
+        }
 
         _title.text = PresentationTextCatalog.Get("return.title", english);
         string elapsed = FormatDuration(_report.elapsedSeconds, english, true);
@@ -229,8 +254,29 @@ public sealed class PresentationReturnReportUI : MonoBehaviour
 
     private void Close()
     {
+        if (_showingLoadFailure || (SaveService.I != null && SaveService.I.HasLoadFailure))
+        {
+            _retryRequested = true;
+            return;
+        }
         if (_modalRoot != null) _modalRoot.SetActive(false);
         _report = null;
+    }
+
+    private void RefreshLoadFailure()
+    {
+        bool failed = SaveService.I != null && SaveService.I.HasLoadFailure;
+        if (failed == _showingLoadFailure) return;
+        _showingLoadFailure = failed;
+        GetComponent<Canvas>().sortingOrder = failed ? 32760 : 5100;
+        _report = null;
+        _modalRoot.SetActive(failed);
+        if (failed)
+        {
+            // El foco anterior no debe permitir activar un control situado detrás.
+            UnityEngine.EventSystems.EventSystem.current?.SetSelectedGameObject(null);
+            RefreshText();
+        }
     }
 
     private GameObject CreateBalanceChip(Transform parent, string name,

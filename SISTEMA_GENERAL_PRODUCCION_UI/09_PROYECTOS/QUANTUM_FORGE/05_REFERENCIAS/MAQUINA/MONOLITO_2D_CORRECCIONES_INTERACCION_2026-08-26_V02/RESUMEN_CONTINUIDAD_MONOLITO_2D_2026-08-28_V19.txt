@@ -1,0 +1,63 @@
+QUANTUM FORGE — MONOLITO 2D — CONTINUIDAD V19
+Fecha: 2026-08-28
+Estado: V43 implementada y validada técnica/visualmente en capturas nuevas; aprobación visual
+final del usuario pendiente.
+
+DECISIÓN APROBADA POR EL USUARIO
+- La cara superior izquierda V35 permanece como diseño maestro y conserva su GUID.
+- Se aprobaron los tres conceptos individuales V43 para las caras restantes.
+- Todas conservan la misma familia visual: silueta alta, superficie continua, columna interior,
+  base escalonada y daño limitado al borde exterior que corresponde a su orientación.
+- Ningún símbolo forma parte del bitmap. Los símbolos y ??? son capas dinámicas de Unity.
+
+ASSETS DE PRODUCCIÓN
+- S1 / superior izquierda:
+  Assets/Project/UI/Vertical/Machine/Monolith2D/monolith_sector_1_exposed_surface_progression_v35.png
+  GUID: ab187e97773e8554abfb6259384a1914
+- S2 / superior derecha:
+  Assets/Project/UI/Vertical/Machine/Monolith2D/monolith_sector_2_exposed_surface_progression_v43.png
+  GUID: 39c9f0453c08ad34ba3ffba1e3e61ce4
+  SHA-256: 42662421F1E2747F3C8B4F1371367A58D3BAE64F8A0EB5A982A3D0135A2ACDD8
+- S3 / inferior derecha:
+  Assets/Project/UI/Vertical/Machine/Monolith2D/monolith_sector_3_exposed_surface_progression_v43.png
+  GUID: 053199707dad3dc489ba1d51489fc701
+  SHA-256: B544D59A8A0128CB88F473F1567DCD9AB652E485052410DD09EFBCF5B4A686F1
+- S4 / inferior izquierda reservada:
+  Assets/Project/UI/Vertical/Machine/Monolith2D/monolith_sector_4_exposed_surface_progression_v43.png
+  GUID: d94bd6002aa524c4195d5ea2d419c69b
+  SHA-256: D1461CCA5865B77BDF467E139C6AE2AD6C71CBAF85C7510E8207CA6AA03F8464
+- Copias permanentes de las tres hojas V43:
+  CANDIDATOS_V43_CARAS_INDIVIDUALES/PRODUCCION_V43
+
+FORMATO Y PROGRESIÓN
+- Cada hoja V43 mide 1254 x 1254 RGBA y se divide en cuatro celdas de 627 x 627.
+- Orden: superior izquierda daño fuerte; superior derecha daño medio; inferior izquierda daño
+  leve; inferior derecha reparada.
+- Se registraron columna y contacto con el piso entre celdas para evitar saltos al reparar.
+- ImageGen produjo la progresión estética. Como sus exportaciones incluyeron un damero RGB
+  incrustado, el usuario autorizó retirar localmente ese fondo y convertirlo en alfa real.
+- La limpieza fue determinista y no rediseñó caras, símbolos ni mecánicas.
+- S1, S2 y S3 cambian de celda según el progreso real. S4 permanece en el estado inicial reservado.
+
+INTEGRACIÓN
+- MachineMonolith2DSetup.cs carga S1 V35 y S2/S3/S4 V43.
+- MachineMonolith2DVisualUI.cs usa distribución de símbolos propia para las nuevas superficies,
+  con márgenes internos y sin invadir columna ni borde dañado.
+- MachineMonolith2DCapture.cs valida la familia V43 en las dos resoluciones obligatorias.
+- Assets/Project/Scenes/Main.unity serializó, en orden, los GUID de S1 V35 y S2/S3/S4 V43.
+- El pedestal V39 y la transición V40 permanecen sin cambios.
+
+VALIDACIÓN NUEVA
+- PASS específico de configuración: approved S1 V35 + S2/S3/S4 V43.
+- PASS específico de captura: V43 APPROVED FACES PASS.
+- Resoluciones verificadas: 1080 x 1920 y 720 x 1280.
+- Estados capturados: vista general inicial/reparada; S1/S2/S3 inicial/reparada; S4 reservada;
+  entrada/salida de fusión; transición V40 en 0/25/50/55/62/75/100.
+- Comprobado visualmente: alfa real sin damero, pie apoyado, orientación correcta, símbolos dentro
+  de la superficie, ??? separada, progresión registrada, pedestal V39 y transición V40 preservados.
+- Log: Logs/machine_monolith_v43_approved_faces_capture.log
+- Capturas: Logs/VisualQA/MachineMonolith2D
+
+PENDIENTE
+- Mostrar al usuario las capturas reales de Unity y esperar su aprobación explícita.
+- No copiar todavía capturas a 06_CAPTURAS_APROBADAS.

@@ -1,0 +1,288 @@
+ORIGEN Y USO — RED DE RESISTENCIA / REGIONES
+
+Referencia de autoridad visual:
+SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/09_Red_De_Resistencia_Regiones_Corregida_V4.png
+
+D2_ResistanceRegions_CleanBasePlate_v1.png:
+- Edición precisa realizada con la herramienta integrada de imágenes.
+- Retira únicamente palabras, cifras, porcentajes y glifos de texto de la V4.
+- Conserva marcos, mapas regionales, iconos, separadores y placas.
+- No es referencia creativa ni captura aprobada; es un auxiliar de producción.
+
+Prompt final utilizado:
+Use case: precise-object-edit. Asset type: production UI clean base plate for a
+Unity vertical game screen. Remove only every visible word, numeral, percentage
+and text glyph; reconstruct the surfaces below them. Preserve the 1080x1920
+composition, frames, three region silhouettes, icons, buttons, colors, lighting,
+textures and geometry. Do not add text, symbols, redesign, crop or watermark.
+
+Todos los títulos, valores regionales, saldos y etiquetas se renderizan con TMP
+desde D2Civilization2PanelUI. La escena y Dimension2Block1UISetup.cs deben
+permanecer sincronizados.
+
+OPERACIONES DE RESISTENCIA — ASSET AÑADIDO EL 1 DE SEPTIEMBRE DE 2026
+
+Referencia de autoridad visual:
+SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/10_Operaciones_De_Resistencia_Corregidas_V4.png
+
+D2_ResistanceOperations_CleanBasePlate_v1.png:
+- Edición precisa realizada con la herramienta integrada de imágenes.
+- Retira texto, cifras y estados seleccionados de la referencia V4.
+- Conserva marcos, medallones, iconos, divisores, placas y botones vacíos.
+- Los marcos activos se reconstruyen en Unity para que acompañen la selección real.
+
+Prompt final utilizado:
+Use case: precise-object-edit. Asset type: clean production base plate for a
+vertical Unity game UI. Remove all typography, numerals, punctuation and dynamic
+values; remove the selected glow and status text/fill; preserve the exact portrait
+composition, frames, four operation medallions, icons, dividers, empty plaques,
+buttons, navigation, materials, lighting and geometry. No redesign, crop, added
+content, new text or watermark.
+
+El texto, los estados, las tasas y las selecciones pertenecen a
+D2OperationsPanelUI y D2Civilization2System; no deben hornearse en esta placa.
+
+ALERTA DEL ENTE — ASSETS AÑADIDOS EL 1 DE SEPTIEMBRE DE 2026
+
+Referencia de autoridad visual:
+SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/13_Alerta_Del_Ente_Corregida_V4.png
+
+D2_ResistanceAlert_CleanBasePlate_v1.png:
+- Edición precisa realizada con la herramienta integrada de imágenes.
+- Retira tipografía, cifras, progreso, iconos y selección horneada de ALERTA.
+- Conserva marcos, anillo, placas, divisores, piedra y geometría V4.
+- Se normalizó mecánicamente de 941×1671 a los 941×1672 de la autoridad.
+
+Prompt operativo de la placa:
+Use case: precise-object-edit. Asset type: clean production base plate for the
+Unity screen Alerta del Ente. Preserve the exact canvas proportions, every frame,
+panel, divider, circular gauge structure, empty plaque, texture, lighting, color,
+spacing and geometry. Remove only typography, numerals, punctuation, dynamic
+progress, selected navigation treatment and pictorial icons. Reconstruct removed
+areas from the surrounding surface. No redesign, crop, added content or watermark.
+
+D2_ResistanceAlert_IconSheetChroma_v1.png:
+- Hoja cromática creada con la herramienta integrada de imágenes.
+- Conserva los iconos canónicos de la referencia para recortes independientes.
+- Los escudos activo/inactivo son capas separadas y mutuamente excluyentes.
+
+Prompt operativo de iconos:
+Use case: precise-object-edit. Asset type: production chroma sprite sheet for
+Alerta del Ente. Preserve only the original back, warning, Ente, effect, region,
+shield, unlock, result and navigation icons on a uniform #00FF21 canvas; keep
+their silhouettes, palette and lighting. Remove frames, text and every other mark.
+
+Dominio, temporizador, conteo, marcas, Protección, desbloqueo, último resultado
+y selección pertenecen a D2AlertPanelUI y D2Civilization2System.
+
+CONTENCIÓN — ASSET AÑADIDO EL 1 DE SEPTIEMBRE DE 2026
+
+Referencia de autoridad visual:
+SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/14_Contencion_Intento_Corregida_V4.png
+
+D2_ResistanceContainment_CleanBasePlate_v1.png:
+- Edición precisa realizada con la herramienta integrada de imágenes.
+- Retira toda tipografía, cifra, porcentaje, valor y etiqueta de botón.
+- Retira la selección horneada de CONTENCIÓN y conserva su celda e icono.
+- Conserva marcos, ilustración del Ente, cadenas, anillo, paneles, iconos,
+  botones vacíos, materiales, iluminación y geometría V4.
+
+Prompt final utilizado:
+Use case: precise-object-edit. Asset type: clean production base plate for the
+Unity screen Contención. Preserve the exact canvas proportions and all structural
+artwork, including the chained seal, Ente illustration, cards, panels, icons,
+buttons, navigation, textures, lighting and geometry. Remove only typography,
+numerals, percentages, punctuation, dynamic values, button labels and the
+selected CONTENCIÓN glow. Reconstruct removed areas from the surrounding local
+surface. No redesign, crop, added content, watermark or chroma background.
+
+Miembros, Dominio, probabilidad, cooldown, intentos, fallos, asignaciones,
+resultado, confirmación y acción pertenecen a D2ContainmentPanelUI y
+D2Civilization2System.
+
+DEFENSA Y REPRESALIAS — ASSET AÑADIDO EL 1 DE SEPTIEMBRE DE 2026
+
+Referencia de autoridad visual:
+SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/11_Defensa_Y_Represalias_Corregida_V4.png
+
+D2_ResistanceDefense_CleanBasePlate_v1.png:
+- Edición precisa realizada con la herramienta integrada de imágenes.
+- Retira tipografía, cifras, rellenos de progreso y la selección horneada de DEFENSA.
+- Conserva marcos, medallones, iconos, placas, divisores, piedra y geometría V4.
+- No es referencia creativa ni captura aprobada; es un auxiliar de producción.
+
+Prompt final utilizado:
+Use case: precise-object-edit. Asset type: clean production base plate for a
+vertical Unity game UI. Remove every word, numeral, percentage, punctuation and
+text glyph; remove the colored progress segments from both circular gauges and
+the selected DEFENSA navigation treatment. Preserve the exact composition,
+frames, empty gauge structures, medallions, icons, panels, navigation, materials,
+lighting and geometry. No redesign, crop, new object, text or watermark.
+
+Amenaza, Cobertura, región, pérdidas, reglas, duración, último resultado y
+selección pertenecen a D2ReprisalsPanelUI y D2Civilization2System.
+
+RESISTENCIA Y PACTOS — ASSETS AÑADIDOS EL 1 DE SEPTIEMBRE DE 2026
+
+Referencia de autoridad visual:
+SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/12_Resistencia_Y_Pactos_Corregida_V4.png
+
+Modo utilizado:
+- Herramienta integrada de generación/edición de imágenes de Codex.
+- Edición precisa de objeto y reconstrucción local; no se usó generación web.
+
+D2_ResistancePacts_CleanBasePlate_v1.png:
+- Placa neutral para estados no seleccionados y progresión incompleta.
+- Retira tipografía, cifras, estados e iconos, y conserva la estructura general.
+
+D2_ResistancePacts_CleanBasePlate_v2.png:
+- Placa de mayor fidelidad geométrica para cabecera, mejoras, Pactos, detalle y navegación.
+- Conserva placas y medallones vacíos; los datos continúan en UGUI/TMP.
+
+Prompt final utilizado para la placa V2:
+Edit this exact vertical dark-fantasy game UI reference into a clean production
+base plate. Preserve the original canvas proportions, every outer frame, panel
+border, divider, card silhouette, button plate, texture, scratches, lighting,
+bronze/red/teal edge colors, spacing, and geometry as precisely and pixel-aligned
+as possible. Remove ONLY all typography, letters, numbers, percentages, and every
+pictorial icon or symbol: back arrow, resource icons, upgrade medallion icons,
+pact icons, small member/lock/shield/eye/swords/hourglass/no-penalty symbols, and
+bottom navigation icons. Keep all empty plaques, circular medallion rings,
+state-label plates, cost strips, action buttons, and selection frames as
+structural decoration. Fill removed areas seamlessly with the immediately
+surrounding local stone/metal texture. Do not redesign, restyle, recolor, move,
+resize, add, or simplify any frame. Absolutely no text, glyphs, icons, marks,
+watermarks, checkerboard, or green screen. Output one clean 941x1672 raster base
+plate matching the reference composition exactly.
+
+D2_ResistancePacts_StaticIconOverlay_v1.png:
+- Hoja cromática de los símbolos estáticos de cabecera, mejoras, Pactos y navegación.
+- Los recortes finales excluyen los aros cuando éstos ya pertenecen a la placa.
+
+Prompt operativo de iconos estáticos:
+Isolate the original static pictorial symbols from the supplied Resistance and
+Pacts reference on a uniform vivid chroma-green 941x1672 canvas. Preserve their
+original positions, scale, colors and silhouettes. Remove all text, numbers,
+dynamic status values, panels and backgrounds. Do not add or redesign symbols.
+
+D2_ResistancePacts_IconSheetChroma_v1.png:
+- Hoja cromática para Fragmentos, miembros, cierres, efectos y reloj de desgaste.
+- El shader D2ResistanceChromaKey elimina sólo el verde dominante.
+
+Prompt operativo de iconos dinámicos:
+Extract the UI icons needed by the Resistance and Pacts screen from the supplied
+reference and place them at their exact original positions on a uniform vivid
+chroma-green 941x1672 canvas. Preserve shape, lighting, palette and size. Remove
+all typography, numerals, frames and background texture. Add nothing new.
+
+D2_ResistancePacts_InnerSymbolsChroma_v2.png:
+- Hoja cromática de producción creada con la herramienta integrada de imágenes.
+- Contiene únicamente las siete siluetas interiores completas de mejoras y Pactos.
+- Sustituye en esos siete usos los recortes V1 que cortaban o deformaban bordes.
+- El encuadre de origen preserva la silueta; tamaño y centro final pertenecen a Unity.
+
+Prompt final utilizado:
+Use case: precise-object-edit. Asset type: production chroma sprite sheet for the
+Unity screen Resistencia y Pactos. Input image: the supplied V4 screen is the
+exact visual reference and edit target. Create a 941x1672 canvas filled with one
+perfectly uniform vivid chroma green (#00FF21). Preserve and isolate ONLY these
+seven INNER pictorial symbols from the reference at their exact original
+positions, proportions, palette, lighting, edge quality, and complete
+silhouettes: (1) the broken-mark rune tiles and center diamond, (2) the padlock,
+(3) the eye inside its triangular symbol, (4) the broken-chain symbol, (5) the
+hidden-shelter tent, (6) the silenced bell, and (7) the crossed knives. Remove
+every circular medallion ring, plaque, frame, background texture, glow ring,
+text, number, resource icon, navigation icon, and all other content. Do not crop,
+truncate, erode, enlarge, redraw, simplify, merge, or invent any of the seven
+symbols. Leave ample chroma-green clearance around every silhouette. The result
+must contain exactly seven isolated inner symbols, no rings and no text, on the
+uniform green background.
+
+Propiedad de estado:
+- D2ResistancePanelUI y D2Civilization2System son propietarios de texto, cifras,
+  selección, nivel, coste, actividad, compromiso, desgaste y penalizaciones.
+- Dimension2Block1UISetup.cs conserva sincronizadas la escena, las capas, los
+  recortes y el material cromático.
+
+D2_ResistanceContainment_CleanBasePlate_v2.png:
+- Edición no destructiva de la placa V1 para corregir únicamente los ejes ópticos
+  del medallón del ojo y del reloj de cooldown.
+- Conserva el lienzo de producción 941×1672; sustituye a V1 sólo en Contención.
+
+Modo utilizado:
+- Herramienta integrada de edición de imágenes de Codex, modo
+  precise-object-edit; no se usó generación web.
+
+Prompt utilizado para la placa V2:
+Edit this exact clean UI base plate with pixel-level restraint. Move ONLY the
+complete eye medallion in the middle statistics card exactly 8 source pixels to
+the right, including the eye artwork and its surrounding medallion. Move ONLY
+the complete hourglass medallion in the right statistics card exactly 6 source
+pixels to the right, including the hourglass artwork and its circular ring.
+Reconstruct the exposed strips from the surrounding dark card texture. Preserve
+every other element exactly. Do not add text, redesign, resize, crop, sharpen,
+recolor, or alter any other element. Output the complete 941x1672 plate.
+
+D2_ResistanceContainment_CleanBasePlate_v3.png:
+- Ajuste óptico final solicitado sobre V2: ojo ocho píxeles de origen a la
+  izquierda y reloj doce píxeles de origen a la izquierda.
+- Mantiene el lienzo canónico 941×1672 y sustituye a V2 en la escena.
+
+Prompt utilizado para la placa V3:
+Use case: precise-object-edit. Image 1 is the exact edit target. Move the complete
+eye medallion in the middle statistics card 8 source pixels to the LEFT. Move
+the complete hourglass medallion in the right statistics card 12 source pixels
+to the LEFT. Preserve their size, vertical position, shape, color, lighting and
+texture. Reconstruct only the narrow exposed strips from the surrounding dark
+card texture. Preserve every other pixel and element unchanged. No text,
+redesign, resize, crop, recolor, sharpening, new elements, or watermark.
+
+PACTO MAYOR DE CIVILIZACIÓN 2 — ASSETS AÑADIDOS EL 2 DE SEPTIEMBRE DE 2026
+
+Referencia de autoridad visual:
+SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/15_Pacto_Mayor_Civilizacion2_Corregido_V4.png
+
+Modo utilizado:
+- Herramienta integrada de generación/edición de imágenes de Codex.
+- Edición precisa de objeto; no se usó generación web.
+
+D2_ResistanceMajorPact_CleanBasePlate_v1.png:
+- Placa limpia canónica de 941×1672.
+- Conserva marcos, rueda, cadenas, paneles, placas, textura y navegación.
+- Retira textos, cifras, valores dinámicos, cinco símbolos de línea, red central
+  y red del detalle; neutraliza la selección de la primera línea.
+
+Prompt utilizado para la placa limpia:
+Use case: precise-object-edit. Edit the supplied V4 Pacto Mayor de Civilización 2
+reference into a clean production base plate. Preserve the exact 941x1672
+composition, outer frame, back button, header frames, resource dividers, chained
+wheel, five line rows and medallion rings, detail panel, assignment panel, footer,
+bottom navigation plates, palette, lighting, scratches, spacing and geometry.
+Remove all text, letters, numbers and dynamic values; remove the five inner line
+symbols, the central network symbol and the detail network symbol; neutralize the
+first-line selected state while preserving every empty structural plate and ring.
+Reconstruct removed areas from the immediately surrounding material. Do not crop,
+redesign, move, resize, recolor, simplify, add objects, add text or add a watermark.
+
+D2_ResistanceMajorPact_LineSymbolsChroma_v1.png:
+- Hoja cromática de producción con exactamente cinco símbolos interiores:
+  red, puño con flechas, escudo, artefacto y triángulo geométrico.
+- Fondo uniforme #00FF21; no incluye aros, marcos, placas ni texto.
+- Unity recorta la hoja para filas, medallón central y panel de detalle.
+
+Prompt utilizado para la hoja de símbolos:
+Use case: precise-object-edit. From the supplied Pacto Mayor de Civilización 2 V4
+reference, isolate exactly the five inner line symbols: reconstructed network,
+coordinated-uprising fist with arrows, linked-defense shield, artifact-custody
+emblem and resistance-geometry triangle. Preserve their complete silhouettes,
+original palette, lighting, proportions and edge quality. Place them at their
+corresponding original positions on one perfectly uniform vivid chroma-green
+#00FF21 941x1672 canvas. Remove every medallion ring, chain, panel, plaque,
+background, text, number and all other content. Do not crop, merge, redraw,
+simplify, invent, resize or add any watermark.
+
+Propiedad de estado:
+- D2ContainmentPanelUI y D2Civilization2System poseen fase, textos, recursos,
+  selección, niveles, costes, mejoras y Sostenimiento.
+- Dimension2Block1UISetup conserva sincronizadas la escena, la placa, los
+  recortes cromáticos y la geometría validada.

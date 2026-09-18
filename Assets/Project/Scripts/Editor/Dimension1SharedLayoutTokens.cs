@@ -25,10 +25,10 @@ public static class Dimension1SharedLayoutTokens
     public const float HeaderTitleHeight = 58f;
     public const float HeaderTitleFontSize = 42f;
 
-    public const float CommandCenterX = 28f;
-    public const float CommandCenterY = 58f;
-    public const float CommandCenterWidth = 168f;
-    public const float CommandCenterHeight = 76f;
+    public const float CommandCenterX = 24f;
+    public const float CommandCenterY = 86f;
+    public const float CommandCenterWidth = 176f;
+    public const float CommandCenterHeight = 100f;
 
     public const float MetalCardX = 208f;
     public const float MetalCardY = 86f;

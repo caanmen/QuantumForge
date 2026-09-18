@@ -1,0 +1,29 @@
+QUANTUM FORGE — PROPUESTA DE CORRECCIÓN DEL MONOLITO
+Fecha: 2026-08-26
+
+CLASIFICACIÓN
+
+- `00` conserva la propuesta inicial pendiente que usaba indicaciones visibles.
+- `01_referencia_aprobada_solo_luces_v02.png` registra la corrección aprobada por
+  instrucción explícita del usuario: sin mensajes, nombres, cuadros ni flechas.
+- Sigue siendo una referencia visual; no es una captura real de Unity.
+
+OBJETIVOS MOSTRADOS
+
+- Integrar el Monolito en un fondo continuo sin marco rectangular de imagen pegada.
+- Comunicar la interacción exclusivamente con una luz cian-blanca integrada en
+  cada cara disponible, sin texto, etiquetas, flechas, círculos ni marcos.
+- Conservar la posición canónica: sector 1 arriba a la izquierda, sector 3 arriba
+  a la derecha, sector 2 abajo a la derecha y sector 4 reservado abajo a la
+  izquierda.
+- El sector 4 reservado conserva su interior oscuro, pero en la vista general usa
+  la misma clase de luz de entrada que las otras tres caras porque también es accesible.
+- Seleccionar un nodo iluminando la propia firma alienígena, sin un aro separado.
+- Mantener el daño del borde entre la vista general y el acercamiento.
+- Representar el cambio de vista como un acercamiento 2D hacia la cara elegida.
+
+ACLARACIÓN VIGENTE — 2026-08-26
+
+- La vista general definitiva usa cuatro luces simples y no muestra símbolos,
+  firmas de nodo ni `???`.
+- El `???` aparece únicamente dentro de la cuarta cara después de entrar.

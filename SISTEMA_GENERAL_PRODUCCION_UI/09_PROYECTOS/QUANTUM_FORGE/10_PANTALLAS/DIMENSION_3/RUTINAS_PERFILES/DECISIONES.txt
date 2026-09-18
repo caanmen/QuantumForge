@@ -1,0 +1,18 @@
+DECISIONES — RUTINAS Y PERFILES ONLINE
+======================================
+
+1. La maestra limpia 10_Rutinas_Perfiles.png manda en composición y acabado.
+2. La pantalla reutiliza D3AutomationPanelUI; no crea otra lógica de automatización.
+3. Barrido simple solo se ofrece después de registrar el escaneo manual requerido.
+4. Núcleo N2 activa el límite real de tres rutinas y un perfil.
+5. Puerto N1 recibe cuatro MK1 estables para activar la función de la rutina.
+6. La placa visual no recibe raycasts; los controles reales conservan la interacción.
+7. La captura debe probar 1080x1920 y 720x1280, además de integridad y guardado.
+8. Aprobada explícitamente por el usuario al continuar con la pantalla final;
+   capturas archivadas en 1080x1920 y 720x1280 el 2026-09-07.
+9. La candidata real de Unity fue verificada visualmente en ambas resoluciones
+   el 2026-09-07, sin recortes ni desbordes visibles.
+10. La validación completa confirmó lógica online/offline, reservas, parada,
+    perfiles, integridad de Main y layout móvil.
+11. La regresión del Puerto coincide byte por byte con sus capturas aprobadas;
+    el archivo de guardado conserva su SHA256 original.

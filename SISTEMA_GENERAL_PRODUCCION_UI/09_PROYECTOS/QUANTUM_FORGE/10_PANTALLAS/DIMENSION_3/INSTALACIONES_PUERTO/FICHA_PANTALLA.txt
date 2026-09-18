@@ -1,0 +1,28 @@
+FICHA — INSTALACIONES / PUERTO DE EXPEDICIONES
+==============================================
+
+Dimensión: 3
+Tipo: variante Puerto de D3FacilitiesPanelUI
+Referencia visual: 05_REFERENCIAS/DIMENSION_3/INSTALACIONES_PUERTO/
+Implementación funcional: D3FacilitiesPanelUI + D3FacilitySystem
+
+ESCENARIO CANÓNICO DE QA
+- recursos: 3.25M LE, 4.2K Trazas y 56 Autómatas;
+- Puerto de Expediciones nivel 1;
+- enlace D1 activo mediante un destino aprendido manualmente;
+- canal: Capacidad;
+- grupo: MK1 Normal;
+- asignados: 5; estables: 4;
+- capacidad efectiva: sqrt(4) = 2;
+- una asignación pendiente de estabilizar durante 30 s;
+- función N1 activa y siguiente N2;
+- acciones: +1 ASIGNAR, −1 RETIRAR, AMPLIAR A NIVEL 2,
+  RUTINAS Y PERFILES y VOLVER AL BANCO;
+- navegación inferior: CONTROL seleccionado.
+
+ESTADOS POSTERIORES A VALIDAR
+- infraestructura construida sin enlace D1;
+- enlace activo después de una expedición manual;
+- asignación pendiente, estable y retirada;
+- mejora N2 disponible/en cola;
+- acceso a Rutinas y Perfiles.

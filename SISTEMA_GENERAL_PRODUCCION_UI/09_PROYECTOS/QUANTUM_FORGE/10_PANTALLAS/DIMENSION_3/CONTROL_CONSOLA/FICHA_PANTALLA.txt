@@ -1,0 +1,28 @@
+FICHA — CONTROL DE CONSOLA
+==========================
+
+Dimensión: 3
+Tipo: política, reservas y autorizaciones de la Consola
+Referencia visual: 05_REFERENCIAS/DIMENSION_3/CONTROL_CONSOLA/
+Implementación funcional: D3ConsolePanelUI + D3ConsoleSystem
+
+ESCENARIO CANÓNICO DE QA
+- recursos: 3.25M LE, 4.2K Trazas y 56 Autómatas;
+- Consola de Producción nivel 2 con función N2 activa;
+- política: Equilibrio;
+- reserva LE: 10K;
+- reserva T: 100;
+- autorización manual de Higgs: Sí;
+- autorización manual de Tetra: Sí;
+- política y reservas persistidas; con capacidad 2.83, el control funcional para
+  volver a guardarlas permanece bloqueado hasta recuperar la capacidad N2 requerida;
+- registrar Triángulo actual bloqueado por requerir Consola N5;
+- Rutinas de compra y Volver a instalaciones disponibles;
+- navegación inferior: CONTROL seleccionado.
+
+ESTADOS POSTERIORES A VALIDAR
+- Consola N1 sin política N2;
+- políticas Prioridad LE, Prioridad Trazas y Equilibrio;
+- combinaciones de reservas válidas;
+- autorizaciones manuales ausentes/presentes;
+- Consola N5 con registro del circuito habilitado.

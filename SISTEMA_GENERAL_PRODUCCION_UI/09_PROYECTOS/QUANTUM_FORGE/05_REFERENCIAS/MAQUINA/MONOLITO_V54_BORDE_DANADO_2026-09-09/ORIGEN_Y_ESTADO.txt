@@ -1,0 +1,20 @@
+REFERENCIA DE DEFECTO — 2026-09-09
+
+Origen: imagen adjunta por el usuario al señalar símbolos fuera del monolito.
+Archivo: referencia_usuario_cara_1_borde_danado.png
+Clasificación: captura aportada por el usuario; evidencia de defecto, no diseño nuevo.
+La misma invasión del borde se reproduce en 02_sector_1_initial_1080x1920.png de V53.
+No se atribuye el defecto a una plataforma ni a una versión APK sin verificarla.
+
+Corrección autorizada: conservar el diseño existente y recolocar los símbolos dentro de
+la piedra útil en todas las etapas; mantener distribución irregular, separación, tamaño,
+IDs y contenido. La evidencia V54 se presenta como candidata hasta aprobación visual.
+
+Reutilización sin assets nuevos:
+- Cara 1: Assets/Project/UI/Vertical/Machine/Monolith2D/monolith_sector_1_exposed_surface_progression_v35.png
+- Cara 2: Assets/Project/UI/Vertical/Machine/Monolith2D/monolith_sector_2_exposed_surface_progression_v43.png
+- Cara 3: Assets/Project/UI/Vertical/Machine/Monolith2D/monolith_sector_3_exposed_surface_progression_v43.png
+- Firmas: Assets/Project/UI/Vertical/Machine/Monolith2D/monolith_sector_1_progression_v02.png
+- Propietario de posiciones: Assets/Project/Scripts/UI/MachineMonolith2DVisualUI.cs
+- Construcción existente: Assets/Project/Scripts/Editor/MachineMonolith2DSetup.cs
+- Captura/QA: Assets/Project/Scripts/Editor/MachineMonolith2DCapture.cs

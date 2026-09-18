@@ -1,0 +1,21 @@
+numero,pantalla_base,seccion,clasificacion,archivo_fuente,correccion_obligatoria,estado
+01,Mapa de los Pactos,Mapa,entrada,01_Mapa_De_Los_Pactos_Corregido_V5.png,Mostrar los tres territorios desde el inicio con Ruinas Sepultadas bloqueada por Dominio total 30% o menos; mantener Confianza 280/500 y eliminar líneas/nodos entre territorios,implementada_validada_aprobada_usuario
+02,Civilización 1 — Santuario,Refugio,seccion,02_El_Santuario_Refugio_Corregido_V4.png,Normalizar encabezado navegación e iconos de las siete secciones,implementada_validada_aprobada_usuario
+03,Civilización 1 — Santuario,Altares,seccion,03_Altares_Del_Santuario_Corregido_V4.png,Iconos canónicos y datos reales; AA 95.74 %/96.06 %,implementada_validada_aprobada_usuario
+04,Civilización 1 — Santuario,Peregrinaciones,seccion,04_Peregrinaciones_Corregidas_V4.png,Icono propio de Peregrinaciones; selección y CTA separados; AA 95.41 %/95.70 %,implementada_validada_aprobada_usuario
+05,Civilización 1 — Santuario,Noviciado,seccion,05_Noviciado_Corregido_V4.png,Reutilizar exactamente los iconos canónicos de Santuario; AA 96.16% 1080 y 96.48% 720,implementada_validada_aprobada_usuario
+06,Civilización 1 — Santuario,Ritos,seccion,06_Ritos_Del_Santuario_Corregidos_V4.png,Reutilizar exactamente los iconos canónicos de Santuario; AA 96.36% 1080 y 96.69% 720,implementada_validada_aprobada_usuario
+07,Civilización 1 — Santuario,Pactos,seccion,07_Pactos_De_Civilizacion_Corregidos_V4.png,IDs y datos reales; AA 95.59% 1080 y 95.96% 720,implementada_validada_aprobada_usuario
+08,Civilización 1 — Santuario,Umbral/Pacto,estado_dinamico,08_Pacto_Lugar_De_Vinculo_Corregido_V4.png,Conservar UMBRAL antes del pacto y PACTO después; placa y navegación v6; AA 95.79% 1080 y 96.22% 720,implementada_validada_aprobada_usuario
+09,Civilización 2 — Resistencia,Red de regiones,seccion,09_Red_De_Resistencia_Regiones_Corregida_V4.png,Iconos canónicos y datos reales; AA 95.57% 1080 y 95.96% 720,implementada_validada_aprobada_usuario
+10,Civilización 2 — Resistencia,Operaciones,seccion,10_Operaciones_De_Resistencia_Corregidas_V4.png,Reutilizar exactamente los iconos canónicos de Resistencia,implementada_validada_aprobada_usuario
+11,Civilización 2 — Resistencia,Defensa y represalias,seccion,11_Defensa_Y_Represalias_Corregida_V4.png,Añadir navegación de regreso y conservar el resto,implementada_validada_aprobada_usuario
+12,Civilización 2 — Resistencia,Resistencia y pactos,seccion,12_Resistencia_Y_Pactos_Corregida_V4.png,Reutilizar exactamente los iconos canónicos de Resistencia,implementada_validada_aprobada_usuario
+13,Civilización 2 — Resistencia,Alerta del Ente,estado,13_Alerta_Del_Ente_Corregida_V4.png,Añadir regreso y usar ENTE de forma consistente,implementada_validada_aprobada_usuario
+14,Civilización 2 — Resistencia,Contención,estado_dinamico,14_Contencion_Intento_Corregida_V4.png,Conservar CONTENCIÓN antes del cierre,implementada_validada_aprobada_usuario
+15,Civilización 2 — Resistencia,Pacto Mayor,estado_dinamico,15_Pacto_Mayor_Civilizacion2_Corregido_V4.png,Mostrar PACTO MAYOR únicamente después de la contención,implementada_validada_aprobada_usuario
+16,Civilización 3 — Arqueología y Ente,Ruinas sepultadas,seccion,16_Ruinas_Sepultadas_Arqueologia_Corregida_V4.png,Fijar la familia común de iconos de Arqueología y Ente,implementada_validada_aprobada_usuario
+17,Civilización 3 — Arqueología y Ente,Analizar restos,subvista_de_excavar,17_Analizar_Restos_Corregido_V4.png,Conservarla como subvista de Arqueología/Excavar y reutilizar la familia candidata de iconos,implementada_validada_aprobada_usuario
+18,Civilización 3 — Arqueología y Ente,Archivo,seccion,18_Archivo_Mejoras_Permanentes_Corregido_V4.png,Conservar tres mejoras reales y tratar el nivel como estado independiente,implementada_validada_aprobada_usuario
+19,Civilización 3 — Arqueología y Ente,Investigación del Ente,seccion,19_Investigacion_Del_Ente_Corregida_V5.png,Usar ENTE y reutilizar los iconos canónicos de la civilización,implementada_validada_aprobada_usuario
+20,Civilización 3 — Arqueología y Ente,Pacto Opcional,estado_dinamico,20_Pacto_Opcional_Con_El_Ente_Corregido_V5.png,Mostrar PACTO OPCIONAL únicamente después de establecer el pacto,implementada_validada_aprobada_usuario

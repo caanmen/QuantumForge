@@ -1,0 +1,38 @@
+FICHA DE PANTALLA — DIMENSIÓN 2 / PEREGRINACIONES
+
+Estado: APROBADA VISUALMENTE POR EL USUARIO; CAPTURAS ARCHIVADAS.
+Fecha: 30 de agosto de 2026.
+Raíz Unity: D2_Civ1_PilgrimagesSection.
+Constructor canónico: Dimension2Block1UISetup.BuildCivilization1Placeholder.
+Controlador único: D2PilgrimagesPanelUI.
+Reglas y datos: D2PilgrimageSystem.
+
+Referencia:
+05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/04_Peregrinaciones_Corregidas_V4.png
+SHA-256: D8B946EDF4F3574694F1F6E56EEA570A727F9E289FFFAA7FFFCA04BF65903F88.
+
+Composición:
+- Cabecera con Atrás y recursos dinámicos Confianza, Seguidores, Cera y Pan ritual.
+- Cinco tarjetas persistentes: Corta, Media, Larga, Larga con Acólito y Sagrada.
+- Las tarjetas seleccionan; un único CTA inicia o cancela la ruta elegida.
+- Apoyo adicional real 0/4 y bonus material calculado por el sistema.
+- Estado activo/neutral, advertencia de cancelación y navegación inferior de siete rutas.
+- La ilustración narrativa derecha pertenece a la placa decorativa estable.
+
+Escenario QA V4:
+- Confianza 80/500; 3,845 Seguidores; Cera y Pan ritual 3,450.
+- Corta seleccionada; apoyo 0/4; bonus +0 %; ninguna Peregrinación activa.
+- Corta y Media completadas y dos Acólitos creados/disponibles para mantener las
+  cinco rutas visibles y coherentemente desbloqueadas.
+- Sin Ritos, Pactos ni vínculos que alteren costes o recompensas.
+
+Evidencia requerida:
+- STRUCTURE_PASS, STATE_PASS, ACTIONS_PASS y ROUTE_PASS.
+- Selección separada del inicio; apoyo +/−; inicio y cancelación con costes reales.
+- Capturas reales 1080x1920 y 720x1280.
+- Similitud percibida AA >=95.00 % en ambas resoluciones.
+
+Resultado final:
+- STRUCTURE_PASS, STATE_PASS, ACTIONS_PASS y ROUTE_PASS.
+- Similitud percibida AA: 95.41 % en 1080 y 95.70 % en 720.
+- Capturas archivadas en 06_CAPTURAS_APROBADAS/DIMENSION_2/PEREGRINACIONES.

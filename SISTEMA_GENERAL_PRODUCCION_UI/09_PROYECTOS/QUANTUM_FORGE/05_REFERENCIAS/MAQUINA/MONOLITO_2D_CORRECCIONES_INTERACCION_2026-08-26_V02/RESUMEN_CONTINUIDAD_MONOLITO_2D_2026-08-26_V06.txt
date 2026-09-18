@@ -1,0 +1,54 @@
+QUANTUM FORGE — CONTINUIDAD DEL MONOLITO 2D V06
+Fecha: 2026-08-26
+
+REGLAS
+
+- Leer las reglas, instrucciones maestras, guías y archivos reales del proyecto.
+- El Monolito es alienígena y 2D; el laboratorio es humano y quedó abandonado tras un
+  accidente. No usar cubos ni representación 3D.
+- No usar mockups o láminas comparativas como assets de runtime.
+- Mantener sincronizados escena, reconstructor, controlador visual y captura QA.
+
+APROBADO PREVIAMENTE
+
+- Centrado V17 de las cuatro luces de entrada.
+- Dirección estática V19 y fondo limpio V18.
+- Primera captura real estática del sector 1 con V18.
+
+DESCARTES
+
+- V22 fue rechazado visualmente aunque pasó la prueba automática: redujo demasiado la
+  cuarta cara y agrandó el Monolito completo hasta dominar casi todo el acercamiento.
+- V23 corrigió el acercamiento gigante, pero su escala 0,90 era mayor que la proporción
+  mostrada por el sector 1 en la lámina V10. Se conserva sólo como iteración histórica.
+
+CANDIDATA VIGENTE V24
+
+- V08 se usa únicamente en la vista general, con cuatro luces y sin nodos, símbolos ni
+  `???`.
+- V18 se usa como fondo cercano separado en los cuatro sectores.
+- Las cuatro caras usan escala 0,78 y posición centrada. Es la proporción que ya tenía el
+  sector 1 en la lámina V10. La cara 4 no recibe una reducción ni un desplazamiento extra.
+- Sector 1: 7 nodos. Sector 2: 11 nodos. Sector 3: 7 nodos. Sector 4: accesible, oscuro,
+  cero nodos y `???` únicamente dentro del arte de la cara.
+- La transición escala el Monolito hasta 1,55 veces su escala de reposo, se desplaza hacia
+  la cara elegida y mantiene visible el laboratorio. El fondo avanza en menor medida para
+  crear paralaje antes del cruce gradual de V08 a V18.
+- Fondo, Monolito, caras, nodos, firmas y ficha permanecen como capas independientes. La
+  lámina V10 y el mockup V19 no se usan como assets de runtime.
+
+VALIDACIÓN
+
+- Compilación: 0 errores y 0 advertencias.
+- Unity: VALIDATION PASS y CAPTURE PASS.
+- Evidencia: `Logs/machine_monolith_v10_proportion_v24_capture.log`.
+- Se generaron 26 capturas en `Logs/VisualQA/MachineMonolith2D`, en 1080×1920 y
+  720×1280.
+- La prueba cubre estados iniciales y reparados, los cuatro sectores, Mezclas, regreso,
+  transición y restauración del guardado.
+
+PENDIENTE
+
+- Aprobación perceptual explícita de V24 por el usuario.
+- Sólo después registrar el 95 % y archivar las capturas elegidas en
+  `SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/06_CAPTURAS_APROBADAS`.

@@ -13,7 +13,7 @@ public static class Dimension1TreeReferenceCapture
     private const string FailureKey = "QF.D1TreeCapture.Failed";
     private const string ScenePath = "Assets/Project/Scenes/Main.unity";
     private static string OutputDirectory => Path.GetFullPath(
-        "SISTEMA_UI_QUANTUM_FORGE/10_PANTALLAS/DIMENSION_1/ARBOL_CUANTICO");
+        "SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/10_PANTALLAS/DIMENSION_1/ARBOL_CUANTICO");
     private static string OutputPath => Path.Combine(OutputDirectory, "CAPTURA_CANDIDATA_1080x1920.png");
     private static string OutputPath720 => Path.Combine(OutputDirectory, "CAPTURA_CANDIDATA_720x1280.png");
 
@@ -94,6 +94,11 @@ public static class Dimension1TreeReferenceCapture
         Dimension1PanelUI panel = Object.FindFirstObjectByType<Dimension1PanelUI>(FindObjectsInactive.Include);
         if (panel == null) throw new System.InvalidOperationException("No existe Dimension1PanelUI.");
         panel.OnClickOpenDimension1TreePanel();
+        Dimension1TreeVisualUI visual = Object.FindFirstObjectByType<Dimension1TreeVisualUI>(
+            FindObjectsInactive.Include);
+        if (visual == null) throw new System.InvalidOperationException("No existe Dimension1TreeVisualUI.");
+        visual.SetReferencePreviewForVisualQa(true);
+        visual.SelectNode(8);
         string[] hide =
         {
             "Dimension2Panel", "Dimension3Panel", "Panel_Generacion", "Panel_Lab", "Panel_Logros",
@@ -178,6 +183,11 @@ public static class Dimension1TreeReferenceCapture
         if (root.GetComponent<GraphicRaycaster>() == null || group == null ||
             !group.interactable || !group.blocksRaycasts)
             throw new System.InvalidOperationException("La captura no corresponde al Árbol interactivo real.");
+        for (int i = 1; i <= Dimension1System.Dimension1TreeNodeIds.Length; i++)
+            if (FindChild(root, "TreeNode_" + i)?.GetComponent<Button>() == null)
+                throw new System.InvalidOperationException("El nodo " + i + " no es interactivo.");
+        if (FindChild(root, "UnlockButton")?.GetComponent<Button>() == null)
+            throw new System.InvalidOperationException("El botón de compra no es interactivo.");
     }
 
     private static void PrepareCanvasesForCapture()

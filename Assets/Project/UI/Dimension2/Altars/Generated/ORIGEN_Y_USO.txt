@@ -1,0 +1,19 @@
+PAQUETE VISUAL — ALTARES DEL SANTUARIO
+
+Referencia autorizada:
+SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/03_Altares_Del_Santuario_Corregido_V4.png
+
+D2_Altars_CleanBasePlate_v1.png
+- Placa limpia generada por edición con ImageGen el 30-08-2026.
+- Conserva geometría, piedra y marcos; elimina texto, cifras, iconos y selecciones.
+
+D2_Altars_StaticIconOverlay_v1.png
+- Overlay transparente derivado de la referencia permanente.
+- Contiene iconos canónicos de cabecera, cinco Altares, detalle y navegación.
+- No contiene textos ni cifras dinámicas.
+
+D2_Altars_WaxSelectionOverlay_v1.png
+- Bordes/resplandores de selección para Cera y la pestaña Altares.
+- Propietario de visibilidad: D2AltarsPanelUI.
+
+Todos los datos, estados, títulos y acciones se renderizan en Unity.

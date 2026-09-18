@@ -17,6 +17,7 @@ public class Dimension3PanelUI : MonoBehaviour
     public Button closeDimension3Button;
 
     [Header("Estado")]
+    public D3ProductionFloorSkinUI productionFloorSkin;
     public TMP_Text factoryStatusText;
     public TMP_Text inventoryText;
     public TMP_Text queueText;
@@ -153,7 +154,15 @@ public class Dimension3PanelUI : MonoBehaviour
 
     private void OnEnable()
     {
+        if (TabsUI.Instance != null && TabsUI.Instance.verticalNavigation != null)
+            TabsUI.Instance.verticalNavigation.SetNavigationSuppressed(true, this);
         OpenFromTab();
+    }
+
+    private void OnDisable()
+    {
+        if (TabsUI.Instance != null && TabsUI.Instance.verticalNavigation != null)
+            TabsUI.Instance.verticalNavigation.SetNavigationSuppressed(false, this);
     }
 
     private void Update()
@@ -298,6 +307,8 @@ public class Dimension3PanelUI : MonoBehaviour
 
         Dimension3System.EnsureState(gameState);
         D3OnboardingSnapshot onboarding = D3OnboardingRules.Synchronize(gameState);
+        if (productionFloorSkin != null)
+            productionFloorSkin.Refresh(gameState);
         RefreshStatus(gameState);
         RefreshInventory(gameState.dimension3);
         RefreshQueues(gameState.dimension3);
@@ -306,6 +317,8 @@ public class Dimension3PanelUI : MonoBehaviour
         RefreshCostPreview(gameState);
         RefreshButtons(gameState);
         RefreshOnboarding(gameState, onboarding);
+        if (productionFloorSkin != null)
+            productionFloorSkin.RefreshControls();
 
         if (!string.IsNullOrEmpty(_pendingCancelQueueId) &&
             Time.unscaledTime > _pendingCancelUntil)
@@ -416,14 +429,15 @@ public class Dimension3PanelUI : MonoBehaviour
         if (factoryStatusText == null)
             return;
 
-        factoryStatusText.text =
-            "BANCO DE PROCESOS — NIVEL " +
-            D3FacilitySystem.GetProcessBankLevel(gameState.dimension3) + "\n" +
-            "LE: " + FormatNumber(gameState.LE) +
-            "   |   Trazas: " + FormatNumber(gameState.Traces) +
-            "\nEnsamblados: MK1 " + D3InventorySystem.GetAssemblyCount(gameState.dimension3, 1) +
-            " | MK2 " + D3InventorySystem.GetAssemblyCount(gameState.dimension3, 2) +
-            " | MK3 " + D3InventorySystem.GetAssemblyCount(gameState.dimension3, 3) + ".";
+        int bankLevel = D3FacilitySystem.GetProcessBankLevel(gameState.dimension3);
+        factoryStatusText.text = productionFloorSkin != null
+            ? "BANCO DE PROCESOS — NIVEL " + bankLevel
+            : "BANCO DE PROCESOS — NIVEL " + bankLevel + "\n" +
+              "LE: " + FormatNumber(gameState.LE) +
+              "   |   Trazas: " + FormatNumber(gameState.Traces) +
+              "\nEnsamblados: MK1 " + D3InventorySystem.GetAssemblyCount(gameState.dimension3, 1) +
+              " | MK2 " + D3InventorySystem.GetAssemblyCount(gameState.dimension3, 2) +
+              " | MK3 " + D3InventorySystem.GetAssemblyCount(gameState.dimension3, 3) + ".";
     }
 
     private void RefreshInventory(Dimension3State state)
@@ -431,8 +445,15 @@ public class Dimension3PanelUI : MonoBehaviour
         if (inventoryText == null)
             return;
 
-        var builder = new StringBuilder();
         int version = GetSelectedProductionVersion();
+        if (productionFloorSkin != null)
+        {
+            inventoryText.text = "";
+            productionFloorSkin.RefreshProductionInventory(state, version);
+            return;
+        }
+
+        var builder = new StringBuilder();
         builder.AppendLine("INVENTARIO V" + version);
         for (int i = 0; i < Dimension3Catalog.PartIds.Length; i++)
         {
@@ -461,6 +482,12 @@ public class Dimension3PanelUI : MonoBehaviour
         if (queueText == null)
             return;
 
+        if (productionFloorSkin != null)
+        {
+            queueText.text = "";
+            return;
+        }
+
         var builder = new StringBuilder();
         AppendQueue(builder, state, Dimension3Catalog.QueuePartProduction, "PRODUCCIÓN");
         builder.AppendLine();
@@ -484,26 +511,39 @@ public class Dimension3PanelUI : MonoBehaviour
                 gameState.dimension3, partDefinition.leCost * productionQuantity);
             double partTraces = D3PowerSystem.GetModifiedCost(
                 gameState.dimension3, partDefinition.tracesCost * productionQuantity);
-            string suffix = " — " + FormatNumber(partLE) + " LE + " +
-                FormatNumber(partTraces) + " T";
-            suffix = " ×" + productionQuantity + suffix;
+            string suffix = productionFloorSkin == null
+                ? " ×" + productionQuantity + " — " + FormatNumber(partLE) +
+                  " LE + " + FormatNumber(partTraces) + " T"
+                : "";
             SetButtonLabel(produceChassisButton, "CHASIS" + suffix);
             SetButtonLabel(produceMotorButton, "SISTEMA MOTRIZ" + suffix);
             SetButtonLabel(produceToolButton, "HERRAMIENTA" + suffix);
             SetButtonLabel(produceControlButton, "MÓDULO DE CONTROL" + suffix);
             SetButtonLabel(produceRegulatorButton, "REGULADOR" + suffix);
+            if (productionFloorSkin != null && productionTitleText != null)
+                productionTitleText.text = FormatNumber(partLE) +
+                    " LE + " + FormatNumber(partTraces) + " T";
         }
         D3CostTimeDefinition assemblyDefinition =
             Dimension3Catalog.GetNormalAssemblyDefinition(assemblyMk);
         if (assemblyDefinition != null)
         {
-            SetButtonLabel(assembleMk1Button,
-                "ENSAMBLAR MK" + assemblyMk + " NORMAL — " +
-                FormatNumber(D3PowerSystem.GetModifiedCost(
-                    gameState.dimension3, assemblyDefinition.leCost * assemblyQuantity)) + " LE + " +
-                FormatNumber(D3PowerSystem.GetModifiedCost(
-                    gameState.dimension3, assemblyDefinition.tracesCost * assemblyQuantity)) +
-                " T ×" + assemblyQuantity);
+            double assemblyLE = D3PowerSystem.GetModifiedCost(
+                gameState.dimension3, assemblyDefinition.leCost * assemblyQuantity);
+            double assemblyTraces = D3PowerSystem.GetModifiedCost(
+                gameState.dimension3, assemblyDefinition.tracesCost * assemblyQuantity);
+            SetButtonLabel(assembleMk1Button, productionFloorSkin == null
+                ? "ENSAMBLAR MK" + assemblyMk + " NORMAL — " +
+                  FormatNumber(assemblyLE) + " LE + " +
+                  FormatNumber(assemblyTraces) + " T ×" + assemblyQuantity
+                : "ENSAMBLAR MK" + assemblyMk + " NORMAL");
+            if (productionFloorSkin != null &&
+                productionFloorSkin.assemblyCostText != null)
+                productionFloorSkin.assemblyCostText.text =
+                    "<color=#D8C8AA>COSTE</color>    <color=#3DB8B1>" +
+                    FormatNumber(assemblyLE) + " LE + " +
+                    FormatNumber(assemblyTraces) + " T ×" + assemblyQuantity +
+                    "</color>";
         }
         bool validProductionBatch = productionQuantity != 50L ||
             D3FacilitySystem.GetProcessBankLevel(gameState.dimension3) >= 5;
@@ -623,6 +663,16 @@ public class Dimension3PanelUI : MonoBehaviour
     {
         if (powerText == null) return;
         D3ProcessModifiers modifiers = D3PowerSystem.GetProcessBankModifiers(state);
+        if (productionFloorSkin != null)
+        {
+            powerText.text =
+                "BONIFICACIONES DEL BANCO\n" +
+                "Progreso +" + modifiers.progressBonusPercent.ToString("0.##") +
+                "% · Tiempo " + modifiers.timeBonusRaw.ToString("0.##") +
+                " · Costo " + modifiers.costBonusRaw.ToString("0.##") +
+                "\nCoordinación +" + modifiers.coordinationPercent.ToString("0.##") + "%";
+            return;
+        }
         powerText.text =
             "BONIFICACIONES DEL BANCO\n" +
             "Progreso: +" + modifiers.progressBonusPercent.ToString("0.##") + "%" +
@@ -636,7 +686,33 @@ public class Dimension3PanelUI : MonoBehaviour
         if (costPreviewText == null) return;
         D3FactoryCostPreview preview = D3FactoryPreviewSystem.GetAssemblyPreview(
             gameState, GetSelectedAssemblyMk(), GetSelectedAssemblyQuantity());
-        costPreviewText.text = preview == null ? "" : preview.ToDisplayText();
+        if (preview == null)
+        {
+            costPreviewText.text = "";
+            return;
+        }
+        if (productionFloorSkin == null)
+        {
+            costPreviewText.text = preview.ToDisplayText();
+            return;
+        }
+        if (productionFloorSkin.previewTitleText != null)
+            productionFloorSkin.previewTitleText.text =
+                "PREVISIÓN MK ×" + preview.quantity;
+        costPreviewText.text =
+            "<color=#D8C8AA>PIEZAS FALTANTES:</color> " +
+            preview.missingPartsTotal +
+            "\n<color=#D8C8AA>PIEZAS:</color> " +
+            FormatNumber(preview.missingPartsLE) + " LE + " +
+            FormatNumber(preview.missingPartsTraces) + " T" +
+            "\n<color=#D8C8AA>ENSAMBLE:</color> " +
+            FormatNumber(preview.assemblyLE) + " LE + " +
+            FormatNumber(preview.assemblyTraces) + " T" +
+            "\n\n<color=#D8C8AA>TOTAL:</color> " +
+            FormatNumber(preview.TotalLE) + " LE + " +
+            FormatNumber(preview.TotalTraces) + " T" +
+            "\n<color=#D8C8AA>≈</color> " +
+            Math.Ceiling(preview.estimatedSeconds) + " s";
     }
 
     private void RefreshOnboarding(
@@ -676,7 +752,7 @@ public class Dimension3PanelUI : MonoBehaviour
                     Dimension3Catalog.FacilityProcessBank).ToString("0.##"),
                 required.ToString("0.##"));
         }
-        SetVisible(contextualHelpButton, !celebration &&
+        SetVisible(contextualHelpButton, productionFloorSkin == null && !celebration &&
             stage != D3OnboardingStage.Discovery);
         SetVisible(coachmarkRoot,
             stage == D3OnboardingStage.AssignInitial &&
@@ -687,7 +763,7 @@ public class Dimension3PanelUI : MonoBehaviour
         }
 
         SetVisible(factoryStatusText, !celebration);
-        SetVisible(inventoryText, !celebration &&
+        SetVisible(inventoryText, productionFloorSkin == null && !celebration &&
             (assigning || completingSet || assembling || completed));
         SetVisible(assignmentText, !celebration &&
             (assigning || snapshot.assignedMk1 > 0L || completed));
@@ -723,8 +799,9 @@ public class Dimension3PanelUI : MonoBehaviour
             ((assembling && snapshot.assemblyActive) || totalJobs > 1 ||
              (completed && queuesState.CanOpen)));
 
-        SetVisible(upgradeProcessBankButton, completed);
-        SetVisible(powerText, advanced);
+        SetVisible(upgradeProcessBankButton, completed &&
+            D3FacilitySystem.GetProcessBankLevel(gameState.dimension3) < 5);
+        SetVisible(powerText, advanced && productionFloorSkin == null);
         SetVisible(costPreviewText, assembling || completed);
         FeaturePresentationState calibrationState =
             D3PresentationRules.GetFeatureState(

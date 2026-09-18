@@ -75,7 +75,8 @@ public static class Dimension3System
         D3AutomationSystem.TickOnline(gameState, dt);
     }
 
-    public static double ApplyOfflineProgress(GameState gameState, double offlineSeconds)
+    public static double ApplyOfflineProgress(GameState gameState, double offlineSeconds,
+        Action<double> advanceBaseProgress = null)
     {
         if (!CanAccessDimension3(gameState) || offlineSeconds <= 0.0 ||
             double.IsNaN(offlineSeconds) || double.IsInfinity(offlineSeconds))
@@ -90,11 +91,52 @@ public static class Dimension3System
             offlineSeconds,
             Dimension3Catalog.OfflineProgressCapSeconds
         );
-        D3FacilitySystem.AdvanceStabilization(gameState.dimension3, applied);
-        D3JobQueueSystem.AdvanceAllQueues(gameState, applied);
-        D3DiagnosticSystem.Tick(gameState, applied, true);
-        if (externalOfflineAuthorized)
-            D3AutomationSystem.ApplyOfflineExternal(gameState, applied);
+        double remaining = applied;
+        double untilExternalBlock = 60.0;
+        while (remaining > 0.0)
+        {
+            // Resolver eventos ya vencidos sin inventar tiempo adicional.
+            D3JobQueueSystem.AdvanceAllQueues(gameState, 0.0);
+            D3FacilitySystem.AdvanceStabilization(gameState.dimension3, 0.0);
+            double workRate = D3PowerSystem.GetDynamicWorkRate(gameState.dimension3);
+            double step = externalOfflineAuthorized ? Math.Min(remaining, untilExternalBlock) : remaining;
+            foreach (var assignment in gameState.dimension3.assignments)
+                if (assignment != null && assignment.amount > assignment.stabilizedAmount &&
+                    assignment.stabilizationRemainingSeconds > 0.0)
+                    step = Math.Min(step, assignment.stabilizationRemainingSeconds);
+            foreach (var queue in gameState.dimension3.queues)
+                if (queue?.jobs != null && queue.jobs.Count > 0 && queue.jobs[0] != null)
+                {
+                    var job = queue.jobs[0];
+                    if (job.remainingSeconds > 0.0)
+                        step = Math.Min(step, job.remainingSeconds / (job.usesDynamicBankSpeed ? workRate : 1.0));
+                }
+            var diagnostic = gameState.dimension3.diagnosticSettings;
+            if (D3DiagnosticSystem.CanRunOffline(gameState) &&
+                (diagnostic.autoAnalyzeEnabled || diagnostic.autoRepairEnabled || diagnostic.autoFusionEnabled) &&
+                diagnostic.evaluationRemainingSeconds > 0.0)
+                step = Math.Min(step, diagnostic.evaluationRemainingSeconds);
+            if (MachineManager.I != null && MachineManager.I.IsAnalyzingNode &&
+                MachineManager.I.AnalysisRemainingSeconds > 0.0)
+                step = Math.Min(step, MachineManager.I.AnalysisRemainingSeconds);
+
+            // Consumir el intervalo con el estado anterior; sus finales habilitan el siguiente.
+            advanceBaseProgress?.Invoke(step);
+            if (externalOfflineAuthorized) Dimension1System.Tick(gameState, step);
+            D3DiagnosticSystem.Tick(gameState, step, true);
+            D3JobQueueSystem.AdvanceAllQueues(gameState, step, workRate);
+            D3FacilitySystem.AdvanceStabilization(gameState.dimension3, step);
+            remaining = Math.Max(0.0, remaining - step);
+            if (externalOfflineAuthorized)
+            {
+                untilExternalBlock -= step;
+                if (untilExternalBlock <= 0.0)
+                {
+                    D3AutomationSystem.EvaluateOfflineBlock(gameState);
+                    untilExternalBlock = 60.0;
+                }
+            }
+        }
         return applied;
     }
 

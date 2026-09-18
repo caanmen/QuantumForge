@@ -1,0 +1,24 @@
+DECISIONES — ARCHIVO IV / MEJORAS PERMANENTES
+
+3 de septiembre de 2026
+
+1. La referencia permanente V4 manda sobre el adjunto temporal del chat.
+2. Archivo es una subvista de Arqueología/Excavar, no una pantalla raíz nueva.
+3. La placa limpia sólo posee marcos, textura, libro, ilustraciones, iconos y
+   ornamentos; textos, cifras, nivel y estados pertenecen a Unity.
+4. El nivel del Archivo es independiente del estado de cada mejora.
+5. No se añaden mejoras: sólo existen Cartografía Estratificada, Concordancia
+   Anómala y Exégesis Profunda.
+6. Cada botón llama exclusivamente a TryUnlockArchiveUpgrade.
+7. D2Civilization3System conserva la autoridad sobre costes, requisitos, descuentos
+   y efectos; la UI no duplica esas reglas.
+8. DISPONIBLE usa realce teal y botón interactuable; BLOQUEADA usa candado y
+   superficie no interactuable; DESBLOQUEADA desactiva la compra.
+9. El botón superior y EXCAVAR regresan a Arqueología; ANALIZAR y ENTE conservan
+   sus rutas existentes. No se añade un regreso redundante al mapa.
+10. El capturador suprime escrituras persistentes y protege save.json y su backup.
+11. Cualquier cambio de placa, geometría, texto, estado o navegación exige repetir
+    1080×1920, 720×1280 y el gate perceptual AA mínimo de 95 %.
+12. Superar el gate técnico no sustituye la aprobación visual del usuario.
+13. Los textos de Conocimiento y recurso se alinean por el centro óptico de sus
+    iconos; no cambian tamaños, contenido, costes ni áreas táctiles.

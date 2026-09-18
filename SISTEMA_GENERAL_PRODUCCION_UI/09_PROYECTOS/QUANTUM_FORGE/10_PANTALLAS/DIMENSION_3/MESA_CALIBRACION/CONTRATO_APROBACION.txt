@@ -1,0 +1,11 @@
+CONTRATO DE APROBACIÓN — MESA DE CALIBRACIÓN
+============================================
+
+La pantalla sólo puede declararse terminada cuando:
+- existe captura real nueva de Unity a 1080x1920 y 720x1280;
+- no hay texto, icono, botón o control fuera de su marco propietario;
+- los grupos están centrados visualmente, no sólo por RectTransform;
+- la composición alcanza al menos 95 % de similitud visual aprobada por el usuario;
+- las validaciones funcional, táctil, de escena y de guardado terminan en PASS;
+- se verifican los estados aplicables descritos en la ficha;
+- la captura aprobada se archiva únicamente después de la confirmación del usuario.

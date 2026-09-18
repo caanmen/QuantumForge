@@ -1,0 +1,11 @@
+REFERENCIA: REGISTRO DE EXPEDICIONES D1
+======================================
+
+Archivo: referencia_registro_expediciones_v1.png
+Origen: imagen entregada por el usuario el 2026-08-20.
+Clasificación: REFERENCIA VISUAL, no captura real de Unity ni asset final.
+Estado: autoridad de composición para la nueva subpantalla.
+
+La referencia define jerarquía, densidad, filtros, resumen y salida. Los números,
+destinos, sectores, naves y recompensas visibles son ejemplos y deben sustituirse por
+datos reales de `dimension1RecentExplorationRecords`.

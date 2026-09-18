@@ -127,7 +127,7 @@ public sealed class VerticalTriangleObservatoryUI : MonoBehaviour
 
     private void RefreshActive(GameState state, UpgradeStudyDef active, bool conclusion)
     {
-        SetConsoleHeight(conclusion ? 360f : 600f);
+        SetConsoleHeight();
         if (statusText != null)
             statusText.SetText(conclusion
                 ? L("study.status.conclusion", "Conclusión disponible")
@@ -153,7 +153,7 @@ public sealed class VerticalTriangleObservatoryUI : MonoBehaviour
 
     private void RefreshAvailable(GameState state)
     {
-        SetConsoleHeight(300f);
+        SetConsoleHeight();
         if (statusText != null)
             statusText.SetText(L("observatory.available", "Consola disponible"));
         SetAllOpportunitiesHidden();
@@ -206,10 +206,11 @@ public sealed class VerticalTriangleObservatoryUI : MonoBehaviour
         UpgradeStudyDef active = UpgradeStudySystem.GetActiveStudy(state);
         int stage = UpgradeStudySystem.GetTuningStage(state);
         int stageCount = UpgradeStudySystem.GetTuningStageCount(state);
-        bool visible = active != null && !UpgradeStudySystem.IsConclusionPending(state) &&
-            stage < stageCount;
+        bool conclusion = active != null &&
+            UpgradeStudySystem.IsConclusionPending(state);
+        bool visible = active != null && stage < stageCount;
         if (tuningRoot != null) tuningRoot.SetActive(visible);
-        if (tuneButton != null) tuneButton.gameObject.SetActive(visible);
+        if (tuneButton != null) tuneButton.gameObject.SetActive(visible && !conclusion);
         if (!visible) return;
 
         UpgradeStudyState progress = UpgradeStudySystem.EnsureState(state);
@@ -217,22 +218,45 @@ public sealed class VerticalTriangleObservatoryUI : MonoBehaviour
             amplitudeSlider.SetValueWithoutNotify(progress.tuningAmplitude);
         if (frequencySlider != null)
             frequencySlider.SetValueWithoutNotify(progress.tuningFrequency);
+        if (amplitudeSlider != null) amplitudeSlider.interactable = !conclusion;
+        if (frequencySlider != null) frequencySlider.interactable = !conclusion;
 
         UpgradeStudySystem.GetTuningTarget(
             state, out float targetAmplitude, out float targetFrequency);
-        double accuracy = UpgradeStudySystem.GetTuningAccuracy(state);
+        UpgradeStudySystem.GetTuningChannelAccuracies(
+            state, out double amplitudeAccuracy, out double frequencyAccuracy);
+        bool amplitudeReady = amplitudeAccuracy >=
+            UpgradeStudySystem.TuningMinimumChannelAccuracy;
+        bool frequencyReady = frequencyAccuracy >=
+            UpgradeStudySystem.TuningMinimumChannelAccuracy;
+        bool tuningReady = amplitudeReady && frequencyReady;
+        double combinedAccuracy = System.Math.Min(
+            amplitudeAccuracy, frequencyAccuracy);
+        bool perfectTuning = amplitudeAccuracy >=
+            UpgradeStudySystem.TuningPerfectChannelAccuracy &&
+            frequencyAccuracy >= UpgradeStudySystem.TuningPerfectChannelAccuracy;
+        double progressBoost = UpgradeStudySystem.GetTuningBoostFractionForAccuracy(
+            state, combinedAccuracy);
         if (tuningHintText != null)
         {
             tuningHintText.SetText(
                 $"Firma {stage + 1}/{stageCount} · " +
-                $"Amplitud {Band(targetAmplitude)} · Frecuencia {Band(targetFrequency)}\n" +
-                $"Coincidencia: {accuracy * 100.0:0}%");
+                $"ajusta las dos señales\n" +
+                $"Amplitud {Band(targetAmplitude)} {amplitudeAccuracy * 100.0:0}% " +
+                $"{(amplitudeReady ? "✓" : "·")}  ·  " +
+                $"Frecuencia {Band(targetFrequency)} {frequencyAccuracy * 100.0:0}% " +
+                $"{(frequencyReady ? "✓" : "·")}\n" +
+                (tuningReady
+                    ? (perfectTuning ? "CALIBRACIÓN PERFECTA" : "SINCRONÍA VÁLIDA") +
+                      $" · +{progressBoost * 100.0:0}% DEL ESTUDIO"
+                    : "OBJETIVO: 90% EN AMBAS · PERFECTA: 98%"));
         }
-        if (tuneButton != null) tuneButton.interactable = accuracy >= 0.86;
+        if (tuneButton != null) tuneButton.interactable = tuningReady;
         if (tuneButtonText != null)
-            tuneButtonText.SetText(accuracy >= 0.86
-                ? L("study.tuning.apply", "ESTABILIZAR")
-                : L("study.tuning.adjust", "AJUSTA LA SEÑAL"));
+            tuneButtonText.SetText(tuningReady
+                ? (perfectTuning ? "APLICAR CALIBRACIÓN PERFECTA" :
+                    L("study.tuning.apply", "ESTABILIZAR"))
+                : L("study.tuning.adjust", "AJUSTA AMBAS SEÑALES"));
     }
 
     private static string Band(float value)
@@ -274,12 +298,22 @@ public sealed class VerticalTriangleObservatoryUI : MonoBehaviour
         return $"{total / 60}:{total % 60:00}";
     }
 
-    private void SetConsoleHeight(float height)
+    private void SetConsoleHeight()
     {
         LayoutElement layout = GetComponent<LayoutElement>();
-        if (layout == null) return;
-        layout.preferredHeight = height;
-        layout.minHeight = Mathf.Min(height, 230f);
+        if (layout != null)
+        {
+            layout.ignoreLayout = true;
+            layout.preferredHeight = 520f;
+            layout.minHeight = 520f;
+        }
+        RectTransform rect = transform as RectTransform;
+        if (rect == null) return;
+        rect.anchorMin = new Vector2(0f, 1f);
+        rect.anchorMax = new Vector2(1f, 1f);
+        rect.pivot = new Vector2(0.5f, 1f);
+        rect.anchoredPosition = new Vector2(0f, -94f);
+        rect.sizeDelta = new Vector2(-8f, 520f);
     }
 
     private static string L(string key, string fallback)

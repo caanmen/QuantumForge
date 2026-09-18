@@ -134,6 +134,10 @@ public static class Dimension1ArkUISetup
         AddPersistent(refs.missionButtons[3].onClick, panel.OnClickStartSilentSync);
         AddPersistent(refs.enter.onClick, panel.OnClickEnterArk);
 
+        // ARK no usa navegación inferior por contrato, pero sí el mismo lienzo,
+        // desplazamiento y marco exterior de las pantallas hermanas D1.
+        Dimension1SharedShellApply.ApplyFrameToSubscreen(root);
+
         SerializedObject serialized = new SerializedObject(panel);
         Assign(serialized, "arkPanel", ark);
         Assign(serialized, "closeArkPanelButton", refs.back);
@@ -406,6 +410,7 @@ public static class Dimension1ArkUISetup
         out Image border, out Image surface)
     {
         RectTransform root = Panel(name, parent, frame, fill, position, size, fillColor, borderColor, out border, out surface);
+        surface.raycastTarget = true;
         Button button = root.gameObject.AddComponent<Button>(); button.targetGraphic = surface;
         button.transition = Selectable.Transition.ColorTint; return button;
     }

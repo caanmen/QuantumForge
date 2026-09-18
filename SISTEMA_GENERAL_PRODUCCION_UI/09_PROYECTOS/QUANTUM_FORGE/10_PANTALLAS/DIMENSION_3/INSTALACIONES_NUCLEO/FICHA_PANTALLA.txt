@@ -1,0 +1,25 @@
+FICHA DE PANTALLA — INSTALACIONES CONECTADAS / NÚCLEO
+=====================================================
+
+Dimensión: 3
+Tipo: vista de instalaciones, selección Núcleo de Automatización
+Referencia visual: 05_REFERENCIAS/DIMENSION_3/INSTALACIONES_NUCLEO/
+Implementación funcional: D3FacilitiesPanelUI + D3FacilitySystem
+
+ESCENARIO CANÓNICO DE QA
+- recursos: 3.25M LE, 4.2K Trazas y 56 Autómatas;
+- instalaciones: Consola N2, Diagnóstico N4, Puerto N1 y Núcleo N2;
+- selector: Núcleo de Automatización / MK4 / Normal / Coordinación;
+- asignados: 1; estables: 1;
+- capacidad efectiva: sqrt(35) = 5.92;
+- función operativa N2 activa; siguiente N3;
+- capacidad: 3 rutinas, 1 perfil y multiplicador x1.05;
+- prueba de autonomía pendiente;
+- acción principal: AMPLIAR A NIVEL 3;
+- navegación inferior: CONTROL seleccionado.
+
+ESTADOS POSTERIORES A VALIDAR
+- instalación construida/no construida;
+- asignación disponible, estable y retirada;
+- mejora disponible, en cola y nivel máximo;
+- autonomía pendiente, confirmada e integrada.

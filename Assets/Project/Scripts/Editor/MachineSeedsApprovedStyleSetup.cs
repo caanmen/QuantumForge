@@ -484,7 +484,7 @@ public static class MachineSeedsApprovedStyleSetup
                 continue;
             text.enableAutoSizing = true;
             text.fontSizeMin = Mathf.Min(text.fontSizeMin, 12f);
-            text.overflowMode = TextOverflowModes.Ellipsis;
+            text.overflowMode = TextOverflowModes.Truncate;
         }
     }
 

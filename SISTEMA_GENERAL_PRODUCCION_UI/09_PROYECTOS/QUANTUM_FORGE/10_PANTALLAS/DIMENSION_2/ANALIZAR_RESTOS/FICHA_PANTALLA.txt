@@ -1,0 +1,63 @@
+FICHA DE PANTALLA — ANALIZAR RESTOS
+
+Fecha: 2 de septiembre de 2026
+Estado: APROBADA VISUALMENTE POR EL USUARIO; CAPTURAS ARCHIVADAS
+
+IDENTIDAD Y FUNCIÓN
+- Subvista de Arqueología/Excavar de Civilización 3 en Dimensión 2.
+- Presenta la zona seleccionada, Conocimiento Antiguo, recurso propio, inventario
+  de Restos por calidad, recompensas, Erudito, investigación y recursos de Civ 1.
+- Tocar Baja, Media o Alta sólo selecciona la calidad.
+- ANALIZAR consume un resto mediante D2Civilization3System.TryStartAnalysis.
+- MEJORAR ERUDITO utiliza la acción y los requisitos reales del sistema.
+- Atrás y EXCAVAR regresan a Ruinas Sepultadas; ARCHIVO y ENTE abren sus áreas.
+
+REFERENCIA DE AUTORIDAD
+- Ruta: 05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/17_Analizar_Restos_Corregido_V4.png
+- Tipo: referencia visual candidata permanente V4.
+- Resolución: 941×1672; composición objetivo 1080×1920.
+- SHA-256: E811041EA939D704DEEDDACCA18E60C1ECAE792D72AAD05A6767E5B24F11D190
+- El borde de selección del adjunto temporal del chat no pertenece a la pantalla.
+
+ARQUITECTURA Y PROPIETARIOS
+- D2Civilization3System: inventario, duración, recompensas, análisis y Erudito.
+- Dimension2State: persistencia de los datos de Civilización 3.
+- D2Civilization3PanelUI: selección transitoria, formato, refresco y acciones.
+- Dimension2Block1UISetup: geometría, placa, capas y áreas táctiles.
+- Placa limpia: Assets/Project/UI/Dimension2/Analysis/Generated/D2_AnalyzeRemains_CleanBasePlate_v2.png
+- SHA-256 de placa: 474780007502F31E2FB4626E14AF2ADEB800CC5F5FD8093795ED0BC7CA737566
+- Procedencia y prompts: Assets/Project/UI/Dimension2/Analysis/Generated/ORIGEN_Y_USO.txt
+
+ESTADOS CUBIERTOS
+- Calidad Baja, Media y Alta seleccionadas.
+- Calidad con o sin restos disponibles.
+- Análisis disponible o en curso.
+- Erudito ausente, contratado, mejorable o sin recursos suficientes.
+- Zonas 1, 2 y 3 mediante los nombres, recursos y progresos reales.
+- Barra de investigación 0–100 %.
+
+RECONSTRUCCIÓN Y QA
+- Escena: Assets/Project/Scenes/Main.unity.
+- Constructor: Dimension2Block1UISetup.ConfigureBlock1UI.
+- Captura y pruebas: Dimension2AnalyzeRemainsCapture.Run.
+- Comparación: UIReferenceComparison.RunDimension2AnalyzeRemains.
+- Captura 1080: CAPTURAS_CANDIDATAS/D2_AnalizarRestos_1080x1920.png
+- Captura 720: CAPTURAS_CANDIDATAS/D2_AnalizarRestos_720x1280.png
+- Log de captura: Logs/dimension2_analysis_capture.log
+- Log de comparación: Logs/dimension2_analysis_comparison.log
+
+EVIDENCIA ACTUALIZADA EL 2 DE SEPTIEMBRE DE 2026
+- STRUCTURE_PASS | STATE_PASS | ACTIONS_PASS | ROUTE_PASS |
+  SAVE_INTACT_PASS | TEXT_GEOMETRY_PASS.
+- Similitud perceptual AA: 96.32 % a 1080×1920 y 96.67 % a 720×1280.
+- Fixture: Zona 1, 18 Conocimiento Antiguo, 26 Fragmentos Base, Restos
+  12/5/2, Erudito de Campo 1/3, investigación 45 %, Conocimiento del Ente 3
+  y recursos de Civ 1 3450/3450/300/300/300.
+- La prueba entra desde el mapa, abre Analizar, selecciona Baja y Media,
+  inicia físicamente el análisis Medio, verifica el consumo de un resto y abre
+  Archivo, Ente y el regreso a Ruinas.
+- La duración visible usa el tiempo efectivo del sistema; con investigación al
+  45 % el fixture muestra 00:29 por el bono real de velocidad, aunque el concepto
+  estático ilustraba el valor base 00:30.
+
+Evidencia aprobada por el usuario y archivada el 4 de septiembre de 2026.

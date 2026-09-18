@@ -51,7 +51,10 @@ public static class QaBlock4Setup
     {
         ConfigureBlock4();
         ConfigureBlock4();
+        QaBlock3Validation.ValidateBlock3();
         QaBlock4Validation.ValidateBlock4();
+        QaMainSceneIntegrityValidation.ValidateMainSceneIntegrity();
+        Debug.Log("[QA Block 4 Setup] FULL PASS | panel | avance | escena");
     }
 }
 #endif

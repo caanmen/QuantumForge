@@ -1,0 +1,46 @@
+DECISIONES — RESISTENCIA Y PACTOS
+
+1 de septiembre de 2026
+
+1. La referencia V4 permanente manda sobre los adjuntos temporales del chat.
+2. La UI provisional de dos desplegables se reemplaza por cuatro tarjetas de
+   mejoras, tres tarjetas de Pactos y un detalle contextual, sin cambiar las
+   reglas existentes de D2Civilization2System.
+3. Las mejoras se compran desde la franja PRÓXIMO COSTE de cada tarjeta; no se
+   conserva un botón MEJORAR separado que la referencia no muestra.
+4. La selección usa IDs estables. Seleccionar no activa ni cancela un Pacto.
+5. Un Pacto activo muestra compromiso, efecto y desgaste; uno inactivo muestra
+   su requisito. El detalle cambia sus controles entre Activar y reforzar/cancelar.
+6. La selección del primer Pacto usa un recorte de alta fidelidad ligado al
+   objeto de selección: desaparece al elegir otra tarjeta y no queda horneada.
+7. La placa neutral mantiene la adaptabilidad de estados; la placa V2 sólo aporta
+   recortes estructurales donde mejora la fidelidad sin apropiarse de datos.
+8. Aros y marcos pertenecen a la placa. Los overlays cromáticos aportan sólo el
+   símbolo interior cuando compartir el aro produciría bordes dobles.
+9. El chroma key usa dominancia verde en espacio gamma y no un umbral de brillo;
+   así elimina el fondo verde sin borrar bronces oscuros ni dejar halo visible.
+10. Cabecera, niveles, costes, actividad, miembros, requisitos, efectos, desgaste,
+    detalle y penalizaciones son elementos reales de Unity y se refrescan desde
+    el estado del juego.
+11. El capturador congela el tiempo, restaura el fixture antes de cada resolución
+    y suprime escrituras para no modificar save.json ni save.json.bak.
+12. La geometría TMP incluye comprobación de tamaño preferido; esto detecta texto
+    silenciosamente truncado aunque isTextOverflowing no lo denuncie.
+13. Las capturas 1080 y 720 y la comparación oficial deben regenerarse después
+    de cualquier cambio en geometría, tipografía, placa, shader o controlador.
+14. La pantalla no se considera aprobada creativamente hasta que el usuario acepte
+    una captura nueva; superar 95 % y pasar QA sólo la convierte en candidata.
+15. PRÓXIMO COSTE, el icono de Fragmentos y la cifra son tres objetos con cajas
+    separadas; los espacios dentro de una cadena no cuentan como margen real.
+16. Fondos y capas de fidelidad no reciben raycasts. El capturador excluye del
+    fixture Panel_Generacion y la navegación global que una apertura forzada no
+    oculta, y falla si una capa interna intercepta un control.
+17. PENALIZACIONES se centra dentro de la franja superior de su panel. El
+    separador permanece continuo y por debajo del rótulo; no atraviesa letras.
+18. Un símbolo cromático debe conservar su silueta completa y margen limpio en
+    el recorte fuente. Su escala y centro óptico se definen por separado en el
+    contenedor de Unity; no se derivan de la posición que ocupaba en el atlas.
+19. Las filas de icono y texto de cada Pacto se centran por el ancho preferido
+    real del TMP, un margen fijo y la caja visible de cada recorte. El centro no
+    depende de espacios escritos ni de una compensación común que falle porque
+    los tres iconos poseen márgenes transparentes distintos.

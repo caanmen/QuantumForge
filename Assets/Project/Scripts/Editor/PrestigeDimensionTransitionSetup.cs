@@ -16,12 +16,18 @@ public static class PrestigeDimensionTransitionSetup
     private const string LaboratoryPath =
         "Assets/Project/UI/Vertical/Prestige/Concepts/" +
         "QF_PrestigeCube_LabBackground_Portrait_v1.png";
-    private const string Cube2DPath =
-        "Assets/Project/UI/Vertical/Prestige/Cinematic/" +
-        "QF_PrestigeCube2D_v1.png";
-    private const string CharacterPath =
-        "Assets/Project/UI/Vertical/Prestige/Cinematic/" +
-        "QF_PrestigeCharacterBackRaised_v1.png";
+    private const string MonolithPath =
+        "Assets/Project/UI/Vertical/Machine/Monolith2D/" +
+        "monolith_overview_progression_clean_v03.png";
+    private const string MonolithCutoutMaterialPath =
+        "Assets/Project/UI/Vertical/Machine/Monolith2D/" +
+        "machine_monolith_light_key.mat";
+    private const string EntryLightPath =
+        "Assets/Project/UI/Vertical/Machine/Monolith2D/" +
+        "machine_monolith_entry_light_depth_pulse_emission_v01.png";
+    private const string EntryLightAdditiveMaterialPath =
+        "Assets/Project/UI/Vertical/Machine/Monolith2D/" +
+        "machine_monolith_entry_light_additive.mat";
     private const string PortalRingPath =
         "Assets/Project/UI/Vertical/Prestige/Cinematic/" +
         "QF_PrestigePortalRing2D_v1.png";
@@ -46,8 +52,8 @@ public static class PrestigeDimensionTransitionSetup
                 "No se encontró PrestigeUI en Main.unity.");
 
         ConfigureTexture(LaboratoryPath, 2048);
-        ConfigureTexture(Cube2DPath, 1024);
-        ConfigureTexture(CharacterPath, 1024);
+        ConfigureTexture(MonolithPath, 2048);
+        ConfigureTexture(EntryLightPath, 1024);
         ConfigureTexture(PortalRingPath, 256);
 
         PrestigeDimensionTransitionUI transition =
@@ -59,11 +65,18 @@ public static class PrestigeDimensionTransitionSetup
         Texture2D cards = AssetDatabase.LoadAssetAtPath<Texture2D>(CardsPath);
         Texture2D portrait = AssetDatabase.LoadAssetAtPath<Texture2D>(PortraitPath);
         Texture2D laboratory = AssetDatabase.LoadAssetAtPath<Texture2D>(LaboratoryPath);
-        Texture2D cube2D = AssetDatabase.LoadAssetAtPath<Texture2D>(Cube2DPath);
-        Texture2D character = AssetDatabase.LoadAssetAtPath<Texture2D>(CharacterPath);
+        Texture2D monolith = AssetDatabase.LoadAssetAtPath<Texture2D>(MonolithPath);
+        Material monolithCutout =
+            AssetDatabase.LoadAssetAtPath<Material>(MonolithCutoutMaterialPath);
+        Texture2D entryLight =
+            AssetDatabase.LoadAssetAtPath<Texture2D>(EntryLightPath);
+        Material entryLightAdditive =
+            AssetDatabase.LoadAssetAtPath<Material>(
+                EntryLightAdditiveMaterialPath);
         Texture2D portalRing = AssetDatabase.LoadAssetAtPath<Texture2D>(PortalRingPath);
         if (cards == null || portrait == null || laboratory == null ||
-            cube2D == null || character == null || portalRing == null)
+            monolith == null || monolithCutout == null || entryLight == null ||
+            entryLightAdditive == null || portalRing == null)
             throw new System.InvalidOperationException(
                 "Faltan las referencias visuales de la transición dimensional.");
 
@@ -72,9 +85,14 @@ public static class PrestigeDimensionTransitionSetup
         transitionObject.FindProperty("portraitReference").objectReferenceValue = portrait;
         transitionObject.FindProperty("laboratoryBackground").objectReferenceValue =
             laboratory;
-        transitionObject.FindProperty("cube2DTexture").objectReferenceValue = cube2D;
-        transitionObject.FindProperty("characterTexture").objectReferenceValue =
-            character;
+        transitionObject.FindProperty("monolithTexture").objectReferenceValue =
+            monolith;
+        transitionObject.FindProperty("monolithCutoutMaterial").objectReferenceValue =
+            monolithCutout;
+        transitionObject.FindProperty("entryLightTexture").objectReferenceValue =
+            entryLight;
+        transitionObject.FindProperty("entryLightAdditiveMaterial").objectReferenceValue =
+            entryLightAdditive;
         transitionObject.FindProperty("portalRingTexture").objectReferenceValue =
             portalRing;
         transitionObject.FindProperty("transitionDuration").floatValue = 8.6f;
@@ -96,8 +114,10 @@ public static class PrestigeDimensionTransitionSetup
             resourceConfig.cardsTexture = cards;
             resourceConfig.portraitReference = portrait;
             resourceConfig.laboratoryBackground = laboratory;
-            resourceConfig.cube2DTexture = cube2D;
-            resourceConfig.characterTexture = character;
+            resourceConfig.monolithTexture = monolith;
+            resourceConfig.monolithCutoutMaterial = monolithCutout;
+            resourceConfig.entryLightTexture = entryLight;
+            resourceConfig.entryLightAdditiveMaterial = entryLightAdditive;
             resourceConfig.portalRingTexture = portalRing;
             EditorUtility.SetDirty(resourceConfig);
         }
@@ -108,7 +128,7 @@ public static class PrestigeDimensionTransitionSetup
         PrestigeDimensionTransitionValidation.Validate();
         Debug.Log(
             "[Prestige Dimension Setup] PASS | cinemática 2D ligera | " +
-            "transición 8.6s | personaje + tres portales + cubo ilustrado | " +
+            "transición 8.6s | Monolito reparado + apertura + tres portales | " +
             "carrusel vertical | confirmación 3 pulsaciones | cancelación segura");
     }
 

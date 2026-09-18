@@ -236,11 +236,9 @@ public static class Prestige1ProgressionValidation
              repairedNodeIds.Count < requiredRepairCount; i++)
         {
             MachineNodeDef node = visibleNodes[i];
-            if (node != null && node.id != "z3_convergence_channel")
+            if (node != null)
                 repairedNodeIds.Add(node.id);
         }
-
-        repairedNodeIds.Add("z3_convergence_channel");
         machine.LoadProgressFromSave(new SaveData
         {
             machineIntroSeen = true,

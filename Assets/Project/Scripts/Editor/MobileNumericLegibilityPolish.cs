@@ -74,7 +74,7 @@ public static class MobileNumericLegibilityPolish
             cost.fontSizeMin = 18f;
             cost.enableAutoSizing = true;
             cost.fontStyle = FontStyles.Bold;
-            cost.overflowMode = TextOverflowModes.Ellipsis;
+            cost.overflowMode = TextOverflowModes.Truncate;
 
             RectTransform rect = cost.rectTransform;
             float rightEdge = rect.anchoredPosition.x + rect.sizeDelta.x *

@@ -1,0 +1,64 @@
+QUANTUM FORGE — CONTINUIDAD DEL MONOLITO 2D V04
+Fecha: 2026-08-26
+
+AUTORIDAD Y REGLAS
+
+- Leer las reglas del proyecto, instrucciones maestras, guías y archivos reales antes de
+  continuar. Este resumen no sustituye la inspección del proyecto.
+- El Monolito es alienígena y estrictamente 2D. El laboratorio humano quedó abandonado
+  después de un accidente. No usar cubos ni representaciones 3D.
+- No inventar assets, símbolos, nombres, mecánicas, estados ni adornos.
+- Mantener sincronizados `Main.unity`, `MachineMonolith2DSetup`, el controlador visual y
+  la captura QA.
+- Los mockups y láminas comparativas son referencia; nunca son assets de runtime.
+
+ESTADO APROBADO POR EL USUARIO
+
+- El centrado perceptual V17 de las cuatro luces de entrada fue aprobado.
+- Posiciones vigentes, sectores 1–4: `(0.39, 0.71)`, `(0.725, 0.36)`,
+  `(0.69, 0.71)` y `(0.325, 0.36)`.
+- La dirección estática V19 fue aprobada como concepto y continúa sin usarse en runtime.
+- El fondo limpio V18 y la primera captura real estática del sector 1 fueron aprobados.
+
+ESTADO IMPLEMENTADO V22
+
+- La vista general conserva V08 y muestra sólo cuatro luces de entrada. No muestra nodos,
+  símbolos, textos explicativos ni `???`.
+- Los cuatro sectores cercanos usan V18 como fondo separado:
+  `Assets/Project/UI/Vertical/Machine/Monolith2D/machine_destroyed_lab_close_dolly_square_v18.png`.
+- Sector 1: superior izquierdo, 7 nodos. Sector 2: inferior derecho, 11 nodos. Sector 3:
+  superior derecho, 7 nodos.
+- Sector 4: inferior izquierdo, accesible, oscuro, sin nodos. Conserva el mismo tamaño
+  físico que las otras caras y muestra `???` únicamente dentro del arte de la cara; la
+  cabecera queda vacía.
+- Los nodos dañados usan emisión baja y los reparados iluminan su símbolo alienígena.
+- La entrada mantiene composición 2D y añade paralaje: el Monolito avanza más que el fondo,
+  V08 y V18 se cruzan gradualmente y el velo oscuro nunca oculta todo el movimiento.
+- El avance de la animación se limita por fotograma para que una pausa larga no salte la
+  transición.
+
+VALIDACIÓN REAL
+
+- Compilación: 0 errores y 0 advertencias.
+- Unity: VALIDATION PASS y CAPTURE PASS.
+- Evidencia: `Logs/machine_monolith_all_faces_parallax_v22_capture.log`.
+- Se generaron 26 capturas en `Logs/VisualQA/MachineMonolith2D` para 1080×1920 y
+  720×1280.
+- La prueba cubre vista general inicial/reparada, sectores 1–3 iniciales/reparados, sector
+  4, Mezclas, regreso, fotograma intermedio, fin de transición y restauración del guardado.
+
+ARCHIVOS PRINCIPALES
+
+- `Assets/Project/Scenes/Main.unity`.
+- `Assets/Project/Scripts/Editor/MachineMonolith2DSetup.cs`.
+- `Assets/Project/Scripts/UI/MachineMonolith2DVisualUI.cs`.
+- `Assets/Project/Scripts/Editor/MachineMonolith2DCapture.cs`.
+- `SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/10_PANTALLAS/MAQUINA/DECISIONES.txt`.
+
+ÚNICO PASO PENDIENTE
+
+1. El usuario debe aprobar perceptualmente las capturas V22 del conjunto de cuatro caras
+   y la transición.
+2. Sólo después registrar el 95 % y copiar las evidencias elegidas a
+   `SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/06_CAPTURAS_APROBADAS`.
+

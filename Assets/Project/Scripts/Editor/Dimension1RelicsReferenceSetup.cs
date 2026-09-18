@@ -197,10 +197,13 @@ public static class Dimension1RelicsReferenceSetup
         Dot(decor, new Vector2(205f, 2f), 7f, CyanMuted);
 
         Button command = ButtonPanel("CommandCenter", root, frame, fill,
-            new Vector2(28f, 58f), new Vector2(168f, 76f), Fill, CyanMuted, out _, out _);
+            new Vector2(Dimension1SharedLayoutTokens.CommandCenterX,
+                Dimension1SharedLayoutTokens.CommandCenterY),
+            new Vector2(Dimension1SharedLayoutTokens.CommandCenterWidth,
+                Dimension1SharedLayoutTokens.CommandCenterHeight), Fill, CyanMuted, out _, out _);
         DrawHomeIcon(command.transform, new Vector2(-58f, 0f), 23f, Secondary);
-        TMP_Text home = Text("Label", command.transform, font, "CENTRO\nDE MANDO", 15f, FontStyles.Bold, Secondary);
-        Top(home.rectTransform, 50f, 17f, 104f, 44f);
+        TMP_Text home = Text("Label", command.transform, font, "CENTRO\nDE MANDO", 16f, FontStyles.Bold, Secondary);
+        Top(home.rectTransform, 52f, 27f, 112f, 48f);
         home.alignment = TextAlignmentOptions.Center;
         AddPersistent(command.onClick, visual.OpenCommandCenter);
 
@@ -319,7 +322,7 @@ public static class Dimension1RelicsReferenceSetup
                 FontStyles.Normal, Primary);
             Top(label.rectTransform, 12f, 205f, 212f, 92f);
             label.alignment = TextAlignmentOptions.Center;
-            label.enableWordWrapping = true;
+            label.textWrappingMode = TextWrappingModes.Normal;
             label.overflowMode = TextOverflowModes.Overflow;
             refs.relicNames.Add(label);
 
@@ -421,6 +424,9 @@ public static class Dimension1RelicsReferenceSetup
             Top(name.rectTransform, 52f, 12f, 88f, 22f);
             TMP_Text amount = Text("Required", cost, font, required[i], 20f, FontStyles.Normal, Primary);
             Top(amount.rectTransform, 52f, 34f, 88f, 28f);
+            amount.enableAutoSizing = true;
+            amount.fontSizeMin = 14f;
+            amount.fontSizeMax = 20f;
             TMP_Text have = Text("Owned", cost, font, owned[i], 14f, FontStyles.Normal, Secondary);
             Top(have.rectTransform, 52f, 66f, 88f, 22f);
             refs.costNames.Add(name);
@@ -471,7 +477,7 @@ public static class Dimension1RelicsReferenceSetup
                        : "Reliquias en destinos de\ninvestigación: <color=#F4A70B>+0.2 pp</color>",
             20f, FontStyles.Normal, Primary);
         Top(content.rectTransform, 82f, 14f, 520f, 58f);
-        content.enableWordWrapping = true;
+        content.textWrappingMode = TextWrappingModes.Normal;
         content.overflowMode = TextOverflowModes.Overflow;
     }
 
@@ -701,8 +707,8 @@ public static class Dimension1RelicsReferenceSetup
         text.fontSize = size;
         text.fontStyle = style;
         text.color = color;
-        text.enableWordWrapping = false;
-        text.overflowMode = TextOverflowModes.Ellipsis;
+        text.textWrappingMode = TextWrappingModes.NoWrap;
+        text.overflowMode = TextOverflowModes.Truncate;
         text.raycastTarget = false;
         return text;
     }

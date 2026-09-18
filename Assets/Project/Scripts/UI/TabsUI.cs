@@ -181,8 +181,9 @@ public class TabsUI : MonoBehaviour
     {
         if (btnPrestigio != null)
         {
-            btnPrestigio.gameObject.SetActive(
-                ShouldShowPrestige1Button(GameState.I, MachineManager.I));
+            // Prestigio pertenece ahora al contexto de la Máquina y se abre desde
+            // su tercera pestaña. El acceso secundario antiguo queda retirado.
+            btnPrestigio.gameObject.SetActive(false);
             TMP_Text label = btnPrestigio.GetComponentInChildren<TMP_Text>(true);
             if (label != null && GameState.I != null)
                 label.text = ConvergenceCircuitSystem.IsConvergenceUnlocked(GameState.I)
@@ -390,6 +391,11 @@ public class TabsUI : MonoBehaviour
         if (prestigePanel != null) prestigePanel.SetActive(true);
         if (verticalNavigation != null)
             verticalNavigation.SetSecondarySelection(btnPrestigio);
+    }
+
+    public void ShowPrestigeFromMachine()
+    {
+        ShowPrestigio();
     }
 
     private void RefreshVerticalNavigationAvailability()

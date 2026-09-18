@@ -1,8 +1,0 @@
-DECISIONES ESPECÍFICAS: CENTRO DE MANDO
-=======================================
-
-- La navegación propia de Dimensión 1 no debe mezclarse visualmente con la
-  navegación global externa.
-- La referencia visual permanente es la almacenada en 05_REFERENCIAS.
-- No convertir observaciones todavía no aprobadas en reglas universales.
-

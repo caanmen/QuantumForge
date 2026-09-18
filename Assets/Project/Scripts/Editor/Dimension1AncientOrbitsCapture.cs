@@ -65,7 +65,7 @@ public static class Dimension1AncientOrbitsCapture
             EditorApplication.playModeStateChanged -= OnPlayModeChanged;
             bool failed = SessionState.GetBool(FailureKey, false);
             Debug.Log((failed ? "[D1 Ancient Orbits Capture] FAIL | " :
-                "[D1 Ancient Orbits Capture] PASS | real entry + metals + upgrade + back | 1080x1920 + 720x1280 | ") + Output1080);
+                "[D1 Ancient Orbits Capture] PASS | real entry + 4 exact destinations + metals + upgrade + back | 1080x1920 + 720x1280 | ") + Output1080);
             EditorApplication.Exit(failed ? 1 : 0);
         }
     }
@@ -89,11 +89,12 @@ public static class Dimension1AncientOrbitsCapture
             if (frame == 40) EnterAncientOrbits();
             if (frame >= 41) EnsureAncientAncestorsActive();
             if (frame == 48) ValidateOpen();
-            if (frame == 54) TestMetalsRoundTrip();
-            if (frame == 62) TestUpgrade();
-            if (frame == 70) TestBackAndReopen();
-            if (frame >= 70 && frame <= 92) ForceVisible();
-            if (frame != 92) return;
+            if (frame == 54) TestDestinations();
+            if (frame == 64) TestMetalsRoundTrip();
+            if (frame == 72) TestUpgrade();
+            if (frame == 80) TestBackAndReopen();
+            if (frame >= 80 && frame <= 102) ForceVisible();
+            if (frame != 102) return;
             ValidateVisibleScreen();
             RenderToPng(1080, 1920, Output1080);
             RenderToPng(720, 1280, Output720);
@@ -137,7 +138,6 @@ public static class Dimension1AncientOrbitsCapture
         EnsureMetal(state, Dimension1System.MetalNickel, 4700000d);
         EnsureMetal(state, Dimension1System.MetalLithium, 10000d);
         EnsureMetal(state, Dimension1System.MetalPlatinum, 10000d);
-
         TabsUI tabs = TabsUI.Instance != null ? TabsUI.Instance : UnityEngine.Object.FindFirstObjectByType<TabsUI>();
         if (tabs != null) tabs.ShowDimension1();
         Dimension1PanelUI panel = UnityEngine.Object.FindFirstObjectByType<Dimension1PanelUI>(FindObjectsInactive.Include);
@@ -158,6 +158,15 @@ public static class Dimension1AncientOrbitsCapture
         if (back == null) throw new InvalidOperationException("El inventario no tiene regreso.");
         back.onClick.Invoke();
         ValidateOpen();
+    }
+
+    private static void TestDestinations()
+    {
+        Transform root = FindSceneTransform("D1_AncientOrbitsVisualRoot");
+        if (FindChild(root, "Destinations") != null)
+            throw new InvalidOperationException(
+                "Órbitas Antiguas volvió a duplicar destinos que pertenecen a Explorar.");
+        ForceVisible();
     }
 
     private static void EnsureAncientAncestorsActive()
@@ -282,7 +291,7 @@ public static class Dimension1AncientOrbitsCapture
         string[] required =
         {
             "Heading", "Metal_0", "AllMetals", "Planet4", "Planet5",
-            "Destinations", "Destination_0", "Destination_3", "BackToGalaxyMap", "BottomNavigation"
+            "BackToGalaxyMap", "BottomNavigation"
         };
         foreach (string name in required)
             if (FindChild(root, name) == null) throw new InvalidOperationException("Falta bloque visible: " + name);

@@ -19,8 +19,10 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
     public sealed class SectorNodeView
     {
         public string sectorId;
+        public string planetId;
         public RectTransform root;
         public Image planet;
+        public Graphic orbitPath;
         public Image orbitRing;
         public Image glow;
         public Image labelPlate;
@@ -33,6 +35,7 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
     }
 
     [SerializeField] private Dimension1PanelUI panel;
+    [SerializeField] private Dimension1CommandCenterUI commandCenter;
     [SerializeField] private TMP_Text currentSectorText;
     [SerializeField] private TMP_Text unlockedSectorText;
     [SerializeField] private MetalChip[] metalChips;
@@ -62,6 +65,7 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
     private string animatedPlanetSectorId = "";
     private Vector2[] asteroidOrigins;
     private string lastPreviewSectorId;
+    private string selectedPlanetId = "";
     private bool[] hiddenPreviousStates;
     private VerticalNavigationUI verticalNavigation;
     private bool exclusiveNavigationPending;
@@ -69,22 +73,10 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
     private float galaxyAnimationTime;
     private Vector2 selectedTitleBasePosition;
     private bool selectedTitlePositionCached;
+    private Button runtimeExploreButton;
+    private bool runtimeExploreBound;
 
     private static readonly int GalaxyAnimTimeId = Shader.PropertyToID("_AnimTime");
-
-    private static readonly string[] MetalIds =
-    {
-        Dimension1System.MetalIron,
-        Dimension1System.MetalCopper,
-        Dimension1System.MetalAluminum,
-        Dimension1System.MetalTitanium,
-        Dimension1System.MetalNickel,
-        Dimension1System.MetalCobalt,
-        Dimension1System.MetalLithium,
-        Dimension1System.MetalTungsten,
-        Dimension1System.MetalPlatinum,
-        Dimension1System.MetalIridium
-    };
 
     private void Awake()
     {
@@ -109,16 +101,19 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
             verticalNavigation.SetNavigationSuppressed(true, this);
         refreshTimer = 0f;
         lastPreviewSectorId = "";
+        selectedPlanetId = "";
         animatedPlanetSectorId = "";
         selectedPlanetAngle = 0f;
         galaxyAnimationTime = 0f;
         lastAnimationTime = Time.unscaledTime;
         PrepareGalaxyMaterial();
+        BindExploreFallback();
         Refresh();
     }
 
     private void OnDisable()
     {
+        UnbindExploreFallback();
         exclusiveNavigationPending = false;
         ApplyExclusiveNavigation(false);
         if (verticalNavigation != null)
@@ -218,7 +213,8 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
                 if (node.glow != null)
                     node.glow.gameObject.SetActive(false);
                 if (node.planet != null)
-                    node.planet.rectTransform.localRotation = node.sectorId == preview
+                    node.planet.rectTransform.localRotation = node.sectorId == preview &&
+                        node.sectorId != Dimension1System.Sector05GalacticCenter
                         ? Quaternion.Euler(0f, 0f, selectedPlanetAngle)
                         : Quaternion.identity;
             }
@@ -281,20 +277,30 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
         GameState state = GameState.I;
         if (state == null || !state.dimension01Unlocked)
         {
-            SetHeader("DIMENSIÓN NO DISPONIBLE", "0/5 SECTORES");
+            SetHeader("DIMENSIÓN NO DISPONIBLE", "0/4 SECTORES · CENTRO BLOQUEADO");
             HideAllMetalChips();
             return;
         }
 
         state.EnsureDimension1State();
-        int unlocked = 0;
+        int unlockedExplorationSectors = 0;
+        bool centerUnlocked = false;
         if (state.dimension1Sectors != null)
             foreach (D1SectorState sector in state.dimension1Sectors)
-                if (sector != null && sector.unlocked) unlocked++;
+            {
+                if (sector == null || !sector.unlocked) continue;
+                if (Dimension1System.IsDimension1ExplorationSectorId(sector.sectorId))
+                    unlockedExplorationSectors++;
+                else if (sector.sectorId == Dimension1System.Sector05GalacticCenter)
+                    centerUnlocked = true;
+            }
 
         string current = Dimension1System.GetDimension1SectorVisualName(
             state.dimension1SelectedSectorId);
-        SetHeader("ACTUAL · " + current.ToUpperInvariant(), unlocked + "/5 SECTORES");
+        SetHeader(
+            "ACTUAL · " + current.ToUpperInvariant(),
+            unlockedExplorationSectors + "/4 SECTORES · CENTRO " +
+            (centerUnlocked ? "DISPONIBLE" : "BLOQUEADO"));
         RefreshMetalChips(state);
         RefreshNodes(state);
 
@@ -312,10 +318,69 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
         }
     }
 
+    public void RefreshFromStateForUi()
+    {
+        Refresh();
+        refreshTimer = Mathf.Max(0.08f, refreshInterval);
+    }
+
+    public void OpenExplore()
+    {
+        if (commandCenter == null)
+            commandCenter = FindFirstObjectByType<Dimension1CommandCenterUI>(FindObjectsInactive.Include);
+        if (commandCenter != null)
+            commandCenter.ShowExploreScreen();
+    }
+
+    public void SelectElysia() => PreviewPlanet(
+        Dimension1System.Planet01, Dimension1System.Sector01OuterRim);
+    public void SelectVulkar() => PreviewPlanet(
+        Dimension1System.Planet02, Dimension1System.Sector01OuterRim);
+    public void SelectCoronaDeTantalo() => PreviewPlanet(
+        Dimension1System.Planet03, Dimension1System.Sector02DebrisRing);
+    public void SelectMnemos() => PreviewPlanet(
+        Dimension1System.Planet04, Dimension1System.Sector03AncientOrbits);
+    public void SelectOrpheon() => PreviewPlanet(
+        Dimension1System.Planet05, Dimension1System.Sector03AncientOrbits);
+    public void SelectNyxara() => PreviewPlanet(
+        Dimension1System.Planet06, Dimension1System.Sector04SilentFrontier);
+    public void SelectErebon() => PreviewPlanet(
+        Dimension1System.Planet07, Dimension1System.Sector04SilentFrontier);
+
+    public void SelectGalacticCenter()
+    {
+        selectedPlanetId = "";
+        if (panel != null) panel.OnClickPreviewGalaxyCenter();
+        Refresh();
+    }
+
+    private void PreviewPlanet(string planetId, string sectorId)
+    {
+        selectedPlanetId = planetId ?? "";
+        if (panel != null)
+        {
+            if (sectorId == Dimension1System.Sector01OuterRim)
+                panel.OnClickPreviewGalaxySector1();
+            else if (sectorId == Dimension1System.Sector02DebrisRing)
+                panel.OnClickPreviewGalaxySector2();
+            else if (sectorId == Dimension1System.Sector03AncientOrbits)
+                panel.OnClickPreviewGalaxySector3();
+            else if (sectorId == Dimension1System.Sector04SilentFrontier)
+                panel.OnClickPreviewGalaxySector4();
+        }
+        Refresh();
+    }
+
     private void RefreshNodes(GameState state)
     {
         if (sectorNodes == null) return;
         string preview = GetPreviewSectorId();
+        SectorNodeView explicitlySelected = FindNodeByPlanet(selectedPlanetId);
+        if (explicitlySelected != null && explicitlySelected.sectorId != preview)
+        {
+            selectedPlanetId = "";
+            explicitlySelected = null;
+        }
 
         for (int i = 0; i < sectorNodes.Length; i++)
         {
@@ -324,11 +389,19 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
             D1SectorState sector = FindSector(state, node.sectorId);
             bool unlocked = sector != null && sector.unlocked;
             bool current = state.dimension1SelectedSectorId == node.sectorId;
-            bool selected = preview == node.sectorId;
+            bool selected = explicitlySelected != null
+                ? node == explicitlySelected
+                : string.IsNullOrEmpty(node.planetId) && preview == node.sectorId;
             bool centerLocked = node.sectorId == Dimension1System.Sector05GalacticCenter && !unlocked;
             Color accent = selected ? Hex("F4B545") :
                 centerLocked ? Hex("F4A300") : unlocked ? Hex("55CFFF") : Hex("667586");
 
+            if (node.orbitPath != null)
+            {
+                Color orbitColor = selected ? Hex("F4B545") : unlocked ? Hex("30BFE8") : Hex("53616B");
+                orbitColor.a = selected ? 0.92f : unlocked ? 0.48f : 0.25f;
+                node.orbitPath.color = orbitColor;
+            }
             if (node.orbitRing != null)
             {
                 node.orbitRing.color = new Color(accent.r, accent.g, accent.b, 0f);
@@ -354,18 +427,19 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
                 node.planet.color = Color.white;
             if (node.lockBadge != null) node.lockBadge.SetActive(!unlocked);
             if (node.currentBadge != null) node.currentBadge.SetActive(current && unlocked);
-            if (node.titleText != null) node.titleText.text = GetShortSectorName(node.sectorId);
+            if (node.titleText != null)
+                node.titleText.text = string.IsNullOrEmpty(node.planetId)
+                    ? GetShortSectorName(node.sectorId)
+                    : Dimension1System.GetDimension1PlanetVisualName(node.planetId).ToUpperInvariant();
             if (node.stateText != null)
             {
-                int count = sector == null ? 0 : Mathf.Max(0, sector.completedExplorations);
-                string expeditionWord = count == 1 ? "EXPEDICIÓN" : "EXPEDICIONES";
                 node.stateText.text = centerLocked
-                    ? "???"
-                    : current
-                        ? count + "\n" + expeditionWord
-                        : unlocked
-                            ? count + "\n" + expeditionWord
-                            : "REQUISITOS\nPENDIENTES";
+                    ? "ACCESO BLOQUEADO"
+                    : !unlocked
+                        ? "BLOQUEADO"
+                        : current
+                            ? "ACTUAL · " + GetCompactSectorName(node.sectorId)
+                            : GetCompactSectorName(node.sectorId);
                 node.stateText.color = selected ? Hex("FFD56E") : unlocked ? Hex("62D8F4") : Hex("A8B0B8");
             }
 
@@ -377,6 +451,46 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
                     if (routeImage != null) routeImage.color = route;
             }
         }
+    }
+
+    private void BindExploreFallback()
+    {
+        if (runtimeExploreButton == null)
+        {
+            runtimeExploreButton = FindNamedButton("ExploreButton");
+            if (runtimeExploreButton == null)
+                runtimeExploreButton = FindNamedButton("EXPLORARButton");
+        }
+        if (runtimeExploreButton == null || runtimeExploreBound ||
+            HasPersistentMethod(runtimeExploreButton, nameof(OpenExplore)) ||
+            HasPersistentMethod(runtimeExploreButton, "ShowExploreScreen"))
+        {
+            return;
+        }
+        runtimeExploreButton.onClick.AddListener(OpenExplore);
+        runtimeExploreBound = true;
+    }
+
+    private void UnbindExploreFallback()
+    {
+        if (runtimeExploreBound && runtimeExploreButton != null)
+            runtimeExploreButton.onClick.RemoveListener(OpenExplore);
+        runtimeExploreBound = false;
+    }
+
+    private Button FindNamedButton(string objectName)
+    {
+        foreach (Button button in GetComponentsInChildren<Button>(true))
+            if (button != null && button.transform.name == objectName) return button;
+        return null;
+    }
+
+    private static bool HasPersistentMethod(Button button, string methodName)
+    {
+        if (button == null) return false;
+        for (int i = 0; i < button.onClick.GetPersistentEventCount(); i++)
+            if (button.onClick.GetPersistentMethodName(i) == methodName) return true;
+        return false;
     }
 
     private void RefreshSelectedPanel(GameState state, string sectorId)
@@ -399,7 +513,7 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
                 ? BuildPlanetsText(sectorId)
                 : BuildRequirementsText(state, sectorId);
 
-        SectorNodeView previewNode = FindNode(sectorId);
+        SectorNodeView previewNode = FindNodeByPlanet(selectedPlanetId) ?? FindNode(sectorId);
         if (previewNode != null && previewNode.planet != null)
         {
             if (selectedPlanetPreview != null)
@@ -468,6 +582,14 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
         return null;
     }
 
+    private SectorNodeView FindNodeByPlanet(string planetId)
+    {
+        if (sectorNodes == null || string.IsNullOrEmpty(planetId)) return null;
+        foreach (SectorNodeView node in sectorNodes)
+            if (node != null && node.planetId == planetId) return node;
+        return null;
+    }
+
     private static D1SectorState FindSector(GameState state, string sectorId)
     {
         if (state == null || state.dimension1Sectors == null) return null;
@@ -491,12 +613,15 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
         if (sectorId == Dimension1System.Sector05GalacticCenter)
             return "SIN PLANETAS · ARK DETECTADA";
         if (sectorId == Dimension1System.Sector02DebrisRing)
-            return "PLANETAS\nPLANETA 3";
+            return "CUERPO\n" + Dimension1System.GetDimension1PlanetVisualName(Dimension1System.Planet03).ToUpperInvariant();
         if (sectorId == Dimension1System.Sector01OuterRim)
-            return "PLANETAS\nPLANETA 1  ·  PLANETA 2";
+            return "CUERPOS\n" + Dimension1System.GetDimension1PlanetVisualName(Dimension1System.Planet01).ToUpperInvariant() +
+                "  ·  " + Dimension1System.GetDimension1PlanetVisualName(Dimension1System.Planet02).ToUpperInvariant();
         if (sectorId == Dimension1System.Sector03AncientOrbits)
-            return "PLANETAS\nPLANETA 4  ·  PLANETA 5";
-        return "PLANETAS\nPLANETA 6  ·  PLANETA 7";
+            return "CUERPOS\n" + Dimension1System.GetDimension1PlanetVisualName(Dimension1System.Planet04).ToUpperInvariant() +
+                "  ·  " + Dimension1System.GetDimension1PlanetVisualName(Dimension1System.Planet05).ToUpperInvariant();
+        return "CUERPOS\n" + Dimension1System.GetDimension1PlanetVisualName(Dimension1System.Planet06).ToUpperInvariant() +
+            "  ·  " + Dimension1System.GetDimension1PlanetVisualName(Dimension1System.Planet07).ToUpperInvariant();
     }
 
     private static string BuildRequirementsText(GameState state, string sectorId)
@@ -519,6 +644,15 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
         if (sectorId == Dimension1System.Sector04SilentFrontier) return "FRONTERA SILENCIOSA";
         if (sectorId == Dimension1System.Sector05GalacticCenter) return "CENTRO GALÁCTICO";
         return sectorId ?? "SECTOR";
+    }
+
+    private static string GetCompactSectorName(string sectorId)
+    {
+        if (sectorId == Dimension1System.Sector01OuterRim) return "BORDE";
+        if (sectorId == Dimension1System.Sector02DebrisRing) return "ANILLO";
+        if (sectorId == Dimension1System.Sector03AncientOrbits) return "ÓRBITAS";
+        if (sectorId == Dimension1System.Sector04SilentFrontier) return "FRONTERA";
+        return "CENTRO GALÁCTICO";
     }
 
     private static string GetDestinationName(string id)
@@ -551,25 +685,7 @@ public sealed class Dimension1GalaxyVisualUI : MonoBehaviour
 
     private void RefreshMetalChips(GameState state)
     {
-        if (metalChips == null) return;
-        int slot = 0;
-        foreach (string metalId in MetalIds)
-        {
-            if (slot >= metalChips.Length) break;
-            if (!Dimension1System.IsMetalUnlockedForDimension1(state, metalId)) continue;
-            MetalChip chip = metalChips[slot++];
-            if (chip == null) continue;
-            if (chip.root != null) chip.root.SetActive(true);
-            if (chip.nameText != null) chip.nameText.text = GetMetalName(metalId).ToUpperInvariant();
-            if (chip.amountText != null) chip.amountText.text = FormatAmount(state.GetD1MetalAmount(metalId));
-            if (chip.rateText != null)
-                chip.rateText.text = "+" + FormatAmount(
-                    Dimension1System.GetMetalProductionPerSecond(state, metalId)) + "/s";
-            if (chip.marker != null) chip.marker.color = GetMetalColor(metalId);
-        }
-        for (int i = slot; i < metalChips.Length; i++)
-            if (metalChips[i] != null && metalChips[i].root != null)
-                metalChips[i].root.SetActive(false);
+        Dimension1HeaderMetalsUI.Refresh(transform, state, state.dimension1SelectedSectorId);
     }
 
     private static string FormatAmount(double value)

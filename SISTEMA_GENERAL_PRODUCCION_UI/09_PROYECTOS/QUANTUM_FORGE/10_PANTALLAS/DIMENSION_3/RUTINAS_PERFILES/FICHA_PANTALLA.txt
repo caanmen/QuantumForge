@@ -1,0 +1,28 @@
+FICHA — RUTINAS Y PERFILES ONLINE
+==================================
+
+ID visual: DIMENSION_3 / RUTINAS_PERFILES
+Controlador compartido: D3AutomationPanelUI
+Referencia final: 10_Rutinas_Perfiles.png
+Resolución maestra: 1080x1920 vertical
+
+ESCENARIO CANÓNICO
+- Recursos: 3.25M LE, 4.2K trazas, 56 autómatas.
+- Patrón aprendido: Barrido simple.
+- Puerto de Expediciones N1 activo y enlazado con Dimensión 1.
+- Banco de Diagnóstico N4 y Núcleo de Automatización N2 construidos.
+- Una rutina activa de un máximo de tres.
+- Un perfil guardado de un máximo de uno.
+- Prioridad 3, parada tras cinco ejecuciones y reserva de recurso 100.
+- Rutina en ejecución 2/5, último resultado: Barrido simple iniciado.
+- Automatización externa offline bloqueada porque las instalaciones no están en N5.
+
+CONTROLES REALES
+- Volver a instalaciones.
+- Acción, objetivo contextual, prioridad, parada y reserva.
+- Crear rutina pausada.
+- Selector, pausar/activar y eliminar rutina.
+- Selector, guardar y cargar perfil.
+
+ESTADO DE APROBACIÓN
+Candidata implementada; pendiente de revisión visual explícita del usuario.

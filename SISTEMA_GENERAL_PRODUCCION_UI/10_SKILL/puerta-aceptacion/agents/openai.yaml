@@ -1,0 +1,4 @@
+interface:
+  display_name: "Puerta de aceptación"
+  short_description: "Bloquea cierres sin criterios y evidencia vigentes"
+  default_prompt: "Aplica la puerta de aceptación al entregable actual y genera un registro verificable."

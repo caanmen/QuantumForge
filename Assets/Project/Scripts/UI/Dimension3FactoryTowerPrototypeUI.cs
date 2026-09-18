@@ -7,6 +7,8 @@ using UnityEngine.UI;
 /// </summary>
 public sealed class Dimension3FactoryTowerPrototypeUI : MonoBehaviour
 {
+    private const float AnimationRefreshInterval = 1f / 20f;
+
     [Header("Moving factory parts")]
     public RectTransform pressHead;
     public RectTransform liftCar;
@@ -21,6 +23,7 @@ public sealed class Dimension3FactoryTowerPrototypeUI : MonoBehaviour
     private Vector2 pressOrigin;
     private Vector2 liftOrigin;
     private Vector2[] markerOrigins;
+    private float nextAnimationRefreshTime;
 
     private void Awake()
     {
@@ -34,6 +37,9 @@ public sealed class Dimension3FactoryTowerPrototypeUI : MonoBehaviour
 
     private void Update()
     {
+        if (Time.unscaledTime < nextAnimationRefreshTime)
+            return;
+        nextAnimationRefreshTime = Time.unscaledTime + AnimationRefreshInterval;
         ApplyPose(Time.unscaledTime);
     }
 

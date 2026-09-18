@@ -14,6 +14,10 @@ public static class Dimension1HangarReferenceCapture
     private static string OutputDirectory => Path.GetFullPath("Logs/VisualQA/Dimension1/HangarReference");
     private static string OutputPath => Path.Combine(OutputDirectory, "Hangar_reference_1080x1920.png");
     private static string OutputPath720 => Path.Combine(OutputDirectory, "Hangar_reference_720x1280.png");
+    private static string OutputArmor => Path.Combine(OutputDirectory, "Hangar_blindaje_1080x1920.png");
+    private static string OutputArmor720 => Path.Combine(OutputDirectory, "Hangar_blindaje_720x1280.png");
+    private static string OutputSensors => Path.Combine(OutputDirectory, "Hangar_sensores_1080x1920.png");
+    private static string OutputSensors720 => Path.Combine(OutputDirectory, "Hangar_sensores_720x1280.png");
 
     [InitializeOnLoadMethod]
     private static void Resume()
@@ -33,6 +37,10 @@ public static class Dimension1HangarReferenceCapture
         Directory.CreateDirectory(OutputDirectory);
         if (File.Exists(OutputPath)) File.Delete(OutputPath);
         if (File.Exists(OutputPath720)) File.Delete(OutputPath720);
+        if (File.Exists(OutputArmor)) File.Delete(OutputArmor);
+        if (File.Exists(OutputArmor720)) File.Delete(OutputArmor720);
+        if (File.Exists(OutputSensors)) File.Delete(OutputSensors);
+        if (File.Exists(OutputSensors720)) File.Delete(OutputSensors720);
         EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
         SessionState.SetBool(ActiveKey, true);
         SessionState.SetBool(FailureKey, false);
@@ -70,10 +78,25 @@ public static class Dimension1HangarReferenceCapture
             SessionState.SetInt(FrameKey, frame);
             if (frame == 24) Prepare();
             if (frame >= 24 && frame <= 60) ForceVisible();
-            if (frame != 60) return;
-            ValidateVisibleScreen();
-            RenderToPng(1080, 1920, OutputPath);
-            RenderToPng(720, 1280, OutputPath720);
+            if (frame == 60)
+            {
+                ValidateVisibleScreen();
+                RenderToPng(1080, 1920, OutputPath);
+                RenderToPng(720, 1280, OutputPath720);
+                GetVisual().SelectArmor();
+                return;
+            }
+            if (frame == 64)
+            {
+                CaptureSelectedPartVariant(
+                    "METALES OBTENIDOS", "RECOMPENSA CONSERVADA", OutputArmor, OutputArmor720);
+                GetVisual().SelectSensors();
+                return;
+            }
+            if (frame != 68) return;
+            CaptureSelectedPartVariant(
+                "PROB. DE FRAGMENTO", " PP", OutputSensors, OutputSensors720,
+                "MATRIZ ESPECÍFICA");
             EditorApplication.update -= Tick;
             EditorApplication.isPlaying = false;
         }
@@ -162,6 +185,32 @@ public static class Dimension1HangarReferenceCapture
             throw new System.InvalidOperationException("La mejora seleccionada no coincide con la referencia.");
         if (FindSceneTransform("PrimaryNavigationSlot")?.gameObject.activeSelf == true)
             throw new System.InvalidOperationException("La navegación global se mezcló con Hangar.");
+    }
+
+    private static Dimension1HangarVisualUI GetVisual()
+    {
+        Transform root = FindSceneTransform("D1_HangarVisualRoot");
+        Dimension1HangarVisualUI visual = root != null ? root.GetComponent<Dimension1HangarVisualUI>() : null;
+        if (visual == null)
+            throw new System.InvalidOperationException("Falta el controlador visual del Hangar.");
+        return visual;
+    }
+
+    private static void CaptureSelectedPartVariant(
+        string requiredText, string forbiddenText, string output1080, string output720,
+        string secondRequiredText = null)
+    {
+        Transform root = FindSceneTransform("D1_HangarVisualRoot");
+        TMP_Text bonus = FindChild(root, "BonusValue")?.GetComponent<TMP_Text>();
+        if (bonus == null)
+            throw new System.InvalidOperationException("Falta el detalle funcional del Hangar.");
+        Canvas.ForceUpdateCanvases();
+        if (!bonus.text.Contains(requiredText) ||
+            (!string.IsNullOrEmpty(secondRequiredText) && !bonus.text.Contains(secondRequiredText)) ||
+            (!string.IsNullOrEmpty(forbiddenText) && bonus.text.Contains(forbiddenText)))
+            throw new System.InvalidOperationException("La variante seleccionada no muestra el texto funcional esperado.");
+        RenderToPng(1080, 1920, output1080);
+        RenderToPng(720, 1280, output720);
     }
 
     private static void PrepareCanvasesForCapture()

@@ -1,0 +1,28 @@
+DECISIONES ESPECÍFICAS: EXPEDICIÓN COMPLETADA
+============================================
+
+- Es una subpantalla superpuesta y bloqueante; conserva activa la pantalla Explorar debajo.
+- No incorpora el encabezado ni la navegación inferior D1 porque la referencia define una
+  pausa de resultado enfocada en una única decisión.
+- La duración y el punto especial se conservan en el registro al completar la expedición;
+  los registros antiguos que no poseen esos datos omiten el valor en vez de inventarlo.
+- Los sprites de metales y reliquias se reutilizan de sus familias canónicas.
+- La insignia de victoria y los símbolos de matrices son candidatos nuevos porque no existía
+  un asset independiente equivalente. No se promueven a canónicos sin aprobación.
+- La Antena Fracturada de la referencia se reemplaza en juego por la reliquia realmente obtenida.
+- El aviso de hallazgo no es decorativo: muestra el nombre del punto especial realmente consumido.
+- La sección de reliquia distingue descubrimiento nuevo de duplicado convertido a metal.
+- Los blueprints de nave reutilizan el material canónico `d1_hangar_blueprint_keyed.mat`;
+  cargar el sprite sin ese material deja visible su fondo claro.
+- El catálogo funcional y la galería visual de reliquias tienen órdenes diferentes; esta
+  pantalla usa el mismo mapa explícito de ID a sprite que la Cámara de Reliquias.
+- Con una o dos recompensas metálicas se conserva la tarjeta amplia de la referencia; con
+  tres se redistribuye el ancho y con cuatro se usa una densidad interna compacta dentro
+  del mismo panel. Ningún resultado real se trunca.
+- Cuando existen dos metales, sus tarjetas usan exactamente `x=92/548` y ancho `360`, las
+  mismas columnas de Fragmentos y Matriz específica.
+- Una actualización programática de los dropdowns de destino, nave o apoyo sincroniza el
+  valor observado sin ejecutar la semántica de una selección física. Sólo una elección del
+  jugador puede cerrar el resultado por cambio de selección.
+- La prueba de ruta no acepta un destello: espera la aparición y exige 12 fotogramas reales
+  consecutivos con alfa, interacción y raycasts activos antes de continuar.

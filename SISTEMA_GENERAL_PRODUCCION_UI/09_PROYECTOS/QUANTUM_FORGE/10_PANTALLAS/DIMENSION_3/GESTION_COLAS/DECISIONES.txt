@@ -1,0 +1,29 @@
+DECISIONES — GESTIÓN DE COLAS
+=============================
+
+1. La maestra limpia 11_Gestion_Colas.png manda en composición y acabado.
+2. La pantalla reutiliza D3QueuesPanelUI y D3JobQueueSystem.
+3. El trabajo se crea mediante la API real de producción; no se inventa solo texto.
+4. La captura fija 6 s restantes de los 10 s base para reproducir el estado visual.
+5. Se ejecuta el primer toque real de cancelación, sin eliminar el trabajo.
+6. La placa visual no recibe raycasts; los controles reales conservan la interacción.
+7. La validación final cubre toda la Dimensión 3, integridad de Main y layout móvil.
+8. El usuario aprobó explícitamente la pantalla el 7 de septiembre de 2026 y
+   autorizó archivarla como cierre de la Dimensión 3.
+
+EVIDENCIA DE IMPLEMENTACIÓN — 2026-09-07
+========================================
+
+- Captura real de Unity validada en 1080x1920 y 720x1280.
+- Comparación directa 1080x1920 contra la maestra: 98.14 % por diferencia
+  media y 95.70 % con la métrica estricta basada en RMSE.
+- Estado real capturado: Producción, chassis V1 ×1 activo, 6 s restantes,
+  100 LE + 1 T pagados y primer aviso de cancelación durante 5 s.
+- D3 Queues Full Validation: PASS.
+- Bloques funcionales de Dimensión 3, del 1 al 7D: PASS.
+- Integridad de Main: PASS; Missing Scripts: 0; referencias rotas: 0.
+- Layout móvil y áreas táctiles: PASS.
+- Regresión de Rutinas y perfiles: capturas idénticas byte por byte a las aprobadas.
+- SHA256 de la partida tras QA:
+  2CBFBA411308795CCDE920BE4D473AB4AAC72C92288436738CFD3DCB54D67AA5.
+- Capturas promovidas a `06_CAPTURAS_APROBADAS/DIMENSION_3/GESTION_COLAS`.

@@ -1,0 +1,25 @@
+FICHA — GESTIÓN DE COLAS
+========================
+
+ID visual: DIMENSION_3 / GESTION_COLAS
+Controlador compartido: D3QueuesPanelUI
+Referencia final: 11_Gestion_Colas.png
+Resolución maestra: 1080x1920 vertical
+
+ESCENARIO CANÓNICO
+- Recursos iniciales de contexto: 3.25M LE, 4.2K trazas, 56 autómatas.
+- Cola seleccionada: Producción.
+- Trabajo seleccionado: ACTIVO 1 — chassis V1 ×1.
+- Duración base: 10 s; trabajo restante y tiempo estimado actual: 6 s.
+- Coste pagado: 100 LE + 1 traza.
+- Primer toque de cancelación realizado; el trabajo sigue existiendo.
+- La advertencia ofrece cinco segundos para confirmar y recuerda que no hay devolución.
+
+CONTROLES REALES
+- Volver al banco.
+- Selector de cola.
+- Selector de trabajo.
+- Cancelar trabajo seleccionado con confirmación para trabajos activos.
+
+ESTADO DE APROBACIÓN
+Candidata implementada; pendiente de revisión visual explícita del usuario.

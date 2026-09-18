@@ -19,13 +19,13 @@ public static class UIProductionManifestSetup
             "D1_CENTRO_DE_MANDO",
             "Centro de Mando",
             UIProductionScreenManifest.ApprovalStage.DataAndInteraction,
-            "SISTEMA_UI_QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_1/CENTRO_DE_MANDO/referencia_centro_de_mando.png",
+            "SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_1/CENTRO_DE_MANDO/referencia_centro_de_mando.png",
             new string[0],
             theme,
             "Dimension1CommandCenterSetup",
             "Dimension1CommandCenterDrawerRuntimeValidation",
             new[] { "Neutral", "Drawer/Navegación" },
-            "SISTEMA_UI_QUANTUM_FORGE/10_PANTALLAS/DIMENSION_1/CENTRO_DE_MANDO",
+            "SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/10_PANTALLAS/DIMENSION_1/CENTRO_DE_MANDO",
             "La captura final aún debe consolidarse en el sistema central.");
 
         ConfigureManifest(
@@ -33,13 +33,13 @@ public static class UIProductionManifestSetup
             "D1_CARTA_GALACTICA",
             "Carta Galáctica",
             UIProductionScreenManifest.ApprovalStage.Approved,
-            "SISTEMA_UI_QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_1/CARTA_GALACTICA/referencia_carta_galactica.png",
+            "SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/05_REFERENCIAS/DIMENSION_1/CARTA_GALACTICA/referencia_carta_galactica.png",
             ApprovedGalaxyCaptures(),
             theme,
             "Dimension1GalaxyPremiumSetup.ConfigureReferenceV11",
             "Dimension1GalaxyReferenceCapture.RunInteractionRegression",
             new[] { "Neutral", "Órbitas Antiguas seleccionada" },
-            "SISTEMA_UI_QUANTUM_FORGE/10_PANTALLAS/DIMENSION_1/CARTA_GALACTICA",
+            "SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/10_PANTALLAS/DIMENSION_1/CARTA_GALACTICA",
             "Referencia V11 con rutas simétricas e interacción regresiva aprobada.");
 
         AssetDatabase.SaveAssets();
@@ -90,8 +90,8 @@ public static class UIProductionManifestSetup
     {
         return new[]
         {
-            "SISTEMA_UI_QUANTUM_FORGE/06_CAPTURAS_APROBADAS/DIMENSION_1/CARTA_GALACTICA/carta_galactica_neutral_1080x1920.png",
-            "SISTEMA_UI_QUANTUM_FORGE/06_CAPTURAS_APROBADAS/DIMENSION_1/CARTA_GALACTICA/carta_galactica_orbitas_seleccionada_1080x1920.png"
+            "SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/06_CAPTURAS_APROBADAS/DIMENSION_1/CARTA_GALACTICA/carta_galactica_neutral_1080x1920.png",
+            "SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/06_CAPTURAS_APROBADAS/DIMENSION_1/CARTA_GALACTICA/carta_galactica_orbitas_seleccionada_1080x1920.png"
         };
     }
 

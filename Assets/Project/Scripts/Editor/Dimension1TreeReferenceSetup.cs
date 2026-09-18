@@ -31,6 +31,7 @@ public static class Dimension1TreeReferenceSetup
     private static readonly Color Secondary = Hex("9EABB4");
     private static readonly Color Amber = Hex("F4A70B");
     private static readonly Color AmberFill = Hex("1A1508", 252);
+    private static readonly Color Locked = Hex("687680");
 
     private sealed class NodeSpec
     {
@@ -58,6 +59,7 @@ public static class Dimension1TreeReferenceSetup
     {
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         ConfigureSingleSprite(TreePath + "/d1_tree_advanced_cartography_v2.png");
+        ConfigureSingleSprite(TreePath + "/d1_tree_orbital_field_v1.png");
         Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
         Dimension1PanelUI panel = FindSceneComponent<Dimension1PanelUI>(scene);
         if (panel == null) throw new InvalidOperationException("No existe Dimension1PanelUI en Main.unity.");
@@ -94,6 +96,7 @@ public static class Dimension1TreeReferenceSetup
         group.interactable = true;
         group.blocksRaycasts = true;
         Dimension1TreeNavigationUI navigation = root.gameObject.AddComponent<Dimension1TreeNavigationUI>();
+        Dimension1TreeVisualUI visual = root.gameObject.AddComponent<Dimension1TreeVisualUI>();
 
         Image background = Image("Background", root, null, Void);
         Stretch(background.rectTransform, new Vector2(-28f, -34f), new Vector2(-28f, -34f));
@@ -109,11 +112,13 @@ public static class Dimension1TreeReferenceSetup
         outer.type = UnityEngine.UI.Image.Type.Sliced;
         outer.raycastTarget = false;
 
-        BuildHeader(root, frame, fillSprite, font, navigation);
-        BuildTreeShell(root, frame, fillSprite, glow, font);
-        BuildDetail(root, frame, fillSprite, glow, font);
+        BuildHeader(root, frame, fillSprite, font, navigation,
+            FindSceneComponent<Dimension1MetalsInventoryUI>(scene));
+        BuildTreeShell(root, frame, fillSprite, glow, font, lockSprite, visual);
+        BuildDetail(root, frame, fillSprite, glow, font, visual);
         BuildNavigation(root, frame, fillSprite, font, navigation);
         Dimension1SharedShellApply.ApplyToRoot(root);
+        ConfigureVisual(root, visual);
 
         SerializedObject navigationObject = new SerializedObject(navigation);
         Assign(navigationObject, "panel", panel);
@@ -127,7 +132,7 @@ public static class Dimension1TreeReferenceSetup
         if (!EditorSceneManager.SaveScene(scene, ScenePath))
             throw new InvalidOperationException("Unity no pudo guardar Main.unity.");
         ValidateInternal(scene);
-        Debug.Log("[D1 Tree] INSTALL_PASS | referencia orbital v1 | composición estática | valores reales 1/1, 3 puntos");
+        Debug.Log("[D1 Tree] INSTALL_PASS | referencia orbital v1 | 10 nodos funcionales | selección, compra, estados y guardado");
     }
 
     [MenuItem("Quantum Forge/Dimension 1/Validate Tree Orbital Reference")]
@@ -135,7 +140,7 @@ public static class Dimension1TreeReferenceSetup
     {
         Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
         ValidateInternal(scene);
-        Debug.Log("[D1 Tree] VALIDATION_PASS | composición estática orbital");
+        Debug.Log("[D1 Tree] VALIDATION_PASS | composición orbital funcional");
     }
 
     private static void PreserveLegacyControls(Transform treePanel)
@@ -156,7 +161,7 @@ public static class Dimension1TreeReferenceSetup
     }
 
     private static void BuildHeader(Transform root, Sprite frame, Sprite fill, TMP_FontAsset font,
-        Dimension1TreeNavigationUI navigation)
+        Dimension1TreeNavigationUI navigation, Dimension1MetalsInventoryUI metalsInventory)
     {
         TMP_Text title = Text("DimensionTitle", root, font, "DIMENSIÓN 1", 34f, FontStyles.Bold, Primary);
         Top(title.rectTransform, 305f, 12f, 470f, 52f);
@@ -202,19 +207,25 @@ public static class Dimension1TreeReferenceSetup
         metalLabel.alignment = TextAlignmentOptions.Center;
         Line("ChevronA", metals, new Vector2(94f, 4f), new Vector2(103f, -5f), 2f, Cyan);
         Line("ChevronB", metals, new Vector2(103f, -5f), new Vector2(112f, 4f), 2f, Cyan);
+        Button metalsButton = AddButton(metals);
+        if (metalsInventory != null) AddPersistent(metalsButton.onClick, metalsInventory.Open);
     }
 
-    private static void BuildTreeShell(Transform root, Sprite frame, Sprite fill, Sprite glow, TMP_FontAsset font)
+    private static void BuildTreeShell(Transform root, Sprite frame, Sprite fill, Sprite glow,
+        TMP_FontAsset font, Sprite lockSprite, Dimension1TreeVisualUI visual)
     {
         RectTransform titleBand = Panel("TreeTitleBand", root, frame, fill,
             new Vector2(18f, 190f), new Vector2(1044f, 79f), Hex("020C12", 247), CyanMuted);
         TMP_Text heading = Text("MainHeading", titleBand, font, "ÁRBOL CUÁNTICO", 31f, FontStyles.Bold, Primary);
         Top(heading.rectTransform, 80f, 17f, 430f, 47f);
         heading.characterSpacing = 1.5f;
-        Image treeGlyph = Image("TreeGlyph", root, LoadSprite(ArtPath + "/d1_nav_tree_v3.png"), CyanBright);
-        Top(treeGlyph.rectTransform, 42f, 205f, 43f, 43f);
+        Image treeGlyph = Image("TreeGlyph", root,
+            LoadSprite(ArtPath + "/NavigationPremium/d1_nav_tree_premium_v1.png"), Color.white);
+        Top(treeGlyph.rectTransform, 37f, 199f, 55f, 55f);
         treeGlyph.preserveAspect = true;
         treeGlyph.raycastTarget = false;
+        treeGlyph.material = AssetDatabase.LoadAssetAtPath<Material>(
+            ArtPath + "/NavigationPremium/d1_nav_premium_black_key.mat");
         TMP_Text pointsLabel = Text("PointsLabel", titleBand, font, "PUNTOS DISPONIBLES:", 18f,
             FontStyles.Bold, Cyan);
         Top(pointsLabel.rectTransform, 676f, 21f, 260f, 35f);
@@ -240,12 +251,18 @@ public static class Dimension1TreeReferenceSetup
             new NodeSpec(9, "CARTOGRAFÍA\nAVANZADA", "0 / 1", 774f, 984f, 148f, 198f, true),
             new NodeSpec(10, "ESTABILIZACIÓN DE\nZONA INESTABLE", "0 / 1", 530f, 1072f, 170f, 184f)
         };
-        foreach (NodeSpec node in nodes) BuildNode(orbit, frame, fill, glow, font, node);
+        foreach (NodeSpec node in nodes) BuildNode(orbit, frame, fill, glow, font,
+            lockSprite, visual, node);
     }
 
     private static void BuildOrbitalField(RectTransform orbit, Sprite glow, TMP_FontAsset font)
     {
         Vector2 core = Local(orbit, 530f, 568f);
+        Image orbitalField = Image("DetailedOrbitalField", orbit,
+            LoadSprite(TreePath + "/d1_tree_orbital_field_v1.png"), Hex("D8F7FF", 178));
+        Centered(orbitalField.rectTransform, core, new Vector2(1040f, 1040f));
+        orbitalField.preserveAspect = true;
+        orbitalField.raycastTarget = false;
         Image aura = Image("CoreAura", orbit, glow, Hex("18C8FF", 48));
         Centered(aura.rectTransform, core, new Vector2(470f, 470f));
         aura.raycastTarget = false;
@@ -298,17 +315,44 @@ public static class Dimension1TreeReferenceSetup
             Dot(orbit, p, i % 3 == 0 ? 5f : 3f, Hex("18C8FF", 100));
         }
 
-        Image crystal = Image("CanonicalAnalyticCrystal", orbit,
-            LoadSprite(RelicPath + "/d1_relic_analytic_crystal.png"), Primary);
-        Centered(crystal.rectTransform, core, new Vector2(238f, 304f));
-        crystal.preserveAspect = true;
-        crystal.raycastTarget = false;
+        DrawQuantumCrystal(orbit, glow, core);
         DrawEllipse(orbit, core + Vector2.down * 122f, 62f, 15f, 1.5f, Hex("18C8FF", 220));
         Dot(orbit, core + Vector2.down * 122f, 8f, CyanBright);
 
         AddSectorLabel(orbit, "SECTOR 1", font, core + Vector2.up * 246f);
         AddSectorLabel(orbit, "SECTOR 2", font, core + Vector2.down * 222f);
         AddSectorLabel(orbit, "SECTOR 3", font, core + Vector2.down * 344f);
+    }
+
+    private static void DrawQuantumCrystal(Transform parent, Sprite glow, Vector2 center)
+    {
+        Image crystalGlow = Image("QuantumCrystalGlow", parent, glow, Hex("18C8FF", 118));
+        Centered(crystalGlow.rectTransform, center, new Vector2(250f, 310f));
+        crystalGlow.raycastTarget = false;
+        Vector2 top = center + Vector2.up * 121f;
+        Vector2 upperLeft = center + new Vector2(-42f, 32f);
+        Vector2 upperRight = center + new Vector2(42f, 32f);
+        Vector2 middle = center + new Vector2(0f, -8f);
+        Vector2 lowerLeft = center + new Vector2(-31f, -43f);
+        Vector2 lowerRight = center + new Vector2(31f, -43f);
+        Vector2 bottom = center + Vector2.down * 121f;
+        Polygon("CrystalBody", parent,
+            new[] { top, upperRight, lowerRight, bottom, lowerLeft, upperLeft },
+            Hex("075C86", 48));
+        Polygon("CrystalLightFacet", parent,
+            new[] { top, upperLeft, middle, upperRight }, Hex("18C8FF", 38));
+        Polygon("CrystalDeepFacet", parent,
+            new[] { middle, lowerRight, bottom, lowerLeft }, Hex("003C62", 52));
+        LineLoop("CrystalEdge", parent,
+            new[] { top, upperRight, lowerRight, bottom, lowerLeft, upperLeft },
+            2.8f, CyanBright);
+        Line("CrystalSpine", parent, top, bottom, 2.4f, CyanBright);
+        Line("CrystalFacetA", parent, upperLeft, middle, 2f, Cyan);
+        Line("CrystalFacetB", parent, upperRight, middle, 2f, Cyan);
+        Line("CrystalFacetC", parent, lowerLeft, middle, 2f, Cyan);
+        Line("CrystalFacetD", parent, lowerRight, middle, 2f, Cyan);
+        Line("CrystalWaist", parent, upperLeft, lowerLeft, 1.8f, Cyan);
+        Line("CrystalWaistR", parent, upperRight, lowerRight, 1.8f, Cyan);
     }
 
     private static void AddSectorLabel(Transform parent, string value, TMP_FontAsset font, Vector2 center)
@@ -321,20 +365,18 @@ public static class Dimension1TreeReferenceSetup
     }
 
     private static void BuildNode(RectTransform orbit, Sprite frame, Sprite fill, Sprite glow,
-        TMP_FontAsset font, NodeSpec spec)
+        TMP_FontAsset font, Sprite lockSprite, Dimension1TreeVisualUI visual, NodeSpec spec)
     {
         Color accent = spec.selected ? Amber : Cyan;
         Color fillColor = spec.selected ? Hex("171105", 249) : Hex("03121C", 247);
         Vector2 topLeft = spec.center - spec.size * .5f;
         RectTransform card = Panel("TreeNode_" + spec.number, orbit, frame, fill, topLeft, spec.size,
             fillColor, accent);
-        if (spec.selected)
-        {
-            Image selectionGlow = Image("SelectionGlow", card, glow, Hex("F4A70B", 42));
-            Stretch(selectionGlow.rectTransform, new Vector2(-18f, -18f), new Vector2(-18f, -18f));
-            selectionGlow.raycastTarget = false;
-            selectionGlow.transform.SetAsFirstSibling();
-        }
+        Image selectionGlow = Image("SelectionGlow", card, glow, Hex("F4A70B", 42));
+        Stretch(selectionGlow.rectTransform, new Vector2(-18f, -18f), new Vector2(-18f, -18f));
+        selectionGlow.raycastTarget = false;
+        selectionGlow.transform.SetAsFirstSibling();
+        selectionGlow.gameObject.SetActive(spec.selected);
         TMP_Text number = Text("Number", card, font, spec.number.ToString(), 19f, FontStyles.Normal, accent);
         Top(number.rectTransform, spec.size.x * .5f - 22f, 5f, 44f, 28f);
         number.alignment = TextAlignmentOptions.Center;
@@ -345,13 +387,26 @@ public static class Dimension1TreeReferenceSetup
             spec.number == 6 || spec.number == 10 ? 13f : 14.5f,
             FontStyles.Bold, spec.selected ? Amber : Primary);
         Top(label.rectTransform, 7f, 108f, spec.size.x - 14f, 53f);
-        label.enableWordWrapping = true;
+        label.textWrappingMode = TextWrappingModes.Normal;
         label.overflowMode = TextOverflowModes.Overflow;
         label.alignment = TextAlignmentOptions.Center;
         label.lineSpacing = -8f;
         TMP_Text progress = Text("Progress", card, font, spec.progress, 17f, FontStyles.Bold, accent);
         Top(progress.rectTransform, 18f, spec.size.y - 34f, spec.size.x - 36f, 27f);
         progress.alignment = TextAlignmentOptions.Center;
+
+        Image lockedOverlay = Image("LockedOverlay", card, fill, Hex("01070B", 224));
+        Stretch(lockedOverlay.rectTransform, new Vector2(4f, 4f), new Vector2(4f, 4f));
+        lockedOverlay.type = UnityEngine.UI.Image.Type.Sliced;
+        lockedOverlay.raycastTarget = false;
+        Image lockIcon = Image("LockIcon", lockedOverlay.transform, lockSprite, Locked);
+        Centered(lockIcon.rectTransform, new Vector2(0f, 7f), new Vector2(44f, 44f));
+        lockIcon.preserveAspect = true;
+        lockIcon.raycastTarget = false;
+        lockedOverlay.gameObject.SetActive(false);
+
+        Button button = AddButton(card);
+        UnityEventTools.AddIntPersistentListener(button.onClick, visual.SelectNode, spec.number - 1);
     }
 
     private static void BuildNodeIconArt(RectTransform icon, int number, Color accent)
@@ -404,7 +459,8 @@ public static class Dimension1TreeReferenceSetup
         return image;
     }
 
-    private static void BuildDetail(Transform root, Sprite frame, Sprite fill, Sprite glow, TMP_FontAsset font)
+    private static void BuildDetail(Transform root, Sprite frame, Sprite fill, Sprite glow,
+        TMP_FontAsset font, Dimension1TreeVisualUI visual)
     {
         RectTransform detail = Panel("SelectedNodeDetail", root, frame, fill,
             new Vector2(20f, 1426f), new Vector2(1040f, 278f), Hex("031018", 252), CyanMuted);
@@ -413,15 +469,21 @@ public static class Dimension1TreeReferenceSetup
         Image selectedGlow = Image("SelectionGlow", iconCard, glow, Hex("F4A70B", 42));
         Stretch(selectedGlow.rectTransform, new Vector2(-14f, -14f), new Vector2(-14f, -14f));
         selectedGlow.transform.SetAsFirstSibling();
-        Image cartography = Image("CartographyIcon", iconCard,
-            LoadSprite(TreePath + "/d1_tree_advanced_cartography_v2.png"), Color.white);
-        Centered(cartography.rectTransform, new Vector2(0f, 3f), new Vector2(154f, 154f));
-        cartography.preserveAspect = true;
-        cartography.raycastTarget = false;
+        for (int i = 0; i < Dimension1System.Dimension1TreeNodeIds.Length; i++)
+        {
+            RectTransform detailIcon = Rect("DetailIcon_" + (i + 1), iconCard);
+            Centered(detailIcon, new Vector2(0f, 3f), new Vector2(154f, 154f));
+            BuildNodeIconArt(detailIcon, i + 1, Amber);
+            detailIcon.localScale = Vector3.one * 1.65f;
+            detailIcon.gameObject.SetActive(i == 8);
+        }
 
         TMP_Text name = Text("SelectedName", detail, font, "CARTOGRAFÍA AVANZADA", 28f,
             FontStyles.Bold, Primary);
         Top(name.rectTransform, 233f, 21f, 492f, 44f);
+        name.enableAutoSizing = true;
+        name.fontSizeMin = 18f;
+        name.fontSizeMax = 28f;
         RectTransform levelChip = Panel("LevelChip", detail, frame, fill,
             new Vector2(733f, 17f), new Vector2(194f, 52f), Fill, Amber);
         TMP_Text level = Text("SelectedLevel", levelChip, font, "NIVEL 0 / 1", 18f,
@@ -429,19 +491,25 @@ public static class Dimension1TreeReferenceSetup
         Stretch(level.rectTransform, new Vector2(10f, 7f), new Vector2(10f, 7f));
         level.alignment = TextAlignmentOptions.Center;
 
-        RectTransform effectA = Panel("EffectRareDestinations", detail, frame, fill,
+        RectTransform effectA = Panel("EffectPrimary", detail, frame, fill,
             new Vector2(230f, 83f), new Vector2(480f, 67f), Hex("03131C", 252), CyanMuted);
         DrawTargetIcon(effectA, new Vector2(-206f, 0f), 18f, Cyan);
         TMP_Text effectAText = Text("Value", effectA, font, "+5% DESTINOS RAROS COMPATIBLES", 16f,
             FontStyles.Normal, Secondary);
-        Top(effectAText.rectTransform, 58f, 18f, 403f, 31f);
+        Top(effectAText.rectTransform, 58f, 8f, 403f, 51f);
+        effectAText.textWrappingMode = TextWrappingModes.Normal;
+        effectAText.overflowMode = TextOverflowModes.Truncate;
+        effectAText.alignment = TextAlignmentOptions.MidlineLeft;
 
-        RectTransform effectB = Panel("EffectSpecialPoint", detail, frame, fill,
+        RectTransform effectB = Panel("EffectSecondary", detail, frame, fill,
             new Vector2(230f, 158f), new Vector2(480f, 67f), Hex("03131C", 252), CyanMuted);
         DrawSpecialPointIcon(effectB, new Vector2(-206f, 0f), 18f, Cyan);
         TMP_Text effectBText = Text("Value", effectB, font, "+2% PROBABILIDAD DE PUNTO ESPECIAL", 16f,
             FontStyles.Normal, Secondary);
-        Top(effectBText.rectTransform, 58f, 18f, 403f, 31f);
+        Top(effectBText.rectTransform, 58f, 8f, 403f, 51f);
+        effectBText.textWrappingMode = TextWrappingModes.Normal;
+        effectBText.overflowMode = TextOverflowModes.Truncate;
+        effectBText.alignment = TextAlignmentOptions.MidlineLeft;
 
         RectTransform cost = Panel("CostPanel", detail, frame, fill,
             new Vector2(730f, 83f), new Vector2(286f, 67f), Fill, CyanMuted);
@@ -457,6 +525,11 @@ public static class Dimension1TreeReferenceSetup
         Stretch(unlockLabel.rectTransform);
         unlockLabel.alignment = TextAlignmentOptions.Center;
         unlockLabel.characterSpacing = 2f;
+        unlockLabel.enableAutoSizing = true;
+        unlockLabel.fontSizeMin = 14f;
+        unlockLabel.fontSizeMax = 23f;
+        Button unlockButton = AddButton(unlock);
+        AddPersistent(unlockButton.onClick, visual.BuySelectedNode);
     }
 
     private static void BuildNavigation(Transform root, Sprite frame, Sprite fill, TMP_FontAsset font,
@@ -490,6 +563,71 @@ public static class Dimension1TreeReferenceSetup
             else if (i == 2) AddPersistent(button.onClick, navigation.OpenHangar);
             else if (i == 3) AddPersistent(button.onClick, navigation.OpenRelics);
         }
+    }
+
+    private static void ConfigureVisual(Transform root, Dimension1TreeVisualUI visual)
+    {
+        var metalAmounts = new TMP_Text[3];
+        var metalRates = new TMP_Text[3];
+        for (int i = 0; i < 3; i++)
+        {
+            Transform chip = FindChild(root, "Metal_" + i);
+            metalAmounts[i] = FindDirectChild(chip, "Amount")?.GetComponent<TMP_Text>();
+            metalRates[i] = FindDirectChild(chip, "Rate")?.GetComponent<TMP_Text>();
+        }
+
+        int count = Dimension1System.Dimension1TreeNodeIds.Length;
+        var buttons = new Button[count];
+        var fills = new Image[count];
+        var borders = new Image[count];
+        var glows = new Image[count];
+        var locks = new GameObject[count];
+        var names = new TMP_Text[count];
+        var numbers = new TMP_Text[count];
+        var progress = new TMP_Text[count];
+        var detailIcons = new GameObject[count];
+        Transform iconCard = FindChild(root, "SelectedIconCard");
+        for (int i = 0; i < count; i++)
+        {
+            Transform card = FindChild(root, "TreeNode_" + (i + 1));
+            buttons[i] = card != null ? card.GetComponent<Button>() : null;
+            fills[i] = FindDirectChild(card, "Fill")?.GetComponent<Image>();
+            borders[i] = FindDirectChild(card, "Border")?.GetComponent<Image>();
+            glows[i] = FindDirectChild(card, "SelectionGlow")?.GetComponent<Image>();
+            locks[i] = FindDirectChild(card, "LockedOverlay")?.gameObject;
+            names[i] = FindDirectChild(card, "Name")?.GetComponent<TMP_Text>();
+            numbers[i] = FindDirectChild(card, "Number")?.GetComponent<TMP_Text>();
+            progress[i] = FindDirectChild(card, "Progress")?.GetComponent<TMP_Text>();
+            detailIcons[i] = FindDirectChild(iconCard, "DetailIcon_" + (i + 1))?.gameObject;
+        }
+
+        Transform detail = FindChild(root, "SelectedNodeDetail");
+        Transform effectPrimary = FindDirectChild(detail, "EffectPrimary");
+        Transform effectSecondary = FindDirectChild(detail, "EffectSecondary");
+        Transform cost = FindDirectChild(detail, "CostPanel");
+        Transform unlock = FindDirectChild(detail, "UnlockButton");
+        visual.Configure(
+            metalAmounts,
+            metalRates,
+            FindChild(root, "AvailablePoints")?.GetComponent<TMP_Text>(),
+            buttons,
+            fills,
+            borders,
+            glows,
+            locks,
+            names,
+            numbers,
+            progress,
+            detailIcons,
+            FindDirectChild(detail, "SelectedName")?.GetComponent<TMP_Text>(),
+            FindChild(detail, "SelectedLevel")?.GetComponent<TMP_Text>(),
+            FindDirectChild(effectPrimary, "Value")?.GetComponent<TMP_Text>(),
+            FindDirectChild(effectSecondary, "Value")?.GetComponent<TMP_Text>(),
+            FindDirectChild(cost, "Value")?.GetComponent<TMP_Text>(),
+            unlock != null ? unlock.GetComponent<Button>() : null,
+            FindDirectChild(unlock, "Label")?.GetComponent<TMP_Text>(),
+            FindDirectChild(unlock, "Fill")?.GetComponent<Image>(),
+            FindDirectChild(unlock, "Border")?.GetComponent<Image>());
     }
 
     private static void DrawNodeIcon(Transform parent, int variant, Vector2 center, float size, Color color)
@@ -734,7 +872,7 @@ public static class Dimension1TreeReferenceSetup
     {
         RectTransform rect=Rect(name,parent); TextMeshProUGUI text=rect.gameObject.AddComponent<TextMeshProUGUI>();
         text.font=font; text.text=value; text.fontSize=size; text.fontStyle=style; text.color=color;
-        text.enableWordWrapping=false; text.overflowMode=TextOverflowModes.Ellipsis; text.raycastTarget=false; return text;
+        text.textWrappingMode = TextWrappingModes.NoWrap; text.overflowMode=TextOverflowModes.Truncate; text.raycastTarget=false; return text;
     }
 
     private static void Top(RectTransform rect,float x,float y,float width,float height)
@@ -831,7 +969,7 @@ public static class Dimension1TreeReferenceSetup
 
     private static Transform FindDirectChild(Transform parent,string name)
     {
-        for(int i=0;i<parent.childCount;i++) if(parent.GetChild(i).name==name)return parent.GetChild(i); return null;
+        if(parent==null)return null; for(int i=0;i<parent.childCount;i++) if(parent.GetChild(i).name==name)return parent.GetChild(i); return null;
     }
 
     private static Transform FindChild(Transform parent,string name)
@@ -845,12 +983,22 @@ public static class Dimension1TreeReferenceSetup
         foreach(GameObject sceneRoot in scene.GetRootGameObjects()){root=FindChild(sceneRoot.transform,RootName);if(root!=null)break;}
         if(root==null)throw new InvalidOperationException("Falta "+RootName+".");
         if(root.GetComponent<Canvas>()==null||root.GetComponent<CanvasGroup>()==null||
-           root.GetComponent<GraphicRaycaster>()==null||root.GetComponent<Dimension1TreeNavigationUI>()==null)
+           root.GetComponent<GraphicRaycaster>()==null||root.GetComponent<Dimension1TreeNavigationUI>()==null||
+           root.GetComponent<Dimension1TreeVisualUI>()==null)
             throw new InvalidOperationException("Falta la capa interactiva del Árbol Cuántico.");
         string[] required={"DimensionTitle","MainHeading","AvailablePoints","OrbitalConstellation","TreeNode_1","TreeNode_10","SelectedNodeDetail","UnlockButton","BottomNavigation"};
         foreach(string name in required)if(FindChild(root,name)==null)throw new InvalidOperationException("Falta bloque visual: "+name);
         TMP_Text cost=FindChild(FindChild(root,"CostPanel"),"Value")?.GetComponent<TMP_Text>();
         if(cost==null||cost.text!="3 PUNTOS")throw new InvalidOperationException("El costo de Cartografía Avanzada no coincide con los datos reales.");
+        for(int i=1;i<=Dimension1System.Dimension1TreeNodeIds.Length;i++)
+        {
+            Button nodeButton=FindChild(root,"TreeNode_"+i)?.GetComponent<Button>();
+            if(nodeButton==null||nodeButton.onClick.GetPersistentEventCount()!=1)
+                throw new InvalidOperationException("El nodo "+i+" no tiene una única ruta persistente de selección.");
+        }
+        Button unlock=FindChild(root,"UnlockButton")?.GetComponent<Button>();
+        if(unlock==null||unlock.onClick.GetPersistentEventCount()!=1)
+            throw new InvalidOperationException("El botón de compra no tiene una única ruta persistente.");
         Transform legacy=FindChild(root.parent,LegacyName);
         if(legacy==null||legacy.gameObject.activeSelf)throw new InvalidOperationException("Los controles provisionales no quedaron preservados y ocultos.");
     }

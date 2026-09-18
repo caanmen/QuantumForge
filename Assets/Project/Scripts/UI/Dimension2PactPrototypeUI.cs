@@ -7,11 +7,14 @@ using UnityEngine.UI;
 /// </summary>
 public sealed class Dimension2PactPrototypeUI : MonoBehaviour
 {
+    private const float AnimationRefreshInterval = 1f / 20f;
+
     [SerializeField] private CanvasGroup content;
     [SerializeField] private RectTransform selectedMedallion;
     [SerializeField] private Image selectedAura;
 
     private float elapsed;
+    private float nextAnimationRefreshTime;
 
     private void OnEnable()
     {
@@ -23,6 +26,9 @@ public sealed class Dimension2PactPrototypeUI : MonoBehaviour
     private void Update()
     {
         elapsed += Time.unscaledDeltaTime;
+        if (Time.unscaledTime < nextAnimationRefreshTime)
+            return;
+        nextAnimationRefreshTime = Time.unscaledTime + AnimationRefreshInterval;
 
         if (content != null)
             content.alpha = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / .38f));

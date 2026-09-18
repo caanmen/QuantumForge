@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -36,6 +37,7 @@ public class QaCheckpointService : MonoBehaviour
     {
         ResolvePanel();
         Subscribe();
+        RefreshSlotStatuses();
     }
 
     private void OnDisable()
@@ -94,9 +96,10 @@ public class QaCheckpointService : MonoBehaviour
             string slotPath = GetSlotPath(CheckpointDirectory, slot);
             string preRestorePath = Path.Combine(
                 CheckpointDirectory, PreRestoreName);
-            if (!TryRestoreCheckpointFiles(
+            if (!TryRestoreAndActivateCheckpointFiles(
                 slotPath, preRestorePath, savePath,
-                DateTimeOffset.UtcNow.ToUnixTimeSeconds(), out error))
+                DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                SaveService.I, out error))
             {
                 return Fail(error);
             }
@@ -135,6 +138,13 @@ public class QaCheckpointService : MonoBehaviour
             if (!TryReplaceMainSave(
                 preRestorePath, SaveService.I.CurrentSavePath,
                 DateTimeOffset.UtcNow.ToUnixTimeSeconds(), out error))
+            {
+                return Fail(error);
+            }
+
+            if (!TryLoadAndConfirmMainSave(
+                SaveService.I, SaveService.I.CurrentSavePath,
+                null, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), out error))
             {
                 return Fail(error);
             }
@@ -187,6 +197,7 @@ public class QaCheckpointService : MonoBehaviour
     {
         IsBusy = false;
         SetControlsInteractable(true);
+        RefreshSlotStatuses();
     }
 
     private bool Fail(string error)
@@ -270,6 +281,94 @@ public class QaCheckpointService : MonoBehaviour
             checkpointPath, mainSavePath, nowUnix, out error);
     }
 
+    private static bool TryRestoreAndActivateCheckpointFiles(
+        string checkpointPath, string preRestorePath,
+        string mainSavePath, long nowUnix,
+        SaveService saveService, out string error)
+    {
+        if (!TryRestoreCheckpointFiles(
+            checkpointPath, preRestorePath, mainSavePath,
+            nowUnix, out error))
+        {
+            return false;
+        }
+
+        return TryLoadAndConfirmMainSave(
+            saveService, mainSavePath, preRestorePath,
+            nowUnix, out error);
+    }
+
+    private static bool TryLoadAndConfirmMainSave(
+        SaveService saveService, string mainSavePath,
+        string rollbackPath, long nowUnix, out string error)
+    {
+        error = null;
+        string activationError = null;
+        try
+        {
+            if (saveService == null)
+            {
+                activationError = "SaveService no está disponible.";
+            }
+            else
+            {
+                // GameState sobrevive a LoadScene(Main). Sin esta carga explícita,
+                // el estado anterior queda en memoria y el siguiente autoguardado
+                // puede volver a escribirlo sobre el checkpoint restaurado.
+                saveService.Load();
+                if (saveService.HasLoadFailure)
+                {
+                    activationError =
+                        "El checkpoint se escribió, pero no pudo activarse en memoria.";
+                }
+                else if (!saveService.TrySave(out activationError))
+                {
+                    activationError = "El checkpoint se cargó, pero no pudo " +
+                        "confirmarse antes de recargar: " + activationError;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+        }
+        catch (Exception exception)
+        {
+            activationError = "No se pudo activar el checkpoint: " +
+                exception.Message;
+        }
+
+        string rollbackError = null;
+        if (!string.IsNullOrEmpty(rollbackPath) &&
+            TryReplaceMainSave(
+                rollbackPath, mainSavePath, nowUnix, out rollbackError))
+        {
+            try
+            {
+                saveService?.Load();
+                if (saveService != null && !saveService.HasLoadFailure)
+                    saveService.TrySave(out _);
+            }
+            catch (Exception exception)
+            {
+                rollbackError = exception.Message;
+            }
+
+            error = activationError + " Se restauró el estado anterior.";
+            return false;
+        }
+
+        error = activationError;
+        if (!string.IsNullOrEmpty(rollbackPath))
+        {
+            error += " Tampoco se pudo recuperar pre_restore: " +
+                (string.IsNullOrEmpty(rollbackError)
+                    ? "error desconocido."
+                    : rollbackError);
+        }
+        return false;
+    }
+
     private static bool TryReplaceMainSave(
         string sourcePath, string mainSavePath,
         long nowUnix, out string error)
@@ -327,6 +426,58 @@ public class QaCheckpointService : MonoBehaviour
         return checkpointPath + ".meta.json";
     }
 
+    public void RefreshSlotStatuses()
+    {
+        ResolvePanel();
+        if (panel == null)
+            return;
+
+        for (int index = 0; index < 3; index++)
+        {
+            char slot = (char)('A' + index);
+            string checkpointPath = GetSlotPath(CheckpointDirectory, slot);
+            if (!File.Exists(checkpointPath))
+            {
+                panel.SetCheckpointSlotStatus(index, "VACÍO", false);
+                continue;
+            }
+
+            if (!SaveService.TryReadSaveData(checkpointPath, out _))
+            {
+                panel.SetCheckpointSlotStatus(index, "NO LEGIBLE", false);
+                continue;
+            }
+
+            panel.SetCheckpointSlotStatus(
+                index, "GUARDADO\n" + GetCheckpointTimestamp(checkpointPath), true);
+        }
+    }
+
+    private static string GetCheckpointTimestamp(string checkpointPath)
+    {
+        long createdUnix = 0L;
+        string metadataPath = GetMetadataPath(checkpointPath);
+        try
+        {
+            if (File.Exists(metadataPath))
+            {
+                QaCheckpointMetadata metadata = JsonUtility.FromJson<QaCheckpointMetadata>(
+                    File.ReadAllText(metadataPath));
+                if (metadata != null)
+                    createdUnix = metadata.createdUnix;
+            }
+
+            DateTime localTime = createdUnix > 0L
+                ? DateTimeOffset.FromUnixTimeSeconds(createdUnix).LocalDateTime
+                : File.GetLastWriteTime(checkpointPath);
+            return localTime.ToString("dd/MM HH:mm", CultureInfo.InvariantCulture);
+        }
+        catch (Exception)
+        {
+            return "FECHA NO DISPONIBLE";
+        }
+    }
+
     private static QaCheckpointMetadata CaptureMetadata()
     {
         GameState state = GameState.I;
@@ -365,6 +516,8 @@ public class QaCheckpointService : MonoBehaviour
         panel.SaveCheckpointRequested += OnSaveRequested;
         panel.LoadCheckpointRequested -= OnLoadRequested;
         panel.LoadCheckpointRequested += OnLoadRequested;
+        panel.ResetSaveRequested -= OnResetSaveRequested;
+        panel.ResetSaveRequested += OnResetSaveRequested;
     }
 
     private void Unsubscribe()
@@ -373,6 +526,7 @@ public class QaCheckpointService : MonoBehaviour
             return;
         panel.SaveCheckpointRequested -= OnSaveRequested;
         panel.LoadCheckpointRequested -= OnLoadRequested;
+        panel.ResetSaveRequested -= OnResetSaveRequested;
     }
 
     private void OnSaveRequested(char slot)
@@ -383,6 +537,49 @@ public class QaCheckpointService : MonoBehaviour
     private void OnLoadRequested(char slot)
     {
         TryRestoreCheckpoint(slot, out _);
+    }
+
+    private void OnResetSaveRequested()
+    {
+        TryResetGame(out _);
+    }
+
+    public bool TryResetGame(out string error)
+    {
+        error = null;
+        if (!QaRuntimeService.IsAvailable)
+        {
+            error = "El reinicio de partida sólo está disponible en QA.";
+            return false;
+        }
+        if (IsBusy || SaveService.I == null)
+        {
+            error = IsBusy
+                ? "Ya hay una operación QA en curso."
+                : "SaveService no está disponible.";
+            return false;
+        }
+
+        BeginOperation("REINICIANDO PARTIDA...");
+        try
+        {
+            if (!SaveService.I.TryResetToNewGame(out error))
+                return Fail(error);
+
+            // El único PlayerPref histórico pertenece a la calidad del cubo 3D
+            // retirado. No debe sobrevivir a una partida realmente nueva.
+            PlayerPrefs.DeleteAll();
+            PlayerPrefs.Save();
+            QaRuntimeService.ResetToNormalSpeed();
+            TickSystem.I?.ResetAccumulator();
+            SetStatus("PARTIDA REINICIADA");
+            ReloadMainScene();
+            return true;
+        }
+        finally
+        {
+            EndOperation();
+        }
     }
 
     private void SetStatus(string status)

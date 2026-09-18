@@ -1,0 +1,766 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.3/staging' branch; Version is '6000.3.10f1 (e35f0c77bd8e) revision 14901004'; Using compiler version '194234433'; Build Type 'Release'
+OS: 'Windows 11  (10.0.22631) Core' Language: 'en' Physical Memory: 15674 MB
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-nedfla" at "2026-09-08T15:03:41.4558179Z"
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-09-08T15:03:41Z
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Unity.exe
+-batchmode
+-projectPath
+C:/Users/nedfla/Quantum Forge
+-executeMethod
+Dimension1Audit20260908.RunCenter1080
+-logFile
+C:/Users/nedfla/Quantum Forge/Logs/D1_Audit_2026-09-08/drawer_touch_1080.log
+Successfully changed project path to: C:/Users/nedfla/Quantum Forge
+C:/Users/nedfla/Quantum Forge
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-gfx=262144"
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+Player connection [22500]  Target information:
+
+Player connection [22500]  * "[IP] 192.168.5.121 [Port] 55504 [Flags] 2 [Guid] 1772382770 [EditorId] 1772382770 [Version] 1048832 [Id] WindowsEditor(7,andres-laptop) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [22500] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [22500] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+[Package Manager] Connected to IPC stream "Upm-29396" after 0.4 seconds.
+[Licensing::Module] Licensing is not yet initialized.
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.17.4+4293ba1
+  Session Id:              aab81758d9a94023b249996922efb23e
+  Correlation Id:          073b38af06459bdf77b6f15d9c11b4c2
+  External correlation Id: 3961696484685450697
+  Machine Id:              G89VOgwnpaSuoeX0TISpLAgopEA=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-nedfla" (connect: 0.00s, validation: 0.00s, handshake: 1.11s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-nedfla-notifications" at "2026-09-08T15:03:42.5635731Z"
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: 4674140269676-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.00
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] Licensing Background thread has ended after 1.11s
+[Licensing::Module] Licensing is initialized (took 0.56s).
+[Licensing::Client] Successfully resolved entitlement details
+Library Redirect Path: Library/
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+Artifact Garbage Collection - Removed 1 unused hashed content files
+[Licensing::Client] Successfully resolved entitlement details
+Refreshing native plugins compatible for Editor in 0.42 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Initialize engine version: 6000.3.10f1 (e35f0c77bd8e)
+[Subsystems] Discovering subsystems at path C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path C:/Users/nedfla/Quantum Forge/Assets
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.1]
+    Renderer: NVIDIA GeForce RTX 4070 Laptop GPU (ID=0x2860)
+    Vendor:   NVIDIA
+    VRAM:     7948 MB
+    Driver:   32.0.16.1047
+Initialize mono
+Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/Managed'
+Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56396
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+ImportWorker Server TCP listen port: 0
+AcceleratorClientConnectionCallback - disconnected - :0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Data/PlaybackEngines/AndroidPlayer/UnityEditor.Android.Extensions.dll
+Registered in 0.002325 seconds.
+- Loaded All Assemblies, in  0.435 seconds
+Native extension for Android target not found
+Android Extension - Scanning For ADB Devices 2251 ms
+Native extension for WindowsStandalone target not found
+ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  2.756 seconds
+Domain Reload Profiling: 3189ms
+	BeginReloadAssembly (159ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (0ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (10ms)
+	RebuildCommonClasses (35ms)
+	RebuildNativeTypeToScriptingClass (13ms)
+	initialDomainReloadingComplete (50ms)
+	LoadAllAssembliesAndSetupDomain (176ms)
+		LoadAssemblies (148ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (171ms)
+			TypeCache.Refresh (169ms)
+				TypeCache.ScanAssembly (157ms)
+			BuildScriptInfoCaches (0ms)
+			ResolveRequiredComponents (0ms)
+	FinalizeReload (2757ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (2717ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (2349ms)
+			SetLoadedEditorAssemblies (4ms)
+			BeforeProcessingInitializeOnLoad (90ms)
+			ProcessInitializeOnLoadAttributes (176ms)
+			ProcessInitializeOnLoadMethodAttributes (98ms)
+			AfterProcessingInitializeOnLoad (0ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (0ms)
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Client] Successfully resolved entitlement details
+Application.AssetDatabase Initial Refresh Start
+Package Manager log level set to [2]
+[Package Manager] Restoring resolved packages state from cache
+[Licensing::Client] Successfully resolved entitlement details
+[Package Manager] Registered 69 packages:
+  Packages from [https://packages.unity.com]:
+    com.unity.ai.navigation@2.0.10 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.ai.navigation@c33a115e9883)
+    com.unity.collab-proxy@2.11.3 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.collab-proxy@e566cd3e7623)
+    com.unity.ide.rider@3.0.39 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.ide.rider@4504839d03f7)
+    com.unity.ide.visualstudio@2.0.26 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.ide.visualstudio@a99d56dec63f)
+    com.unity.inputsystem@1.18.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.inputsystem@57d0e36f6123)
+    com.unity.timeline@1.8.10 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.timeline@7f8b2fb101b6)
+    com.unity.visualscripting@1.9.9 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.visualscripting@191c0d7e3b69)
+    com.unity.2d.animation@13.0.4 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.2d.animation@7396d8477ca9)
+    com.unity.2d.pixel-perfect@5.1.1 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.2d.pixel-perfect@09d99455b901)
+    com.unity.2d.psdimporter@12.0.1 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.2d.psdimporter@9abe0f7cac7e)
+    com.unity.2d.spriteshape@13.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.2d.spriteshape@0738bab11647)
+    com.unity.2d.tilemap.extras@6.0.1 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.2d.tilemap.extras@3dde84bf3867)
+    com.unity.2d.aseprite@3.0.1 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.2d.aseprite@809e3a168ff7)
+    com.unity.2d.tooling@1.0.2 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.2d.tooling@249995156768)
+    com.unity.burst@1.8.28 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.burst@07790c2d06d9)
+    com.unity.mathematics@1.3.3 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.mathematics@19a9377c4ffa)
+    com.unity.collections@2.6.2 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.collections@aea9d3bd5e19)
+    com.unity.searcher@4.9.4 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.searcher@d45a78918735)
+    com.unity.2d.common@12.0.2 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.2d.common@800085e896ad)
+    com.unity.nuget.mono-cecil@1.11.6 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff)
+    com.unity.test-framework.performance@3.2.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.test-framework.performance@0840f58e4562)
+  Built-in packages:
+    com.unity.feature.2d@2.0.2 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.feature.2d@0309d34ea7f2)
+    com.unity.multiplayer.center@1.0.1 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.multiplayer.center@f01f4ba8d00a)
+    com.unity.render-pipelines.universal@17.3.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.render-pipelines.universal@37e0d4fc2503)
+    com.unity.test-framework@1.6.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.test-framework@0b7a23ab2e1d)
+    com.unity.ugui@2.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.ugui@bb329a87fcdc)
+    com.unity.visualeffectgraph@17.3.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.visualeffectgraph@ec7b0e7f250a)
+    com.unity.modules.accessibility@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.accessibility)
+    com.unity.modules.adaptiveperformance@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.adaptiveperformance)
+    com.unity.modules.ai@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.ai)
+    com.unity.modules.androidjni@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.androidjni)
+    com.unity.modules.animation@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.animation)
+    com.unity.modules.assetbundle@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.assetbundle)
+    com.unity.modules.audio@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.audio)
+    com.unity.modules.cloth@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.cloth)
+    com.unity.modules.director@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.director)
+    com.unity.modules.imageconversion@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.imageconversion)
+    com.unity.modules.imgui@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.imgui)
+    com.unity.modules.jsonserialize@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.jsonserialize)
+    com.unity.modules.particlesystem@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.particlesystem)
+    com.unity.modules.physics@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.physics)
+    com.unity.modules.physics2d@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.physics2d)
+    com.unity.modules.screencapture@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.screencapture)
+    com.unity.modules.terrain@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.terrain)
+    com.unity.modules.terrainphysics@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.terrainphysics)
+    com.unity.modules.tilemap@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.tilemap)
+    com.unity.modules.ui@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.ui)
+    com.unity.modules.uielements@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.uielements)
+    com.unity.modules.umbra@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.umbra)
+    com.unity.modules.unityanalytics@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.unityanalytics)
+    com.unity.modules.unitywebrequest@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.unitywebrequest)
+    com.unity.modules.unitywebrequestassetbundle@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.unitywebrequestassetbundle)
+    com.unity.modules.unitywebrequestaudio@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.unitywebrequestaudio)
+    com.unity.modules.unitywebrequesttexture@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.unitywebrequesttexture)
+    com.unity.modules.unitywebrequestwww@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.unitywebrequestwww)
+    com.unity.modules.vectorgraphics@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.vectorgraphics)
+    com.unity.modules.vehicles@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.vehicles)
+    com.unity.modules.video@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.video)
+    com.unity.modules.vr@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.vr)
+    com.unity.modules.wind@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.wind)
+    com.unity.modules.xr@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.xr)
+    com.unity.modules.subsystems@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.subsystems)
+    com.unity.modules.hierarchycore@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.modules.hierarchycore)
+    com.unity.shadergraph@17.3.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.shadergraph@c8830f61858d)
+    com.unity.render-pipelines.core@17.3.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.render-pipelines.core@04ab0eefa0c3)
+    com.unity.ext.nunit@2.0.5 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.ext.nunit@d8c07649098d)
+    com.unity.render-pipelines.universal-config@17.0.3 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.render-pipelines.universal-config@8dc1aab4af1d)
+    com.unity.2d.sprite@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.2d.sprite@d14b9d497a24)
+    com.unity.2d.tilemap@1.0.0 (location: C:\Users\nedfla\Quantum Forge\Library\PackageCache\com.unity.2d.tilemap@f011712243ad)
+[Subsystems] No new subsystems found in resolved package list.
+[Package Manager] Done registering packages in 0.02 seconds
+Starting: C:\Program Files\Unity\Hub\Editor\6000.3.10f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1300b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: C:/Users/nedfla/Quantum Forge
+DisplayProgressbar: Compiling Scripts
+ExitCode: 0 Duration: 0s330ms
+[ 878/1134  0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+*** Tundra build success (0.29 seconds), 1 items updated, 1134 evaluated
+AssetDatabase: script compilation time: 0.840533s
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in  1.052 seconds
+Refreshing native plugins compatible for Editor in 1.53 ms, found 4 plugins.
+Native extension for Android target not found
+Native extension for WindowsStandalone target not found
+ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  4.381 seconds
+Domain Reload Profiling: 5429ms
+	BeginReloadAssembly (305ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (12ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (160ms)
+	RebuildCommonClasses (35ms)
+	RebuildNativeTypeToScriptingClass (14ms)
+	initialDomainReloadingComplete (30ms)
+	LoadAllAssembliesAndSetupDomain (664ms)
+		LoadAssemblies (418ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (346ms)
+			TypeCache.Refresh (239ms)
+				TypeCache.ScanAssembly (225ms)
+			BuildScriptInfoCaches (89ms)
+			ResolveRequiredComponents (13ms)
+	FinalizeReload (4382ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (4043ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (36ms)
+			SetLoadedEditorAssemblies (7ms)
+			BeforeProcessingInitializeOnLoad (198ms)
+			ProcessInitializeOnLoadAttributes (3581ms)
+			ProcessInitializeOnLoadMethodAttributes (213ms)
+			AfterProcessingInitializeOnLoad (8ms)
+			EditorAssembliesLoaded (1ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (16ms)
+Asset Pipeline Refresh (id=cade20c5afd4b8f48a2f0855b16cf528): Total: 7.202 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=5139 ms
+		Asset DB Callback time: managed=74 ms, native=25 ms
+		Scripting: domain reloads=1, domain reload time=1052 ms, compile time=843 ms, other=66 ms
+		Project Asset Count: scripts=1836, non-scripts=4486
+		Asset File Changes: new=0, changed=0, moved=0, deleted=0
+		Scan Filter Count: 0
+	InvokeCustomDependenciesCallbacks: 0.002ms
+	InvokePackagesCallback: 27.108ms
+	ApplyChangesToAssetFolders: 0.751ms
+	Scan: 183.067ms
+	OnSourceAssetsModified: 0.002ms
+	CategorizeAssetsWithTransientArtifact: 73.179ms
+	ProcessAssetsWithTransientArtifactChanges: 124.728ms
+	CategorizeAssets: 155.122ms
+	ImportOutOfDateAssets: 4412.227ms (3560.981ms without children)
+		CompileScripts: 842.983ms
+		ReloadNativeAssets: 0.046ms
+		UnloadImportedAssets: 1.341ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 1.432ms
+		InitializingProgressBar: 0.001ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.001ms
+		OnDemandSchedulerStart: 5.441ms
+	PostProcessAllAssets: 74.307ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.003ms
+	UnloadStreamsBegin: 2.899ms
+	PersistCurrentRevisions: 0.276ms
+	UnloadStreamsEnd: 0.002ms
+	GenerateScriptTypeHashes: 5.124ms
+	Untracked: 2148.321ms
+
+Application.AssetDatabase Initial Refresh End
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.03 seconds
+Scanning for USB devices : 4.120ms
+Initializing Unity extensions:
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-Quantum Forge
+Unloading 25 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 8018 unused Assets / (7.1 MB). Loaded Objects now: 8897.
+Memory consumption went from 224.5 MB to 217.4 MB.
+Total: 15.576600 ms (FindLiveObjects: 1.093100 ms CreateObjectMapping: 0.861000 ms MarkObjects: 9.610800 ms  DeleteObjects: 4.010300 ms)
+
+[D1 Final Save Compatibility] PASS | partida nueva | partida antigua | JSON actual
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+Dimension1FinalValidation:ValidateFinalSaveCompatibility () (at Assets/Project/Scripts/Editor/Dimension1FinalValidation.cs:26)
+Dimension1FinalValidation:ValidateFinalSaveCompatibilityBatch () (at Assets/Project/Scripts/Editor/Dimension1FinalValidation.cs:41)
+Dimension1Audit20260908:Start (int) (at Assets/Project/Scripts/Editor/Dimension1Audit20260908.cs:100)
+Dimension1Audit20260908:RunCenter1080 () (at Assets/Project/Scripts/Editor/Dimension1Audit20260908.cs:38)
+
+(Filename: Assets/Project/Scripts/Editor/Dimension1FinalValidation.cs Line: 26)
+
+[D1 Tree Points] PASS | aislamiento D1 | acreditación única | saves
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+D1TreePointsValidation:ValidateD1TreePoints () (at Assets/Project/Scripts/Editor/D1TreePointsValidation.cs:25)
+D1TreePointsValidation:ValidateD1TreePointsBatch () (at Assets/Project/Scripts/Editor/D1TreePointsValidation.cs:37)
+Dimension1Audit20260908:Start (int) (at Assets/Project/Scripts/Editor/Dimension1Audit20260908.cs:101)
+Dimension1Audit20260908:RunCenter1080 () (at Assets/Project/Scripts/Editor/Dimension1Audit20260908.cs:38)
+
+(Filename: Assets/Project/Scripts/Editor/D1TreePointsValidation.cs Line: 25)
+
+Opening scene 'Assets/Project/Scenes/Main.unity'
+Unloading 237 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/Project/Scenes/Main.unity'
+	Deserialize:            1990.316 ms
+	Integration:            1094.974 ms
+	Integration of assets:  293.028 ms
+	Thread Wait Time:       0.631 ms
+	Total Operation Time:   3378.949 ms
+Unloading 2 unused Assets / (1.0 KB). Loaded Objects now: 78594.
+Memory consumption went from 0.83 GB to 0.83 GB.
+Total: 29.253000 ms (FindLiveObjects: 6.599200 ms CreateObjectMapping: 1.958300 ms MarkObjects: 20.575100 ms  DeleteObjects: 0.103200 ms)
+
+<RI> Initializing input.
+Using Windows.Gaming.Input
+[Project] Loading completed in 18.520 seconds
+	Project init time: 				12.998 seconds
+		Template init time: 		0.000 seconds
+		Package Manager init time: 		0.917 seconds
+		Asset Database init time: 		0.518 seconds
+		Global illumination init time: 	0.004 seconds
+		Assemblies load time: 			3.212 seconds
+		Unity extensions init time: 	0.086 seconds
+		Asset Database refresh time: 	7.202 seconds
+	Scene opening time: 			5.324 seconds
+##utp:{"type":"ProjectInfo","version":2,"phase":"Immediate","time":1788879839951,"processId":29396,"projectLoad":18.519665,"projectInit":12.9979492,"templateInit":0.0,"packageManagerInit":0.916661,"assetDatabaseInit":0.5184657,"globalIlluminationInit":0.0035279,"assembliesLoad":3.2121018,"unityExtensionsInit":0.085555,"assetDatabaseRefresh":7.2021852,"sceneOpening":5.3244314}
+##utp:{"type":"EditorInfo","version":2,"phase":"Immediate","time":1788879839951,"processId":29396,"editorVersion":"6000.3.10f1 (e35f0c77bd8e)","branch":"6000.3/staging","buildType":"Release","platform":"Windows"}
+Reloading assemblies for play mode.
+Reloading assemblies after forced synchronous recompile.
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in  1.266 seconds
+Refreshing native plugins compatible for Editor in 1.47 ms, found 4 plugins.
+Native extension for Android target not found
+Native extension for WindowsStandalone target not found
+ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  2.080 seconds
+Domain Reload Profiling: 3349ms
+	BeginReloadAssembly (888ms)
+		ExecutionOrderSort (4ms)
+		DisableScriptedObjects (94ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (4ms)
+		CreateAndSetChildDomain (555ms)
+	RebuildCommonClasses (37ms)
+	RebuildNativeTypeToScriptingClass (15ms)
+	initialDomainReloadingComplete (29ms)
+	LoadAllAssembliesAndSetupDomain (299ms)
+		LoadAssemblies (158ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (233ms)
+			TypeCache.Refresh (7ms)
+				TypeCache.ScanAssembly (0ms)
+			BuildScriptInfoCaches (208ms)
+			ResolveRequiredComponents (14ms)
+	FinalizeReload (2081ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (992ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (38ms)
+			SetLoadedEditorAssemblies (4ms)
+			BeforeProcessingInitializeOnLoad (178ms)
+			ProcessInitializeOnLoadAttributes (660ms)
+			ProcessInitializeOnLoadMethodAttributes (104ms)
+			AfterProcessingInitializeOnLoad (7ms)
+			EditorAssembliesLoaded (1ms)
+		ExecutionOrderSort2 (5ms)
+		AwakeInstancesAfterBackupRestoration (370ms)
+Asset Pipeline Refresh (id=a83e7ed909671534c88400fa89320616): Total: 3.584 seconds - Initiated by StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=2227 ms
+		Asset DB Callback time: managed=39 ms, native=1 ms
+		Scripting: domain reloads=1, domain reload time=1314 ms, compile time=1 ms, other=0 ms
+		Project Asset Count: scripts=1836, non-scripts=4486
+		Asset File Changes: new=0, changed=0, moved=0, deleted=0
+		Scan Filter Count: 0
+	InvokeCustomDependenciesCallbacks: 0.001ms
+	InvokePackagesCallback: 3.329ms
+	ApplyChangesToAssetFolders: 0.397ms
+	Scan: 0.001ms
+	OnSourceAssetsModified: 0.002ms
+	CategorizeAssetsWithTransientArtifact: 0.003ms
+	ProcessAssetsWithTransientArtifactChanges: 5.969ms
+	CategorizeAssets: 86.573ms
+	ImportOutOfDateAssets: 2092.574ms (2086.256ms without children)
+		CompileScripts: 1.488ms
+		CollectScriptTypesHashes: 1.932ms
+		ReloadNativeAssets: 1.213ms
+		UnloadImportedAssets: 0.096ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 1.181ms
+		InitializingProgressBar: 0.001ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.001ms
+		OnDemandSchedulerStart: 0.405ms
+	PostProcessAllAssets: 39.650ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.274ms
+	UnloadStreamsBegin: 2.326ms
+	PersistCurrentRevisions: 0.176ms
+	UnloadStreamsEnd: 0.002ms
+	GenerateScriptTypeHashes: 5.891ms
+	Untracked: 1353.207ms
+
+[SaveService] Awake()
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+SaveService:Awake () (at Assets/Project/Scripts/Systems/SaveService.cs:225)
+
+(Filename: Assets/Project/Scripts/Systems/SaveService.cs Line: 225)
+
+[AchievementManager] Cargados 3 logros.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AchievementManager:LoadDefsFromJson () (at Assets/Project/Scripts/Systems/AchievementManager.cs:100)
+AchievementManager:Awake () (at Assets/Project/Scripts/Systems/AchievementManager.cs:68)
+
+(Filename: Assets/Project/Scripts/Systems/AchievementManager.cs Line: 100)
+
+[AchievementManager] ApplyLoadedAchievements: 0 ids desde save.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AchievementManager:ApplyLoadedAchievements (System.Collections.Generic.List`1<string>) (at Assets/Project/Scripts/Systems/AchievementManager.cs:136)
+AchievementManager:Awake () (at Assets/Project/Scripts/Systems/AchievementManager.cs:72)
+
+(Filename: Assets/Project/Scripts/Systems/AchievementManager.cs Line: 136)
+
+[BuildingDatabase] Cargados 3 edificio(s) desde JSON.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BuildingDatabase:LoadFromResources () (at Assets/Project/Scripts/Buildings/BuildingDatabase.cs:62)
+BuildingDatabase:Awake () (at Assets/Project/Scripts/Buildings/BuildingDatabase.cs:35)
+
+(Filename: Assets/Project/Scripts/Buildings/BuildingDatabase.cs Line: 62)
+
+[BuildingDatabase] Primer edificio => id=vacuum_observer, nombre=Condensador de Higgs, baseCost=10, tickInterval=1, lePerTickBase=1
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BuildingDatabase:LoadFromResources () (at Assets/Project/Scripts/Buildings/BuildingDatabase.cs:67)
+BuildingDatabase:Awake () (at Assets/Project/Scripts/Buildings/BuildingDatabase.cs:35)
+
+(Filename: Assets/Project/Scripts/Buildings/BuildingDatabase.cs Line: 67)
+
+[MachineManager] Nodos activos: 43 | retirados: 20
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+MachineManager:LoadDefs () (at Assets/Project/Scripts/Systems/MachineManager.cs:102)
+MachineManager:Awake () (at Assets/Project/Scripts/Systems/MachineManager.cs:35)
+
+(Filename: Assets/Project/Scripts/Systems/MachineManager.cs Line: 102)
+
+Loaded scene 'Temp/__Backupscenes/0.backup'
+	Deserialize:            519.339 ms
+	Integration:            1589.529 ms
+	Integration of assets:  49.634 ms
+	Thread Wait Time:       -1.295 ms
+	Total Operation Time:   2157.207 ms
+[SaveService] Load() llamado. Existe archivo? True (C:/Users/nedfla/AppData/LocalLow/DefaultCompany/Quantum Forge\save.json)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+SaveService:Load () (at Assets/Project/Scripts/Systems/SaveService.cs:512)
+GameState:Start () (at Assets/Project/Scripts/Core/GameState.cs:1382)
+
+(Filename: Assets/Project/Scripts/Systems/SaveService.cs Line: 512)
+
+[MachineManager] Progreso cargado. Nodos reparados: 6 | Nodos analizados: 3
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+MachineManager:LoadProgressFromSave (SaveData) (at Assets/Project/Scripts/Systems/MachineManager.cs:303)
+SaveService:Load () (at Assets/Project/Scripts/Systems/SaveService.cs:736)
+GameState:Start () (at Assets/Project/Scripts/Core/GameState.cs:1382)
+
+(Filename: Assets/Project/Scripts/Systems/MachineManager.cs Line: 303)
+
+[D1] Offline minería aplicado: 717 segundos.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+SaveService:Load () (at Assets/Project/Scripts/Systems/SaveService.cs:800)
+GameState:Start () (at Assets/Project/Scripts/Core/GameState.cs:1382)
+
+(Filename: Assets/Project/Scripts/Systems/SaveService.cs Line: 800)
+
+[D2] Ventana offline preparada: 717 segundos.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+SaveService:Load () (at Assets/Project/Scripts/Systems/SaveService.cs:805)
+GameState:Start () (at Assets/Project/Scripts/Core/GameState.cs:1382)
+
+(Filename: Assets/Project/Scripts/Systems/SaveService.cs Line: 805)
+
+[D3] Progreso offline aplicado: 717 segundos.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+SaveService:Load () (at Assets/Project/Scripts/Systems/SaveService.cs:810)
+GameState:Start () (at Assets/Project/Scripts/Core/GameState.cs:1382)
+
+(Filename: Assets/Project/Scripts/Systems/SaveService.cs Line: 810)
+
+[AchievementManager] ApplyLoadedAchievements: 3 ids desde save.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AchievementManager:ApplyLoadedAchievements (System.Collections.Generic.List`1<string>) (at Assets/Project/Scripts/Systems/AchievementManager.cs:136)
+SaveService:Load () (at Assets/Project/Scripts/Systems/SaveService.cs:839)
+GameState:Start () (at Assets/Project/Scripts/Core/GameState.cs:1382)
+
+(Filename: Assets/Project/Scripts/Systems/AchievementManager.cs Line: 136)
+
+[AchievementManager] Bonus global LE por logros: +13%
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AchievementManager:RecalculateBonuses () (at Assets/Project/Scripts/Systems/AchievementManager.cs:258)
+AchievementManager:ApplyLoadedAchievements (System.Collections.Generic.List`1<string>) (at Assets/Project/Scripts/Systems/AchievementManager.cs:153)
+SaveService:Load () (at Assets/Project/Scripts/Systems/SaveService.cs:839)
+GameState:Start () (at Assets/Project/Scripts/Core/GameState.cs:1382)
+
+(Filename: Assets/Project/Scripts/Systems/AchievementManager.cs Line: 258)
+
+[SaveService] Loaded.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+SaveService:Load () (at Assets/Project/Scripts/Systems/SaveService.cs:847)
+GameState:Start () (at Assets/Project/Scripts/Core/GameState.cs:1382)
+
+(Filename: Assets/Project/Scripts/Systems/SaveService.cs Line: 847)
+
+[SaveService] Start()
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+SaveService:Start () (at Assets/Project/Scripts/Systems/SaveService.cs:232)
+
+(Filename: Assets/Project/Scripts/Systems/SaveService.cs Line: 232)
+
+[BuildingListUI] Generadas 3 filas de edificios.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BuildingListUI:EnsureInitialized () (at Assets/Project/Scripts/Buildings/BuildingListUI.cs:99)
+VerticalGenerationBeforeTriangleUI:RefreshState () (at Assets/Project/Scripts/UI/Vertical/VerticalGenerationBeforeTriangleUI.cs:35)
+VerticalGenerationBeforeTriangleUI:OnEnable () (at Assets/Project/Scripts/UI/Vertical/VerticalGenerationBeforeTriangleUI.cs:21)
+UnityEngine.GameObject:SetActive (bool)
+TabsUI:ShowGeneracion () (at Assets/Project/Scripts/UI/TabsUI.cs:253)
+TabsUI:Start () (at Assets/Project/Scripts/UI/TabsUI.cs:99)
+
+(Filename: Assets/Project/Scripts/Buildings/BuildingListUI.cs Line: 99)
+
+Asset Pipeline Refresh (id=b92fa3678f600a141a4e7cf5acccb195): Total: 0.067 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+Start Indexing on Editor startup
+[Indexing] Starting Initial Indexing for Assets
+Created GICache directory at C:/Users/nedfla/AppData/LocalLow/Unity/Caches/GiCache. Took: 0.013s, timestamps: [27.496 - 27.509]
+[SaveService] OnApplicationQuit -> Save()
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+SaveService:OnApplicationQuit () (at Assets/Project/Scripts/Systems/SaveService.cs:241)
+
+(Filename: Assets/Project/Scripts/Systems/SaveService.cs Line: 241)
+
+[SaveService] Escritura suprimida durante QA visual.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+SaveService:Save () (at Assets/Project/Scripts/Systems/SaveService.cs:308)
+SaveService:OnApplicationQuit () (at Assets/Project/Scripts/Systems/SaveService.cs:243)
+
+(Filename: Assets/Project/Scripts/Systems/SaveService.cs Line: 308)
+
+Unloading 10 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Temp/__Backupscenes/0.backup'
+	Deserialize:            430.130 ms
+	Integration:            615.798 ms
+	Integration of assets:  1.221 ms
+	Thread Wait Time:       -0.369 ms
+	Total Operation Time:   1046.780 ms
+Unloading 19 unused Assets / (145.7 KB). Loaded Objects now: 79382.
+Memory consumption went from 0.96 GB to 0.96 GB.
+Total: 33.152900 ms (FindLiveObjects: 6.398800 ms CreateObjectMapping: 1.592200 ms MarkObjects: 25.013200 ms  DeleteObjects: 0.147200 ms)
+
+[D1 Audit 2026-09-08] PASS | requested=1080x1920 | C:\Users\nedfla\Quantum Forge\Logs\D1_Audit_2026-09-08\drawer_touch_1080
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+Dimension1Audit20260908:ModeChanged (UnityEditor.PlayModeStateChange) (at Assets/Project/Scripts/Editor/Dimension1Audit20260908.cs:150)
+UnityEditor.EditorApplication:Internal_PlayModeStateChanged (UnityEditor.PlayModeStateChange)
+
+(Filename: Assets/Project/Scripts/Editor/Dimension1Audit20260908.cs Line: 150)
+
+Clearing [Rajdhani-Medium SDF] dynamic font asset data.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+TMPro.EditorEventCallbacks/<>c:<InitializeFontAssetResourceChangeCallBacks>b__0_0 () (at ./Library/PackageCache/com.unity.ugui@bb329a87fcdc/Editor/TMP/TMP_EditorResourceManager.cs:36)
+UnityEditor.EditorApplication:Internal_EditorApplicationQuit ()
+Dimension1Audit20260908:ModeChanged (UnityEditor.PlayModeStateChange) (at Assets/Project/Scripts/Editor/Dimension1Audit20260908.cs:152)
+UnityEditor.EditorApplication:Internal_PlayModeStateChanged (UnityEditor.PlayModeStateChange)
+
+(Filename: ./Library/PackageCache/com.unity.ugui@bb329a87fcdc/Editor/TMP/TMP_EditorResourceManager.cs Line: 36)
+
+Clearing [LiberationSans SDF - Fallback] dynamic font asset data.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+TMPro.EditorEventCallbacks/<>c:<InitializeFontAssetResourceChangeCallBacks>b__0_0 () (at ./Library/PackageCache/com.unity.ugui@bb329a87fcdc/Editor/TMP/TMP_EditorResourceManager.cs:36)
+UnityEditor.EditorApplication:Internal_EditorApplicationQuit ()
+Dimension1Audit20260908:ModeChanged (UnityEditor.PlayModeStateChange) (at Assets/Project/Scripts/Editor/Dimension1Audit20260908.cs:152)
+UnityEditor.EditorApplication:Internal_PlayModeStateChanged (UnityEditor.PlayModeStateChange)
+
+(Filename: ./Library/PackageCache/com.unity.ugui@bb329a87fcdc/Editor/TMP/TMP_EditorResourceManager.cs Line: 36)
+
+Killing ADB server in 0.0980765 seconds.
+Start importing Assets/Project/UI/Vertical/Machine/Prototype3D/MachineCube3DPrototype.renderTexture using Guid(49b17405da674e04c8e751e3756b249b) (NativeFormatImporter) -> (artifact id: 'f874c2f5c37ca948ecdc9dcc2d55ef06') in 0.011388 seconds
+Start importing Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF - Fallback.asset using Guid(2e498d1c8094910479dc3e1b768306a4) (NativeFormatImporter) -> (artifact id: '2599e33c9bb2b83315dc667ecf05fc6e') in 0.0026381 seconds
+Start importing Assets/Project/UI/Vertical/Fonts/Rajdhani-Medium SDF.asset using Guid(afc8f8acdc3328349ad6378a6f7a3158) (NativeFormatImporter) -> (artifact id: '90f3d61d94b947f1ef4d1bf4aafe8850') in 0.0028676 seconds
+Refreshing native plugins compatible for Editor in 1.42 ms, found 4 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=6b585a40e56970644958150671a2e42c): Total: 0.225 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Input System module state changed to: ShutdownInProgress.
+Input System polling thread exited.
+Input System module state changed to: Shutdown.
+[Physics::Module] Cleanup current backend.
+[Physics::Module] Id: 0xf2b8ea05
+[Licensing::IpcConnector] LicenseClient-nedfla-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-nedfla channel disconnected successfully.
+AcceleratorClientConnectionCallback - disconnected - :0
+Cleanup mono
+Checking for leaked weakptr:
+  Found no leaked weakptrs.
+[Package Manager] Server process was shutdown
+##utp:{"type":"MemoryLeaks","version":2,"phase":"Immediate","time":1788879856767,"processId":29396,"allocatedMemory":65500455,"memoryLabels":[{"Default":29313},{"Permanent":15236},{"NewDelete":68803},{"Thread":4230344},{"Manager":821309},{"VertexData":632},{"Geometry":816},{"Texture":296},{"Shader":79381},{"Material":24},{"GfxDevice":55689},{"Animation":392},{"Audio":3040},{"FreeType":8},{"FontEngine":45795648},{"Physics":2090},{"Physics2D":16},{"Serialization":592},{"Input":14984},{"JobScheduler":33024},{"TextLib":216},{"Mono":32},{"MonoCode":64},{"ScriptingNativeRuntime":155060},{"BaseObject":1620272},{"Resource":1336},{"Renderer":3000},{"Transform":4685},{"File":3933},{"WebCam":616},{"Culling":32},{"Terrain":11394},{"Wind":24},{"STL":40},{"String":22188},{"DynamicArray":122491},{"HashMap":82719},{"Utility":2660822},{"Curl":2478},{"PoolAlloc":2248},{"AI":80},{"TypeTree":5341},{"ScriptManager":512},{"RuntimeInitializeOnLoadManager":64},{"SpriteAtlas":112},{"GI":7792},{"Director":8240},{"CloudService":10080},{"WebRequest":4219},{"VR":47994},{"SceneManager":504},{"Video":208},{"LazyScriptCache":32},{"NativeArray":540},{"Camera":17},{"Secure":2113},{"SerializationCache":1576},{"APIUpdating":10320},{"Subsystems":336},{"VirtualTexturing":57888},{"StaticSafetyDebugInfo":278528},{"Analytics":384},{"Hierarchy":608},{"CoreStats":13032},{"Identifiers":12960},{"Gui":157},{"EditorUtility":213096},{"VersionControl":4},{"Undo":947},{"AssetDatabase":8932407},{"EditorGi":328},{"UnityConnect":29232},{"Upm":1896},{"AssetCompliance":64},{"DrivenProperties":72},{"LocalIPC":212},{"ProfilerEditor":9778},{"CoreBusinessMetrics":2871},{"Licensing":664},{"AssetReference":32},{"IPCStream":32}]}

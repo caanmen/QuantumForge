@@ -71,6 +71,15 @@ public sealed class VerticalTriangleArtifactCardUI : MonoBehaviour
         string status = Localize("ui.cost_prefix", "Coste:") + " " +
             cost.ToString("0.##") + " LE" +
             (traceCost > 0.0 ? " + " + traceCost.ToString("0.##") + " Trazas" : "");
+        int nextMilestone = GameState.GetNextArtifactMilestoneLevel(
+            state.def.id, state.level);
+        if (nextMilestone > 0)
+        {
+            double multiplier = GameState.GetArtifactLevelMilestoneMultiplier(
+                state.def.id, nextMilestone);
+            status += "\nHITO NV. " + nextMilestone + " · PRODUCCIÓN x" +
+                multiplier.ToString("0");
+        }
         SetIfChanged(stateText, status);
 
         if (buyButton != null)

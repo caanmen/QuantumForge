@@ -1,0 +1,34 @@
+EVIDENCIA DE VALIDACIÓN: REGISTRO DE EXPEDICIONES
+================================================
+
+Fecha: 2026-08-20
+Escena real: Assets/Project/Scenes/Main.unity
+
+INSTALACIÓN
+- Log vigente: Logs/d1_expedition_record_summary_icons_install_20260820_pass3.log
+- Resultado: [D1 Expedition Record] INSTALL_PASS
+
+PRUEBA FUNCIONAL Y VISUAL
+- Log vigente: Logs/d1_expedition_record_summary_icons_capture_20260820.log
+- Resultado: [D1 Expedition Record Capture] PASS
+- Ruta real desde Explorar verificada.
+- 20 expediciones recientes verificadas.
+- Entrada fija de ARK verificada simultáneamente con las 20 expediciones (21/21).
+- Filtros Todas, Con reliquias, Coordinadas y los cuatro sectores verificados.
+- Scroll hasta el registro más antiguo verificado.
+- Estados sin entradas, sin coincidencias y sin metales verificados.
+- De cero a cuatro fichas metálicas por registro verificadas.
+- Cierre superior/inferior sin interacción ni raycasts residuales verificado.
+- Tres sprites específicos y distintos para Expediciones, Reliquias y Metales verificados.
+- Material black key canónico, preserveAspect, color original y raycast desactivado
+  verificados para los tres iconos.
+- Fondos negros uniformes inspeccionados; sin cuadrícula horneada ni recuadro visible en
+  las capturas finales.
+- SaveService mantuvo las escrituras suprimidas durante todo el QA.
+
+CAPTURAS CANDIDATAS
+- CAPTURA_CANDIDATA_1080x1920.png
+- CAPTURA_CANDIDATA_720x1280.png
+
+Las capturas no se trasladan a 06_CAPTURAS_APROBADAS hasta recibir aprobación explícita
+del usuario. PASS técnico no sustituye la aprobación visual ni declara por sí solo 95 %.

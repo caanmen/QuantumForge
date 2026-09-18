@@ -869,7 +869,7 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
         rect.offsetMin = Vector2.zero;
         rect.offsetMax = Vector2.zero;
         text.maxVisibleLines = maxLines;
-        text.overflowMode = TextOverflowModes.Ellipsis;
+        text.overflowMode = TextOverflowModes.Truncate;
     }
 
     private static void ApplyBlockerEmphasis(TextMeshProUGUI text, bool emphasize,
@@ -915,12 +915,12 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
         StringBuilder builder = new StringBuilder();
         AppendCost(builder, cost.le, "LE", "LE");
         AppendCost(builder, cost.traces, "TRAZA", "TRAZAS");
-        AppendCost(builder, cost.hallazgo, "HALLAZGO", "HALLAZGOS");
-        AppendCost(builder, cost.muestra, "MUESTRA", "MUESTRAS");
+        AppendCost(builder, cost.hallazgo, "ANOMALÍA", "ANOMALÍAS");
+        AppendCost(builder, cost.muestra, "CONDENSADO", "CONDENSADOS");
         AppendCost(builder, cost.lecturaIncompleta,
-            "LECTURA INCOMPLETA", "LECTURAS INCOMPLETAS");
+            "VESTIGIO", "VESTIGIOS");
         AppendCost(builder, cost.compuestoUtil,
-            "COMPUESTO ÚTIL", "COMPUESTOS ÚTILES");
+            "COMPUESTO", "COMPUESTOS");
         AppendCost(builder, cost.pureInstant, "ANCLAJE PURO", "ANCLAJES PUROS");
         AppendCost(builder, cost.stableInstant,
             "ANCLAJE ESTABLE", "ANCLAJES ESTABLES");
@@ -981,7 +981,7 @@ public sealed class MachineCubeVisualUI : MonoBehaviour
             MachineNodeEffectType.UnlockMachineMemory => "MEMORIA DE LA MÁQUINA",
             MachineNodeEffectType.ZoneProgressSyncBonus => "SINCRONIZACIÓN POR SECTOR",
             MachineNodeEffectType.StructuralSupportBonus => "REFUERZO ESTRUCTURAL",
-            MachineNodeEffectType.EnablePrestige1 => "CANAL DE CONVERGENCIA",
+            MachineNodeEffectType.EnablePrestige1 => "UMBRAL ESTRUCTURAL",
             MachineNodeEffectType.DiagnosticReasonMarker => "DIAGNÓSTICO DE FALLAS",
             MachineNodeEffectType.InternalSupportBonus => "SOPORTE INTERNO" + percentValue,
             MachineNodeEffectType.UnlockInstantChamber => "CÁMARA DE ANCLAJES",

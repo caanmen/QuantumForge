@@ -1,0 +1,27 @@
+FICHA DE PANTALLA — INVESTIGACIÓN DE PIEZAS V4–V6
+=================================================
+
+Dimensión: 3
+Tipo: taller, selección y cola de investigación de piezas
+Referencia visual: 05_REFERENCIAS/DIMENSION_3/INVESTIGACION_PIEZAS/
+Implementación funcional: D3ResearchPanelUI + D3ResearchSystem
+
+ESCENARIO CANÓNICO DE QA
+- recursos: 3.25M LE, 4.2K Trazas y 56 Autómatas;
+- Banco de Procesos nivel 4 y requisito de 10 MK3 ensamblados cumplido;
+- pieza: Módulo de Control;
+- investigación: V4;
+- equipo: 40 MK1 Normal;
+- potencia real: 50;
+- coste base: 100000 LE + 100 T;
+- duración base: 1200 s;
+- cola vacía;
+- INICIAR INVESTIGACIÓN disponible y CANCELAR INVESTIGACIÓN deshabilitado;
+- navegación inferior: TALLER seleccionado.
+
+ESTADOS POSTERIORES A VALIDAR
+- equipo vacío e insuficiente;
+- V4 disponible, en cola y completada;
+- cancelación con devolución/liberación correcta;
+- V5 y V6 bloqueadas/desbloqueadas según la cadena;
+- cola llena y recursos insuficientes.

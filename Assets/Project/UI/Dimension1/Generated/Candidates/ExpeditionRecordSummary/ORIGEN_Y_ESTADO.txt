@@ -1,0 +1,27 @@
+ICONOS DE RESUMEN — REGISTRO DE EXPEDICIONES D1
+================================================
+
+Estado: CANDIDATOS PENDIENTES DE APROBACIÓN VISUAL.
+Fecha: 2026-08-20.
+
+Faltantes confirmados tras buscar por concepto, función y origen en el catálogo y en el
+proyecto real:
+- total de expediciones;
+- total de reliquias;
+- total combinado de metales.
+
+Se generaron tres assets específicos con ImageGen integrado. Las primeras salidas con
+cuadrícula horneada fueron rechazadas y no se incorporaron al proyecto. Estas versiones
+usan fondo negro uniforme inspeccionado y el material canónico
+`NavigationPremium/d1_nav_premium_black_key.mat`, con `_UseTint = 0`, para conservar los
+colores del arte y eliminar únicamente el fondo.
+
+Prompts finales resumidos:
+- Expediciones: emblema circular técnico de navegación y expedición, cian metálico,
+  centrado, detallado, sin texto ni marco, sobre negro puro uniforme.
+- Reliquias: conjunto de tres reliquias/cristales ámbar, centrado, detallado, sin texto
+  ni marco, sobre negro puro uniforme.
+- Metales: conjunto mixto de lingotes, cubos y aleaciones facetadas, centrado, detallado,
+  sin texto ni marco, sobre negro puro uniforme.
+
+No promover estos archivos a canónicos hasta que la captura completa sea aprobada.

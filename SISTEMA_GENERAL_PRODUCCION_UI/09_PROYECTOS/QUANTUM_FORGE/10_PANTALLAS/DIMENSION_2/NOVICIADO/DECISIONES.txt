@@ -1,0 +1,22 @@
+DECISIONES — NOVICIADO
+
+30 de agosto de 2026
+
+1. La referencia V4 permanente es la autoridad visual; el margen, marco del visor y
+   tiradores blancos del adjunto no pertenecen a la pantalla.
+2. D2NovitiatePanelUI es el propietario único de textos, estado, acciones y navegación.
+3. D2NovitiateSystem conserva la propiedad de costes, tiempos, apoyo, conversión,
+   cancelación y mejora; la UI no replica reglas.
+4. Los valores se separan en campos TMP dinámicos y se formatean con cultura invariante.
+5. Cancelar permanece visible y deshabilitado en neutral; el soporte y la mejora no
+   cambian la geometría de la composición.
+6. El apoyo se descuenta al iniciar, se devuelve al cancelar/completar y no devuelve
+   Ofrendas consumidas.
+7. La placa decorativa bloquea raycasts de secciones inferiores. Los overlays no
+   interceptan entrada.
+8. La placa limpia se produjo mediante edición con ImageGen y una composición mecánica
+   reproducible; los iconos pequeños se derivan de la V4 permanente.
+9. La captura QA usa un estado real alcanzable de Nivel II y restaura los datos tras
+   probar las acciones.
+10. La composición estática y los estados funcionales quedan listos antes de añadir
+    animación o variantes no documentadas.

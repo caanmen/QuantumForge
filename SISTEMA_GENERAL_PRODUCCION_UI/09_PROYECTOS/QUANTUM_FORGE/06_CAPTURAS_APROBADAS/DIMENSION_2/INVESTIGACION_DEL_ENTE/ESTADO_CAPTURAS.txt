@@ -1,0 +1,21 @@
+CAPTURAS APROBADAS — INVESTIGACIÓN DEL ENTE
+
+Fecha: 3 de septiembre de 2026.
+Aprobación por continuidad del usuario al pasar a la pantalla siguiente.
+
+- investigacion_del_ente_aprobada_1080x1920.png
+  Similitud percibida AA: 96.75 %.
+
+- investigacion_del_ente_aprobada_720x1280.png
+  Similitud percibida AA: 97.03 %.
+
+Validación de Unity:
+- STRUCTURE_PASS.
+- STATE_PASS.
+- ACTIONS_PASS.
+- ROUTE_PASS.
+- SAVE_INTACT_PASS.
+- TEXT_GEOMETRY_PASS.
+
+Referencia comparada:
+05_REFERENCIAS/DIMENSION_2/CORREGIDAS_V4_2026-08-21/19_Investigacion_Del_Ente_Corregida_V5.png

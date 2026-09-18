@@ -1,0 +1,11 @@
+CONTRATO DE APROBACIÓN — INSTALACIONES / PUERTO
+===============================================
+
+La pantalla sólo puede declararse terminada cuando:
+- existen capturas reales nuevas 1080x1920 y 720x1280;
+- todos los controles permanecen dentro de sus marcos y la placa deja pasar raycasts;
+- el enlace, capacidad, asignación y estabilidad coinciden con el estado real;
+- las variantes Núcleo, Consola/Asignación y Mejora siguen funcionando;
+- el usuario aprueba al menos 95 % de similitud visual;
+- pasan Puerto N1–N5, automatización, Main, layout móvil y protección del guardado;
+- las capturas se archivan únicamente tras la aprobación explícita.

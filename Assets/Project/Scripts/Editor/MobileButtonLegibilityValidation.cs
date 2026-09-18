@@ -73,7 +73,9 @@ public static class MobileButtonLegibilityValidation
                 labels++;
                 Check(label.enableAutoSizing,
                     button.name + " no activa auto-size.", failures);
-                Check(label.fontSizeMin <= 10f && label.fontSizeMax <= 28f,
+                Check(label.fontSizeMin + .01f >=
+                        Mathf.Min(14f, label.fontSizeMax) &&
+                      label.fontSizeMax <= 28f,
                     button.name + " conserva un rango de fuente inseguro.",
                     failures);
                 Check(label.textWrappingMode == TextWrappingModes.Normal,

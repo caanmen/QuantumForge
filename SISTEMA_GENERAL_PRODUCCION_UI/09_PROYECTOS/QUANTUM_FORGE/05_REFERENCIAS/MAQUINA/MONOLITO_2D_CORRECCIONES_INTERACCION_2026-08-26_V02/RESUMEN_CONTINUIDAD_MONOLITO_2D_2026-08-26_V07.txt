@@ -1,0 +1,54 @@
+QUANTUM FORGE — CONTINUIDAD DEL MONOLITO 2D V07
+Fecha: 2026-08-26
+
+REGLAS
+
+- Leer las reglas, instrucciones maestras, guías y archivos reales del proyecto.
+- El Monolito es alienígena y 2D; el laboratorio es humano y quedó abandonado tras un
+  accidente. No usar cubos ni representación 3D.
+- No usar mockups o láminas comparativas como assets de runtime.
+- Mantener sincronizados escena, reconstructor, controlador visual y captura QA.
+
+APROBADO PREVIAMENTE
+
+- Centrado V17 de las cuatro luces de entrada.
+- Dirección estática V19 y fondo limpio V18.
+- Primera captura real estática del sector 1 con V18.
+
+DESCARTES
+
+- V22 redujo demasiado la cuarta cara y agrandó excesivamente el Monolito durante la
+  transición.
+- V23 usó una escala 0,90 mayor que la proporción de la lámina V10.
+- V24 recuperó la escala 0,78, pero centró verticalmente las caras y dejó sus bases por
+  delante del travesaño frontal del marco de suelo. Su PASS técnico no es aprobación.
+
+CANDIDATA VIGENTE V25
+
+- V08 permanece únicamente en la vista general; V18 es el fondo separado de las cuatro
+  vistas cercanas.
+- Las cuatro caras mantienen escala 0,78.
+- Cada cara se eleva un 11 % de la altura útil de su viewport. La base queda contenida
+  dentro del marco, sobre el travesaño interior y entre las dos guías laterales.
+- El desplazamiento proporcional conserva el apoyo en 1080×1920, 720×1280 y en la cara 4,
+  cuyo viewport es más alto porque no contiene ficha.
+- Sectores 1, 2 y 3 conservan 7, 11 y 7 nodos. El sector 4 sigue accesible, oscuro, sin
+  nodos y con `???` únicamente dentro de la cara.
+- La transición conserva el avance relativo 1,55, el laboratorio visible y el paralaje
+  moderado. Fondo, cara, nodos, firmas y ficha permanecen como capas independientes.
+
+VALIDACIÓN
+
+- Compilación: 0 errores y 0 advertencias.
+- Unity: VALIDATION PASS y CAPTURE PASS.
+- Evidencia: `Logs/machine_monolith_floor_frame_v25_capture.log`.
+- Se generaron 26 capturas en `Logs/VisualQA/MachineMonolith2D`, en 1080×1920 y
+  720×1280.
+- La prueba cubre alineación proporcional con el marco, estados, los cuatro sectores,
+  Mezclas, regreso, transición y restauración del guardado.
+
+PENDIENTE
+
+- Aprobación perceptual explícita de V25 por el usuario.
+- Sólo después registrar el 95 % y archivar las capturas elegidas en
+  `SISTEMA_GENERAL_PRODUCCION_UI/09_PROYECTOS/QUANTUM_FORGE/06_CAPTURAS_APROBADAS`.

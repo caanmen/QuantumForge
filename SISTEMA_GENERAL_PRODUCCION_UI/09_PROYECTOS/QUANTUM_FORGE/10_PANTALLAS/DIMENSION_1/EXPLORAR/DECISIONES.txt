@@ -1,0 +1,92 @@
+DECISIONES ESPECÍFICAS: EXPLORAR
+===============================
+
+- La referencia nueva entregada por el usuario reemplaza al mockup antiguo como
+  autoridad visual de esta pantalla.
+- El botón superior Centro de Mando regresa a la pantalla de mando sin cambiar el
+  progreso de exploración.
+- El estado activo de la navegación inferior es EXPLORAR en ámbar.
+- El contenido principal usa una caja envolvente centrada en x=540: sus límites son
+  x=62..1018 dentro del lienzo 1080×1920. No restaurar las posiciones antiguas
+  x=24..980 del prototipo.
+- Los números de la referencia se reproducen sólo en el escenario visual de prueba;
+  en una partida normal se muestran datos reales.
+- La pantalla se construye sobre UGUI y reutiliza VerticalUiTheme, los marcos y los
+  iconos canónicos ya existentes de Dimensión 1.
+- El concepto elegido el 21 de agosto reemplaza el radar grande por una cabecera visual
+  del sector. El planeta y las tarjetas usan arte canónico de Dimensión 1.
+- Carta Galáctica conserva su cierre normal y, al pulsar Explorar, activa esta raíz
+  visual para que la navegación local sea coherente en ambos sentidos.
+- La captura candidata se conserva junto a esta ficha; no pasa a Capturas Aprobadas
+  hasta recibir aprobación explícita del usuario.
+- La pasada final reduce el campo estelar, afina marcos, completa los separadores del
+  título y usa ilustraciones vectoriales de mayor detalle para nave, dron y navegación.
+- El fondo visual se extiende hasta el viewport completo para impedir que asome la
+  interfaz anterior, mientras el contenido permanece dentro de su zona segura.
+- La nave y el dron extractor usan los candidatos `d1_explore_ship_solid_v2.png` y
+  `d1_explore_drone_solid_v2.png`; mantienen alfa real y superficies rellenas. No se
+  promoverán a canónicos hasta recibir aprobación explícita del usuario.
+- La revisión del 19 de agosto confirmó que agregar detalle a una geometría incorrecta
+  no aumenta la fidelidad. Se reemplazaron las tres topologías completas: caza ancho
+  con doble ala y reactor inferior, dron de cuatro palas con cola, y boya analítica
+  estrecha con globo reticulado y aguja.
+- No existía un sprite canónico individual para estas ilustraciones. La sonda mantiene
+  su trazado UGUI reproducible y los dos nuevos sprites quedan registrados como
+  candidatos con sus posiciones medidas en la referencia.
+- La composición aprobada no sustituye el flujo funcional: los controles visuales
+  cambian la selección de los `TMP_Dropdown` funcionales ocultos y nunca mantienen una
+  segunda selección paralela.
+- El botón ámbar es contextual y usa reglas reales: ESCANEAR SECTOR si no hay destinos,
+  estado bloqueado con temporizador durante el escaneo, e INICIAR EXPEDICIÓN o INICIAR
+  EXPEDICIÓN COORDINADA cuando existen selecciones válidas.
+- Destino, nave principal y apoyo disponen de selectores visibles. La pantalla ya no
+  fuerza el primer destino, la primera nave ni desactiva la coordinación al iniciar.
+- El radar incorpora la mejora real del escáner. El panel de apoyo activa/desactiva la
+  coordinación y muestra la sinergia real; queda bloqueado si el nodo del Árbol no está
+  disponible.
+- SIMPLE y COORDINADA poseen tarjetas separadas; ninguna selección queda escondida dentro
+  del panel de apoyo y siempre es posible volver explícitamente a misión simple.
+- DETALLES siempre se abre desde el inicio del contenido y debe mostrar un estado útil
+  incluso si no existe destino o nave seleccionada; nunca puede quedar como modal vacía.
+- Al presentar Explorar se cierran las pantallas secundarias y se conserva oculta la vista
+  funcional antigua. La raíz moderna es la única propietaria visible de esa transición.
+- El bloque de expedición activa permite recorrer todas las misiones simultáneas y
+  muestra un contador; no se limita a la primera nave activa encontrada.
+- Las selecciones por defecto son inicialización silenciosa: actualizan índices y vista,
+  pero no ejecutan callbacks de usuario ni cierran la modal de resultado.
+- Una misión coordinada se nombra INICIAR EXPEDICIÓN COORDINADA y muestra el resumen
+  real `×4 METALES · ×2.5 TIEMPO` junto con la sinergia seleccionada.
+- La revisión gráfica solicitada fue aplicada el 21 de agosto. Los cuatro destinos son
+  selecciones reales del sector actual; los espacios sin señal muestran estado vacío y
+  no inventan contenido.
+- `Dimension1SharedShellApply` reconoce `ModePanel` como firma de la composición vigente y
+  conserva sus coordenadas; no puede restaurar la distribución radar anterior.
+- CAMBIAR SECTOR abre Carta Galáctica en un contexto explícito de selección para Explorar.
+  En ese contexto la acción se rotula EXPLORAR ESTE SECTOR, guarda el sector y regresa a
+  Explorar; nunca abre la subpantalla de planetas.
+- El botón inferior GALAXIA conserva el contexto normal de navegación. Desde allí ENTRAR AL
+  SECTOR sigue abriendo la subpantalla de planetas correspondiente.
+- El Centro Galáctico no puede elegirse como sector de exploración y, en el contexto de
+  CAMBIAR SECTOR, muestra su bloqueo funcional en lugar de prometer una ruta inválida.
+- La cabecera de Explorar no conserva un planeta fijo. El mismo ID estable que determina
+  el nombre del sector determina también su arte: planeta azul para Borde Exterior,
+  anillo denso elegido por el usuario para Anillo de Restos, planeta antiguo para Órbitas
+  Antiguas y planeta oscuro para Frontera Silenciosa.
+- Si un sector no tiene una correspondencia gráfica válida, la ilustración se oculta; no
+  se reutiliza silenciosamente la imagen de otro sector.
+- La identidad sectorial también alcanza los tres recursos resumidos del encabezado.
+  Explorar no conserva Hierro/Aluminio/Níquel como terna fija al cambiar de sector; usa el
+  mismo propietario compartido de metales que Carta, Hangar, Reliquias, Árbol y Centro.
+- REGISTRO es una transición directa a la lista detallada de expediciones. Explorar se
+  conserva debajo, pero no puede permanecer visible ni interceptar pulsaciones mientras la
+  subpantalla está abierta.
+
+CORRECCIÓN VALIDADA — 22 DE AGOSTO DE 2026
+
+- DETALLES usa un recorte rectangular compatible con contenido transparente. El texto
+  conserva activación y opacidad completas y muestra tiempo, metales, matrices, reliquias
+  y estado reales aun después de cambiar de nave o volver a la pantalla.
+- Los destinos se seleccionan directamente en sus cuatro tarjetas. La prueba táctil no
+  vuelve a exigir flechas históricas dentro de ese bloque.
+- El acceso a Centro de Mando comparte altura y alineación vertical con las tarjetas del
+  encabezado; la ruta completa mantiene visible exclusivamente la interfaz moderna.

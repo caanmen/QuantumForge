@@ -1,0 +1,39 @@
+QUANTUM FORGE — MONOLITO 2D — CONTINUIDAD V21
+Fecha: 2026-08-29
+Estado: corrección V45 del área segura completa implementada y validada; aprobación visual
+del usuario pendiente.
+
+CORRECCIÓN DE LA V20
+- El usuario detectó correctamente símbolos colocados sobre fragmentos dañados.
+- La validación V44 comprobaba únicamente el centro de cada símbolo. Por ello podía declarar
+  segura una posición aunque parte del dibujo invadiera el borde roto.
+- V20 queda reemplazada por este registro V21 para la distribución y seguridad de símbolos.
+
+IMPLEMENTACIÓN V45
+- Cada símbolo se valida por su huella visual completa mediante nueve muestras: centro,
+  cuatro lados y cuatro esquinas.
+- La media extensión normalizada se obtiene del RectTransform real medido dentro de Unity;
+  no se supone a partir de un valor teórico.
+- Tamaño visible: 38 px. Área táctil independiente preservada: 80 px.
+- Separación mínima normalizada entre centros: 0,075.
+- Distribución irregular determinista: 7 símbolos en S1, 11 en S2, 7 en S3 y ninguno en S4.
+- La huella completa queda dentro de piedra oscura y fuera de columna, base, esquinas y
+  borde exterior dañado en cada cara.
+- Las posiciones se mantienen estables durante los estados de reparación.
+
+ARCHIVOS MODIFICADOS
+- Assets/Project/Scripts/UI/MachineMonolith2DVisualUI.cs
+- Assets/Project/Scripts/Editor/MachineMonolith2DCapture.cs
+- Assets/Project/Scripts/Editor/MachineMonolith2DSetup.cs
+
+VALIDACIÓN
+- PASS específico: V45 FULL-FOOTPRINT SAFE SYMBOLS PASS.
+- Resoluciones verificadas: 1080 x 1920 y 720 x 1280.
+- Revisión visual realizada en S1, S2 y S3 dañados y en S2 reparado.
+- El pedestal V39, las caras V35/V43 y la transición V40 permanecen sin cambios.
+- Log: Logs/machine_monolith_v45_full_footprint_symbols_final.log
+- Capturas: Logs/VisualQA/MachineMonolith2D
+
+PENDIENTE
+- Esperar revisión y aprobación visual explícita del usuario.
+- No copiar todavía capturas a 06_CAPTURAS_APROBADAS.

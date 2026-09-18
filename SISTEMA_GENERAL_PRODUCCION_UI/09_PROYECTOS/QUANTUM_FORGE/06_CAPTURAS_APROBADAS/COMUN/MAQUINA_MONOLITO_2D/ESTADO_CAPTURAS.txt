@@ -1,0 +1,47 @@
+MÁQUINA — MONOLITO 2D
+Estado: APROBADO
+Fecha de aprobación: 2026-08-26
+
+ESCENA Y AUTORIDAD
+
+- Escena: `Assets/Project/Scenes/Main.unity`.
+- Reconstructor: `MachineMonolith2DSetup.ConfigureBatch`.
+- Prueba: `MachineMonolith2DCapture.RunBatch`.
+- Evidencia PASS: `Logs/machine_monolith_grounded_parallax_v26_capture.log`.
+
+ALCANCE APROBADO
+
+- Vista general 2D con cuatro luces de entrada V17.
+- Cuatro caras V25 con escala 0,78 y apoyo dentro del marco del suelo.
+- Sectores 1, 2 y 3 con estados inicial y reparado.
+- Sector 4 accesible, oscuro, sin nodos y con `???` sólo dentro de la cara.
+- Entrada V26 con avance 1,25 del Monolito, 1,07 del laboratorio y cruce V08/V18.
+- Resoluciones 1080×1920 y 720×1280.
+
+ARCHIVO
+
+- Se archivan 22 capturas reales de los estados del Monolito y su transición.
+- Las capturas 10 y 11 de Mezclas/regreso permanecen como evidencia funcional en
+  `Logs/VisualQA/MachineMonolith2D`; no forman parte de la aprobación visual específica
+  del Monolito.
+- No sobrescribir estas capturas silenciosamente. Una modificación visual posterior debe
+  generar una nueva versión fechada y conservar este conjunto como historial aprobado.
+
+ACTUALIZACIÓN APROBADA V53 — 2026-09-09
+
+- El usuario aprobó la distribución de firmas que aprovecha las zonas superior, central e
+  inferior de las caras 1–3.
+- Se archivan los estados inicial y reparado de las tres caras en 1080×1920 y 720×1280,
+  además de una lámina conjunta de revisión: trece archivos V53.
+- Evidencia técnica: `Logs/machine_monolith_v53_full_surface.log`, PASS con 36 capturas,
+  11 + 7 + 7 + 0 nodos, transición, navegación y guardado restaurado.
+- V53 reemplaza como autoridad únicamente la distribución de firmas. La composición del
+  objeto, su apoyo y la transición aprobados anteriormente continúan vigentes.
+
+REAPERTURA POSTERIOR V53 — 2026-09-09
+
+- El usuario detectó firmas sobre el borde dañado y reabrió esta distribución.
+- V53 se conserva como historial. La afirmación de seguridad en estado dañado queda
+  invalidada; la lámina reparada no demostraba el margen en los otros estados.
+- V54 se presenta con capturas nuevas dañadas, intermedias y reparadas en
+  Logs/VisualQA/MachineMonolith2D_V54 y permanece pendiente de aprobación visual.

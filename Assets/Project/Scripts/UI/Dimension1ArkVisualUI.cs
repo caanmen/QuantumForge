@@ -99,18 +99,7 @@ public sealed class Dimension1ArkVisualUI : MonoBehaviour
         if (state == null) return;
         state.EnsureDimension1State();
 
-        string[] metals =
-        {
-            Dimension1System.MetalIron,
-            Dimension1System.MetalAluminum,
-            Dimension1System.MetalNickel
-        };
-        for (int i = 0; i < metals.Length; i++)
-        {
-            Set(metalAmounts, i, FormatAmount(state.GetD1MetalAmount(metals[i])));
-            Set(metalRates, i, "+" + FormatAmount(
-                Dimension1System.GetMetalProductionPerSecond(state, metals[i])) + "/s");
-        }
+        Dimension1HeaderMetalsUI.Refresh(transform, state, state.dimension1SelectedSectorId);
 
         if (investigationTitle != null)
             investigationTitle.text = state.dimension1ArkInvestigated

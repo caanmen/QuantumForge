@@ -1078,8 +1078,8 @@ public static class Dimension3FactoryTowerPrototypeSetup
         label.alignment = alignment;
         label.fontStyle = style;
         label.characterSpacing = spacing;
-        label.enableWordWrapping = false;
-        label.overflowMode = TextOverflowModes.Ellipsis;
+        label.textWrappingMode = TextWrappingModes.NoWrap;
+        label.overflowMode = TextOverflowModes.Truncate;
         label.raycastTarget = false;
         return label;
     }
